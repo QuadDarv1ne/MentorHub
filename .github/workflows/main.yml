@@ -45,13 +45,13 @@ jobs:
         working-directory: backend
         run: |
           python -m pip install flake8
-          flake8 . --max-line-length=120 || true
+          flake8 . --max-line-length=120
 
       - name: Backend typecheck: mypy
         working-directory: backend
         run: |
           python -m pip install mypy
-          mypy . || true
+          mypy .
 
       - name: Run backend tests
         working-directory: backend

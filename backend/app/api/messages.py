@@ -19,6 +19,12 @@ router = APIRouter()
 @router.get("/", response_model=List[MessageResponse])
 async def get_messages(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить список сообщений"""
+    # Проверка на корректность параметров пагинации
+    if skip < 0:
+        skip = 0
+    if limit <= 0 or limit > 100:
+        limit = 100
+    
     messages = db.query(DBMessage).offset(skip).limit(limit).all()
     return messages
 
@@ -71,7 +77,19 @@ async def update_message(message_id: int, message: MessageUpdate, db: Session = 
     if not db_message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
     
+    # Санитизация входных данных
+    sanitized_data = {}
     for key, value in message.model_dump(exclude_unset=True).items():
+        if key == "content" and value is not None:
+            sanitized_value = sanitize_text_field(value)
+            if not is_safe_string(sanitized_value):
+                raise HTTPException(status_code=400, detail="Недопустимые символы в сообщении")
+            sanitized_data[key] = sanitized_value
+        else:
+            sanitized_data[key] = value
+    
+    # Обновляем поля
+    for key, value in sanitized_data.items():
         setattr(db_message, key, value)
     
     db.commit()

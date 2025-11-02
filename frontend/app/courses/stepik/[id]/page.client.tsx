@@ -185,12 +185,12 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
             <ReviewList key={reloadReviewsKey} courseId={course.id} />
           </div>
           <div>
-            {isAuthenticated ? (
+              {isAuthenticated ? (
               <ReviewForm courseId={course.id} onSuccess={() => setReloadReviewsKey(k => k + 1)} />
             ) : (
               <div className="bg-white p-4 rounded shadow text-center">
                 <p className="mb-2">Пожалуйста, войдите в систему, чтобы оставить отзыв.</p>
-                <button onClick={() => (window.location.href = '/login')} className="px-4 py-2 bg-primary-600 text-white rounded">Войти</button>
+                <button onClick={() => (window.location.href = '/auth/login')} className="px-4 py-2 bg-primary-600 text-white rounded">Войти</button>
               </div>
             )}
           </div>

@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
 from app.schemas.payment import PaymentCreate, PaymentUpdate, PaymentResponse
+from app.utils.sanitization import sanitize_string, is_safe_string
 
 router = APIRouter()
 
@@ -20,6 +21,12 @@ router = APIRouter()
 @router.get("/", response_model=List[PaymentResponse])
 async def get_payments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить список платежей"""
+    # Проверка на корректность параметров пагинации
+    if skip < 0:
+        skip = 0
+    if limit <= 0 or limit > 100:
+        limit = 100
+    
     payments = db.query(DBPayment).offset(skip).limit(limit).all()
     return payments
 
@@ -36,6 +43,19 @@ async def get_payment(payment_id: int, db: Session = Depends(get_db), rate_limit
 @router.post("/", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def create_payment(payment: PaymentCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Создать платеж"""
+    # Санитизация входных данных
+    sanitized_currency = sanitize_string(payment.currency) if payment.currency else "USD"
+    sanitized_payment_method = sanitize_string(payment.payment_method) if payment.payment_method else None
+    sanitized_transaction_id = sanitize_string(payment.transaction_id) if payment.transaction_id else None
+    
+    # Проверка на безопасность входных данных
+    if sanitized_currency and not is_safe_string(sanitized_currency):
+        raise HTTPException(status_code=400, detail="Недопустимые символы в валюте")
+    if sanitized_payment_method and not is_safe_string(sanitized_payment_method):
+        raise HTTPException(status_code=400, detail="Недопустимые символы в методе оплаты")
+    if sanitized_transaction_id and not is_safe_string(sanitized_transaction_id):
+        raise HTTPException(status_code=400, detail="Недопустимые символы в ID транзакции")
+    
     # Проверяем, что студент существует
     student = db.query(User).filter(User.id == payment.student_id).first()
     if not student:
@@ -51,7 +71,16 @@ async def create_payment(payment: PaymentCreate, db: Session = Depends(get_db), 
     if not session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
     
-    db_payment = DBPayment(**payment.model_dump())
+    # Создаем платеж с санитизированными данными
+    db_payment = DBPayment(
+        student_id=payment.student_id,
+        mentor_id=payment.mentor_id,
+        session_id=payment.session_id,
+        amount=payment.amount,
+        currency=sanitized_currency,
+        payment_method=sanitized_payment_method,
+        transaction_id=sanitized_transaction_id
+    )
     db.add(db_payment)
     db.commit()
     db.refresh(db_payment)
@@ -65,7 +94,20 @@ async def update_payment(payment_id: int, payment: PaymentUpdate, db: Session = 
     if not db_payment:
         raise HTTPException(status_code=404, detail="Платеж не найден")
     
+    # Санитизация входных данных
+    sanitized_data = {}
     for key, value in payment.model_dump(exclude_unset=True).items():
+        if key in ["payment_method", "transaction_id"] and value is not None:
+            sanitized_value = sanitize_string(value)
+            if not is_safe_string(sanitized_value):
+                field_name = "методе оплаты" if key == "payment_method" else "ID транзакции"
+                raise HTTPException(status_code=400, detail=f"Недопустимые символы в {field_name}")
+            sanitized_data[key] = sanitized_value
+        else:
+            sanitized_data[key] = value
+    
+    # Обновляем поля
+    for key, value in sanitized_data.items():
         setattr(db_payment, key, value)
     
     db.commit()
