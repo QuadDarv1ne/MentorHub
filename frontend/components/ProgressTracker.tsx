@@ -8,9 +8,12 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
   const [percent, setPercent] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     let mounted = true;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    setIsAuthenticated(Boolean(token));
     (async () => {
       try {
         const res = await getMyProgress(courseId);
@@ -27,6 +30,10 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
   }, [courseId]);
 
   const save = async () => {
+    if (!isAuthenticated) {
+      setError('Требуется авторизация для сохранения прогресса');
+      return;
+    }
     setIsSaving(true);
     setError(null);
     try {
@@ -41,6 +48,10 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
   };
 
   const markCompleted = async () => {
+    if (!isAuthenticated) {
+      setError('Требуется авторизация для сохранения прогресса');
+      return;
+    }
     setIsSaving(true);
     setError(null);
     try {
@@ -66,13 +77,17 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <label htmlFor={`progress-range-${courseId}`} className="sr-only">Прогресс</label>
         <input
+          id={`progress-range-${courseId}`}
+          aria-label="Прогресс по курсу"
           type="range"
           min={0}
           max={100}
           value={percent}
           onChange={(e) => setPercent(Number(e.target.value))}
           className="flex-1"
+          disabled={!isAuthenticated}
         />
         <button onClick={save} disabled={isSaving} className="px-3 py-1 bg-primary-600 text-white rounded">
           {isSaving ? 'Сохранение...' : 'Сохранить'}
@@ -82,6 +97,11 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
         </button>
       </div>
       {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
+      {!isAuthenticated && (
+        <div className="text-sm text-gray-600 mt-3">
+          Для сохранения прогресса <a href="/auth/login" className="text-primary-600 hover:underline">войдите в аккаунт</a>.
+        </div>
+      )}
     </div>
   );
 }
