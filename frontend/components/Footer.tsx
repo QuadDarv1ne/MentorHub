@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Github, Mail, Telegram } from 'lucide-react'
+import { Github, Mail, Send } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -22,7 +22,7 @@ export default function Footer() {
                 <Mail className="w-5 h-5" />
               </a>
               <a href="https://t.me/mentorhub" className="text-gray-400 hover:text-white transition-colors">
-                <Telegram className="w-5 h-5" />
+                <Send className="w-5 h-5" />
               </a>
             </div>
           </div>
