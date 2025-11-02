@@ -81,21 +81,21 @@ export default function CourseDetail() {
             Stepik
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-gray-900">{course.title}</span>
+          <span className="text-gray-900">{courseData.title}</span>
         </div>
 
         {/* Заголовок курса */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">{course.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">{courseData.title}</h1>
 
         {/* Основная информация */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              {course.cover && (
+              {courseData.cover && (
                 <div className="relative h-48 md:h-64 rounded-lg overflow-hidden mb-4">
                   <Image
-                    src={course.cover}
-                    alt={course.title}
+                    src={courseData.cover}
+                    alt={courseData.title}
                     layout="fill"
                     objectFit="cover"
                   />
@@ -104,15 +104,15 @@ export default function CourseDetail() {
               <div className="space-y-2">
                 <p className="text-gray-600">
                   <span className="font-semibold">Преподаватели:</span>{" "}
-                  {course.instructors.join(", ")}
+                  {courseData.instructors.map((instructor) => instructor.name).join(", ")}
                 </p>
                 <p className="text-gray-600">
                   <span className="font-semibold">Рейтинг:</span>{" "}
-                  {course.rating} / 5.0
+                  {courseData.rating} / 5.0
                 </p>
                 <p className="text-gray-600">
                   <span className="font-semibold">Студентов:</span>{" "}
-                  {course.students_count}
+                  {courseData.learners_count}
                 </p>
               </div>
             </div>
@@ -120,23 +120,23 @@ export default function CourseDetail() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2">О курсе</h3>
-                <p className="text-gray-600">{course.description}</p>
+                <p className="text-gray-600">{courseData.description}</p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-2">Детали</h3>
                 <ul className="space-y-2 text-gray-600">
                   <li>
-                    <span className="font-medium">Длительность:</span> {course.duration}
+                    <span className="font-medium">Длительность:</span> {courseData.duration}
                   </li>
                   <li>
-                    <span className="font-medium">Язык:</span> {course.language}
+                    <span className="font-medium">Язык:</span> {courseData.language}
                   </li>
                   <li>
-                    <span className="font-medium">Уровень:</span> {course.level}
+                    <span className="font-medium">Уровень:</span> {courseData.course_format}
                   </li>
                   <li>
                     <span className="font-medium">Стоимость:</span>{" "}
-                    {course.price ? `${course.price} ₽` : "Бесплатно"}
+                    {courseData.price ? `${courseData.price} ₽` : "Бесплатно"}
                   </li>
                 </ul>
               </div>
@@ -144,37 +144,24 @@ export default function CourseDetail() {
           </div>
         </div>
 
-        {/* Навыки */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Приобретаемые навыки</h2>
-          <div className="flex flex-wrap gap-2">
-            {course.skills.map((skill, index) => (
-              <span
-                key={index}
-                className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
+
 
         {/* Программа курса */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-2xl font-bold mb-4">Программа курса</h2>
           <div className="space-y-6">
-            {course.syllabus.map((section, index) => (
+            {courseData.syllabus?.map((section: any, index: number) => (
               <div key={index} className="border-b border-gray-200 pb-4 last:border-0">
-                <h3 className="text-lg font-semibold mb-2">{section.section}</h3>
+                <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
                 <ul className="space-y-2">
-                  {section.lessons.map((lesson, lessonIndex) => (
+                  {section.lessons?.map((lesson: any, lessonIndex: number) => (
                     <li key={lessonIndex} className="text-gray-600 ml-4">
-                      • {lesson}
+                      • {lesson.title}
                     </li>
-                  ))}
+                  )) || []}
                 </ul>
               </div>
-            ))}
+            )) || []}
           </div>
         </div>
 

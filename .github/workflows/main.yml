@@ -27,7 +27,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          key: "${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}"
 
       - name: Install backend dependencies
         run: |
@@ -76,17 +76,21 @@ jobs:
           cache: 'npm'
 
       - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
+        run: |
+          cd frontend
+          npm ci
 
       - name: Lint
-        working-directory: frontend
-        run: npm run lint --if-present
+        run: |
+          cd frontend
+          npm run lint --if-present
 
       - name: Build
-        working-directory: frontend
-        run: npm run build --if-present
+        run: |
+          cd frontend
+          npm run build --if-present
 
       - name: Run frontend tests
-        working-directory: frontend
-        run: npm test --if-present --silent
+        run: |
+          cd frontend
+          npm test --if-present --silent
