@@ -442,7 +442,7 @@ _rate_limiter = RateLimiter(
 
 
 def rate_limit_dependency(
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> bool:
     """
     Rate limiting dependency
@@ -455,7 +455,8 @@ def rate_limit_dependency(
     if not _rate_limiter:
         return True
     
-    client_id = f"user_{current_user.id}"
+    # If user is not authenticated, use a generic client id for unauthenticated requests
+    client_id = f"user_{current_user.id}" if current_user else "anonymous"
     
     if not _rate_limiter.is_allowed(client_id):
         raise HTTPException(

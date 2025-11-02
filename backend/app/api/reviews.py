@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 
-from app.dependencies import get_db, get_current_user, get_current_user_optional
+from app.dependencies import get_db, get_current_user, get_current_user_optional, rate_limit_dependency
 from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 from app.schemas.common import PaginatedResponse
 from app.models import Review, User
@@ -21,6 +21,7 @@ def create_review(
     payload: ReviewCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
     # Проверяем, не оставлял ли пользователь уже отзыв для этого курса
     existing = db.query(Review).filter(Review.course_id == course_id, Review.user_id == current_user.id).first()
@@ -49,6 +50,7 @@ def list_reviews(
     page_size: int = 20,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user_optional),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
     # Пагинация
     total = db.query(Review).filter(Review.course_id == course_id).count()
@@ -66,7 +68,11 @@ def list_reviews(
 
 
 @router.get("/courses/{course_id}/reviews/aggregate", response_model=ReviewAggregate)
-def aggregate_reviews(course_id: int, db: Session = Depends(get_db)):
+def aggregate_reviews(
+    course_id: int, 
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
     r = db.query(func.avg(Review.rating).label("avg"), func.count(Review.id).label("total")).filter(Review.course_id == course_id).first()
     avg = float(r.avg) if r and r.avg is not None else 0.0
     total = int(r.total) if r and r.total else 0

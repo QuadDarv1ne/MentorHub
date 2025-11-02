@@ -37,7 +37,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+async def register(user_data: UserCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Регистрация нового пользователя"""
     
     # Санитизация входных данных
@@ -144,7 +144,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limi
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+async def refresh_token(refresh_token: str, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Обновление токена доступа с помощью refresh токена"""
     
     try:

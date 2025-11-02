@@ -6,6 +6,7 @@
 from app.models.base import BaseModel, TimestampMixin
 from app.models.user import User, UserRole
 from app.models.review import Review
+from app.models.progress import Progress
 from app.models.mentor import Mentor
 from app.models.session import Session, SessionStatus
 from app.models.message import Message
@@ -19,6 +20,7 @@ __all__ = [
     "User",
     "UserRole",
     "Review",
+    "Progress",
     "Mentor",
     "Session",
     "SessionStatus",
