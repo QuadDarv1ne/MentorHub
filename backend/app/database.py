@@ -148,8 +148,9 @@ class Database:
     def check_connection() -> bool:
         """Check if database connection is working"""
         try:
+            from sqlalchemy import text
             session = SessionLocal()
-            session.execute("SELECT 1")
+            session.execute(text("SELECT 1"))
             session.close()
             logger.info("✅ Database connection successful")
             return True

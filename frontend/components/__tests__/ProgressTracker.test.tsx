@@ -27,11 +27,14 @@ describe('ProgressTracker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
 
-    await waitFor(() => expect((global as any).fetch).toHaveBeenCalled());
-    const [url, opts] = (global as any).fetch.mock.calls[0];
-    expect(url).toContain('/api/v1/progress');
-    expect(opts.headers.Authorization).toBe('Bearer fake-token');
-    expect(JSON.parse(opts.body)).toEqual({ course_id: 200, progress_percent: 50 });
+  await waitFor(() => expect((global as any).fetch).toHaveBeenCalled());
+  // first call is fetch of existing progress (GET), second is upsert (POST)
+  const postCall = (global as any).fetch.mock.calls.find((c: any[]) => c[1] && c[1].method === 'POST');
+  expect(postCall).toBeDefined();
+  const [url, opts] = postCall;
+  expect(url).toContain('/api/v1/progress');
+  expect(opts.headers.Authorization).toBe('Bearer fake-token');
+  expect(JSON.parse(opts.body)).toEqual({ course_id: 200, progress_percent: 50 });
   });
 
   it('shows login prompt when unauthenticated and disables controls', () => {
