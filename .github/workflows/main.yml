@@ -30,35 +30,36 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
 
       - name: Install backend dependencies
-        working-directory: backend
         run: |
+          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Backend lint: black check
-        working-directory: backend
         run: |
+          cd backend
           python -m pip install black
           black --check .
 
       - name: Backend lint: flake8
-        working-directory: backend
         run: |
+          cd backend
           python -m pip install flake8
           flake8 . --max-line-length=120
 
       - name: Backend typecheck: mypy
-        working-directory: backend
         run: |
+          cd backend
           python -m pip install mypy
           mypy .
 
       - name: Run backend tests
-        working-directory: backend
         env:
           ENVIRONMENT: testing
           DATABASE_URL: sqlite:///./test.db
-        run: pytest -q
+        run: |
+          cd backend
+          pytest -q
 
   frontend:
     name: Frontend (build & tests)
