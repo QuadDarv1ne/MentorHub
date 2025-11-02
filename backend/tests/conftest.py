@@ -12,6 +12,11 @@ from app.database import Base
 from app.dependencies import get_db
 from app.main import app
 
+# Ensure tests run with testing environment and sqlite DB
+import os
+os.environ.setdefault('ENVIRONMENT', 'testing')
+os.environ.setdefault('DATABASE_URL', 'sqlite:///./test.db')
+
 
 # URL тестовой базы данных (SQLite для тестов)
 TEST_DATABASE_URL = "sqlite:///./test.db"

@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.dependencies import get_db, rate_limit_dependency
 from app.models.session import Session as DBSession
 from app.models.user import User
 from app.models.mentor import Mentor
