@@ -32,15 +32,27 @@ async def update_current_user_profile(
 ):
     """Обновить профиль текущего пользователя"""
     
+    # Санитизация входных данных
+    sanitized_full_name = sanitize_string(user_update.full_name) if user_update.full_name is not None else None
+    sanitized_avatar_url = sanitize_string(user_update.avatar_url) if user_update.avatar_url is not None else None
+    sanitized_username = sanitize_username(user_update.username) if user_update.username is not None else None
+    
+    # Проверка на безопасность входных данных
+    if sanitized_username and not is_safe_string(sanitized_username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Недопустимые символы в username",
+        )
+    
     # Обновление полей
-    if user_update.full_name is not None:
-        current_user.full_name = user_update.full_name
-    if user_update.avatar_url is not None:
-        current_user.avatar_url = user_update.avatar_url
-    if user_update.username is not None:
+    if sanitized_full_name is not None:
+        current_user.full_name = sanitized_full_name
+    if sanitized_avatar_url is not None:
+        current_user.avatar_url = sanitized_avatar_url
+    if sanitized_username is not None:
         # Проверка уникальности username
         existing = db.query(User).filter(
-            User.username == user_update.username,
+            User.username == sanitized_username,
             User.id != current_user.id
         ).first()
         if existing:
@@ -48,7 +60,7 @@ async def update_current_user_profile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username уже занят",
             )
-        current_user.username = user_update.username
+        current_user.username = sanitized_username
     
     db.commit()
     db.refresh(current_user)
@@ -61,6 +73,13 @@ async def update_current_user_profile(
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить пользователя по ID"""
+    # Проверка на корректность ID
+    if user_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Некорректный ID пользователя",
+        )
+    
     user = db.query(User).filter(User.id == user_id).first()
     
     if not user:

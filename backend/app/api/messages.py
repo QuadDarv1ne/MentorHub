@@ -11,6 +11,7 @@ from app.dependencies import get_db, rate_limit_dependency
 from app.models.message import Message as DBMessage
 from app.models.user import User
 from app.schemas.message import MessageCreate, MessageUpdate, MessageResponse
+from app.utils.sanitization import sanitize_text_field, is_safe_string
 
 router = APIRouter()
 
