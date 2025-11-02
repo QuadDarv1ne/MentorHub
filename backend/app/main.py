@@ -10,14 +10,19 @@ from typing import Optional
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.middleware.gzip import GZIPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
+
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
 
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
@@ -33,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 # ==================== SENTRY SETUP ====================
-if settings.SENTRY_DSN and is_production():
+if SENTRY_AVAILABLE and settings.SENTRY_DSN and is_production():
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
         integrations=[
@@ -46,6 +51,8 @@ if settings.SENTRY_DSN and is_production():
         debug=settings.DEBUG,
     )
     logger.info("✅ Sentry initialized")
+elif settings.SENTRY_DSN and not SENTRY_AVAILABLE:
+    logger.warning("⚠️ Sentry DSN настроен, но sentry-sdk не установлен")
 
 
 # ==================== DATABASE STARTUP/SHUTDOWN ====================
@@ -113,7 +120,7 @@ if is_production():
 
 # GZIP Middleware for compression
 app.add_middleware(
-    GZIPMiddleware,
+    GZipMiddleware,
     minimum_size=1000,
 )
 logger.info("✅ GZIP middleware added")

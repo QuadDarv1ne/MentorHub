@@ -57,16 +57,23 @@ def set_sqlite_pragma(dbapi_conn, connection_record):
         cursor.close()
 
 
-@event.listens_for(Engine, "pool_connect")
-def log_pool_connect(dbapi_conn, connection_record):
-    """Log pool connections in debug mode"""
+@event.listens_for(Engine, "connect")
+def log_connect(dbapi_conn, connection_record):
+    """Log database connections in debug mode"""
+    if settings.DEBUG:
+        logger.debug("📡 Database connection established")
+
+
+@event.listens_for(Engine, "checkout")
+def log_checkout(dbapi_conn, connection_record, connection_proxy):
+    """Log connection checkout from pool in debug mode"""
     if settings.DEBUG:
         logger.debug("📡 Database connection acquired from pool")
 
 
-@event.listens_for(Engine, "pool_checkin")
-def log_pool_checkin(dbapi_conn, connection_record):
-    """Log pool checkins in debug mode"""
+@event.listens_for(Engine, "checkin")
+def log_checkin(dbapi_conn, connection_record):
+    """Log connection checkin to pool in debug mode"""
     if settings.DEBUG:
         logger.debug("📡 Database connection returned to pool")
 

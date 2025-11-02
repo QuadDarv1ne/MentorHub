@@ -1,6 +1,6 @@
 """
-Base Models
-Common base classes for all database models
+Базовые модели
+Общие базовые классы для всех моделей базы данных
 """
 
 from datetime import datetime
@@ -11,7 +11,7 @@ from app.database import Base
 
 
 class BaseModel(Base):
-    """Base model with common fields"""
+    """Базовая модель с общими полями"""
     
     __abstract__ = True
     
@@ -19,12 +19,12 @@ class BaseModel(Base):
     
     @declared_attr
     def __tablename__(cls):
-        """Auto-generate table name from class name"""
+        """Автоматическая генерация имени таблицы из имени класса"""
         return cls.__name__.lower() + "s"
 
 
 class TimestampMixin:
-    """Mixin for created_at and updated_at timestamps"""
+    """Mixin для временных меток created_at и updated_at"""
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(

@@ -1,6 +1,6 @@
 """
-Common Schemas
-Shared Pydantic schemas used across the application
+Общие схемы
+Общие Pydantic схемы, используемые во всем приложении
 """
 
 from typing import Generic, TypeVar, List
@@ -10,23 +10,23 @@ T = TypeVar('T')
 
 
 class PaginationParams(BaseModel):
-    """Pagination parameters"""
+    """Параметры пагинации"""
     page: int = Field(ge=1, default=1)
     page_size: int = Field(ge=1, le=100, default=20)
     
     @property
     def skip(self) -> int:
-        """Calculate offset for pagination"""
+        """Вычисление смещения для пагинации"""
         return (self.page - 1) * self.page_size
     
     @property
     def limit(self) -> int:
-        """Get limit for pagination"""
+        """Получение лимита для пагинации"""
         return self.page_size
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
-    """Generic paginated response"""
+    """Универсальный ответ с пагинацией"""
     total: int
     page: int
     page_size: int
@@ -35,7 +35,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     
     @classmethod
     def create(cls, items: List[T], total: int, page: int, page_size: int):
-        """Create paginated response"""
+        """Создание ответа с пагинацией"""
         total_pages = (total + page_size - 1) // page_size
         return cls(
             total=total,
@@ -47,13 +47,13 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 
 class MessageResponse(BaseModel):
-    """Simple message response"""
+    """Простой ответ с сообщением"""
     message: str
     success: bool = True
 
 
 class ErrorResponse(BaseModel):
-    """Error response schema"""
+    """Схема ответа с ошибкой"""
     detail: str
     error_code: str | None = None
 

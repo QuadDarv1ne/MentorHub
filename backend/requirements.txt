@@ -17,7 +17,7 @@ pydantic-settings==2.1.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
-PyJWT==2.8.1
+PyJWT==2.10.1
 
 # ==================== EMAIL & NOTIFICATIONS ====================
 email-validator==2.1.0

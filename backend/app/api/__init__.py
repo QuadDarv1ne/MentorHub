@@ -1,7 +1,7 @@
 """
-API Routes
-FastAPI route handlers
+API роуты
+Обработчики маршрутов FastAPI
 """
 
-# This file makes the api directory a Python package
+# Этот файл делает директорию api Python пакетом
 

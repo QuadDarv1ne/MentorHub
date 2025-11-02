@@ -1,6 +1,6 @@
 """
-User Model
-User account and authentication model
+Модель пользователя
+Модель учетной записи и аутентификации пользователя
 """
 
 from sqlalchemy import Column, String, Boolean, Enum as SQLEnum
@@ -11,14 +11,14 @@ from app.models.base import BaseModel, TimestampMixin
 
 
 class UserRole(str, enum.Enum):
-    """User role enumeration"""
+    """Роли пользователей"""
     STUDENT = "student"
     MENTOR = "mentor"
     ADMIN = "admin"
 
 
 class User(BaseModel, TimestampMixin):
-    """User model"""
+    """Модель пользователя"""
     
     __tablename__ = "users"
     
@@ -32,7 +32,7 @@ class User(BaseModel, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     
-    # Relationships will be added later
+    # Связи будут добавлены позже
     # mentor_profile = relationship("Mentor", back_populates="user", uselist=False)
     # sessions_as_student = relationship("Session", foreign_keys="Session.student_id")
     # sessions_as_mentor = relationship("Session", foreign_keys="Session.mentor_id")

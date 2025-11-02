@@ -8,9 +8,17 @@ from typing import Generator, Optional
 from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status, Query
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-import jwt
+try:
+    import jwt
+except ImportError:
+    # Fallback для PyJWT
+    try:
+        import jwt as PyJWT_jwt
+        jwt = PyJWT_jwt
+    except ImportError:
+        raise ImportError("Необходимо установить PyJWT: pip install PyJWT")
 
 from app.config import settings
 from app.database import SessionLocal
@@ -55,7 +63,7 @@ class TokenPayload:
         self.role = role
 
 
-def verify_token(credentials: HTTPAuthCredentials = Depends(security)) -> TokenPayload:
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> TokenPayload:
     """
     Verify JWT token and return token payload
     
@@ -73,17 +81,25 @@ def verify_token(credentials: HTTPAuthCredentials = Depends(security)) -> TokenP
             algorithms=[settings.ALGORITHM]
         )
         
-        user_id: int = payload.get("sub")
+        # sub может быть строкой или числом, преобразуем в int
+        sub_value = payload.get("sub")
+        if sub_value is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload: missing sub",
+            )
+        
+        user_id: int = int(sub_value)  # Преобразуем в int
         email: str = payload.get("email")
         role: str = payload.get("role")
         
-        if user_id is None or email is None:
+        if email is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload",
+                detail="Invalid token payload: missing email",
             )
         
-        return TokenPayload(user_id=user_id, email=email, role=role)
+        return TokenPayload(user_id=user_id, email=email, role=role or "student")
         
     except jwt.ExpiredSignatureError:
         raise HTTPException(
@@ -204,7 +220,7 @@ def get_current_student(
 
 async def get_current_user_optional(
     db: Session = Depends(get_db),
-    credentials: Optional[HTTPAuthCredentials] = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[User]:
     """
     Get current user if authenticated, otherwise return None

@@ -1,6 +1,6 @@
 """
-Utility Functions
-Common helper functions used across the application
+Утилиты
+Общие вспомогательные функции, используемые во всем приложении
 """
 
 from app.utils.security import get_password_hash, verify_password

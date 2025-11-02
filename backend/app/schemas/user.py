@@ -1,6 +1,6 @@
 """
-User Schemas
-Pydantic schemas for user-related operations
+Схемы пользователей
+Pydantic схемы для операций с пользователями
 """
 
 from datetime import datetime
@@ -11,27 +11,27 @@ from app.models.user import UserRole
 
 
 class UserBase(BaseModel):
-    """Base user schema"""
+    """Базовая схема пользователя"""
     email: EmailStr
     username: str = Field(min_length=3, max_length=100)
     full_name: Optional[str] = Field(None, max_length=255)
 
 
 class UserCreate(UserBase):
-    """Schema for user registration"""
+    """Схема для регистрации пользователя"""
     password: str = Field(min_length=8, max_length=100)
     role: UserRole = UserRole.STUDENT
 
 
 class UserUpdate(BaseModel):
-    """Schema for user profile update"""
+    """Схема для обновления профиля пользователя"""
     full_name: Optional[str] = Field(None, max_length=255)
     avatar_url: Optional[str] = Field(None, max_length=512)
     username: Optional[str] = Field(None, min_length=3, max_length=100)
 
 
 class UserResponse(UserBase):
-    """Schema for user response"""
+    """Схема ответа с данными пользователя"""
     id: int
     role: UserRole
     is_active: bool
@@ -44,13 +44,13 @@ class UserResponse(UserBase):
 
 
 class UserLogin(BaseModel):
-    """Schema for user login"""
+    """Схема для входа пользователя"""
     email: EmailStr
     password: str
 
 
 class TokenResponse(BaseModel):
-    """Schema for authentication token response"""
+    """Схема ответа с токенами аутентификации"""
     access_token: str
     refresh_token: str
     token_type: str = "bearer"

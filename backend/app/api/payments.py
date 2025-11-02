@@ -1,7 +1,7 @@
 """
-Payment Routes
-Placeholder for payment-related routes
-TODO: Implement payment routes
+Роуты платежей
+Заглушка для роутов, связанных с платежами
+TODO: Реализовать роуты платежей
 """
 
 from fastapi import APIRouter
@@ -11,6 +11,6 @@ router = APIRouter()
 
 @router.get("/")
 async def get_payments():
-    """Get list of payments"""
-    return {"message": "Payments endpoint - coming soon"}
+    """Получить список платежей"""
+    return {"message": "Эндпоинт платежей - в разработке"}
 

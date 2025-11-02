@@ -1,6 +1,6 @@
 """
-Pydantic Schemas
-All request/response schemas
+Pydantic схемы
+Все схемы для запросов и ответов
 """
 
 from app.schemas.common import PaginationParams, MessageResponse

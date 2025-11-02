@@ -1,6 +1,6 @@
 """
-Authentication Routes
-Handles user registration, login, logout, token refresh
+Роуты аутентификации
+Обработка регистрации, входа, выхода и обновления токенов
 """
 
 import logging
@@ -22,7 +22,7 @@ security = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Create JWT access token"""
+    """Создание JWT токена доступа"""
     to_encode = data.copy()
     
     if expires_delta:
@@ -37,9 +37,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user"""
+    """Регистрация нового пользователя"""
     
-    # Check if user already exists
+    # Проверка существования пользователя
     existing_user = db.query(User).filter(
         (User.email == user_data.email) | (User.username == user_data.username)
     ).first()
@@ -47,10 +47,10 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email or username already exists",
+            detail="Пользователь с таким email или username уже существует",
         )
     
-    # Create new user
+    # Создание нового пользователя
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
         email=user_data.email,
@@ -59,44 +59,44 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password,
         role=user_data.role,
         is_active=True,
-        is_verified=False,  # Email verification required
+        is_verified=False,  # Требуется верификация email
     )
     
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
-    logger.info(f"New user registered: {new_user.email}")
+    logger.info(f"Новый пользователь зарегистрирован: {new_user.email}")
     
     return new_user
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(credentials: UserLogin, db: Session = Depends(get_db)):
-    """Login user and return JWT tokens"""
+    """Вход пользователя и возврат JWT токенов"""
     
-    # Find user by email
+    # Поиск пользователя по email
     user = db.query(User).filter(User.email == credentials.email).first()
     
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Неверный email или пароль",
         )
     
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
+            detail="Учетная запись пользователя неактивна",
         )
     
-    # Create tokens
+    # Создание токенов
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     
     access_token = create_access_token(
         data={
-            "sub": user.id,
+            "sub": str(user.id),  # JWT требует строку для sub
             "email": user.email,
             "role": user.role.value,
         },
@@ -105,13 +105,13 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
     
     refresh_token = create_access_token(
         data={
-            "sub": user.id,
+            "sub": str(user.id),  # JWT требует строку для sub
             "type": "refresh",
         },
         expires_delta=refresh_token_expires,
     )
     
-    logger.info(f"User logged in: {user.email}")
+    logger.info(f"Пользователь вошел в систему: {user.email}")
     
     return TokenResponse(
         access_token=access_token,
@@ -122,7 +122,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
-    """Refresh access token using refresh token"""
+    """Обновление токена доступа с помощью refresh токена"""
     
     try:
         payload = jwt.decode(
@@ -134,7 +134,7 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
         if payload.get("type") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type",
+                detail="Неверный тип токена",
             )
         
         user_id = payload.get("sub")
@@ -143,14 +143,14 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
         if not user or not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or inactive",
+                detail="Пользователь не найден или неактивен",
             )
         
-        # Create new access token
+        # Создание нового токена доступа
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={
-                "sub": user.id,
+                "sub": str(user.id),  # JWT требует строку для sub
                 "email": user.email,
                 "role": user.role.value,
             },
@@ -159,24 +159,24 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
         
         return TokenResponse(
             access_token=access_token,
-            refresh_token=refresh_token,  # Reuse refresh token
+            refresh_token=refresh_token,  # Повторное использование refresh токена
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
         
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has expired",
+            detail="Refresh токен истек",
         )
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
+            detail="Неверный refresh токен",
         )
 
 
 @router.post("/logout")
 async def logout():
-    """Logout user (client should discard tokens)"""
-    return {"message": "Successfully logged out"}
+    """Выход пользователя (клиент должен удалить токены)"""
+    return {"message": "Успешный выход из системы"}
 

@@ -4,8 +4,10 @@ Handles all environment variables and app settings
 """
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import Optional, List
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
@@ -16,6 +18,18 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
+    
+    @field_validator('DEBUG', mode='before')
+    @classmethod
+    def validate_debug(cls, v):
+        """Валидация DEBUG из переменных окружения"""
+        if isinstance(v, str):
+            return v.lower() in ('true', '1', 'yes', 'on')
+        # Если в системных переменных DEBUG имеет неправильное значение, игнорируем его
+        env_debug = os.environ.get('DEBUG', '')
+        if env_debug and env_debug.upper() == 'WARN':
+            return False
+        return bool(v) if v is not None else False
     
     # ==================== SERVER ====================
     HOST: str = "0.0.0.0"

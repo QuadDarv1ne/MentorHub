@@ -1,7 +1,7 @@
 """
-Message Routes
-Placeholder for message/chat-related routes
-TODO: Implement message routes
+Роуты сообщений
+Заглушка для роутов, связанных с сообщениями/чатом
+TODO: Реализовать роуты сообщений
 """
 
 from fastapi import APIRouter
@@ -11,6 +11,6 @@ router = APIRouter()
 
 @router.get("/")
 async def get_messages():
-    """Get list of messages"""
-    return {"message": "Messages endpoint - coming soon"}
+    """Получить список сообщений"""
+    return {"message": "Эндпоинт сообщений - в разработке"}
 

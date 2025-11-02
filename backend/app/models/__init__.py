@@ -1,13 +1,13 @@
 """
-Database Models
-All SQLAlchemy models should be imported here for Alembic to discover them
+Модели базы данных
+Все модели SQLAlchemy должны быть импортированы здесь для обнаружения Alembic
 """
 
 from app.models.base import BaseModel, TimestampMixin
 from app.models.user import User, UserRole
 
-# Import all models here for Alembic autogenerate
-# Example:
+# Импортируйте все модели здесь для автогенерации Alembic
+# Пример:
 # from app.models.mentor import Mentor
 # from app.models.course import Course
 # from app.models.session import Session

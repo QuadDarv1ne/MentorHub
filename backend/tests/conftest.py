@@ -1,6 +1,6 @@
 """
-Pytest configuration and fixtures
-Shared test fixtures and setup
+Конфигурация pytest и фикстуры
+Общие тестовые фикстуры и настройка
 """
 
 import pytest
@@ -8,27 +8,28 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 
-from app.database import Base, get_db
+from app.database import Base
+from app.dependencies import get_db
 from app.main import app
 
 
-# Test database URL (SQLite in memory for tests)
+# URL тестовой базы данных (SQLite для тестов)
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 
 @pytest.fixture(scope="function")
 def db_session():
-    """Create a test database session"""
+    """Создание сессии тестовой базы данных"""
     engine = create_engine(
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False}
     )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
-    # Create tables
+    # Создание таблиц
     Base.metadata.create_all(bind=engine)
     
-    # Create session
+    # Создание сессии
     session = TestingSessionLocal()
     
     try:
@@ -40,7 +41,7 @@ def db_session():
 
 @pytest.fixture(scope="function")
 def client(db_session):
-    """Create a test client with database dependency override"""
+    """Создание тестового клиента с переопределением зависимости базы данных"""
     
     def override_get_db():
         try:
@@ -58,7 +59,7 @@ def client(db_session):
 
 @pytest.fixture
 def sample_user_data():
-    """Sample user data for testing"""
+    """Примерные данные пользователя для тестирования"""
     return {
         "email": "test@example.com",
         "username": "testuser",
