@@ -71,7 +71,7 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
       <h3 className="font-semibold mb-2">Прогресс по курсу</h3>
       <div className="mb-2">
         <div className="w-full bg-gray-200 rounded h-4 overflow-hidden">
-          <div className="bg-primary-600 h-4" style={{ width: `${percent}%` }} />
+          <div className="bg-primary-600 h-4" aria-hidden style={{ width: `${percent}%` }} />
         </div>
         <div className="text-sm text-gray-600 mt-1">{percent}%</div>
       </div>
