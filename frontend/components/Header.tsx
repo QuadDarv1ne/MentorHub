@@ -42,10 +42,10 @@ export default function Header() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
               Войти
             </Link>
-            <Link href="/register" className="btn-primary">
+            <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
               Начать
             </Link>
           </div>
@@ -79,10 +79,10 @@ export default function Header() {
                 Роадмапы
               </Link>
               <div className="pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                <Link href="/login" className="text-gray-700 hover:text-primary-600 transition-colors">
+                <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
                   Войти
                 </Link>
-                <Link href="/register" className="btn-primary text-center">
+                <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 text-center">
                   Начать
                 </Link>
               </div>

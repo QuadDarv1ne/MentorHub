@@ -195,6 +195,34 @@ npm run build
 npm start
 ```
 
+## Упрощённый быстрый запуск
+
+**Для Backend:**
+
+```bash
+# 1. Перейти в директорию backend
+cd C:\Users\maksi\OneDrive\Documents\GitHub\MentorHub\backend
+
+# 2. Убедиться, что все зависимости установлены
+pip install -r requirements.txt
+
+# 3. Запустить сервер
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Для Frontend:**
+
+```bash
+# 1. Перейти в директорию frontend
+cd C:\Users\maksi\OneDrive\Documents\GitHub\MentorHub\frontend
+
+# 2. Установить зависимости
+npm install
+
+# 3. Запустить development сервер
+npm run dev
+```
+
 ## Дополнительная информация
 
 - **Документация `API`:** http://localhost:8000/docs
