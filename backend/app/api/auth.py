@@ -15,6 +15,7 @@ from app.dependencies import get_db, rate_limit_dependency
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
 from app.utils.security import verify_password, get_password_hash
+from app.utils.sanitization import sanitize_email, sanitize_username, sanitize_string, is_safe_string
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,9 +40,21 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Регистрация нового пользователя"""
     
+    # Санитизация входных данных
+    sanitized_email = sanitize_email(user_data.email)
+    sanitized_username = sanitize_username(user_data.username)
+    sanitized_full_name = sanitize_string(user_data.full_name) if user_data.full_name else None
+    
+    # Проверка на безопасность входных данных
+    if not is_safe_string(sanitized_email) or not is_safe_string(sanitized_username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Недопустимые символы в email или username",
+        )
+    
     # Проверка существования пользователя
     existing_user = db.query(User).filter(
-        (User.email == user_data.email) | (User.username == user_data.username)
+        (User.email == sanitized_email) | (User.username == sanitized_username)
     ).first()
     
     if existing_user:
@@ -53,9 +66,9 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     # Создание нового пользователя
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
-        email=user_data.email,
-        username=user_data.username,
-        full_name=user_data.full_name,
+        email=sanitized_email,
+        username=sanitized_username,
+        full_name=sanitized_full_name,
         hashed_password=hashed_password,
         role=user_data.role,
         is_active=True,
@@ -72,11 +85,21 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, db: Session = Depends(get_db)):
+async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Вход пользователя и возврат JWT токенов"""
     
+    # Санитизация входных данных
+    sanitized_email = sanitize_email(credentials.email)
+    
+    # Проверка на безопасность входных данных
+    if not is_safe_string(sanitized_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Недопустимые символы в email",
+        )
+    
     # Поиск пользователя по email
-    user = db.query(User).filter(User.email == credentials.email).first()
+    user = db.query(User).filter(User.email == sanitized_email).first()
     
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
