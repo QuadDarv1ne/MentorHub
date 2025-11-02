@@ -88,8 +88,8 @@ export default async function CourseDetail({ params }: { params: { id: string } 
                   <Image
                     src={courseData.cover}
                     alt={courseData.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: 'cover' }}
                   />
                 </div>
               )}
