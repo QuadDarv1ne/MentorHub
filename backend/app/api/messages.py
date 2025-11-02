@@ -35,6 +35,13 @@ async def get_message(message_id: int, db: Session = Depends(get_db), rate_limit
 @router.post("/", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 async def create_message(message: MessageCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Создать сообщение"""
+    # Санитизация входных данных
+    sanitized_content = sanitize_text_field(message.content)
+    
+    # Проверка на безопасность входных данных
+    if not is_safe_string(sanitized_content):
+        raise HTTPException(status_code=400, detail="Недопустимые символы в сообщении")
+    
     # Проверяем, что отправитель существует
     sender = db.query(User).filter(User.id == message.sender_id).first()
     if not sender:
@@ -45,7 +52,12 @@ async def create_message(message: MessageCreate, db: Session = Depends(get_db), 
     if not recipient:
         raise HTTPException(status_code=404, detail="Получатель не найден")
     
-    db_message = DBMessage(**message.model_dump())
+    # Создаем сообщение с санитизированными данными
+    db_message = DBMessage(
+        sender_id=message.sender_id,
+        recipient_id=message.recipient_id,
+        content=sanitized_content
+    )
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
