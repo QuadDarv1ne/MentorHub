@@ -1,0 +1,97 @@
+# ==================== CORE FRAMEWORK ====================
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# ==================== DATABASE ====================
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
+# Для других БД (опционально):
+# pymongo==4.5.0        # MongoDB
+# redis==5.0.1          # Redis
+
+# ==================== AUTHENTICATION & SECURITY ====================
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+PyJWT==2.8.1
+
+# ==================== EMAIL & NOTIFICATIONS ====================
+python-multipart==0.0.6
+email-validator==2.1.0
+aiosmtplib==2.1.1
+
+# ==================== ASYNC & BACKGROUND TASKS ====================
+celery==5.3.4
+redis==5.0.1
+# (или используйте rq вместо celery)
+# rq==1.14.1
+
+# ==================== WEBSOCKETS ====================
+websockets==12.0
+aioredis==2.0.1
+
+# ==================== FILE STORAGE ====================
+boto3==1.29.7          # AWS S3
+# или для локального хранилища:
+# python-multipart==0.0.6
+
+# ==================== PAYMENTS ====================
+stripe==7.4.0
+# или для других платежных систем:
+# yandex-kassa-sdk==3.0.0  # Яндекс.Касса
+# paypalrestsdk==1.7.1     # PayPal
+
+# ==================== VIDEO & REAL-TIME ====================
+# Agora SDK будет устанавливаться через npm в frontend
+# или используйте: agora-sdk==1.0.0
+
+# ==================== MONITORING & LOGGING ====================
+python-json-logger==2.0.7
+sentry-sdk==1.38.0
+
+# ==================== DEVELOPMENT ====================
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+black==23.12.0
+flake8==6.1.0
+mypy==1.7.1
+isort==5.13.2
+
+# ==================== UTILITIES ====================
+requests==2.31.0
+httpx==0.25.2
+pyyaml==6.0.1
+python-slugify==8.0.1
+Pillow==10.1.0          # Image processing
+
+# ==================== CORS ====================
+fastapi-cors==0.0.6
+# или встроенный:
+# starlette==0.27.0  (уже включен в fastapi)
+
+# ==================== DATABASE TOOLS ====================
+sqlmodel==0.0.14        # SQLAlchemy + Pydantic комбинация
+# Опциональные ORM:
+# tortoise-orm==0.20.0
+
+# ==================== API DOCUMENTATION ====================
+# (уже встроено в FastAPI через Starlette)
+# swagger-ui==7.0.5
+
+# ==================== DEPLOYMENT ====================
+gunicorn==21.2.0
+python-dotenv==1.0.0
+
+# ==================== RATE LIMITING ====================
+slowapi==0.1.9
+
+# ==================== CACHING ====================
+cachetools==5.3.2
+
+# ==================== SERIALIZATION ====================
+orjson==3.9.10          # Быстрый JSON парсер

@@ -1,0 +1,190 @@
+version: '3.8'
+
+services:
+  # ==================== DATABASE ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentorhub-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-mentorhub_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_password}
+      POSTGRES_DB: ${DB_NAME:-mentorhub}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mentorhub_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+
+  # ==================== REDIS (Cache & Sessions) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: mentorhub-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # ==================== BACKEND (FastAPI) ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mentorhub-backend
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      
+      # JWT
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      
+      # Agora
+      AGORA_APP_ID: ${AGORA_APP_ID:-}
+      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE:-}
+      
+      # Stripe
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      
+      # AWS S3
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-mentorhub-bucket}
+      
+      # Email
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_SENDER: ${EMAIL_SENDER:-noreply@mentorhub.com}
+      
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ==================== CELERY WORKER (Background Tasks) ====================
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mentorhub-celery
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_SENDER: ${EMAIL_SENDER:-noreply@mentorhub.com}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    command: celery -A app.tasks worker --loglevel=info
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+
+  # ==================== CELERY BEAT (Scheduled Tasks) ====================
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mentorhub-celery-beat
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    command: celery -A app.tasks beat --loglevel=info
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+
+  # ==================== FRONTEND (Next.js) ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mentorhub-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_AGORA_APP_ID: ${AGORA_APP_ID:-}
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+
+  # ==================== NGINX (Reverse Proxy) ====================
+  nginx:
+    image: nginx:alpine
+    container_name: mentorhub-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  mentorhub-network:
+    driver: bridge
