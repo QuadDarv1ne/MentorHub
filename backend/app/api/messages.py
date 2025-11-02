@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from app.dependencies import get_db, rate_limit_dependency
 from app.models.message import Message as DBMessage
 from app.models.user import User
 from app.schemas.message import MessageCreate, MessageUpdate, MessageResponse
