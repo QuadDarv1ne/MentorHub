@@ -137,7 +137,22 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
                 detail="Неверный тип токена",
             )
         
-        user_id = payload.get("sub")
+        # Преобразуем sub из строки в int с проверкой на None
+        sub_value = payload.get("sub")
+        if sub_value is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный токен: отсутствует идентификатор пользователя",
+            )
+        
+        try:
+            user_id = int(sub_value)  # Преобразуем в int
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный токен: некорректный идентификатор пользователя",
+            )
+        
         user = db.query(User).filter(User.id == user_id).first()
         
         if not user or not user.is_active:
