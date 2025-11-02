@@ -17,14 +17,14 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[SessionResponse])
-async def get_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+async def get_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить список сессий"""
     sessions = db.query(DBSession).offset(skip).limit(limit).all()
     return sessions
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
-async def get_session(session_id: int, db: Session = Depends(get_db)):
+async def get_session(session_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о сессии по ID"""
     session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not session:
@@ -33,7 +33,7 @@ async def get_session(session_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
-async def create_session(session: SessionCreate, db: Session = Depends(get_db)):
+async def create_session(session: SessionCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Создать сессию"""
     # Проверяем, что студент существует
     student = db.query(User).filter(User.id == session.student_id).first()
@@ -53,7 +53,7 @@ async def create_session(session: SessionCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
-async def update_session(session_id: int, session: SessionUpdate, db: Session = Depends(get_db)):
+async def update_session(session_id: int, session: SessionUpdate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Обновить сессию"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
@@ -68,7 +68,7 @@ async def update_session(session_id: int, session: SessionUpdate, db: Session = 
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_session(session_id: int, db: Session = Depends(get_db)):
+async def delete_session(session_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Удалить сессию"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
