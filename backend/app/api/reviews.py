@@ -4,6 +4,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 
 from app.dependencies import get_db, get_current_user, get_current_user_optional
@@ -34,6 +35,8 @@ def create_review(
     )
     db.add(review)
     db.commit()
+    # Attach user relationship so returned object includes user_name
+    review.user = current_user
     db.refresh(review)
 
     return review
@@ -51,6 +54,7 @@ def list_reviews(
     total = db.query(Review).filter(Review.course_id == course_id).count()
     items = (
         db.query(Review)
+        .options(joinedload(Review.user))
         .filter(Review.course_id == course_id)
         .order_by(Review.created_at.desc())
         .offset((page - 1) * page_size)

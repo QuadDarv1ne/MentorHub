@@ -6,12 +6,12 @@
 from app.models.base import BaseModel, TimestampMixin
 from app.models.user import User, UserRole
 from app.models.review import Review
+from app.models.mentor import Mentor
+from app.models.session import Session, SessionStatus
+from app.models.message import Message
+from app.models.payment import Payment, PaymentStatus
 
 # Импортируйте все модели здесь для автогенерации Alembic
-# Пример:
-# from app.models.mentor import Mentor
-# from app.models.course import Course
-# from app.models.session import Session
 
 __all__ = [
     "BaseModel",
@@ -19,5 +19,11 @@ __all__ = [
     "User",
     "UserRole",
     "Review",
+    "Mentor",
+    "Session",
+    "SessionStatus",
+    "Message",
+    "Payment",
+    "PaymentStatus",
 ]
 

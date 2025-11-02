@@ -14,6 +14,7 @@ class ReviewCreate(BaseModel):
 class ReviewRead(BaseModel):
     id: int
     user_id: int
+    user_name: Optional[str] = None
     course_id: int
     rating: int
     comment: Optional[str]

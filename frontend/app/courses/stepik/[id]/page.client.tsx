@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { StepikCourse, StepikInstructor, StepikSection, StepikLesson } from '@/lib/api/stepik';
+import ReviewList from '@/components/ReviewList';
+import ReviewForm from '@/components/ReviewForm';
+import { useState } from 'react';
 
 interface CourseDetailProps {
   course: StepikCourse & {
@@ -14,6 +17,8 @@ interface CourseDetailProps {
 }
 
 export default function CourseDetailClient({ course }: CourseDetailProps) {
+  const [reloadReviewsKey, setReloadReviewsKey] = useState(0);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-8">
@@ -139,6 +144,16 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
                 </ul>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Отзывы */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <ReviewList key={reloadReviewsKey} courseId={course.id} />
+          </div>
+          <div>
+            <ReviewForm courseId={course.id} onSuccess={() => setReloadReviewsKey(k => k + 1)} />
           </div>
         </div>
 

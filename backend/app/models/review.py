@@ -22,3 +22,10 @@ class Review(BaseModel, TimestampMixin):
 
     def __repr__(self):
         return f"<Review(id={self.id}, user_id={self.user_id}, course_id={self.course_id}, rating={self.rating})>"
+    
+    @property
+    def user_name(self) -> str | None:
+        """Возвращает читаемое имя пользователя (full_name или username)."""
+        if hasattr(self, 'user') and self.user is not None:
+            return getattr(self.user, 'full_name', None) or getattr(self.user, 'username', None)
+        return None
