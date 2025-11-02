@@ -1,59 +1,51 @@
-'use client';
-
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { getCourseDetails, StepikCourse, StepikInstructor, StepikSection, StepikLesson } from '@/lib/api/stepik';
+import { getCourseDetails } from '@/lib/api/stepik';
 
-interface CourseDetails extends StepikCourse {
-  instructors: StepikInstructor[];
-  syllabus: (StepikSection & {
-    lessons: StepikLesson[];
-  })[];
+interface CourseDetails {
+  id: number;
+  title: string;
+  description: string;
+  cover: string;
+  summary: string;
+  course_format: string;
+  target_audience: string;
+  language: string;
+  rating: number;
+  learners_count: number;
+  price: number | null;
+  duration: number;
+  instructors: {
+    id: number;
+    name: string;
+    avatar: string;
+    bio: string;
+  }[];
+  syllabus: {
+    id: number;
+    title: string;
+    position: number;
+    lessons: {
+      id: number;
+      title: string;
+      position: number;
+    }[];
+  }[];
 }
 
-export default function CourseDetail() {
-  const params = useParams();
-  const [courseData, setCourseData] = useState<Awaited<ReturnType<typeof getCourseDetails>> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function CourseDetail({ params }: { params: { id: string } }) {
+  let courseData: CourseDetails | null = null;
+  let error: string | null = null;
 
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await getCourseDetails(Number(params.id));
-        setCourseData(data);
-      } catch (err) {
-        console.error("Ошибка при загрузке курса:", err);
-        setError(err instanceof Error ? err.message : "Произошла ошибка при загрузке курса");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (params.id) {
-      fetchCourse();
-    }
-  }, [params.id]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-          </div>
-        </div>
-      </div>
-    );
+  try {
+    const data = await getCourseDetails(Number(params.id));
+    courseData = data as CourseDetails;
+  } catch (err) {
+    console.error("Ошибка при загрузке курса:", err);
+    error = err instanceof Error ? err.message : "Произошла ошибка при загрузке курса";
   }
 
-  if (!courseData) {
+  if (error || !courseData) {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -144,17 +136,15 @@ export default function CourseDetail() {
           </div>
         </div>
 
-
-
         {/* Программа курса */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-2xl font-bold mb-4">Программа курса</h2>
           <div className="space-y-6">
-            {courseData.syllabus?.map((section: any, index: number) => (
+            {courseData.syllabus?.map((section, index) => (
               <div key={index} className="border-b border-gray-200 pb-4 last:border-0">
                 <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
                 <ul className="space-y-2">
-                  {section.lessons?.map((lesson: any, lessonIndex: number) => (
+                  {section.lessons?.map((lesson, lessonIndex) => (
                     <li key={lessonIndex} className="text-gray-600 ml-4">
                       • {lesson.title}
                     </li>
