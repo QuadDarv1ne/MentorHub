@@ -11,6 +11,7 @@ from app.dependencies import get_db, get_current_user, get_pagination, Paginatio
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import PaginatedResponse
+from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
