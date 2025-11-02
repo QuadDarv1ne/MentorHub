@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { StepikCourse, StepikInstructor, StepikSection, StepikLesson } from '@/lib/api/stepik';
 import ReviewList from '@/components/ReviewList';
 import ReviewForm from '@/components/ReviewForm';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CourseDetailProps {
   course: StepikCourse & {
@@ -18,6 +18,32 @@ interface CourseDetailProps {
 
 export default function CourseDetailClient({ course }: CourseDetailProps) {
   const [reloadReviewsKey, setReloadReviewsKey] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [aggregate, setAggregate] = useState<{ average_rating: number; total_reviews: number } | null>(null);
+
+  useEffect(() => {
+    // Check localStorage token for simple auth check
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      setIsAuthenticated(Boolean(token));
+    } catch (err) {
+      setIsAuthenticated(false);
+    }
+
+    // Fetch aggregated rating from backend
+    const fetchAgg = async () => {
+      try {
+        const res = await fetch(`/api/v1/courses/${course.id}/reviews/aggregate`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setAggregate({ average_rating: data.average_rating, total_reviews: data.total_reviews });
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    fetchAgg();
+  }, [course.id, reloadReviewsKey]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,7 +85,13 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
                 </p>
                 <p className="text-gray-600">
                   <span className="font-semibold">Рейтинг:</span>{" "}
-                  {course.review_summary?.average.toFixed(1) || "Нет оценок"} / 5.0
+                  {aggregate && aggregate.total_reviews > 0 ? (
+                    <>{aggregate.average_rating.toFixed(1)} / 5.0 ({aggregate.total_reviews} отзывов)</>
+                  ) : course.review_summary?.average ? (
+                    <>{course.review_summary.average.toFixed(1)} / 5.0 (stepik)</>
+                  ) : (
+                    <>Нет оценок</>
+                  )}
                 </p>
                 <p className="text-gray-600">
                   <span className="font-semibold">Студентов:</span>{" "}
@@ -153,7 +185,14 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
             <ReviewList key={reloadReviewsKey} courseId={course.id} />
           </div>
           <div>
-            <ReviewForm courseId={course.id} onSuccess={() => setReloadReviewsKey(k => k + 1)} />
+            {isAuthenticated ? (
+              <ReviewForm courseId={course.id} onSuccess={() => setReloadReviewsKey(k => k + 1)} />
+            ) : (
+              <div className="bg-white p-4 rounded shadow text-center">
+                <p className="mb-2">Пожалуйста, войдите в систему, чтобы оставить отзыв.</p>
+                <button onClick={() => (window.location.href = '/login')} className="px-4 py-2 bg-primary-600 text-white rounded">Войти</button>
+              </div>
+            )}
           </div>
         </div>
 

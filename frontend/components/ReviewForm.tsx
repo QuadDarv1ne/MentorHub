@@ -50,8 +50,8 @@ export default function ReviewForm({ courseId, onSuccess }: { courseId: number; 
     <form onSubmit={submit} className="bg-white p-4 rounded shadow">
       <h3 className="font-semibold mb-2">Оставьте отзыв</h3>
       <div className="flex items-center gap-4 mb-2">
-        <label className="text-sm">Оценка:</label>
-        <select value={rating} onChange={(e) => setRating(Number(e.target.value))} className="border px-2 py-1 rounded">
+        <label htmlFor="review-rating" className="text-sm">Оценка:</label>
+        <select id="review-rating" value={rating} onChange={(e) => setRating(Number(e.target.value))} className="border px-2 py-1 rounded">
           {[5,4,3,2,1].map((n) => (
             <option key={n} value={n}>{n} ★</option>
           ))}

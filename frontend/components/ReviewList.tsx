@@ -6,6 +6,7 @@ import Link from 'next/link';
 interface Review {
   id: number;
   user_id: number;
+  user_name?: string | null;
   rating: number;
   comment?: string;
   created_at: string;
@@ -50,7 +51,7 @@ export default function ReviewList({ courseId }: { courseId: number }) {
       {reviews.map((r) => (
         <div key={r.id} className="bg-white p-4 rounded shadow">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Пользователь #{r.user_id}</div>
+            <div className="text-sm font-medium">{r.user_name ? r.user_name : `Пользователь #${r.user_id}`}</div>
             <div className="text-sm text-yellow-500">{r.rating} ★</div>
           </div>
           {r.comment && <p className="text-gray-700">{r.comment}</p>}
