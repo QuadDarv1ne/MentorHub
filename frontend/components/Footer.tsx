@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { Github, Mail, Telegram } from 'lucide-react'
 
@@ -104,4 +106,3 @@ export default function Footer() {
     </footer>
   )
 }
-

@@ -27,18 +27,34 @@ if settings.ENVIRONMENT == "testing":
     logger.info("🧪 Testing database engine created")
 else:
     # Use QueuePool for production/development
-    engine = create_engine(
-        settings.DATABASE_URL,
-        poolclass=QueuePool,
-        pool_size=settings.DB_POOL_SIZE,
-        max_overflow=settings.DB_MAX_OVERFLOW,
-        pool_pre_ping=True,  # Verify connections before using
-        echo=settings.DB_ECHO,
-        connect_args={
-            "connect_timeout": 10,
-            "application_name": "mentorhub",
-        }
-    )
+    # Handle different database types
+    if "sqlite" in settings.DATABASE_URL.lower():
+        # SQLite-specific configuration
+        engine = create_engine(
+            settings.DATABASE_URL,
+            poolclass=QueuePool,
+            pool_size=settings.DB_POOL_SIZE,
+            max_overflow=settings.DB_MAX_OVERFLOW,
+            pool_pre_ping=True,
+            echo=settings.DB_ECHO,
+            connect_args={
+                "check_same_thread": False,
+            }
+        )
+    else:
+        # PostgreSQL/other database configuration
+        engine = create_engine(
+            settings.DATABASE_URL,
+            poolclass=QueuePool,
+            pool_size=settings.DB_POOL_SIZE,
+            max_overflow=settings.DB_MAX_OVERFLOW,
+            pool_pre_ping=True,
+            echo=settings.DB_ECHO,
+            connect_args={
+                "connect_timeout": 10,
+                "application_name": "mentorhub",
+            }
+        )
     logger.info(
         f"🗄️ Production database engine created "
         f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW})"
