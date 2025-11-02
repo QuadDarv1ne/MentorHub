@@ -101,7 +101,22 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limi
     # Поиск пользователя по email
     user = db.query(User).filter(User.email == sanitized_email).first()
     
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    if not user:
+        logger.info(f"User not found for email: {sanitized_email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный email или пароль",
+        )
+    
+    logger.info(f"User found: {user.email}")
+    logger.info(f"Stored hashed password: {user.hashed_password}")
+    logger.info(f"Provided password: {credentials.password}")
+    
+    # Verify password
+    password_valid = verify_password(credentials.password, user.hashed_password)
+    logger.info(f"Password verification result: {password_valid}")
+    
+    if not password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный email или пароль",
@@ -217,4 +232,3 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db), rate_
 async def logout():
     """Выход пользователя (клиент должен удалить токены)"""
     return {"message": "Успешный выход из системы"}
-
