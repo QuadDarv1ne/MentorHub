@@ -5,6 +5,7 @@ Pydantic схемы
 
 from app.schemas.common import PaginationParams, MessageResponse
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 
 __all__ = [
     "PaginationParams",
@@ -12,5 +13,8 @@ __all__ = [
     "UserCreate",
     "UserUpdate",
     "UserResponse",
+    "ReviewCreate",
+    "ReviewRead",
+    "ReviewAggregate",
 ]
 

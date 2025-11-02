@@ -113,6 +113,19 @@ alembic revision --autogenerate -m "migration_name"
 alembic upgrade head
 ```
 
+### После добавления новых моделей
+
+Если вы добавляете новые модели (например, модель отзывов `Review`), выполните миграции:
+
+```bash
+# Создание ревизии миграции
+cd backend
+alembic revision --autogenerate -m "add reviews model"
+
+# Применение миграций
+alembic upgrade head
+```
+
 ### Frontend
 
 ```bash

@@ -5,6 +5,7 @@
 
 from app.models.base import BaseModel, TimestampMixin
 from app.models.user import User, UserRole
+from app.models.review import Review
 
 # Импортируйте все модели здесь для автогенерации Alembic
 # Пример:
@@ -17,5 +18,6 @@ __all__ = [
     "TimestampMixin",
     "User",
     "UserRole",
+    "Review",
 ]
 
