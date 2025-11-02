@@ -201,10 +201,8 @@ npm start
 
 ```bash
 # 1. Перейти в директорию backend
-cd C:\Users\maksi\OneDrive\Documents\GitHub\MentorHub\backend
-
 # 2. Убедиться, что все зависимости установлены
-pip install -r requirements.txt
+cd backend && pip install -r requirements.txt
 
 # 3. Запустить сервер
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -214,10 +212,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 # 1. Перейти в директорию frontend
-cd C:\Users\maksi\OneDrive\Documents\GitHub\MentorHub\frontend
-
 # 2. Установить зависимости
-npm install
+cd frontend && npm install
 
 # 3. Запустить development сервер
 npm run dev
