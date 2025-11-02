@@ -211,8 +211,9 @@ async def health_check():
     """Health check endpoint for monitoring"""
     try:
         # Check database connection
+        from sqlalchemy import text
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         
         return {
@@ -237,8 +238,9 @@ async def health_check():
 async def ready_check():
     """Readiness check for Kubernetes"""
     try:
+        from sqlalchemy import text
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         
         return {"ready": True}
@@ -312,25 +314,8 @@ logger.info("✅ Course routes loaded")
 
 # ==================== STARTUP EVENTS ====================
 
-@app.on_event("startup")
-async def startup_event():
-    """Execute on application startup"""
-    logger.info("📍 Startup event triggered")
-    
-    # Additional startup tasks here
-    # - Initialize cache
-    # - Load configurations
-    # - Start background tasks
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Execute on application shutdown"""
-    logger.info("📍 Shutdown event triggered")
-    
-    # Additional shutdown tasks here
-    # - Close connections
-    # - Clean up resources
+# Note: Using lifespan context manager instead of deprecated @app.on_event
+# Startup/shutdown logic is handled in the lifespan() function above
 
 
 # ==================== RUN APPLICATION ====================

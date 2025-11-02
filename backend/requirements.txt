@@ -20,7 +20,6 @@ python-dotenv==1.0.0
 PyJWT==2.8.1
 
 # ==================== EMAIL & NOTIFICATIONS ====================
-python-multipart==0.0.6
 email-validator==2.1.0
 aiosmtplib==2.1.1
 
