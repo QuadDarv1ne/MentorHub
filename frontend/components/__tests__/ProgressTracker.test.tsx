@@ -33,4 +33,12 @@ describe('ProgressTracker', () => {
     expect(opts.headers.Authorization).toBe('Bearer fake-token');
     expect(JSON.parse(opts.body)).toEqual({ course_id: 200, progress_percent: 50 });
   });
+
+  it('shows login prompt when unauthenticated and disables controls', () => {
+    // no token in localStorage
+    render(<ProgressTracker courseId={200} />);
+    expect(screen.getByText(/Для сохранения прогресса/i)).toBeInTheDocument();
+    const slider = screen.getByRole('slider') as HTMLInputElement;
+    expect(slider).toBeDisabled();
+  });
 });
