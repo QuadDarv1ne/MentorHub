@@ -27,7 +27,7 @@ from app.schemas import PaginationParams
 
 
 logger = logging.getLogger(__name__)
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 # ==================== DATABASE DEPENDENCY ====================
@@ -63,7 +63,7 @@ class TokenPayload:
         self.role = role
 
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> TokenPayload:
+def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> TokenPayload:
     """
     Verify JWT token and return token payload
     
@@ -72,6 +72,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         def protected_route(token: TokenPayload = Depends(verify_token)):
             ...
     """
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
     token = credentials.credentials
     
     try:

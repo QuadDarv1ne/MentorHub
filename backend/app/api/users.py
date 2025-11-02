@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user, get_pagination, PaginationParams
+from app.dependencies import get_db, get_current_user, get_pagination, PaginationParams, rate_limit_dependency
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import PaginatedResponse
@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+async def get_current_user_profile(current_user: User = Depends(get_current_user), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить профиль текущего пользователя"""
     return current_user
 
@@ -27,6 +27,7 @@ async def update_current_user_profile(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Обновить профиль текущего пользователя"""
     
@@ -57,7 +58,7 @@ async def update_current_user_profile(
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
+async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить пользователя по ID"""
     user = db.query(User).filter(User.id == user_id).first()
     

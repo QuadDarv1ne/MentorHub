@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 import jwt
 
 from app.config import settings
-from app.dependencies import get_db
+from app.dependencies import get_db, rate_limit_dependency
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
 from app.utils.security import verify_password, get_password_hash
