@@ -1,3 +1,4 @@
+# CI: fixed YAML formatting (automated commit)
 name: CI
 
 on:
