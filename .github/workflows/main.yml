@@ -32,19 +32,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Backend lint: black check
+      - name: "Backend lint: black check"
         run: |
           cd backend
           python -m pip install black
           black --check .
 
-      - name: Backend lint: flake8
+      - name: "Backend lint: flake8"
         run: |
           cd backend
           python -m pip install flake8
           flake8 . --max-line-length=120
 
-      - name: Backend typecheck: mypy
+      - name: "Backend typecheck: mypy"
         run: |
           cd backend
           python -m pip install mypy
