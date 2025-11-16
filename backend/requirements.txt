@@ -21,7 +21,7 @@ PyJWT==2.10.1
 
 # ==================== EMAIL & NOTIFICATIONS ====================
 email-validator==2.1.0
-aiosmtplib==2.1.1
+aiosmtplib==3.0.2
 
 # ==================== ASYNC & BACKGROUND TASKS ====================
 celery==5.3.4
@@ -66,7 +66,7 @@ requests==2.31.0
 httpx==0.25.2
 pyyaml==6.0.1
 python-slugify==8.0.1
-Pillow==10.1.0          # Image processing
+Pillow==11.0.0          # Image processing
 
 # ==================== CORS ====================
 fastapi-cors==0.0.6

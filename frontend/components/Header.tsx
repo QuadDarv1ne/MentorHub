@@ -83,6 +83,18 @@ export default function Header() {
             <Link href="/roadmap" className="text-gray-700 hover:text-primary-600 transition-colors">
               Роадмапы
             </Link>
+            <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
+              О нас
+            </Link>
+            <Link href="/pricing" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Тарифы
+            </Link>
+            <Link href="/blog" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Блог
+            </Link>
+            <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Контакты
+            </Link>
           </div>
 
           {/* Auth Section */}
@@ -144,6 +156,18 @@ export default function Header() {
               </Link>
               <Link href="/roadmap" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Роадмапы
+              </Link>
+              <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
+                О нас
+              </Link>
+              <Link href="/pricing" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Тарифы
+              </Link>
+              <Link href="/blog" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Блог
+              </Link>
+              <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Контакты
               </Link>
               <div className="pt-4 border-t border-gray-200 flex flex-col space-y-2">
                 {isAuthenticated ? (
