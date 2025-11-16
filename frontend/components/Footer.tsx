@@ -18,10 +18,10 @@ export default function Footer() {
               <a href="https://github.com" className="text-gray-400 hover:text-white transition-colors">
                 <Github className="w-5 h-5" />
               </a>
-              <a href="mailto:support@mentorhub.com" className="text-gray-400 hover:text-white transition-colors">
+              <a href="mailto:maksimqwe42@mail.ru" className="text-gray-400 hover:text-white transition-colors">
                 <Mail className="w-5 h-5" />
               </a>
-              <a href="https://t.me/mentorhub" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://t.me/quadd4rv1n7" className="text-gray-400 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
                 <Send className="w-5 h-5" />
               </a>
             </div>
@@ -76,9 +76,10 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="https://t.me/support" className="hover:text-white transition-colors">
-                  Поддержка (Telegram)
-                </a>
+                <a href="https://t.me/quadd4rv1n7" className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">Поддержка (Telegram)</a>
+              </li>
+              <li>
+                <a href="tel:+79150480249" className="hover:text-white transition-colors">+7 915 048‑02‑49</a>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-white transition-colors">
