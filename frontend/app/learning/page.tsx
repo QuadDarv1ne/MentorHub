@@ -56,9 +56,9 @@ export default function LearningPage() {
                         8 из 12 уроков
                       </div>
                       <div className="relative pt-1">
-                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
-                          <div style={{ width: '66.66%' }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600"></div>
-                        </div>
+                        <progress max="100" value="66" className="w-full h-2 rounded">
+                          66%
+                        </progress>
                       </div>
                       <button className="w-full bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700">
                         Продолжить

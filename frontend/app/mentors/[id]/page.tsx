@@ -218,6 +218,7 @@ export default function MentorDetailPage() {
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
+                    aria-label="Дата сессии"
                     className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
@@ -230,6 +231,7 @@ export default function MentorDetailPage() {
                   <select
                     value={selectedTime}
                     onChange={(e) => setSelectedTime(e.target.value)}
+                    aria-label="Время сессии"
                     className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
                     <option value="">Выберите время</option>

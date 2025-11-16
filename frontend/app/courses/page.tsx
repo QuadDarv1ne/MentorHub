@@ -28,6 +28,7 @@ export default function CoursesPage() {
                   <select 
                     id="category"
                     name="category"
+                    aria-label="Категория курса"
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     <option value="">Все категории</option>
@@ -38,6 +39,7 @@ export default function CoursesPage() {
                   <select
                     id="level"
                     name="level"
+                    aria-label="Уровень сложности"
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     <option value="">Все уровни</option>

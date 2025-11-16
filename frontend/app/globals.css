@@ -31,8 +31,30 @@
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  /* Custom utilities can be added here */
+}
+
+/* Progress bar styles */
+progress {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+progress::-webkit-progress-value {
+  background-color: #4f46e5;
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+progress::-moz-progress-bar {
+  background-color: #4f46e5;
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
 }
 
