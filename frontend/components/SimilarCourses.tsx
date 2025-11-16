@@ -37,7 +37,22 @@ export default function SimilarCourses({ courseId }: { courseId: number }) {
   return (
     <div className="bg-white p-4 rounded shadow mt-6">
       <h3 className="font-semibold mb-3">Похожие курсы</h3>
-      {loading && <div role="status">Загрузка…</div>}
+      {loading && (
+        <div role="status" aria-live="polite" className="space-y-2">
+          {[0,1,2].map(i => (
+            <div key={i} className="flex items-center justify-between border rounded p-2 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-8 bg-gray-200 rounded" />
+                <div>
+                  <div className="h-4 w-40 bg-gray-200 rounded mb-1" />
+                  <div className="h-3 w-24 bg-gray-200 rounded" />
+                </div>
+              </div>
+              <div className="h-4 w-12 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      )}
       {error && <div role="alert" className="text-red-600">{error}</div>}
       {!loading && !error && (
         items.length === 0 ? (
@@ -45,7 +60,7 @@ export default function SimilarCourses({ courseId }: { courseId: number }) {
         ) : (
           <ul className="space-y-2">
             {items.map((it) => (
-              <li key={it.course_id} className="flex items-center justify-between border rounded p-2">
+              <li key={it.course_id} className="flex items-center justify-between border rounded p-2 hover:bg-gray-50 transition">
                 <a href={`/courses/stepik/${it.course_id}`} className="flex items-center gap-3">
                   <div className="w-12 h-8 bg-gray-100 rounded overflow-hidden">
                     {details?.[it.course_id]?.cover ? (
