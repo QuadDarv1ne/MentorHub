@@ -1,11 +1,36 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Menu, X, User, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userName, setUserName] = useState('')
+  const router = useRouter()
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    setIsAuthenticated(!!token)
+    
+    if (token) {
+      // Попытка получить имя пользователя из localStorage или API
+      const storedUser = localStorage.getItem('user_name')
+      if (storedUser) {
+        setUserName(storedUser)
+      }
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user_name')
+    setIsAuthenticated(false)
+    setUserName('')
+    router.push('/')
+  }
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -60,14 +85,36 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Войти
-            </Link>
-            <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-              Начать
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  <User size={20} />
+                  <span>{userName || 'Профиль'}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
+                  aria-label="Выйти"
+                >
+                  <LogOut size={20} />
+                  <span>Выйти</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
+                  Войти
+                </Link>
+                <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                  Начать
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -99,12 +146,31 @@ export default function Header() {
                 Роадмапы
               </Link>
               <div className="pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
-                  Войти
-                </Link>
-                <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 text-center">
-                  Начать
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/dashboard" className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
+                      <User size={20} />
+                      <span>{userName || 'Профиль'}</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
+                      aria-label="Выйти"
+                    >
+                      <LogOut size={20} />
+                      <span>Выйти</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
+                      Войти
+                    </Link>
+                    <Link href="/auth/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 text-center">
+                      Начать
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
