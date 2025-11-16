@@ -4,12 +4,13 @@ API для работы с курсами
 """
 
 from typing import List
+from sqlalchemy import func, desc
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.review import Review
-from app.schemas.review import ReviewCreate, ReviewRead
+from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 from app.utils.sanitization import sanitize_text_field, is_safe_string
 
 router = APIRouter()
@@ -95,4 +96,33 @@ async def delete_course(course_id: int, db: Session = Depends(get_db), rate_limi
     db.delete(db_review)
     db.commit()
     return None
+
+
+@router.get("/{course_id}/similar", response_model=List[ReviewAggregate])
+async def get_similar_courses(course_id: int, limit: int = 5, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+    """Рекомендации: похожие/популярные курсы на основе средних оценок (исключая указанный)."""
+    if limit <= 0 or limit > 20:
+        limit = 5
+
+    results = (
+        db.query(
+            Review.course_id.label("course_id"),
+            func.avg(Review.rating).label("average_rating"),
+            func.count(Review.id).label("total_reviews"),
+        )
+        .filter(Review.course_id != course_id)
+        .group_by(Review.course_id)
+        .order_by(desc("average_rating"), desc("total_reviews"))
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "course_id": r.course_id,
+            "average_rating": float(r.average_rating or 0.0),
+            "total_reviews": int(r.total_reviews or 0),
+        }
+        for r in results
+    ]
 
