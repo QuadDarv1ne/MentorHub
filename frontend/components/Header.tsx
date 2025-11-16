@@ -64,11 +64,11 @@ export default function Header() {
                 </svg>
               </button>
               <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="courses-menu">
-                  <Link href="/courses" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                <div className="py-1">
+                  <Link href="/courses" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Все курсы
                   </Link>
-                  <Link href="/courses/stepik" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                  <Link href="/courses/stepik" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Курсы на Stepik
                   </Link>
                 </div>
@@ -151,14 +151,14 @@ export default function Header() {
               <Link href="/sessions" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Сессии
               </Link>
+              <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
+                О нас
+              </Link>
               <Link href="/learning" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Обучение
               </Link>
               <Link href="/roadmap" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Роадмапы
-              </Link>
-              <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
-                О нас
               </Link>
               <Link href="/pricing" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Тарифы

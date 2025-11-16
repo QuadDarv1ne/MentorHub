@@ -649,6 +649,6 @@ git push origin feature/your-feature-name
 
 ---
 
-**Made with ❤️ by MentorHub Team**
+**Made with ❤️ by Maestro7IT / MentorHub Team**
 
-*Последнее обновление: 02/11/2025*
+*Последнее обновление: 16/11/2025*
