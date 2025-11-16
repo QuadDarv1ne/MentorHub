@@ -26,7 +26,7 @@ except ImportError:
 
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
-from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress
+from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats
 
 
 # ==================== LOGGING SETUP ====================
@@ -333,6 +333,14 @@ app.include_router(
     tags=["Progress"],
 )
 logger.info("✅ Progress routes loaded")
+
+# Stats routes
+app.include_router(
+    stats.router,
+    prefix=f"{api_prefix}",
+    tags=["Statistics"],
+)
+logger.info("✅ Stats routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
