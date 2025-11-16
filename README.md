@@ -228,6 +228,21 @@ npm run dev
 
 Frontend будет доступен на `http://localhost:3000`
 
+### Тестирование и миграции
+
+```bash
+# Backend: прогон тестов
+cd backend
+pytest -q
+
+# Применить миграции Alembic (включая таблицу progress)
+alembic upgrade head
+
+# Frontend: тесты (Jest)
+cd ../frontend
+npm test
+```
+
 ### Использование Docker Compose
 
 Для удобства можно запустить всё через Docker:
