@@ -28,9 +28,7 @@ export default function ProgressList({ items }: Props) {
             </div>
             <div className="w-40">
               <div className="text-right text-sm">{it.progress_percent}%</div>
-              <div className="w-full bg-gray-200 rounded h-2" aria-hidden="true">
-                <div className="bg-blue-600 h-2 rounded" style={{ width: `${it.progress_percent}%` }} />
-              </div>
+              <progress className="w-full h-2" max={100} value={it.progress_percent} aria-label={`Прогресс ${it.progress_percent}%`} />
             </div>
           </div>
         </div>
