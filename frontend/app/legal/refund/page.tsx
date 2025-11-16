@@ -11,7 +11,7 @@ export default function RefundPage() {
         <li>Если качество услуги неудовлетворительно — рассмотрим частичный/полный возврат после проверки.</li>
         <li>Подписку можно отменить в любой момент — доступ действует до конца оплаченного периода.</li>
       </ul>
-      <p>Связаться по вопросам возвратов: refunds@mentorhub.dev</p>
+      <p>Связаться по вопросам возвратов: <a className="text-indigo-600 hover:underline" href="mailto:maksimqwe42@mail.ru">maksimqwe42@mail.ru</a></p>
     </div>
   )
 }

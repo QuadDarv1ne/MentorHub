@@ -30,7 +30,7 @@ export default function TermsPage() {
       <p>Сервис предоставляется «как есть». Мы стремимся к бесперебойной работе, но не гарантируем отсутствие сбоев.</p>
       <h3>6. Применимое право</h3>
       <p>Споры регулируются применимым правом страны регистрации правообладателя (QuadDarv1ne).</p>
-      <p>Вопросы по соглашению: legal@mentorhub.dev</p>
+      <p>Вопросы по соглашению: <a className="text-indigo-600 hover:underline" href="mailto:maksimqwe42@mail.ru">maksimqwe42@mail.ru</a></p>
     </div>
   )
 }

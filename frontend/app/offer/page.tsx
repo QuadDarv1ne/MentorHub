@@ -17,7 +17,7 @@ export default function OfferPage() {
         <p>Стоимость указывается на сайте. Оплата через указанных платёжных провайдеров.</p>
         <h3>Права и обязанности</h3>
         <p>Пользователь обязуется соблюдать Правила сообщества и AUP. Исполнитель обязуется оказывать услуги добросовестно.</p>
-        <p className="text-sm text-gray-500">Вопросы по оферте: legal@mentorhub.dev</p>
+        <p className="text-sm text-gray-500">Вопросы по оферте: <a className="text-indigo-600 hover:underline" href="mailto:maksimqwe42@mail.ru">maksimqwe42@mail.ru</a></p>
       </div>
     </main>
   )

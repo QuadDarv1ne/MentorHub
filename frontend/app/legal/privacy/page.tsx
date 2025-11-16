@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <li>Доступ, исправление, удаление данных.</li>
         <li>Отзыв согласия на рассылки и cookie.</li>
       </ul>
-      <p>Контакты DPO: privacy@mentorhub.dev</p>
+      <p>Контакты DPO: <a className="text-indigo-600 hover:underline" href="mailto:maksimqwe42@mail.ru">maksimqwe42@mail.ru</a></p>
     </div>
   )
 }
