@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getCourseDetails } from '@/lib/api/stepik';
 import ProgressTracker from '@/components/ProgressTracker';
+import SimilarCourses from '@/components/SimilarCourses';
 
 interface CourseDetails {
   id: number;
@@ -158,6 +159,9 @@ export default async function CourseDetail({ params }: { params: { id: string } 
 
   {/* Прогресс пользователя */}
   <ProgressTracker courseId={courseData.id} />
+
+  {/* Похожие курсы */}
+  <SimilarCourses courseId={courseData.id} />
 
         {/* Кнопка записи на курс */}
         <div className="mt-8 text-center">

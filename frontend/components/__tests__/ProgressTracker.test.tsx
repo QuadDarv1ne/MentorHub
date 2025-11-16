@@ -37,6 +37,29 @@ describe('ProgressTracker', () => {
   expect(JSON.parse(opts.body)).toEqual({ course_id: 200, progress_percent: 50 });
   });
 
+  it('shows success message and allows cancel to revert changes', async () => {
+    localStorage.setItem('access_token', 'fake-token');
+    (global as any).fetch = jest.fn((url: string, opts?: any) => {
+      if (opts && opts.method === 'POST') {
+        return Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 30 }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ([])});
+    });
+
+    render(<ProgressTracker courseId={200} />);
+    const slider = screen.getByRole('slider') as HTMLInputElement;
+    // change to 30 and save
+    fireEvent.change(slider, { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+    await waitFor(() => expect(screen.getByText(/Сохранено/i)).toBeInTheDocument());
+
+    // change to 80 and then cancel
+    fireEvent.change(slider, { target: { value: '80' } });
+    fireEvent.click(screen.getByRole('button', { name: /Отменить/i }));
+    expect(slider.value).toBe('30');
+    expect(screen.getByText(/Изменения отменены/i)).toBeInTheDocument();
+  });
+
   it('shows login prompt when unauthenticated and disables controls', () => {
     // no token in localStorage
     render(<ProgressTracker courseId={200} />);

@@ -6,8 +6,10 @@ import { getMyProgress, upsertProgress } from '@/lib/api/progress';
 export default function ProgressTracker({ courseId }: { courseId: number }) {
   const [items, setItems] = useState<any[]>([]);
   const [percent, setPercent] = useState<number>(0);
+  const [lastSavedPercent, setLastSavedPercent] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
@@ -21,7 +23,11 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
         setItems(Array.isArray(res) ? res : []);
         // If there is an existing lesson-level record, pick first, otherwise pick course-level
         const existing = (Array.isArray(res) ? res[0] : null) || null;
-        if (existing) setPercent(existing.progress_percent ?? 0);
+        if (existing) {
+          const p = existing.progress_percent ?? 0;
+          setPercent(p);
+          setLastSavedPercent(p);
+        }
       } catch (e) {
         // ignore for unauthenticated
       }
@@ -36,10 +42,13 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     }
     setIsSaving(true);
     setError(null);
+    setSuccess(null);
     try {
       const payload = { course_id: courseId, progress_percent: percent };
       const saved = await upsertProgress(payload);
       setItems([saved]);
+      setLastSavedPercent(percent);
+      setSuccess('Сохранено');
     } catch (e: any) {
       setError(e.message || 'Ошибка при сохранении');
     } finally {
@@ -54,16 +63,25 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     }
     setIsSaving(true);
     setError(null);
+    setSuccess(null);
     try {
       const payload = { course_id: courseId, progress_percent: 100, completed: true };
       const saved = await upsertProgress(payload);
       setItems([saved]);
       setPercent(100);
+      setLastSavedPercent(100);
+      setSuccess('Сохранено');
     } catch (e: any) {
       setError(e.message || 'Ошибка при сохранении');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const cancelChanges = () => {
+    setPercent(lastSavedPercent);
+    setError(null);
+    setSuccess('Изменения отменены');
   };
 
   return (
@@ -95,8 +113,14 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
         <button onClick={markCompleted} disabled={isSaving} className="px-3 py-1 bg-green-600 text-white rounded">
           Пометить завершённым
         </button>
+        <button onClick={cancelChanges} disabled={isSaving} className="px-3 py-1 bg-gray-200 text-gray-800 rounded">
+          Отменить
+        </button>
       </div>
-      {error && <div className="text-sm text-red-600 mt-2">{error}</div>}
+      <div aria-live="polite" className="text-sm mt-2">
+        {error && <div className="text-red-600">{error}</div>}
+        {success && <div className="text-green-600">{success}</div>}
+      </div>
       {!isAuthenticated && (
         <div className="text-sm text-gray-600 mt-3">
           Для сохранения прогресса <a href="/auth/login" className="text-primary-600 hover:underline">войдите в аккаунт</a>.
