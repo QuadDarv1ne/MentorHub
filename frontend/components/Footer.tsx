@@ -15,13 +15,13 @@ export default function Footer() {
               Платформа для профессионального менторства и карьерного развития в IT
             </p>
             <div className="flex space-x-4">
-              <a href="https://github.com" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://github.com" className="text-gray-400 hover:text-white transition-colors" title="GitHub">
                 <Github className="w-5 h-5" />
               </a>
-              <a href="mailto:maksimqwe42@mail.ru" className="text-gray-400 hover:text-white transition-colors">
+              <a href="mailto:maksimqwe42@mail.ru" className="text-gray-400 hover:text-white transition-colors" title="Email">
                 <Mail className="w-5 h-5" />
               </a>
-              <a href="https://t.me/quadd4rv1n7" className="text-gray-400 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
+              <a href="https://t.me/quadd4rv1n7" className="text-gray-400 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer" title="Telegram">
                 <Send className="w-5 h-5" />
               </a>
             </div>

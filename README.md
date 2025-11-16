@@ -629,14 +629,15 @@ git push origin feature/your-feature-name
 
 ## 📞 Контакты
 
-- **Email:** support@mentorhub.com
-- **Website:** https://mentorhub.com
-- **Telegram:** @mentorhub_support
-- **Twitter:** @MentorHubApp
+**Ответственный:** Дуплей Максим Игоревич
+
+- **Email:** [maksimqwe42@mail.ru](mailto:maksimqwe42@mail.ru)
+- **Телефон:** [+7 915 048-02-49](tel:+79150480249)
+- **Telegram:** [@quadd4rv1n7](https://t.me/quadd4rv1n7)
 
 ### Социальные сети
 
-- [GitHub](https://github.com/mentorhub)
+- [GitHub](https://github.com/QuadDarv1ne/MentorHub)
 - [LinkedIn](https://linkedin.com/company/mentorhub)
 - [Twitter](https://twitter.com/MentorHubApp)
 - [Telegram Community](https://t.me/mentorhub_community)
