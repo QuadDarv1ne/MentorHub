@@ -54,6 +54,9 @@ export default function Header() {
             <Link href="/sessions" className="text-gray-700 hover:text-primary-600 transition-colors">
               Сессии
             </Link>
+            <Link href="/messages" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Сообщения
+            </Link>
             <Link href="/sql-questions" className="text-gray-700 hover:text-primary-600 transition-colors">
               SQL вопросы
             </Link>
@@ -68,7 +71,7 @@ export default function Header() {
             </Link>
             <div className="relative group">
               <button 
-                id="courses-menu"
+                id="more-menu"
                 aria-haspopup="true"
                 aria-expanded="false"
                 className="text-gray-700 hover:text-primary-600 transition-colors inline-flex items-center group"
@@ -80,6 +83,12 @@ export default function Header() {
               </button>
               <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="py-1">
+                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Мой профиль
+                  </Link>
+                  <Link href="/achievements" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Достижения
+                  </Link>
                   <Link href="/about" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     О нас
                   </Link>
@@ -88,12 +97,6 @@ export default function Header() {
                   </Link>
                   <Link href="/contact" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Контакты
-                  </Link>
-                  <Link href="/learning" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Обучение
-                  </Link>
-                  <Link href="/roadmap" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Роадмапы
                   </Link>
                 </div>
               </div>
@@ -105,7 +108,21 @@ export default function Header() {
             {isAuthenticated ? (
               <>
                 <Link 
-                  href="/dashboard" 
+                  href="/messages" 
+                  className="text-gray-700 hover:text-primary-600 transition-colors text-sm"
+                  title="Сообщения"
+                >
+                  💬
+                </Link>
+                <Link 
+                  href="/notifications" 
+                  className="text-gray-700 hover:text-primary-600 transition-colors text-sm"
+                  title="Уведомления"
+                >
+                  🔔
+                </Link>
+                <Link 
+                  href="/profile" 
                   className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <User size={20} />
@@ -151,6 +168,9 @@ export default function Header() {
               <Link href="/sessions" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Сессии
               </Link>
+              <Link href="/messages" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Сообщения
+              </Link>
               <Link href="/sql-questions" className="text-gray-700 hover:text-primary-600 transition-colors">
                 SQL вопросы
               </Link>
@@ -162,6 +182,12 @@ export default function Header() {
               </Link>
               <Link href="/support" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Поддержка
+              </Link>
+              <Link href="/profile" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Мой профиль
+              </Link>
+              <Link href="/achievements" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Достижения
               </Link>
               <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors">
                 О нас
