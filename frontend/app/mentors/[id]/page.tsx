@@ -1,288 +1,375 @@
-"use client";
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { Star, MapPin, Briefcase, Calendar, Clock, DollarSign, Award, MessageCircle } from 'lucide-react';
+'use client'
 
-interface Mentor {
-  id: number;
-  full_name: string;
-  email: string;
-  bio?: string;
-  location?: string;
-  occupation?: string;
-  hourly_rate?: number;
-  experience_years?: number;
-  specializations?: string[];
-  rating?: number;
-  total_sessions?: number;
+import { useState } from 'react'
+import Card from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
+import Badge from '@/components/ui/Badge'
+import Modal from '@/components/ui/Modal'
+import Tabs from '@/components/ui/Tabs'
+import { Star, MapPin, Clock, DollarSign, Calendar, MessageCircle, Award, Users, BookOpen, ArrowRight, Send } from 'lucide-react'
+
+const mentorData = {
+  id: 1,
+  name: 'Иван Петров',
+  photo: '👨‍💼',
+  specialty: 'JavaScript / React',
+  rating: 4.9,
+  reviews: 152,
+  hourRate: 1500,
+  location: 'Москва',
+  experience: '8 лет',
+  bio: 'Опытный Full-Stack разработчик. Специализируюсь на JavaScript, React и Node.js. Помог более 150 людям подготовиться к собеседованиям и улучшить свои навыки.',
+  description: 'Я помогаю разработчикам разных уровней - от новичков до middle разработчиков. Мой подход основан на практике: мы разбираем реальные задачи, пишем код, делаем code reviews.',
+  tags: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Next.js', 'REST API'],
+  availability: 'Доступен каждый день, 10:00-22:00',
+  portfolio: [
+    { title: 'E-commerce платформа', description: 'React + Node.js', link: '#' },
+    { title: 'Real-time chat', description: 'WebSocket + Next.js', link: '#' },
+    { title: 'Analytics Dashboard', description: 'React + TypeScript', link: '#' }
+  ],
+  successStories: 5,
+  totalSessions: 152,
+  responseTime: '< 1 часа'
 }
 
-export default function MentorDetailPage() {
-  const params = useParams();
-  const [mentor, setMentor] = useState<Mentor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  const [bookingMessage, setBookingMessage] = useState('');
-
-  useEffect(() => {
-    // Имитация загрузки данных ментора
-    setTimeout(() => {
-      setMentor({
-        id: Number(params.id),
-        full_name: 'Иван Петров',
-        email: 'ivan.petrov@example.com',
-        bio: 'Опытный разработчик с более чем 10-летним стажем в веб-разработке. Специализируюсь на React, TypeScript и архитектуре фронтенд-приложений. Помогаю разработчикам расти профессионально через менторство и code review.',
-        location: 'Москва, Россия',
-        occupation: 'Senior Frontend Developer',
-        hourly_rate: 50,
-        experience_years: 10,
-        specializations: ['React', 'TypeScript', 'Next.js', 'Node.js', 'PostgreSQL'],
-        rating: 4.8,
-        total_sessions: 127
-      });
-      setLoading(false);
-    }, 500);
-  }, [params.id]);
-
-  const handleBooking = async () => {
-    if (!selectedDate || !selectedTime) {
-      alert('Пожалуйста, выберите дату и время');
-      return;
-    }
-
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      window.location.href = '/auth/login';
-      return;
-    }
-
-    // Здесь будет реальный API запрос
-    alert(`Запрос на бронирование отправлен!\nДата: ${selectedDate}\nВремя: ${selectedTime}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+const reviews = [
+  {
+    id: 1,
+    author: 'Алексей М.',
+    rating: 5,
+    date: '2 недели назад',
+    text: 'Отличный ментор! Помог подготовиться к собеседованию на React. Понятно объяснял сложные концепции. Очень рекомендую!',
+    avatar: '👨'
+  },
+  {
+    id: 2,
+    author: 'Мария К.',
+    rating: 5,
+    date: '1 месяц назад',
+    text: 'Прошли с Иваном несколько сессий по Node.js. Очень профессиональный подход, уделяет внимание деталям. Спасибо за помощь!',
+    avatar: '👩'
+  },
+  {
+    id: 3,
+    author: 'Сергей Н.',
+    rating: 4,
+    date: '2 месяца назад',
+    text: 'Хороший ментор, знает материал. Было полезно, но нужна была еще больше практики.',
+    avatar: '👨'
   }
+]
 
-  if (!mentor) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ментор не найден</h2>
-          <a href="/mentors" className="text-blue-600 hover:underline">Вернуться к списку</a>
-        </div>
-      </div>
-    );
+const timeSlots = [
+  { time: '10:00', available: true },
+  { time: '11:00', available: true },
+  { time: '14:00', available: false },
+  { time: '15:00', available: true },
+  { time: '16:00', available: true },
+  { time: '18:00', available: true },
+  { time: '19:00', available: true },
+  { time: '20:00', available: true }
+]
+
+export default function MentorDetailPage() {
+  const [activeTab, setActiveTab] = useState(0)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
+  const [selectedDuration, setSelectedDuration] = useState('60')
+  const [message, setMessage] = useState('')
+
+  const handleBooking = () => {
+    if (selectedDate && selectedTime) {
+      alert(`Сессия забронирована на ${selectedDate} в ${selectedTime}`)
+      setShowBookingModal(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Profile Header */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 h-24"></div>
-              <div className="px-6 pb-6">
-                <div className="flex items-start -mt-12">
-                  <div className="bg-white rounded-full p-1 shadow-lg">
-                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full h-24 w-24 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-white">
-                        {mentor.full_name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="ml-6 mt-14 flex-1">
-                    <h1 className="text-3xl font-bold text-gray-900">{mentor.full_name}</h1>
-                    <p className="text-lg text-gray-600 mt-1">{mentor.occupation}</p>
-                    
-                    <div className="flex items-center mt-3 gap-4">
-                      <div className="flex items-center">
-                        <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm font-medium text-gray-900">{mentor.rating}</span>
-                        <span className="ml-1 text-sm text-gray-500">({mentor.total_sessions} сессий)</span>
-                      </div>
-                      
-                      {mentor.location && (
-                        <div className="flex items-center text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {mentor.location}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* About */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">О менторе</h2>
-              <p className="text-gray-700 whitespace-pre-wrap">{mentor.bio}</p>
-            </div>
-
-            {/* Experience & Skills */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Опыт и навыки</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="flex items-start">
-                  <Briefcase className="h-6 w-6 text-blue-600 mt-0.5 mr-3" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Опыт работы</p>
-                    <p className="text-lg font-semibold text-gray-900">{mentor.experience_years}+ лет</p>
-                  </div>
-                </div>
+    <main className="container mx-auto max-w-6xl px-4 py-10">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
+          {/* Profile */}
+          <div className="flex-1">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="text-7xl">{mentorData.photo}</div>
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">{mentorData.name}</h1>
+                <p className="text-xl text-indigo-600 font-semibold mb-3">{mentorData.specialty}</p>
                 
-                <div className="flex items-start">
-                  <Award className="h-6 w-6 text-green-600 mt-0.5 mr-3" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Проведено сессий</p>
-                    <p className="text-lg font-semibold text-gray-900">{mentor.total_sessions}</p>
+                {/* Rating */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < Math.floor(mentorData.rating)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
                   </div>
+                  <span className="text-lg font-bold text-gray-900">{mentorData.rating}</span>
+                  <span className="text-gray-600">({mentorData.reviews} отзывов)</span>
                 </div>
-              </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-3">Специализации</p>
-                <div className="flex flex-wrap gap-2">
-                  {mentor.specializations?.map((skill, idx) => (
-                    <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      {skill}
-                    </span>
-                  ))}
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{mentorData.hourRate}₽/час</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{mentorData.experience}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{mentorData.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{mentorData.responseTime}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Reviews */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Отзывы</h2>
-              <div className="space-y-4">
-                <div className="border-b pb-4">
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center">
-                      {[1,2,3,4,5].map(i => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-gray-900">Анна Смирнова</span>
-                    <span className="ml-2 text-sm text-gray-500">• 2 недели назад</span>
-                  </div>
-                  <p className="text-gray-700">Отличный ментор! Помог разобраться с архитектурой React-приложения. Очень понятно объясняет сложные концепции.</p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center">
-                      {[1,2,3,4].map(i => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                      ))}
-                      <Star className="h-4 w-4 text-gray-300" />
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-gray-900">Дмитрий Иванов</span>
-                    <span className="ml-2 text-sm text-gray-500">• месяц назад</span>
-                  </div>
-                  <p className="text-gray-700">Профессиональный подход, качественное code review. Рекомендую!</p>
-                </div>
-              </div>
+            {/* CTA Buttons */}
+            <div className="flex gap-3">
+              <Button variant="primary" size="lg" onClick={() => setShowBookingModal(true)}>
+                <Calendar className="h-5 w-5 mr-2" />
+                Забронировать сессию
+              </Button>
+              <Button variant="outline" size="lg">
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Отправить сообщение
+              </Button>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Booking Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center">
-                  <DollarSign className="h-6 w-6 text-green-600" />
-                  <span className="ml-2 text-2xl font-bold text-gray-900">${mentor.hourly_rate}</span>
-                  <span className="ml-1 text-gray-500">/час</span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="inline h-4 w-4 mr-1" />
-                    Выберите дату
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    aria-label="Дата сессии"
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Clock className="inline h-4 w-4 mr-1" />
-                    Выберите время
-                  </label>
-                  <select
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    aria-label="Время сессии"
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">Выберите время</option>
-                    <option value="09:00">09:00</option>
-                    <option value="10:00">10:00</option>
-                    <option value="11:00">11:00</option>
-                    <option value="14:00">14:00</option>
-                    <option value="15:00">15:00</option>
-                    <option value="16:00">16:00</option>
-                    <option value="17:00">17:00</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MessageCircle className="inline h-4 w-4 mr-1" />
-                    Сообщение (опционально)
-                  </label>
-                  <textarea
-                    value={bookingMessage}
-                    onChange={(e) => setBookingMessage(e.target.value)}
-                    rows={3}
-                    className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Опишите, что вы хотели бы обсудить..."
-                  />
-                </div>
-
-                <button
-                  onClick={handleBooking}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Забронировать сессию
-                </button>
-
-                <p className="text-xs text-gray-500 text-center">
-                  Бронирование бесплатно. Оплата после подтверждения.
-                </p>
-              </div>
-            </div>
-
-            {/* Contact Card */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Связаться</h3>
-              <button className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Отправить сообщение
-              </button>
-            </div>
+          {/* Stats */}
+          <div className="w-full md:w-64 space-y-3">
+            <Card padding="md" className="text-center">
+              <div className="text-3xl font-bold text-indigo-600 mb-1">{mentorData.totalSessions}</div>
+              <div className="text-sm text-gray-600">Проведено сессий</div>
+            </Card>
+            <Card padding="md" className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-1">{mentorData.successStories}</div>
+              <div className="text-sm text-gray-600">История успеха</div>
+            </Card>
+            <Card padding="md" className="text-center">
+              <div className="text-2xl mb-1">🎯</div>
+              <div className="text-sm text-gray-600">Специалист</div>
+            </Card>
           </div>
         </div>
       </div>
-    </div>
-  );
+
+      {/* Tabs */}
+      <Tabs
+        tabs={[
+          { id: 'about', label: '📝 О менторе', icon: BookOpen },
+          { id: 'skills', label: '🎯 Навыки', icon: Award },
+          { id: 'portfolio', label: '💼 Портфолио', icon: Users },
+          { id: 'reviews', label: '⭐ Отзывы', icon: Star }
+        ]}
+        defaultTab={0}
+        onTabChange={setActiveTab}
+      >
+        {/* Tab 1: About */}
+        <div className="space-y-6">
+          <Card padding="lg">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">О себе</h3>
+            <p className="text-lg text-gray-700 leading-relaxed mb-4">
+              {mentorData.description}
+            </p>
+            <p className="text-gray-700 leading-relaxed">
+              {mentorData.bio}
+            </p>
+          </Card>
+
+          <Card padding="lg" className="bg-blue-50 border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-3">📅 Доступность</h4>
+            <p className="text-blue-800">{mentorData.availability}</p>
+          </Card>
+        </div>
+
+        {/* Tab 2: Skills */}
+        <div>
+          <Card padding="lg">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Компетенции</h3>
+            <div className="flex flex-wrap gap-3">
+              {mentorData.tags.map((tag) => (
+                <Badge key={tag} variant="primary" size="md">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Tab 3: Portfolio */}
+        <div className="space-y-4">
+          {mentorData.portfolio.map((project, idx) => (
+            <Card key={idx} padding="md" hover>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-1">{project.title}</h4>
+                  <p className="text-gray-600 mb-3">{project.description}</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Tab 4: Reviews */}
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <Card key={review.id} padding="md">
+              <div className="flex items-start gap-4">
+                <div className="text-3xl flex-shrink-0">{review.avatar}</div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">{review.author}</h4>
+                    <span className="text-sm text-gray-500">{review.date}</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < review.rating
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-700">{review.text}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Tabs>
+
+      {/* Booking Modal */}
+      <Modal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        title="Забронировать сессию"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Date Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Выберите дату
+            </label>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDate(`21 ноября`)}
+                  className={`p-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedDate === `21 ноября`
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                >
+                  {20 + day} нояб.
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Time Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Выберите время
+            </label>
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {timeSlots.map((slot) => (
+                <button
+                  key={slot.time}
+                  onClick={() => slot.available && setSelectedTime(slot.time)}
+                  disabled={!slot.available}
+                  className={`p-2 rounded-lg text-sm font-medium transition-all ${
+                    slot.available
+                      ? selectedTime === slot.time
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {slot.time}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Длительность сессии
+            </label>
+            <select
+              value={selectedDuration}
+              onChange={(e) => setSelectedDuration(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="30">30 минут (750₽)</option>
+              <option value="60">60 минут (1500₽)</option>
+              <option value="90">90 минут (2250₽)</option>
+            </select>
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Сообщение ментору (опционально)
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Расскажите о себе и целях обучения..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              rows={4}
+            />
+          </div>
+
+          {/* Summary */}
+          {selectedDate && selectedTime && (
+            <Card padding="md" className="bg-indigo-50 border border-indigo-200">
+              <h4 className="font-semibold text-indigo-900 mb-2">Сводка бронирования</h4>
+              <div className="space-y-1 text-sm text-indigo-800">
+                <p>📅 Дата: {selectedDate}</p>
+                <p>⏰ Время: {selectedTime}</p>
+                <p>⏱️ Длительность: {selectedDuration} минут</p>
+                <p className="font-semibold mt-2">
+                  Стоимость: {(parseInt(selectedDuration) / 60) * 1500}₽
+                </p>
+              </div>
+            </Card>
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button variant="primary" fullWidth onClick={handleBooking} disabled={!selectedDate || !selectedTime}>
+              <Send className="h-4 w-4 mr-2" />
+              Забронировать сессию
+            </Button>
+            <Button variant="outline" fullWidth onClick={() => setShowBookingModal(false)}>
+              Отмена
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </main>
+  )
 }
