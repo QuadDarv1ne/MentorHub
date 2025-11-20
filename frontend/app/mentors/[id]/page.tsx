@@ -71,7 +71,6 @@ const timeSlots = [
 ]
 
 export default function MentorDetailPage() {
-  const [activeTab, setActiveTab] = useState(0)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
@@ -178,7 +177,6 @@ export default function MentorDetailPage() {
           { id: 'reviews', label: '⭐ Отзывы', icon: Star }
         ]}
         defaultTab={0}
-        onTabChange={setActiveTab}
       >
         {/* Tab 1: About */}
         <div className="space-y-6">
@@ -315,12 +313,14 @@ export default function MentorDetailPage() {
 
           {/* Duration */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <label htmlFor="duration" className="block text-sm font-semibold text-gray-900 mb-3">
               Длительность сессии
             </label>
             <select
+              id="duration"
               value={selectedDuration}
               onChange={(e) => setSelectedDuration(e.target.value)}
+              title="Выберите длительность сессии"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="30">30 минут (750₽)</option>
@@ -331,10 +331,11 @@ export default function MentorDetailPage() {
 
           {/* Message */}
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
+            <label htmlFor="message" className="block text-sm font-semibold text-gray-900 mb-3">
               Сообщение ментору (опционально)
             </label>
             <textarea
+              id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Расскажите о себе и целях обучения..."

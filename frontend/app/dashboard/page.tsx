@@ -183,10 +183,10 @@ export default function DashboardPage() {
                     <span className="text-sm text-gray-600">Прогресс</span>
                     <span className="text-sm font-semibold text-indigo-600">{course.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all"
-                      style={{ width: `${course.progress}%` } as React.CSSProperties}
+                      style={{ width: `${course.progress}%` }}
                     />
                   </div>
                 </div>
