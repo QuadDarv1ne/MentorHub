@@ -106,7 +106,7 @@ export const Input = React.memo<InputProps>(({
             transition-colors
             ${className}
           `}
-          aria-invalid={hasError}
+          aria-invalid={hasError ? 'true' : 'false'}
           aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
           {...props}
         />
@@ -195,13 +195,23 @@ export const Card = React.memo<CardProps>(({
   const hoverClass = hoverable ? 'hover:shadow-lg transition-shadow' : ''
   const paddingClass = padding ? 'p-6' : ''
   
+  if (onClick) {
+    return (
+      <div
+        className={`bg-white rounded-lg border border-gray-200 shadow-sm ${paddingClass} ${hoverClass} ${interactiveClass} ${className}`}
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      >
+        {children}
+      </div>
+    )
+  }
+  
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 shadow-sm ${paddingClass} ${hoverClass} ${interactiveClass} ${className}`}
-      onClick={onClick}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
+      className={`bg-white rounded-lg border border-gray-200 shadow-sm ${paddingClass} ${hoverClass} ${className}`}
     >
       {children}
     </div>
@@ -265,14 +275,12 @@ export const Skeleton = React.memo<SkeletonProps>(({
     rectangular: 'rounded-md',
   }[variant]
   
-  const styles: React.CSSProperties = {}
-  if (width) styles.width = typeof width === 'number' ? `${width}px` : width
-  if (height) styles.height = typeof height === 'number' ? `${height}px` : height
+  const widthClass = width ? (typeof width === 'number' ? `w-[${width}px]` : width) : 'w-full'
+  const heightClass = height ? (typeof height === 'number' ? `h-[${height}px]` : height) : 'h-4'
   
   return (
     <div
-      className={`animate-pulse bg-gray-200 ${variantClass} ${className}`}
-      style={styles}
+      className={`animate-pulse bg-gray-200 ${variantClass} ${widthClass} ${heightClass} ${className}`}
       aria-hidden="true"
     />
   )
@@ -298,15 +306,15 @@ export const Divider = React.memo<DividerProps>(({
   
   if (label) {
     return (
-      <div className={`relative flex items-center ${className}`} role="separator">
-        <div className="flex-grow border-t border-gray-200" />
+      <div className={`relative flex items-center ${className}`}>
+        <div className="flex-grow border-t border-gray-200" role="separator" />
         <span className="px-3 text-sm text-gray-500 bg-white">{label}</span>
         <div className="flex-grow border-t border-gray-200" />
       </div>
     )
   }
   
-  return <hr className={`border-gray-200 ${className}`} role="separator" />
+  return <hr className={`border-gray-200 ${className}`} />
 })
 
 Divider.displayName = 'Divider'
