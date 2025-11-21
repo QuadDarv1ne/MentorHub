@@ -4,6 +4,7 @@
     "next/typescript"
   ],
   "rules": {
-    "react/forbid-dom-props": "off"
+    "react/forbid-dom-props": "off",
+    "react/style-prop-object": "off"
   }
 }

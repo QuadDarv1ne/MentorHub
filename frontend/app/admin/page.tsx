@@ -44,6 +44,18 @@ interface StatCardProps {
   borderColor: string
 }
 
+// Helper component for dynamic progress bars
+function DynamicProgressBar({ percentage, className }: { percentage: number; className: string }) {
+  return (
+    <div className="w-full bg-gray-200 rounded-full h-2" data-progress={percentage}>
+      <div
+        className={`h-2 rounded-full transition-all ${className}`}
+        data-width={percentage}
+      />
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedRole, setSelectedRole] = useState('all')
@@ -186,13 +198,7 @@ export default function AdminDashboard() {
                       <span className="text-sm font-medium text-gray-700">{report.month}</span>
                       <span className="text-sm font-bold text-gray-900">₽{(report.revenue / 1000000).toFixed(2)}M</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      {/* eslint-disable-next-line react/forbid-dom-props */}
-                      <div
-                        className="bg-indigo-600 h-2 rounded-full transition-all progress-dynamic"
-                        style={{ '--progress-width': `${(report.revenue / 2500000) * 100}%` } as React.CSSProperties}
-                      />
-                    </div>
+                    <DynamicProgressBar percentage={(report.revenue / 2500000) * 100} className="bg-indigo-600" />
                   </div>
                 ))}
               </div>

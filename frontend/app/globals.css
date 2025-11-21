@@ -49,19 +49,28 @@
   }
 
   .progress-78 {
-    width: 78%;
+    width: 78% !important;
   }
 
   .progress-85 {
-    width: 85%;
+    width: 85% !important;
   }
 
   .progress-65 {
-    width: 65%;
+    width: 65% !important;
   }
 
-  .progress-dynamic {
-    width: var(--progress-width);
+  /* For dynamic progress widths with data attributes */
+  [data-width="78"] {
+    width: 78%;
+  }
+
+  [data-width="85"] {
+    width: 85%;
+  }
+
+  [data-width="65"] {
+    width: 65%;
   }
 }
 
