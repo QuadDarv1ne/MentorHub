@@ -15,7 +15,7 @@ export const metadata: Metadata = seoPresets.home()
 
 export default function HomePage() {
   return (
-    <main>
+    <>
       <Hero />
       <Statistics />
       <Features />
@@ -26,7 +26,7 @@ export default function HomePage() {
       <MentorsPreview />
       <Testimonials />
       <CallToAction />
-    </main>
+    </>
   )
 }
 

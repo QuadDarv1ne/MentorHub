@@ -49,7 +49,7 @@ export function useForm<T extends Record<string, unknown>>(
       if (!fieldConfig?.rules) return null
 
       for (const rule of fieldConfig.rules) {
-        const isValid = await rule.validator(value, values)
+        const isValid = await rule.validator(value as T[keyof T], values)
         if (!isValid) {
           return rule.message
         }
@@ -84,7 +84,7 @@ export function useForm<T extends Record<string, unknown>>(
   const setValue = useCallback(
     async (name: keyof T, value: unknown) => {
       const fieldConfig = config[name]
-      const transformedValue = fieldConfig.transform ? fieldConfig.transform(value) : value
+      const transformedValue = fieldConfig.transform ? fieldConfig.transform(value as T[keyof T]) : value
 
       setValues((prev) => ({ ...prev, [name]: transformedValue }))
 
