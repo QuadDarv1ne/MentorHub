@@ -32,6 +32,37 @@
 
 @layer utilities {
   /* Custom utilities can be added here */
+  .progress-fill {
+    @apply transition-all duration-500;
+  }
+  
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2 overflow-hidden;
+  }
+  
+  .progress-bar-fill {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all;
+  }
+  
+  .progress-width {
+    width: var(--progress-width);
+  }
+
+  .progress-78 {
+    width: 78%;
+  }
+
+  .progress-85 {
+    width: 85%;
+  }
+
+  .progress-65 {
+    width: 65%;
+  }
+
+  .progress-dynamic {
+    width: var(--progress-width);
+  }
 }
 
 /* Progress bar styles */

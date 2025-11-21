@@ -185,8 +185,8 @@ export default function DashboardPage() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all"
-                      style={{ width: `${course.progress}%` }}
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all progress-width"
+                      style={{ '--progress-width': `${course.progress}%` } as React.CSSProperties}
                     />
                   </div>
                 </div>

@@ -316,8 +316,8 @@ export default function AchievementsPage() {
               </div>
               <div className="bg-white/20 rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-white h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((totalPoints / 500) * 100, 100)}%` } as React.CSSProperties}
+                  className="bg-white h-full rounded-full transition-all duration-500 progress-width"
+                  style={{ '--progress-width': `${Math.min((totalPoints / 500) * 100, 100)}%` } as React.CSSProperties}
                 />
               </div>
             </div>

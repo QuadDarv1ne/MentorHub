@@ -48,11 +48,23 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link href="/search" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Поиск
+            </Link>
             <Link href="/mentors" className="text-gray-700 hover:text-primary-600 transition-colors">
               Менторы
             </Link>
+            <Link href="/courses" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Курсы
+            </Link>
+            <Link href="/learning" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Обучение
+            </Link>
             <Link href="/sessions" className="text-gray-700 hover:text-primary-600 transition-colors">
               Сессии
+            </Link>
+            <Link href="/booking" className="text-gray-700 hover:text-primary-600 transition-colors">
+              Бронирование
             </Link>
             <Link href="/messages" className="text-gray-700 hover:text-primary-600 transition-colors">
               Сообщения
@@ -162,11 +174,23 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col space-y-4">
+              <Link href="/search" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Поиск
+              </Link>
               <Link href="/mentors" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Менторы
               </Link>
+              <Link href="/courses" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Курсы
+              </Link>
+              <Link href="/learning" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Обучение
+              </Link>
               <Link href="/sessions" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Сессии
+              </Link>
+              <Link href="/booking" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Бронирование
               </Link>
               <Link href="/messages" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Сообщения
@@ -198,16 +222,13 @@ export default function Header() {
               <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Контакты
               </Link>
-              <Link href="/learning" className="text-gray-700 hover:text-primary-600 transition-colors">
-                Обучение
-              </Link>
               <Link href="/roadmap" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Роадмапы
               </Link>
               <div className="pt-4 border-t border-gray-200 flex flex-col space-y-2">
                 {isAuthenticated ? (
                   <>
-                    <Link href="/dashboard" className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
+                    <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
                       <User size={20} />
                       <span>{userName || 'Профиль'}</span>
                     </Link>
@@ -241,4 +262,3 @@ export default function Header() {
     </header>
   )
 }
-
