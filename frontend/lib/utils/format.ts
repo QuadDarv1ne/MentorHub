@@ -243,7 +243,7 @@ export function shuffle<T>(array: T[]): T[] {
  * Удаление дубликатов из массива
  */
 export function unique<T>(array: T[]): T[] {
-  return [...new Set(array)]
+  return Array.from(new Set(array))
 }
 
 /**
