@@ -154,7 +154,6 @@ export function NavMenu() {
       <button
         onClick={() => setOpen(o => !o)}
         aria-haspopup="true"
-        aria-expanded={open}
         aria-controls="nav-popover"
         className="inline-flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
@@ -202,7 +201,7 @@ export function NavMenu() {
                     {category.title}
                   </h3>
                 </div>
-                <ul className="space-y-1">
+                <div className="space-y-1" role="list">
                   {category.items.map(item => {
                     const globalIndex = flatItems.findIndex(fi => fi.href === item.href)
                     const titleHighlighted = query && item.title.toLowerCase().includes(query.toLowerCase())
@@ -215,7 +214,7 @@ export function NavMenu() {
                       return parts.map((part, i) => part.toLowerCase() === query.toLowerCase() ? <span key={i} className="bg-yellow-200 rounded px-0.5">{part}</span> : part)
                     }
                     return (
-                      <li key={item.href}>
+                      <div key={item.href} role="listitem">
                         <Link
                           href={item.href}
                           ref={(el) => { if (el) itemsRef.current[globalIndex] = el }}
@@ -232,10 +231,10 @@ export function NavMenu() {
                             )}
                           </span>
                         </Link>
-                      </li>
+                      </div>
                     )
                   })}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
@@ -251,39 +250,90 @@ export function NavMenu() {
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  const filtered = NAV_CATEGORIES.map(cat => ({
+    ...cat,
+    items: cat.items.filter(i => {
+      if (!query.trim()) return true
+      const q = query.toLowerCase()
+      return i.title.toLowerCase().includes(q) || (i.description?.toLowerCase().includes(q) ?? false)
+    })
+  })).filter(cat => cat.items.length > 0)
+
+  function highlight(text: string): (string | JSX.Element)[] {
+    if (!query) return [text]
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const parts = text.split(new RegExp(`(${escaped})`, 'gi'))
+    return parts.map((part, i) => part.toLowerCase() === query.toLowerCase() ? <span key={i} className="bg-yellow-200 rounded px-0.5">{part}</span> : part)
+  }
+
   return (
     <div className="md:hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-gray-100"
+        aria-haspopup="true"
+        aria-controls="mobile-nav"
       >
         <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
         Меню
       </button>
       {open && (
-        <div className="mt-2 border border-gray-200 rounded-lg bg-white shadow-sm p-3 space-y-4">
-          {NAV_CATEGORIES.map(category => (
+        <div id="mobile-nav" className="mt-2 border border-gray-200 rounded-lg bg-white shadow-sm p-3 space-y-4" aria-label="Мобильная навигация">
+          {/* Поиск */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Поиск..."
+              className="w-full pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Поиск по мобильному меню"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600"
+                aria-label="Очистить поиск"
+              >×</button>
+            )}
+          </div>
+          {filtered.length === 0 && (
+            <p className="text-xs text-gray-500">Нет совпадений по запросу "{query}"</p>
+          )}
+          {filtered.map(category => (
             <div key={category.title}>
               <div className="flex items-center gap-2 mb-2">
                 {category.icon}
                 <h4 className="text-sm font-semibold text-gray-800">{category.title}</h4>
               </div>
-              <ul className="space-y-1">
+              <div className="space-y-1" role="list">
                 {category.items.map(item => (
-                  <li key={item.href}>
+                  <div key={item.href} role="listitem">
                     <Link
                       href={item.href}
                       className="flex items-start gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-indigo-50"
-                      onClick={() => setOpen(false)}
+                      onClick={() => { setOpen(false); setQuery(''); }}
                     >
                       {item.icon}
-                      <span>{item.title}</span>
+                      <span className="flex flex-col">
+                        <span>{highlight(item.title).map((node,i)=>(typeof node === 'string'? <span key={i}>{node}</span>: node))}</span>
+                        {item.description && (
+                          <span className="text-[10px] text-gray-400 leading-tight">{highlight(item.description)}</span>
+                        )}
+                      </span>
                     </Link>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
+          <div className="pt-2 border-t flex justify-between items-center">
+            <span className="text-[10px] text-gray-400">Всего: {filtered.reduce((a,c)=>a+c.items.length,0)}</span>
+            {query && <span className="text-[10px] text-gray-400">Фильтр активен</span>}
+          </div>
         </div>
       )}
     </div>

@@ -39,11 +39,6 @@ export default function ForgotPasswordPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Link href="/" className="flex justify-center">
-            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-3xl">M</span>
-            </div>
-          </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Проверьте почту
           </h2>
@@ -104,11 +99,6 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link href="/" className="flex justify-center">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-3xl">M</span>
-          </div>
-        </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Восстановление пароля
         </h2>
@@ -186,7 +176,7 @@ export default function ForgotPasswordPage() {
             <h4 className="text-xs font-medium text-blue-900 mb-2">Что дальше?</h4>
             <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
               <li>Проверьте свою почту</li>
-              <li>Найдите письмо от MentorHub</li>
+              <li>Найдите письмо от платформы</li>
               <li>Перейдите по ссылке в письме</li>
               <li>Создайте новый пароль</li>
             </ul>
