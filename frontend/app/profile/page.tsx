@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, Briefcase, Save, X, Camera, Eye, EyeOff, LogOut } from 'lucide-react'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 interface ProfileData {
   firstName: string
@@ -15,19 +16,44 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  // Защита маршрута
+  const { getUserData } = useAuth()
+  
   const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'security'>('profile')
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword] = useState(false)
+  const [loading, setLoading] = useState(true)
+  
+  // Получаем данные пользователя из localStorage
+  const userData = getUserData()
+  
   const [formData, setFormData] = useState<ProfileData>({
-    firstName: 'Максим',
-    lastName: 'Дуплей',
-    email: 'maksimqwe42@mail.ru',
-    phone: '+7 915 048-02-49',
+    firstName: (userData?.name as string) || 'Пользователь',
+    lastName: '',
+    email: (userData?.email as string) || '',
+    phone: '',
     location: 'Москва, Россия',
     specialization: 'React & Node.js разработчик',
     bio: 'Опытный разработчик с 5+ годами опыта в веб-разработке. Специализируюсь на создании высоконагруженных приложений.',
     avatar: '👨‍💼'
   })
+
+  useEffect(() => {
+    // Имитация загрузки данных
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 500)
+    
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   const [formErrors, setFormErrors] = useState<Partial<ProfileData>>({})
 
