@@ -113,6 +113,12 @@ export default function Header() {
                   <Link href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Администрация
                   </Link>
+                  <Link href="/help" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Помощь
+                  </Link>
+                  <Link href="/stats" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Статистика
+                  </Link>
                 </div>
               </div>
             </div>
@@ -227,6 +233,12 @@ export default function Header() {
               </Link>
               <Link href="/admin" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Администрация
+              </Link>
+              <Link href="/help" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Помощь
+              </Link>
+              <Link href="/stats" className="text-gray-700 hover:text-primary-600 transition-colors">
+                Статистика
               </Link>
               <Link href="/roadmap" className="text-gray-700 hover:text-primary-600 transition-colors">
                 Роадмапы
