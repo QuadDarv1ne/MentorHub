@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import Statistics from '@/components/Statistics'
@@ -8,6 +9,9 @@ import PopularQuestions from '@/components/PopularQuestions'
 import MentorsPreview from '@/components/MentorsPreview'
 import Testimonials from '@/components/Testimonials'
 import CallToAction from '@/components/CallToAction'
+import { seoPresets } from '@/lib/utils/seo'
+
+export const metadata: Metadata = seoPresets.home()
 
 export default function HomePage() {
   return (
