@@ -1,0 +1,37 @@
+# Amvera Configuration
+# https://docs.amvera.ru
+
+meta:
+  environment: production
+  
+build:
+  dockerfile: ./Dockerfile
+  
+run:
+  containerPort: 80
+  
+resources:
+  memory: 2048
+  cpu: 1.0
+  
+health:
+  path: /api/v1/health
+  port: 8000
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  
+env:
+  # Backend будет слушать на 8000
+  # Frontend будет слушать на 3000
+  # Nginx будет проксировать на 80
+  PORT: "80"
+  ENVIRONMENT: "production"
+  
+  # Database (устанавливается в панели Amvera)
+  # DATABASE_URL: "postgresql://..."
+  
+  # Security (устанавливается в панели Amvera)
+  # SECRET_KEY: "..."
+  
+  # Frontend API URL
+  NEXT_PUBLIC_API_URL: "https://${AMVERA_APP_DOMAIN}"

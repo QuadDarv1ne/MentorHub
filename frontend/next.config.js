@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'export', // Статический экспорт для GitHub Pages
-  basePath: process.env.NODE_ENV === 'production' ? '/MentorHub' : '',
+  output: 'standalone', // Standalone build для Docker
   
   // Оптимизация производительности
   poweredByHeader: false,
