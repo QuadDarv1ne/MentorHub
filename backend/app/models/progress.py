@@ -1,6 +1,7 @@
 """
 Модель трекинга прогресса пользователя по курсам/урокам
 """
+
 from sqlalchemy import Column, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 

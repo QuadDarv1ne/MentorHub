@@ -1,6 +1,7 @@
 """
 Pydantic схемы для прогресса пользователей
 """
+
 from datetime import datetime
 from pydantic import BaseModel, Field, conint
 from typing import Optional

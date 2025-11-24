@@ -1,6 +1,7 @@
 """
 Роуты для отзывов о курсах
 """
+
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -49,7 +50,7 @@ def list_reviews(
     page: int = 1,
     page_size: int = 20,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user_optional),
+    current_user=Depends(get_current_user_optional),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     # Пагинация
@@ -69,11 +70,15 @@ def list_reviews(
 
 @router.get("/courses/{course_id}/reviews/aggregate", response_model=ReviewAggregate)
 def aggregate_reviews(
-    course_id: int, 
+    course_id: int,
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    r = db.query(func.avg(Review.rating).label("avg"), func.count(Review.id).label("total")).filter(Review.course_id == course_id).first()
+    r = (
+        db.query(func.avg(Review.rating).label("avg"), func.count(Review.id).label("total"))
+        .filter(Review.course_id == course_id)
+        .first()
+    )
     avg = float(r.avg) if r and r.avg is not None else 0.0
     total = int(r.total) if r and r.total else 0
 

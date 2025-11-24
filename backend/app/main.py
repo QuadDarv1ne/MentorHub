@@ -20,6 +20,7 @@ try:
     from sentry_sdk.integrations.fastapi import FastApiIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
+
     SENTRY_AVAILABLE = True
 except ImportError:
     SENTRY_AVAILABLE = False
@@ -33,10 +34,7 @@ from app.utils.cache import init_cache
 
 
 # ==================== LOGGING SETUP ====================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -68,22 +66,23 @@ async def lifespan(app: FastAPI):
     # STARTUP
     logger.info("🚀 Starting MentorHub API...")
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
-    
+
     # Initialize cache
     init_cache()
     logger.info("✅ Cache initialized")
-    
+
     # Create tables (with retry logic for Amvera)
     max_retries = 5
     retry_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             import time
+
             if attempt > 0:
                 logger.info(f"⏳ Retrying database connection (attempt {attempt + 1}/{max_retries})...")
                 time.sleep(retry_delay)
-            
+
             Base.metadata.create_all(bind=engine)
             logger.info("✅ Database tables created/verified")
             break
@@ -94,14 +93,14 @@ async def lifespan(app: FastAPI):
                 # Don't raise in production, let app start anyway
                 if not is_production():
                     raise
-    
+
     # Log startup info
     logger.info(f"📊 Environment: {settings.ENVIRONMENT}")
     logger.info(f"🔒 Debug mode: {settings.DEBUG}")
     logger.info(f"🌍 CORS origins: {settings.CORS_ORIGINS}")
-    
+
     yield  # Application runs here
-    
+
     # SHUTDOWN
     logger.info("🛑 Shutting down MentorHub API...")
     logger.info("✅ MentorHub API shutdown complete")
@@ -158,6 +157,7 @@ logger.info("✅ GZIP middleware added")
 
 # ==================== EXCEPTION HANDLERS ====================
 
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Handle HTTP exceptions"""
@@ -189,7 +189,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions"""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    
+
     if is_production():
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -211,24 +211,26 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 # ==================== REQUEST/RESPONSE LOGGING ====================
 
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all HTTP requests and responses"""
-    
+
     # Skip logging for health checks and docs
     if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
-    
+
     logger.info(f"📨 {request.method} {request.url.path}")
-    
+
     response = await call_next(request)
-    
+
     logger.info(f"📤 {response.status_code} {request.method} {request.url.path}")
-    
+
     return response
 
 
 # ==================== ROUTES SETUP ====================
+
 
 # Root endpoint
 @app.get("/", tags=["Root"])
@@ -251,11 +253,12 @@ async def health_check():
         db_status = "disconnected"
         # Check database connection
         from sqlalchemy import text
+
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         db.close()
         db_status = "connected"
-        
+
         return {
             "status": "healthy" if db_status == "connected" else "degraded",
             "service": settings.APP_NAME,
@@ -281,10 +284,11 @@ async def ready_check():
     """Readiness check for Kubernetes"""
     try:
         from sqlalchemy import text
+
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         db.close()
-        
+
         return {"ready": True}
     except Exception as e:
         logger.error(f"Readiness check failed: {e}")
@@ -300,8 +304,9 @@ async def detailed_health_check():
     """Detailed health check with all system metrics"""
     try:
         from app.utils.health import get_full_health_check
+
         health_data = await get_full_health_check()
-        
+
         if health_data["status"] == "healthy":
             return health_data
         else:
@@ -313,10 +318,7 @@ async def detailed_health_check():
         logger.error(f"Detailed health check failed: {e}")
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "error",
-                "error": str(e)
-            },
+            content={"status": "error", "error": str(e)},
         )
 
 
@@ -422,7 +424,7 @@ logger.info("✅ Monitoring routes loaded")
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         app=app,
         host=settings.HOST,

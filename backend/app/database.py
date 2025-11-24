@@ -39,7 +39,7 @@ else:
             echo=settings.DB_ECHO,
             connect_args={
                 "check_same_thread": False,
-            }
+            },
         )
     else:
         # PostgreSQL/other database configuration
@@ -53,7 +53,7 @@ else:
             connect_args={
                 "connect_timeout": 10,
                 "application_name": "mentorhub",
-            }
+            },
         )
     logger.info(
         f"🗄️ Production database engine created "
@@ -62,6 +62,7 @@ else:
 
 
 # ==================== CONNECTION POOL LISTENERS ====================
+
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_conn, connection_record):
@@ -116,9 +117,10 @@ logger.info("✅ SQLAlchemy Base created")
 
 # ==================== DATABASE UTILITIES ====================
 
+
 class Database:
     """Database utility class"""
-    
+
     @staticmethod
     def create_all_tables():
         """Create all tables in the database"""
@@ -128,7 +130,7 @@ class Database:
         except Exception as e:
             logger.error(f"❌ Error creating tables: {e}")
             raise
-    
+
     @staticmethod
     def drop_all_tables():
         """Drop all tables from the database (WARNING: Destructive!)"""
@@ -138,17 +140,18 @@ class Database:
         except Exception as e:
             logger.error(f"❌ Error dropping tables: {e}")
             raise
-    
+
     @staticmethod
     def get_session() -> Session:
         """Get a new database session"""
         return SessionLocal()
-    
+
     @staticmethod
     def check_connection() -> bool:
         """Check if database connection is working"""
         try:
             from sqlalchemy import text
+
             session = SessionLocal()
             session.execute(text("SELECT 1"))
             session.close()
@@ -157,7 +160,7 @@ class Database:
         except Exception as e:
             logger.error(f"❌ Database connection failed: {e}")
             return False
-    
+
     @staticmethod
     def get_connection_info() -> dict:
         """Get database connection information"""
@@ -172,17 +175,18 @@ class Database:
 
 # ==================== INITIALIZATION ====================
 
+
 def init_db():
     """Initialize database (create tables, apply migrations, etc.)"""
     logger.info("🔧 Initializing database...")
-    
+
     # Check connection
     if not Database.check_connection():
         raise RuntimeError("Cannot connect to database")
-    
+
     # Create tables
     Database.create_all_tables()
-    
+
     logger.info("✅ Database initialization complete")
 
 
@@ -200,11 +204,12 @@ def close_db():
 
 from contextlib import contextmanager
 
+
 @contextmanager
 def get_db_context():
     """
     Context manager for database session
-    
+
     Usage:
         with get_db_context() as db:
             user = db.query(User).first()
@@ -225,7 +230,7 @@ def get_db_context():
 def transactional():
     """
     Context manager for transactional operations
-    
+
     Usage:
         with transactional() as db:
             db.add(new_user)
@@ -247,10 +252,11 @@ def transactional():
 
 # ==================== DEPENDENCY INJECTION ====================
 
+
 def get_db():
     """
     FastAPI dependency for getting database session
-    
+
     Usage in routes:
         @app.get("/users")
         def get_users(db: Session = Depends(get_db)):

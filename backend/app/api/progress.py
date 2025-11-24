@@ -1,6 +1,7 @@
 """
 Роуты для трекинга прогресса пользователей
 """
+
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,8 +16,8 @@ router = APIRouter()
 
 @router.post("/progress", response_model=ProgressRead, status_code=status.HTTP_201_CREATED)
 def upsert_progress(
-    payload: ProgressCreate, 
-    db: Session = Depends(get_db), 
+    payload: ProgressCreate,
+    db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
@@ -56,8 +57,8 @@ def upsert_progress(
 
 @router.get("/users/me/progress", response_model=List[ProgressRead])
 def list_my_progress(
-    course_id: Optional[int] = None, 
-    db: Session = Depends(get_db), 
+    course_id: Optional[int] = None,
+    db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
@@ -70,11 +71,18 @@ def list_my_progress(
 
 @router.get("/courses/{course_id}/progress/aggregate", response_model=ProgressAggregate)
 def aggregate_course_progress(
-    course_id: int, 
+    course_id: int,
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    r = db.query(func.avg(Progress.progress_percent).label("avg"), func.count(func.nullif(Progress.completed, False)).label("completed_count")).filter(Progress.course_id == course_id).first()
+    r = (
+        db.query(
+            func.avg(Progress.progress_percent).label("avg"),
+            func.count(func.nullif(Progress.completed, False)).label("completed_count"),
+        )
+        .filter(Progress.course_id == course_id)
+        .first()
+    )
     avg = float(r.avg) if r and r.avg is not None else 0.0
     completed_count = int(r.completed_count) if r and r.completed_count else 0
 

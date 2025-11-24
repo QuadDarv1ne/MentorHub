@@ -11,6 +11,7 @@ from enum import Enum
 
 class PaymentStatus(str, Enum):
     """Статусы платежей"""
+
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -19,6 +20,7 @@ class PaymentStatus(str, Enum):
 
 class PaymentBase(BaseModel):
     """Базовая схема платежа"""
+
     amount: int = Field(..., gt=0)  # в центах/копейках
     currency: str = Field("USD", min_length=3, max_length=3)
     payment_method: Optional[str] = Field(None, max_length=50)
@@ -27,6 +29,7 @@ class PaymentBase(BaseModel):
 
 class PaymentCreate(PaymentBase):
     """Схема для создания платежа"""
+
     student_id: int
     mentor_id: int
     session_id: int
@@ -34,12 +37,14 @@ class PaymentCreate(PaymentBase):
 
 class PaymentUpdate(BaseModel):
     """Схема для обновления платежа"""
+
     status: Optional[PaymentStatus] = None
     transaction_id: Optional[str] = Field(None, max_length=255)
 
 
 class PaymentResponse(PaymentBase):
     """Схема ответа с данными платежа"""
+
     id: int
     student_id: int
     mentor_id: int
@@ -47,5 +52,5 @@ class PaymentResponse(PaymentBase):
     status: PaymentStatus
     created_at: datetime
     updated_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)

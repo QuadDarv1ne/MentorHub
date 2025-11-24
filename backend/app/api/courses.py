@@ -17,14 +17,16 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[ReviewRead])
-async def get_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+async def get_courses(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Получить список курсов (временно возвращает отзывы)"""
     # Проверка на корректность параметров пагинации
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
         limit = 100
-    
+
     courses = db.query(Review).offset(skip).limit(limit).all()
     return courses
 
@@ -39,20 +41,19 @@ async def get_course(course_id: int, db: Session = Depends(get_db), rate_limit: 
 
 
 @router.post("/", response_model=ReviewRead, status_code=status.HTTP_201_CREATED)
-async def create_course(review: ReviewCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+async def create_course(
+    review: ReviewCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Создать курс (временно создает отзыв)"""
     # Санитизация входных данных
     sanitized_comment = sanitize_text_field(review.comment) if review.comment else None
-    
+
     # Проверка на безопасность входных данных
     if sanitized_comment and not is_safe_string(sanitized_comment):
         raise HTTPException(status_code=400, detail="Недопустимые символы в комментарии")
-    
+
     # Создаем отзыв с санитизированными данными
-    db_review = Review(
-        rating=review.rating,
-        comment=sanitized_comment
-    )
+    db_review = Review(rating=review.rating, comment=sanitized_comment)
     db.add(db_review)
     db.commit()
     db.refresh(db_review)
@@ -60,12 +61,17 @@ async def create_course(review: ReviewCreate, db: Session = Depends(get_db), rat
 
 
 @router.put("/{course_id}", response_model=ReviewRead)
-async def update_course(course_id: int, review: ReviewCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+async def update_course(
+    course_id: int,
+    review: ReviewCreate,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
     """Обновить курс (временно обновляет отзыв)"""
     db_review = db.query(Review).filter(Review.id == course_id).first()
     if not db_review:
         raise HTTPException(status_code=404, detail="Курс не найден")
-    
+
     # Санитизация входных данных
     sanitized_data = {}
     for key, value in review.model_dump(exclude_unset=True).items():
@@ -76,30 +82,34 @@ async def update_course(course_id: int, review: ReviewCreate, db: Session = Depe
             sanitized_data[key] = sanitized_value
         else:
             sanitized_data[key] = value
-    
+
     # Обновляем поля
     for key, value in sanitized_data.items():
         setattr(db_review, key, value)
-    
+
     db.commit()
     db.refresh(db_review)
     return db_review
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_course(course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+async def delete_course(
+    course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Удалить курс (временно удаляет отзыв)"""
     db_review = db.query(Review).filter(Review.id == course_id).first()
     if not db_review:
         raise HTTPException(status_code=404, detail="Курс не найден")
-    
+
     db.delete(db_review)
     db.commit()
     return None
 
 
 @router.get("/{course_id}/similar", response_model=List[ReviewAggregate])
-async def get_similar_courses(course_id: int, limit: int = 5, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
+async def get_similar_courses(
+    course_id: int, limit: int = 5, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Рекомендации: похожие/популярные курсы на основе средних оценок (исключая указанный)."""
     if limit <= 0 or limit > 20:
         limit = 5
@@ -125,4 +135,3 @@ async def get_similar_courses(course_id: int, limit: int = 5, db: Session = Depe
         }
         for r in results
     ]
-

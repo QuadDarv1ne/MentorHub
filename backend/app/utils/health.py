@@ -2,6 +2,7 @@
 Enhanced Health Check Module
 Provides detailed system health monitoring
 """
+
 from typing import Dict, Any
 from datetime import datetime
 import psutil
@@ -24,10 +25,7 @@ async def check_database() -> Dict[str, Any]:
             "response_time_ms": 0,  # Можно добавить замер времени
         }
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "error": str(e)}
 
 
 async def check_redis() -> Dict[str, Any]:
@@ -40,10 +38,7 @@ async def check_redis() -> Dict[str, Any]:
             "response_time_ms": 0,
         }
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "error": str(e)}
 
 
 async def get_system_info() -> Dict[str, Any]:
@@ -56,10 +51,10 @@ async def get_system_info() -> Dict[str, Any]:
             "percent": psutil.virtual_memory().percent,
         },
         "disk": {
-            "total": psutil.disk_usage('/').total,
-            "used": psutil.disk_usage('/').used,
-            "free": psutil.disk_usage('/').free,
-            "percent": psutil.disk_usage('/').percent,
+            "total": psutil.disk_usage("/").total,
+            "used": psutil.disk_usage("/").used,
+            "free": psutil.disk_usage("/").free,
+            "percent": psutil.disk_usage("/").percent,
         },
         "platform": platform.platform(),
         "python_version": platform.python_version(),
@@ -71,12 +66,12 @@ async def get_full_health_check() -> Dict[str, Any]:
     db_health = await check_database()
     redis_health = await check_redis()
     system_info = await get_system_info()
-    
+
     # Определяем общий статус
     overall_status = "healthy"
     if db_health["status"] == "unhealthy" or redis_health["status"] == "unhealthy":
         overall_status = "degraded"
-    
+
     return {
         "status": overall_status,
         "timestamp": datetime.utcnow().isoformat(),

@@ -12,6 +12,7 @@ from app.schemas.user import UserResponse
 
 class MentorBase(BaseModel):
     """Базовая схема ментора"""
+
     bio: Optional[str] = None
     specialization: Optional[str] = Field(None, max_length=255)
     experience_years: int = Field(0, ge=0)
@@ -21,11 +22,13 @@ class MentorBase(BaseModel):
 
 class MentorCreate(MentorBase):
     """Схема для создания профиля ментора"""
+
     user_id: int
 
 
 class MentorUpdate(MentorBase):
     """Схема для обновления профиля ментора"""
+
     bio: Optional[str] = None
     specialization: Optional[str] = None
     experience_years: Optional[int] = Field(None, ge=0)
@@ -35,6 +38,7 @@ class MentorUpdate(MentorBase):
 
 class MentorResponse(MentorBase):
     """Схема ответа с данными ментора"""
+
     id: int
     user_id: int
     rating: float
@@ -42,5 +46,5 @@ class MentorResponse(MentorBase):
     created_at: datetime
     updated_at: datetime
     user: Optional[UserResponse] = None
-    
+
     model_config = ConfigDict(from_attributes=True)
