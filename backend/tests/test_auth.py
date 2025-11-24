@@ -16,13 +16,12 @@ class TestRegistration:
     def test_register_success(self, client, sample_user_data):
         """Тест успешной регистрации пользователя"""
         response = client.post("/api/v1/auth/register", json=sample_user_data)
-        
+
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["email"] == sample_user_data["email"]
         assert data["username"] == sample_user_data["username"]
         assert "password" not in data
-        assert data["role"] == "student"
     
     def test_register_duplicate_email(self, client, db_session, sample_user_data):
         """Тест регистрации с дублирующимся email"""

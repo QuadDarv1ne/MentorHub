@@ -33,10 +33,7 @@ async def get_platform_stats(db: Session = Depends(get_db)):
     from app.models.user import User
 
     total_users = db.query(func.count(User.id)).scalar() or 0
-    total_mentors = db.query(func.count(User.id)).filter(User.is_mentor == True).scalar() or 0
-
-    # Calculate active users (logged in last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    total_mentors = db.query(func.count(User.id)).filter(User.is_mentor.is_(True)).scalar() or 0
 
     stats = {
         "total_users": total_users,
@@ -52,7 +49,7 @@ async def get_platform_stats(db: Session = Depends(get_db)):
 
         total_sessions = db.query(func.count(MentoringSession.id)).scalar() or 0
         stats["total_sessions"] = total_sessions
-    except:
+    except Exception:
         pass
 
     # Cache for 5 minutes
@@ -94,7 +91,7 @@ async def get_user_stats(current_user: User = Depends(get_current_user), db: Ses
                 "total_sessions": total_sessions,
                 "completed_sessions": completed_sessions,
             }
-        except:
+        except Exception:
             pass
 
     return stats
@@ -127,7 +124,7 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
 
         completed = (
             db.query(func.count(Progress.id))
-            .filter(and_(Progress.user_id == current_user.id, Progress.completed == True))
+            .filter(and_(Progress.user_id == current_user.id, Progress.completed.is_(True)))
             .scalar()
             or 0
         )
@@ -135,7 +132,7 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
         stats["total_courses"] = total_courses
         stats["completed"] = completed
         stats["in_progress"] = total_courses - completed
-    except:
+    except Exception:
         pass
 
     # Try to get session stats
@@ -169,7 +166,7 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
         stats["total_sessions"] = total_sessions
         stats["upcoming_sessions"] = upcoming
         stats["completed_sessions"] = completed_sessions
-    except:
+    except Exception:
         pass
 
     return stats
