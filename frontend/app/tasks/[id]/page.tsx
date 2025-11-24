@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: 'Практические задания и их решения на платформе MentorHub'
 }
 
-export default function TaskPage({ params: _params }: { params: { id: string } }) {
+export default function TaskPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="py-10">

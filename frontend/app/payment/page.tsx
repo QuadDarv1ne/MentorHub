@@ -35,28 +35,6 @@ export default function PaymentIntegration() {
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [showAddCard, setShowAddCard] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
-
-  // Проверка авторизации
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/auth/login?redirect=/payment')
-    } else {
-      setIsLoading(true)
-      setTimeout(() => setIsLoading(false), 500)
-    }
-  }, [isAuthenticated, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600">Загрузка...</p>
-        </div>
-      </div>
-    )
-  }
-
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     {
       id: 'pm_1',
@@ -87,6 +65,27 @@ export default function PaymentIntegration() {
     status: 'active',
     currentPeriodEnd: '2025-12-21'
   })
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/payment')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 500)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
 
   const plans = [
     {

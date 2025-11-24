@@ -23,6 +23,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [formErrors, setFormErrors] = useState<Partial<ProfileData>>({})
   
   // Получаем данные пользователя из localStorage
   const userData = getUserData()
@@ -47,16 +48,6 @@ export default function ProfilePage() {
     return () => clearTimeout(timer)
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  const [formErrors, setFormErrors] = useState<Partial<ProfileData>>({})
-
   const validateForm = () => {
     const errors: Partial<ProfileData> = {}
     if (!formData.firstName.trim()) errors.firstName = 'Имя не заполнено'
@@ -64,6 +55,14 @@ export default function ProfilePage() {
     if (!formData.email.includes('@')) errors.email = 'Некорректный email'
     setFormErrors(errors)
     return Object.keys(errors).length === 0
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   const handleSave = () => {
