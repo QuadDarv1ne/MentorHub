@@ -84,7 +84,7 @@ RUN mkdir -p /var/log/supervisor && \
     echo 'directory=/app/frontend' >> /etc/supervisor/conf.d/supervisord.conf && \
     echo 'autostart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
     echo 'autorestart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
-    echo 'environment=PORT=3000,NEXT_PUBLIC_API_URL="http://localhost:8000"' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'environment=PORT="3000",NEXT_PUBLIC_API_URL="http://localhost:8000"' >> /etc/supervisor/conf.d/supervisord.conf && \
     echo 'stderr_logfile=/var/log/frontend.err.log' >> /etc/supervisor/conf.d/supervisord.conf && \
     echo 'stdout_logfile=/var/log/frontend.out.log' >> /etc/supervisor/conf.d/supervisord.conf
 
