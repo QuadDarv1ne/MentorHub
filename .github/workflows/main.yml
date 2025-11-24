@@ -49,7 +49,7 @@ jobs:
         run: |
           cd backend
           python -m pip install mypy
-          mypy . || echo "mypy warnings found but continuing"
+          mypy app --config-file=../mypy.ini || echo "mypy warnings found but continuing"
 
       - name: Run backend tests
         env:
