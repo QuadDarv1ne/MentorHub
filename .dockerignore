@@ -1,0 +1,81 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENCE
+docs/
+img/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next
+out
+build
+dist
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv
+env
+ENV
+.venv
+
+# Testing
+coverage
+.nyc_output
+*.test.js
+*.spec.js
+tests/
+test/
+**/__tests__/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+
+# Misc
+*.bak
+*.tmp
+.cache
+temp/
+tmp/
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.dev

@@ -327,6 +327,12 @@ tmp/uploads/
 *.tar
 *.tar.gz
 
+# Исключения: разрешить img/ для README и документации
+!img/
+!img/*.png
+!img/*.jpg
+!img/*.jpeg
+
 # ==================== BUILD & DISTRIBUTION ====================
 build/
 dist/
