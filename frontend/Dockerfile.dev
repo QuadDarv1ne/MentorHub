@@ -1,0 +1,19 @@
+# Development Dockerfile для Frontend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Копируем package files
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Копируем код (будет перезаписано volume)
+COPY . .
+
+# Expose порт
+EXPOSE 3000
+
+# Команда по умолчанию
+CMD ["npm", "run", "dev"]

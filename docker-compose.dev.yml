@@ -1,0 +1,98 @@
+# Docker Compose для локальной разработки MentorHub
+version: '3.8'
+
+services:
+  # ==================== PostgreSQL ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentorhub-dev-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-mentorhub_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_dev_password}
+      POSTGRES_DB: ${DB_NAME:-mentorhub_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mentorhub_user}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - mentorhub-dev
+
+  # ==================== Redis ====================
+  redis:
+    image: redis:7-alpine
+    container_name: mentorhub-dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - mentorhub-dev
+    command: redis-server --appendonly yes
+
+  # ==================== Backend (FastAPI) ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: mentorhub-dev-backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_dev_password}@postgres:5432/${DB_NAME:-mentorhub_dev}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      ENVIRONMENT: development
+      DEBUG: "True"
+      RELOAD: "True"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mentorhub-dev
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ==================== Frontend (Next.js) ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: mentorhub-dev-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - mentorhub-dev
+    command: npm run dev
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  mentorhub-dev:
+    driver: bridge

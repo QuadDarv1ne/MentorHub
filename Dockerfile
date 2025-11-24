@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем requirements и устанавливаем в отдельную директорию
-COPY backend/requirements.txt .
+COPY backend/requirements-prod.txt ./requirements.txt
 RUN pip install --no-cache-dir --user --upgrade pip && \
     pip install --no-cache-dir --user -r requirements.txt
 
