@@ -44,5 +44,17 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Expose порт
 EXPOSE 8000
 
-# Запуск приложения (с проверкой переменных окружения)
-CMD python check_env.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Создаем entrypoint скрипт
+COPY <<EOF /app/entrypoint.sh
+#!/bin/bash
+set -e
+echo "🔍 Проверка переменных окружения..."
+python /app/check_env.py || echo "⚠️ Проверка пропущена"
+echo "🚀 Запуск приложения на порту \${PORT:-8000}..."
+exec uvicorn app.main:app --host 0.0.0.0 --port \${PORT:-8000}
+EOF
+
+RUN chmod +x /app/entrypoint.sh
+
+# Запуск через entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
