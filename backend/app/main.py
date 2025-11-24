@@ -46,6 +46,7 @@ from app.middleware.request_id import RequestIDMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
+from app.utils.error_handlers import register_error_handlers
 
 
 # ==================== LOGGING SETUP ====================
@@ -180,56 +181,8 @@ logger.info("✅ GZIP middleware added")
 
 # ==================== EXCEPTION HANDLERS ====================
 
-
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """Handle HTTP exceptions"""
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "status_code": exc.status_code,
-            "message": exc.detail,
-            "path": str(request.url),
-        },
-    )
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handle validation errors"""
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-            "message": "Validation error",
-            "errors": exc.errors(),
-            "path": str(request.url),
-        },
-    )
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    """Handle general exceptions"""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-
-    if is_production():
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "message": "Internal server error",
-            },
-        )
-    else:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "message": str(exc),
-                "detail": str(exc),
-            },
-        )
+# Регистрируем централизованные обработчики ошибок
+register_error_handlers(app)
 
 
 # ==================== REQUEST/RESPONSE LOGGING ====================
