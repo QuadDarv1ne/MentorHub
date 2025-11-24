@@ -3,12 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { getMyProgress, upsertProgress } from '@/lib/api/progress';
 
-interface ProgressItem {
-  id: number;
-  course_id: number;
-  progress_percent: number;
-}
-
 export default function ProgressTracker({ courseId }: { courseId: number }) {
   const [percent, setPercent] = useState<number>(0);
   const [lastSavedPercent, setLastSavedPercent] = useState<number>(0);
@@ -32,7 +26,7 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
           setPercent(p);
           setLastSavedPercent(p);
         }
-      } catch (e) {
+      } catch {
         // ignore for unauthenticated
       }
     })();
@@ -49,7 +43,7 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     setSuccess(null);
     try {
       const payload = { course_id: courseId, progress_percent: percent };
-      const saved = await upsertProgress(payload);
+      await upsertProgress(payload);
       setLastSavedPercent(percent);
       setSuccess('Сохранено');
     } catch (e: unknown) {
@@ -68,9 +62,7 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     setError(null);
     setSuccess(null);
     try {
-      const payload = { course_id: courseId, progress_percent: 100, completed: true };
-      const saved = await upsertProgress(payload);
-      const saved = await upsertProgress({ course_id: courseId, progress_percent: 100 });
+      await upsertProgress({ course_id: courseId, progress_percent: 100 });
       setPercent(100);
       setLastSavedPercent(100);
       setSuccess('Сохранено');
