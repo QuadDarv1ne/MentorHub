@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { CreditCard, Download, Eye, Lock, Plus, Trash2, CheckCircle } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PaymentMethod {
   id: string
@@ -30,8 +32,32 @@ interface Subscription {
 }
 
 export default function BillingPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'subscription' | 'payments' | 'invoices' | 'billing'>('subscription')
   const [showAddCard, setShowAddCard] = useState(false)
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/billing')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 300)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка платёжной информации...</p>
+        </div>
+      </div>
+    )
+  }
 
   const subscription: Subscription = {
     plan: 'Pro Mentor',

@@ -1,18 +1,44 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { User, Bell, Eye, Mail, Shield } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Tabs from '@/components/ui/Tabs'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function SettingsPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
   const [sessionReminders, setSessionReminders] = useState(true)
   const [newsletter, setNewsletter] = useState(false)
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/settings')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 300)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка настроек...</p>
+        </div>
+      </div>
+    )
+  }
 
   const tabs = [
     {

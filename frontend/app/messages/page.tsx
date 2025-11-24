@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Send, MoreVertical, Paperclip, Phone, Video } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
+import { useAuth } from '@/hooks/useAuth'
 
 interface Message {
   id: string
@@ -24,6 +26,9 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedConversation, setSelectedConversation] = useState<string | null>('1')
   const [messageInput, setMessageInput] = useState('')
@@ -113,6 +118,27 @@ export default function MessagesPage() {
   }
 
   const totalUnread = conversations.reduce((sum, conv) => sum + conv.unread, 0)
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/messages')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 300)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка сообщений...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
