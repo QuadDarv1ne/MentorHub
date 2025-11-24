@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Search, Filter, BookOpen, FileText, Video, Headphones, Star, Download, Share2 } from 'lucide-react'
-import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 

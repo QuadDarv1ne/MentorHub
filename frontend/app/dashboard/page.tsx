@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { BookOpen, TrendingUp, Award, Clock, Calendar, ArrowRight, Star, Target, CheckCircle, MessageSquare, Zap } from 'lucide-react'
+import { BookOpen, TrendingUp, Award, Clock, Calendar, ArrowRight, Star, Target, CheckCircle, Zap } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState('')
-  const [activeTab, setActiveTab] = useState(0)
+  const [, setActiveTab] = useState(0)
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')

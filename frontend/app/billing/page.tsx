@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreditCard, Download, Eye, Lock, Plus, Trash2, CheckCircle } from 'lucide-react'
+import { CreditCard, Download, Lock, Plus, Trash2, CheckCircle } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import { useAuth } from '@/hooks/useAuth'
 

@@ -14,7 +14,6 @@ export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  showFirstLast = true,
   maxVisiblePages = 5,
 }: PaginationProps) {
   if (totalPages <= 1) return null;

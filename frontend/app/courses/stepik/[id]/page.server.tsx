@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
       title: `${course.title} | MentorHub`,
       description: course.description,
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Курс не найден | MentorHub',
       description: 'Запрашиваемый курс не найден',

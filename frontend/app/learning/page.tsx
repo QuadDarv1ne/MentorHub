@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   BookOpen, CheckCircle, Clock, BarChart3, PlayCircle, Lock,
-  ChevronDown, Award, Target, TrendingUp, Share2
+  ChevronDown, Award, Target, TrendingUp
 } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'

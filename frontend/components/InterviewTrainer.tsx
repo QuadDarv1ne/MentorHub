@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageSquare, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 const interviews = [

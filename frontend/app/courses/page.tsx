@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Search, Filter, Star, Users, Clock, BarChart3, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 
 interface Course {

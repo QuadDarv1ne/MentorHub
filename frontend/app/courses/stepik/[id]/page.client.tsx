@@ -26,7 +26,7 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
       setIsAuthenticated(Boolean(token));
-    } catch (err) {
+    } catch {
       setIsAuthenticated(false);
     }
 
@@ -37,7 +37,7 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
         if (!res.ok) return;
         const data = await res.json();
         setAggregate({ average_rating: data.average_rating, total_reviews: data.total_reviews });
-      } catch (err) {
+      } catch {
         // ignore
       }
     };

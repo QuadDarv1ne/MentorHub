@@ -191,7 +191,7 @@ export function NavMenu() {
           </div>
           <div className="grid grid-cols-3 gap-6 max-h-[420px] overflow-y-auto pr-2">
             {filteredCategories.length === 0 && (
-              <div className="col-span-3 text-sm text-gray-500">Нет совпадений по запросу "{query}"</div>
+              <div className="col-span-3 text-sm text-gray-500">Нет совпадений по запросу &quot;{query}&quot;</div>
             )}
             {filteredCategories.map(category => (
               <div key={category.title} className="space-y-3" aria-labelledby={`cat-${category.title}`}>
@@ -204,7 +204,6 @@ export function NavMenu() {
                 <div className="space-y-1" role="list">
                   {category.items.map(item => {
                     const globalIndex = flatItems.findIndex(fi => fi.href === item.href)
-                    const titleHighlighted = query && item.title.toLowerCase().includes(query.toLowerCase())
                     const descHighlighted = query && (item.description?.toLowerCase().includes(query.toLowerCase()) ?? false)
                     // Безопасное выделение совпадений без dangerouslySetInnerHTML
                     function highlight(text: string): (string | JSX.Element)[] {
@@ -301,7 +300,7 @@ export function MobileNavMenu() {
             )}
           </div>
           {filtered.length === 0 && (
-            <p className="text-xs text-gray-500">Нет совпадений по запросу "{query}"</p>
+            <p className="text-xs text-gray-500">Нет совпадений по запросу &quot;{query}&quot;</p>
           )}
           {filtered.map(category => (
             <div key={category.title}>
