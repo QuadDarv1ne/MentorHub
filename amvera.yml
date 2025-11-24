@@ -6,10 +6,13 @@ meta:
   project: mentorhub
 
 build:
-  dockerfile: ./Dockerfile.production
+  dockerfile: ./Dockerfile
 
 run:
   containerPort: 8000
+  persistentVolume:
+    name: app-data
+    mountPath: /data
   
 services:
   postgres:
@@ -75,4 +78,6 @@ volumes:
   - name: postgres-data
     size: 1Gi
   - name: redis-data
+    size: 512Mi
+  - name: app-data
     size: 512Mi
