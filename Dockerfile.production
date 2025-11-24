@@ -1,0 +1,88 @@
+# ===================================
+# Multi-stage Dockerfile для Production
+# Собирает Backend + Frontend в одном контейнере
+# ===================================
+
+# ============ STAGE 1: Frontend Build ============
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Копируем package.json и устанавливаем зависимости
+COPY frontend/package*.json ./
+RUN npm ci --only=production
+
+# Копируем исходники и собираем
+COPY frontend/ ./
+RUN npm run build
+
+# ============ STAGE 2: Backend Build ============
+FROM python:3.11-slim AS backend-builder
+
+WORKDIR /app/backend
+
+# Устанавливаем системные зависимости
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем requirements и устанавливаем Python зависимости
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Копируем backend код
+COPY backend/ ./
+
+# ============ STAGE 3: Production Image ============
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Устанавливаем runtime зависимости
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем Python зависимости из builder
+COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=backend-builder /usr/local/bin /usr/local/bin
+
+# Копируем backend приложение
+COPY --from=backend-builder /app/backend /app/backend
+
+# Копируем собранный frontend
+COPY --from=frontend-builder /app/frontend/.next /app/frontend/.next
+COPY --from=frontend-builder /app/frontend/public /app/frontend/public
+COPY --from=frontend-builder /app/frontend/node_modules /app/frontend/node_modules
+COPY --from=frontend-builder /app/frontend/package.json /app/frontend/package.json
+
+# Создаем non-root пользователя
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+# Переменные окружения
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8000
+
+WORKDIR /app/backend
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# Expose порт
+EXPOSE 8000
+
+# Скрипт запуска
+COPY docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

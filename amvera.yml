@@ -1,0 +1,78 @@
+# Конфигурация для развертывания на Amvera
+# https://amvera.ru/docs
+
+meta:
+  environment: production
+  project: mentorhub
+
+build:
+  dockerfile: ./Dockerfile.production
+
+run:
+  containerPort: 8000
+  
+services:
+  postgres:
+    type: postgres
+    version: "16"
+    persistentVolume: 
+      name: postgres-data
+      mountPath: /var/lib/postgresql/data
+    
+  redis:
+    type: redis
+    version: "7"
+    persistentVolume:
+      name: redis-data
+      mountPath: /data
+
+env:
+  # Database (автоматически заполняется Amvera)
+  DATABASE_URL: ${POSTGRES_URL}
+  REDIS_URL: ${REDIS_URL}
+  
+  # Security
+  SECRET_KEY: ${SECRET_KEY}
+  ALGORITHM: HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES: 30
+  
+  # Agora (заполните в панели Amvera)
+  AGORA_APP_ID: ${AGORA_APP_ID}
+  AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE}
+  
+  # Stripe
+  STRIPE_API_KEY: ${STRIPE_API_KEY}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  
+  # AWS S3
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+  AWS_S3_BUCKET: mentorhub-bucket
+  
+  # Email
+  SMTP_SERVER: ${SMTP_SERVER}
+  SMTP_PORT: 587
+  SMTP_USER: ${SMTP_USER}
+  SMTP_PASSWORD: ${SMTP_PASSWORD}
+  EMAIL_SENDER: noreply@mentorhub.com
+  
+  # App
+  ENVIRONMENT: production
+  BACKEND_PORT: 8000
+  FRONTEND_PORT: 3000
+  NEXT_PUBLIC_API_URL: ${APP_URL}
+
+resources:
+  # Бесплатный тариф
+  cpu: 0.5
+  memory: 512Mi
+  
+  # Или платный для production
+  # cpu: 1
+  # memory: 1Gi
+
+volumes:
+  - name: postgres-data
+    size: 1Gi
+  - name: redis-data
+    size: 512Mi
