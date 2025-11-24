@@ -697,9 +697,9 @@ git push origin feature/your-feature-name
 ### Социальные сети
 
 - [GitHub](https://github.com/QuadDarv1ne/MentorHub)
-- [LinkedIn](https://linkedin.com/company/mentorhub)
-- [Twitter](https://twitter.com/MentorHubApp)
-- [Telegram Community](https://t.me/mentorhub_community)
+- [LinkedIn](https://linkedin.com/)
+- [Twitter](https://twitter.com/)
+- [Telegram Community](https://t.me/)
 
 ---
 
