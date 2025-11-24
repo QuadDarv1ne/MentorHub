@@ -281,6 +281,33 @@ async def ready_check():
         )
 
 
+# Detailed health check endpoint
+@app.get("/api/v1/health/detailed", tags=["Health"])
+async def detailed_health_check():
+    """Detailed health check with all system metrics"""
+    try:
+        from app.utils.health import get_full_health_check
+        health_data = await get_full_health_check()
+        
+        if health_data["status"] == "healthy":
+            return health_data
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content=health_data,
+            )
+    except Exception as e:
+        logger.error(f"Detailed health check failed: {e}")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "error",
+                "error": str(e)
+            },
+        )
+        )
+
+
 # ==================== API ROUTES ====================
 api_prefix = "/api/v1"
 
