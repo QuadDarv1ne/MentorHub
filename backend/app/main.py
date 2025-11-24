@@ -27,9 +27,11 @@ except ImportError:
 
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
-from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats, monitoring
+from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats, monitoring, health
 from app.middleware.security_advanced import SecurityMiddleware
+from app.middleware.request_id import RequestIDMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
+from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
 
 
