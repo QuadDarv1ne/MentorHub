@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { CreditCard, Lock, Check, AlertCircle } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PaymentMethod {
   id: string
@@ -26,10 +28,34 @@ interface Subscription {
 }
 
 export default function PaymentIntegration() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [showAddCard, setShowAddCard] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/payment')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 500)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
 
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     {
@@ -107,6 +133,12 @@ export default function PaymentIntegration() {
   ]
 
   const handlePayment = async (planId: string) => {
+    // Проверка авторизации перед оплатой
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/payment')
+      return
+    }
+    
     setProcessing(true)
     setSelectedPlan(planId)
 
@@ -135,6 +167,13 @@ export default function PaymentIntegration() {
 
   const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Проверка авторизации перед добавлением карты
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/payment')
+      return
+    }
+    
     setProcessing(true)
 
     // Mock card adding

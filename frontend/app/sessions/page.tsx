@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Calendar, Clock, Video, MessageSquare } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
+import { useAuth } from '@/hooks/useAuth'
 
 const sessions = [
   {
@@ -76,11 +78,35 @@ const stats = {
 }
 
 export default function SessionsPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming')
   const [selectedSession, setSelectedSession] = useState<typeof sessions[0] | null>(null)
   const [rating, setRating] = useState(5)
   const [feedback, setFeedback] = useState('')
+
+  // Проверка авторизации
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login?redirect=/sessions')
+    } else {
+      setIsLoading(true)
+      setTimeout(() => setIsLoading(false), 300)
+    }
+  }, [isAuthenticated, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Загрузка сессий...</p>
+        </div>
+      </div>
+    )
+  }
 
   const upcomingSessions = sessions.filter(s => s.status === 'upcoming')
   const completedSessions = sessions.filter(s => s.status === 'completed')

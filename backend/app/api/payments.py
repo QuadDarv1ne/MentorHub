@@ -16,6 +16,7 @@ from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
 from app.schemas.payment import PaymentCreate, PaymentUpdate, PaymentResponse
 from app.services.stripe_service import stripe_service
+from app.services.sbp_service import sbp_service
 from app.utils.sanitization import sanitize_string, is_safe_string
 
 router = APIRouter()
@@ -338,6 +339,185 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         
         payment = db.query(DBPayment).filter(
             DBPayment.transaction_id == transaction_id
+        ).first()
+        
+        if payment:
+            payment.status = PaymentStatus.FAILED
+            db.commit()
+    
+    return {"status": "success"}
+
+
+# ==================== СБП INTEGRATION ====================
+
+class SBPPaymentCreate(BaseModel):
+    """Схема для создания платежа через СБП"""
+    amount: Decimal
+    description: str = ""
+    session_id: int
+    mentor_id: int
+    customer_phone: Optional[str] = None
+
+
+@router.post("/sbp/create-qr", response_model=dict)
+async def create_sbp_qr_code(
+    payment_data: SBPPaymentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Создать QR-код для оплаты через СБП
+    
+    Возвращает QR-код и URL для оплаты через Систему быстрых платежей
+    """
+    # Проверяем существование сессии
+    session = db.query(DBSession).filter(DBSession.id == payment_data.session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Сессия не найдена")
+    
+    # Проверяем существование ментора
+    mentor = db.query(Mentor).filter(Mentor.id == payment_data.mentor_id).first()
+    if not mentor:
+        raise HTTPException(status_code=404, detail="Ментор не найден")
+    
+    # Создаем запись о платеже в БД
+    db_payment = DBPayment(
+        student_id=current_user.id,
+        mentor_id=payment_data.mentor_id,
+        session_id=payment_data.session_id,
+        amount=payment_data.amount,
+        currency="RUB",
+        payment_method="sbp",
+        status=PaymentStatus.PENDING
+    )
+    db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    
+    # Создаем QR-код в СБП
+    qr_result = sbp_service.create_qr_code(
+        amount=payment_data.amount,
+        description=payment_data.description or f"Оплата сессии #{payment_data.session_id}",
+        order_id=str(db_payment.id),
+        customer_phone=payment_data.customer_phone,
+    )
+    
+    if "error" in qr_result:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Ошибка создания QR-кода СБП: {qr_result['error']}"
+        )
+    
+    # Сохраняем qr_id как transaction_id
+    db_payment.transaction_id = qr_result.get("qr_id")
+    db.commit()
+    
+    return {
+        "payment_id": db_payment.id,
+        "qr_id": qr_result.get("qr_id"),
+        "qr_url": qr_result.get("qr_url"),
+        "qr_image": qr_result.get("qr_image"),
+        "amount": float(payment_data.amount),
+        "currency": "RUB",
+        "expires_at": qr_result.get("expires_at"),
+        "status": "pending",
+    }
+
+
+@router.get("/sbp/check-status/{payment_id}")
+async def check_sbp_payment_status(
+    payment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Проверить статус платежа СБП"""
+    payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Платеж не найден")
+    
+    if payment.student_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    
+    if not payment.transaction_id:
+        raise HTTPException(status_code=400, detail="QR-код не найден для этого платежа")
+    
+    # Проверяем статус в СБП
+    sbp_status = sbp_service.check_payment_status(payment.transaction_id)
+    
+    if "error" not in sbp_status:
+        if sbp_status.get("status") == "completed":
+            payment.status = PaymentStatus.COMPLETED
+            db.commit()
+    
+    db.refresh(payment)
+    
+    return {
+        "payment_id": payment.id,
+        "status": payment.status,
+        "amount": float(payment.amount),
+        "sbp_status": sbp_status.get("status"),
+        "bank_name": sbp_status.get("bank_name"),
+        "transaction_id": sbp_status.get("transaction_id"),
+    }
+
+
+@router.get("/sbp/banks", response_model=dict)
+async def get_sbp_banks():
+    """
+    Получить список банков, поддерживающих СБП
+    
+    Возвращает список банков для отображения пользователю
+    """
+    banks_data = sbp_service.get_available_banks()
+    
+    if "error" in banks_data:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Ошибка получения списка банков: {banks_data['error']}"
+        )
+    
+    return banks_data
+
+
+@router.post("/sbp/webhook")
+async def sbp_webhook(request: Request, db: Session = Depends(get_db)):
+    """
+    Webhook для обработки событий от СБП
+    
+    СБП отправляет уведомления о статусе платежей
+    """
+    payload = await request.body()
+    signature = request.headers.get("x-sbp-signature")
+    
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing x-sbp-signature header")
+    
+    # Проверяем подпись webhook
+    event = sbp_service.verify_webhook_signature(payload, signature)
+    
+    if not event:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    
+    # Обрабатываем событие
+    event_type = event.get("event_type")
+    
+    if event_type == "payment.completed":
+        qr_id = event.get("qr_id")
+        
+        # Находим платеж и обновляем статус
+        payment = db.query(DBPayment).filter(
+            DBPayment.transaction_id == qr_id
+        ).first()
+        
+        if payment:
+            payment.status = PaymentStatus.COMPLETED
+            db.commit()
+    
+    elif event_type == "payment.failed":
+        qr_id = event.get("qr_id")
+        
+        payment = db.query(DBPayment).filter(
+            DBPayment.transaction_id == qr_id
         ).first()
         
         if payment:

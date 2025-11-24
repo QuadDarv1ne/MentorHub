@@ -72,7 +72,14 @@ class Settings(BaseSettings):
     # ==================== STRIPE PAYMENTS ====================
     STRIPE_API_KEY: str = ""
     STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    
+    # ==================== СБП (Система быстрых платежей) ====================
+    SBP_MERCHANT_ID: str = ""
+    SBP_API_KEY: str = ""
+    SBP_SECRET_KEY: str = ""
+    SBP_API_URL: str = "https://api.sbp.ru/v1"
     
     # ==================== YANDEX KASSA ====================
     YANDEX_SHOP_ID: str = ""
