@@ -123,6 +123,14 @@ app = FastAPI(
 
 # ==================== MIDDLEWARE SETUP ====================
 
+# Request ID Middleware (должен быть первым)
+app.add_middleware(RequestIDMiddleware)
+logger.info("✅ Request ID middleware added")
+
+# Prometheus Metrics Middleware
+app.add_middleware(PrometheusMiddleware)
+logger.info("✅ Prometheus metrics middleware added")
+
 # Performance Monitoring Middleware
 app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
 logger.info("✅ Performance monitoring middleware added")
