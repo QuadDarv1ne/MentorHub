@@ -232,24 +232,22 @@ async def root():
 @app.get("/api/v1/health", tags=["Health"])
 async def health_check():
     """Health check endpoint for monitoring"""
-    db_status = "disconnected"
     try:
+        db_status = "disconnected"
         # Check database connection
         from sqlalchemy import text
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         db.close()
         db_status = "connected"
-    except Exception as e:
-        logger.error(f"Health check database error: {e}")
-    
-    return {
-        "status": "healthy" if db_status == "connected" else "degraded",
-        "service": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT,
-        "database": db_status,
-    }
+        
+        return {
+            "status": "healthy" if db_status == "connected" else "degraded",
+            "service": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "environment": settings.ENVIRONMENT,
+            "database": db_status,
+        }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return JSONResponse(
@@ -304,7 +302,6 @@ async def detailed_health_check():
                 "status": "error",
                 "error": str(e)
             },
-        )
         )
 
 
