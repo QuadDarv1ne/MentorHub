@@ -27,6 +27,7 @@ except ImportError:
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
 from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats
+from app.middleware.security_advanced import SecurityMiddleware
 
 
 # ==================== LOGGING SETUP ====================
@@ -114,6 +115,10 @@ app = FastAPI(
 
 
 # ==================== MIDDLEWARE SETUP ====================
+
+# Advanced Security Middleware (SQL injection, XSS, CSRF, etc.)
+app.add_middleware(SecurityMiddleware)
+logger.info("✅ Advanced Security middleware added")
 
 # CORS Middleware
 app.add_middleware(

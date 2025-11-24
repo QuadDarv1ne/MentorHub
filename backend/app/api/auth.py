@@ -14,7 +14,7 @@ from app.config import settings
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
-from app.utils.security import verify_password, get_password_hash
+from app.utils.security import verify_password, get_password_hash, brute_force_protection, password_validator
 from app.utils.sanitization import sanitize_email, sanitize_username, sanitize_string, is_safe_string
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,14 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db), rate_li
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Недопустимые символы в email или username",
+        )
+    
+    # Валидация пароля
+    password_check = password_validator.validate_password(user_data.password)
+    if not password_check['is_valid']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Слабый пароль: {', '.join(password_check['errors'])}",
         )
     
     # Проверка существования пользователя
@@ -98,11 +106,20 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limi
             detail="Недопустимые символы в email",
         )
     
+    # Проверка на brute-force
+    if brute_force_protection.is_locked(sanitized_email):
+        remaining = brute_force_protection.get_lockout_time_remaining(sanitized_email)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Слишком много неудачных попыток. Попробуйте через {remaining} секунд",
+        )
+    
     # Поиск пользователя по email
     user = db.query(User).filter(User.email == sanitized_email).first()
     
     if not user:
         logger.info(f"User not found for email: {sanitized_email}")
+        brute_force_protection.record_failed_attempt(sanitized_email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный email или пароль",
@@ -117,6 +134,7 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limi
     logger.info(f"Password verification result: {password_valid}")
     
     if not password_valid:
+        brute_force_protection.record_failed_attempt(sanitized_email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный email или пароль",
@@ -127,6 +145,9 @@ async def login(credentials: UserLogin, db: Session = Depends(get_db), rate_limi
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Учетная запись пользователя неактивна",
         )
+    
+    # Успешный вход - сброс попыток
+    brute_force_protection.reset_attempts(sanitized_email)
     
     # Создание токенов
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
