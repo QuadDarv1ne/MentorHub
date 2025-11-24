@@ -6,8 +6,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Dict, Any
 
-from app.models.user import User, UserRole
-from app.dependencies import get_current_user, require_role
+from app.models.user import User
+from app.dependencies import get_current_user
 from app.utils.monitoring import performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -15,11 +15,17 @@ router = APIRouter()
 
 
 @router.get("/metrics", response_model=Dict[str, Any])
-async def get_metrics(current_user: User = Depends(require_role(UserRole.ADMIN))):
+async def get_metrics(current_user: User = Depends(get_current_user)):
     """
     Получение метрик производительности
     Доступно только администраторам
     """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can access metrics"
+        )
+    
     try:
         metrics = performance_monitor.get_metrics()
         return metrics
@@ -29,11 +35,17 @@ async def get_metrics(current_user: User = Depends(require_role(UserRole.ADMIN))
 
 
 @router.post("/metrics/reset", response_model=Dict[str, str])
-async def reset_metrics(current_user: User = Depends(require_role(UserRole.ADMIN))):
+async def reset_metrics(current_user: User = Depends(get_current_user)):
     """
     Сброс метрик производительности
     Доступно только администраторам
     """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can reset metrics"
+        )
+    
     try:
         performance_monitor.reset_metrics()
         return {"message": "Метрики успешно сброшены"}
