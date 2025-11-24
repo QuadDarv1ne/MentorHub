@@ -48,8 +48,34 @@ EXPOSE 8000
 COPY <<EOF /app/entrypoint.sh
 #!/bin/bash
 set -e
-echo "🔍 Проверка переменных окружения..."
-python /app/check_env.py || echo "⚠️ Проверка пропущена"
+
+echo "=========================================="
+echo "🔍 Проверка переменных окружения"
+echo "=========================================="
+
+# Проверка DATABASE_URL
+if [ -z "\${DATABASE_URL}" ]; then
+    echo "❌ ERROR: DATABASE_URL не установлена!"
+    echo "💡 Установите переменную DATABASE_URL в настройках Amvera"
+    exit 1
+else
+    # Маскируем пароль в выводе
+    MASKED_URL=\$(echo "\${DATABASE_URL}" | sed 's/:\/\/[^:]*:[^@]*@/:\/\/***:***@/')
+    echo "✅ DATABASE_URL: \${MASKED_URL}"
+fi
+
+# Проверка SECRET_KEY
+if [ -z "\${SECRET_KEY}" ]; then
+    echo "❌ ERROR: SECRET_KEY не установлен!"
+    echo "💡 Установите переменную SECRET_KEY в настройках Amvera"
+    exit 1
+else
+    echo "✅ SECRET_KEY: \${SECRET_KEY:0:10}..."
+fi
+
+echo "✅ ENVIRONMENT: \${ENVIRONMENT:-not-set}"
+echo "=========================================="
+
 echo "🚀 Запуск приложения на порту \${PORT:-8000}..."
 exec uvicorn app.main:app --host 0.0.0.0 --port \${PORT:-8000}
 EOF
