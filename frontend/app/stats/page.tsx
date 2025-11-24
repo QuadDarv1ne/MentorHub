@@ -273,7 +273,7 @@ export default function UserStatistics() {
 
           <div className="space-y-6">
             {monthlyStats.map(stat => (
-              <div>
+              <div key={stat.month}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">{stat.month}</span>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">

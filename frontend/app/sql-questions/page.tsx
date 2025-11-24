@@ -307,7 +307,7 @@ export default function SQLQuestionsPage() {
                   <span className="font-bold text-indigo-600 text-lg">#{q.id}</span>
                   <h3 className="text-lg font-semibold text-gray-900">{q.title}</h3>
                   <Badge 
-                    variant={levels[q.level as keyof typeof levels].color as any}
+                    variant={levels[q.level as keyof typeof levels].color as 'default' | 'success' | 'warning' | 'danger'}
                     size="sm"
                   >
                     {levels[q.level as keyof typeof levels].label}

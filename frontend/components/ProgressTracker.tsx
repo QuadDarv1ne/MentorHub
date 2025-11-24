@@ -3,8 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { getMyProgress, upsertProgress } from '@/lib/api/progress';
 
+interface ProgressItem {
+  id: number;
+  course_id: number;
+  progress_percent: number;
+}
+
 export default function ProgressTracker({ courseId }: { courseId: number }) {
-  const [items, setItems] = useState<any[]>([]);
   const [percent, setPercent] = useState<number>(0);
   const [lastSavedPercent, setLastSavedPercent] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -20,7 +25,6 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
       try {
         const res = await getMyProgress(courseId);
         if (!mounted) return;
-        setItems(Array.isArray(res) ? res : []);
         // If there is an existing lesson-level record, pick first, otherwise pick course-level
         const existing = (Array.isArray(res) ? res[0] : null) || null;
         if (existing) {
@@ -46,11 +50,10 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     try {
       const payload = { course_id: courseId, progress_percent: percent };
       const saved = await upsertProgress(payload);
-      setItems([saved]);
       setLastSavedPercent(percent);
       setSuccess('Сохранено');
-    } catch (e: any) {
-      setError(e.message || 'Ошибка при сохранении');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Ошибка при сохранении');
     } finally {
       setIsSaving(false);
     }
@@ -67,12 +70,12 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
     try {
       const payload = { course_id: courseId, progress_percent: 100, completed: true };
       const saved = await upsertProgress(payload);
-      setItems([saved]);
+      const saved = await upsertProgress({ course_id: courseId, progress_percent: 100 });
       setPercent(100);
       setLastSavedPercent(100);
       setSuccess('Сохранено');
-    } catch (e: any) {
-      setError(e.message || 'Ошибка при сохранении');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Ошибка при сохранении');
     } finally {
       setIsSaving(false);
     }

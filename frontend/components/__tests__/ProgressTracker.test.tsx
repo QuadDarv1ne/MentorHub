@@ -6,7 +6,7 @@ import ProgressTracker from '../ProgressTracker';
 
 describe('ProgressTracker', () => {
   beforeEach(() => {
-    (global as any).fetch = jest.fn();
+    global.fetch = jest.fn() as jest.Mock;
     localStorage.clear();
   });
 
@@ -18,7 +18,7 @@ describe('ProgressTracker', () => {
 
   it('saves progress with auth header when token present', async () => {
     localStorage.setItem('access_token', 'fake-token');
-    (global as any).fetch = jest.fn(() => Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 50 }) }));
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 50 }) })) as jest.Mock;
 
     render(<ProgressTracker courseId={200} />);
 
@@ -27,9 +27,12 @@ describe('ProgressTracker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
 
-  await waitFor(() => expect((global as any).fetch).toHaveBeenCalled());
+  await waitFor(() => expect(global.fetch).toHaveBeenCalled());
   // first call is fetch of existing progress (GET), second is upsert (POST)
-  const postCall = (global as any).fetch.mock.calls.find((c: any[]) => c[1] && c[1].method === 'POST');
+  const postCall = (global.fetch as jest.Mock).mock.calls.find((c: unknown[]) => {
+    const opts = c[1] as Record<string, unknown> | undefined;
+    return opts && opts.method === 'POST';
+  });
   expect(postCall).toBeDefined();
   const [url, opts] = postCall;
   expect(url).toContain('/api/v1/progress');
@@ -39,7 +42,7 @@ describe('ProgressTracker', () => {
 
   it('shows success message and allows cancel to revert changes', async () => {
     localStorage.setItem('access_token', 'fake-token');
-    (global as any).fetch = jest.fn((url: string, opts?: any) => {
+    global.fetch = jest.fn((url: string, opts?: RequestInit) => {
       if (opts && opts.method === 'POST') {
         return Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 30 }) });
       }

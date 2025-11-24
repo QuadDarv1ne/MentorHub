@@ -21,8 +21,10 @@ export default function SimilarCourses({ courseId }: { courseId: number }) {
           const uniqueIds = Array.from(new Set(data.map(d => d.course_id)));
           const courses = await Promise.all(uniqueIds.map(id => getCourse(id).catch(() => null)));
           const map: Record<number, Pick<StepikCourse, 'id' | 'title' | 'cover'>> = {};
-          courses.filter(Boolean).forEach((c: any) => {
-            map[c.id] = { id: c.id, title: c.title, cover: c.cover };
+          courses.filter(Boolean).forEach((c) => {
+            if (c && 'id' in c && 'title' in c && 'cover' in c) {
+              map[c.id] = { id: c.id, title: c.title, cover: c.cover };
+            }
           });
           if (mounted) setDetails(map);
         } catch {

@@ -7,7 +7,13 @@ import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
-const posts: Record<string, any> = {
+interface BlogPost {
+  slug: string;
+  title: string;
+  [key: string]: unknown;
+}
+
+const posts: Record<string, BlogPost> = {
   'kak-podgotsya-k-sobesedovaniyu': {
     slug: 'kak-podgotsya-k-sobesedovaniyu',
     title: 'Как подготовиться к собеседованию в IT',

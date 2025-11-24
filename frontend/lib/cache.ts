@@ -4,7 +4,7 @@ type CacheItem<T> = {
 };
 
 type CacheMap = {
-  [key: string]: CacheItem<any>;
+  [key: string]: CacheItem<unknown>;
 };
 
 class Cache {
