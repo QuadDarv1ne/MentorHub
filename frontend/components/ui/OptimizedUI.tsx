@@ -106,7 +106,7 @@ export const Input = React.memo<InputProps>(({
             transition-colors
             ${className}
           `}
-          aria-invalid={hasError ? 'true' : 'false'}
+          aria-invalid={hasError}
           aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
           {...props}
         />

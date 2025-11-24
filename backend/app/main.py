@@ -26,8 +26,10 @@ except ImportError:
 
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
-from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats
+from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats, monitoring
 from app.middleware.security_advanced import SecurityMiddleware
+from app.utils.monitoring import PerformanceMiddleware, performance_monitor
+from app.utils.cache import init_cache
 
 
 # ==================== LOGGING SETUP ====================
@@ -66,6 +68,10 @@ async def lifespan(app: FastAPI):
     # STARTUP
     logger.info("🚀 Starting MentorHub API...")
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
+    
+    # Initialize cache
+    init_cache()
+    logger.info("✅ Cache initialized")
     
     # Create tables (with retry logic for Amvera)
     max_retries = 5
@@ -115,6 +121,10 @@ app = FastAPI(
 
 
 # ==================== MIDDLEWARE SETUP ====================
+
+# Performance Monitoring Middleware
+app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
+logger.info("✅ Performance monitoring middleware added")
 
 # Advanced Security Middleware (SQL injection, XSS, CSRF, etc.)
 app.add_middleware(SecurityMiddleware)
@@ -392,6 +402,14 @@ app.include_router(
     tags=["Statistics"],
 )
 logger.info("✅ Stats routes loaded")
+
+# Monitoring routes
+app.include_router(
+    monitoring.router,
+    prefix=f"{api_prefix}/admin",
+    tags=["Monitoring"],
+)
+logger.info("✅ Monitoring routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
