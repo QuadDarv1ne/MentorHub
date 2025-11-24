@@ -16,20 +16,26 @@ def seed_reviews(db: Session):
         db.refresh(u)
 
     # course 101
-    db.add_all([
-        Review(user_id=users[0].id, course_id=101, rating=5),
-        Review(user_id=users[1].id, course_id=101, rating=4),
-    ])
+    db.add_all(
+        [
+            Review(user_id=users[0].id, course_id=101, rating=5),
+            Review(user_id=users[1].id, course_id=101, rating=4),
+        ]
+    )
     # course 102
-    db.add_all([
-        Review(user_id=users[2].id, course_id=102, rating=4),
-        Review(user_id=users[3].id, course_id=102, rating=4),
-    ])
+    db.add_all(
+        [
+            Review(user_id=users[2].id, course_id=102, rating=4),
+            Review(user_id=users[3].id, course_id=102, rating=4),
+        ]
+    )
     # course 103
-    db.add_all([
-        Review(user_id=users[4].id, course_id=103, rating=5),
-        Review(user_id=users[5].id, course_id=103, rating=5),
-    ])
+    db.add_all(
+        [
+            Review(user_id=users[4].id, course_id=103, rating=5),
+            Review(user_id=users[5].id, course_id=103, rating=5),
+        ]
+    )
     # course 104
     db.add(Review(user_id=users[6].id, course_id=104, rating=3))
     db.commit()

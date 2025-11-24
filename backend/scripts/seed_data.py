@@ -31,11 +31,11 @@ COURSES = [
 def seed_data():
     """Заполнить БД тестовыми данными"""
     db = SessionLocal()
-    
+
     try:
         print("🌱 Заполнение БД тестовыми данными...")
         print("-" * 50)
-        
+
         # Создаем тестовых пользователей
         users = []
         for i in range(1, 6):
@@ -45,14 +45,14 @@ def seed_data():
                 full_name=f"Тестовый Пользователь {i}",
                 role="student" if i <= 3 else "mentor",
                 is_active=True,
-                is_verified=True
+                is_verified=True,
             )
             db.add(user)
             users.append(user)
-        
+
         db.commit()
         print(f"✅ Создано {len(users)} пользователей")
-        
+
         # Создаем менторов
         mentors = []
         for user in users[3:]:  # Последние 2 пользователя - менторы
@@ -64,14 +64,14 @@ def seed_data():
                 price_per_hour=random.randint(2000, 5000),
                 rating=round(random.uniform(4.0, 5.0), 1),
                 total_sessions=random.randint(50, 200),
-                is_available=True
+                is_available=True,
             )
             db.add(mentor)
             mentors.append(mentor)
-        
+
         db.commit()
         print(f"✅ Создано {len(mentors)} менторов")
-        
+
         # Создаем курсы
         courses = []
         for title, desc, level, hours, price in COURSES:
@@ -83,14 +83,14 @@ def seed_data():
                 duration_hours=hours,
                 price=price,
                 rating=round(random.uniform(4.0, 5.0), 1),
-                students_count=random.randint(100, 500)
+                students_count=random.randint(100, 500),
             )
             db.add(course)
             courses.append(course)
-        
+
         db.commit()
         print(f"✅ Создано {len(courses)} курсов")
-        
+
         print("\n" + "=" * 50)
         print("✅ База данных успешно заполнена тестовыми данными!")
         print("=" * 50)
@@ -102,11 +102,12 @@ def seed_data():
         print("  Email: user4@example.com | Пароль: password123")
         print("  Email: user5@example.com | Пароль: password123")
         print("=" * 50)
-        
+
     except Exception as e:
         db.rollback()
         print(f"❌ Ошибка: {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         db.close()

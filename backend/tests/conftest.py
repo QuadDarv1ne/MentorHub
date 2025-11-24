@@ -4,6 +4,7 @@
 """
 
 import os
+
 # Ensure tests run with testing environment and sqlite DB
 os.environ.setdefault("ENVIRONMENT", "testing")
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
@@ -74,6 +75,7 @@ async def async_client(db_session):
     app.dependency_overrides[get_db] = override_get_db
 
     from httpx import ASGITransport
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
@@ -90,4 +92,3 @@ def sample_user_data():
         "password": "TestPass123!",
         "full_name": "Test User",
     }
-

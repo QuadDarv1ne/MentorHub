@@ -19,32 +19,32 @@ from sqlalchemy import select
 def create_admin():
     """Создать администратора"""
     db = SessionLocal()
-    
+
     try:
         # Проверяем, есть ли уже админ
         stmt = select(User).where(User.role == "admin")
         existing_admin = db.execute(stmt).scalar_one_or_none()
-        
+
         if existing_admin:
             print(f"❌ Администратор уже существует: {existing_admin.email}")
             return
-        
+
         # Запрашиваем данные
         print("📝 Создание администратора MentorHub")
         print("-" * 50)
-        
+
         email = input("Email: ").strip()
         if not email:
             print("❌ Email обязателен!")
             return
-        
+
         password = input("Пароль: ").strip()
         if not password or len(password) < 8:
             print("❌ Пароль должен быть не менее 8 символов!")
             return
-        
+
         full_name = input("Полное имя: ").strip() or "Administrator"
-        
+
         # Создаем админа
         admin = User(
             email=email,
@@ -52,13 +52,13 @@ def create_admin():
             full_name=full_name,
             role="admin",
             is_active=True,
-            is_verified=True
+            is_verified=True,
         )
-        
+
         db.add(admin)
         db.commit()
         db.refresh(admin)
-        
+
         print("\n" + "=" * 50)
         print("✅ Администратор успешно создан!")
         print("=" * 50)
@@ -66,7 +66,7 @@ def create_admin():
         print(f"👤 Имя: {admin.full_name}")
         print(f"🔑 ID: {admin.id}")
         print("=" * 50)
-        
+
     except Exception as e:
         db.rollback()
         print(f"❌ Ошибка: {e}")

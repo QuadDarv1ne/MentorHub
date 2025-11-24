@@ -11,7 +11,9 @@ def register_and_login(client, sample_user_data):
     # зарегистрируем и получим токен
     r = client.post("/api/v1/auth/register", json=sample_user_data)
     assert r.status_code == status.HTTP_201_CREATED
-    login = client.post("/api/v1/auth/login", json={"email": sample_user_data["email"], "password": sample_user_data["password"]})
+    login = client.post(
+        "/api/v1/auth/login", json={"email": sample_user_data["email"], "password": sample_user_data["password"]}
+    )
     assert login.status_code == status.HTTP_200_OK
     return login.json()["access_token"]
 
@@ -27,7 +29,9 @@ def test_review_lifecycle(client, sample_user_data):
     course_id = 101
 
     # create review
-    res = client.post(f"/api/v1/courses/{course_id}/reviews", json={"rating": 5, "comment": "Nice course"}, headers=headers)
+    res = client.post(
+        f"/api/v1/courses/{course_id}/reviews", json={"rating": 5, "comment": "Nice course"}, headers=headers
+    )
     assert res.status_code == status.HTTP_201_CREATED
     data = res.json()
     assert data["rating"] == 5
@@ -35,7 +39,9 @@ def test_review_lifecycle(client, sample_user_data):
     assert "user_name" in data
 
     # duplicate review should fail
-    res2 = client.post(f"/api/v1/courses/{course_id}/reviews", json={"rating":4}, headers=headers)
+    res2 = client.post(
+        f"/api/v1/courses/{course_id}/reviews", json={"rating": 4}, headers=headers
+    )
     assert res2.status_code == status.HTTP_400_BAD_REQUEST
 
     # list reviews
