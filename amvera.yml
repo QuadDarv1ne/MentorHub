@@ -6,7 +6,8 @@ meta:
   project: mentorhub
 
 build:
-  dockerfile: ./Dockerfile
+  dockerfile: ./backend/Dockerfile
+  context: ./backend
 
 run:
   containerPort: 8000
