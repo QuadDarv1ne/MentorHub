@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     
     # ==================== SERVER ====================
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = int(os.environ.get("PORT", "8000"))
     RELOAD: bool = True
     
     # ==================== DATABASE ====================

@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Копируем backend код
 COPY backend/ .
 
+# Делаем скрипт проверки исполняемым
+RUN chmod +x check_env.py 2>/dev/null || true
+
 # Создаем non-root пользователя
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
@@ -31,14 +34,15 @@ USER appuser
 # Переменные окружения
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8000
+    PORT=8000 \
+    DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/mentorhub}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/docs || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Expose порт
 EXPOSE 8000
 
-# Запуск приложения
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Запуск приложения (с проверкой переменных окружения)
+CMD python check_env.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
