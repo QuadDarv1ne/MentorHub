@@ -64,14 +64,29 @@ async def lifespan(app: FastAPI):
     """
     # STARTUP
     logger.info("🚀 Starting MentorHub API...")
+    logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
     
-    # Create tables
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("✅ Database tables created/verified")
-    except Exception as e:
-        logger.error(f"❌ Error creating database tables: {e}")
-        raise
+    # Create tables (with retry logic for Amvera)
+    max_retries = 5
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            import time
+            if attempt > 0:
+                logger.info(f"⏳ Retrying database connection (attempt {attempt + 1}/{max_retries})...")
+                time.sleep(retry_delay)
+            
+            Base.metadata.create_all(bind=engine)
+            logger.info("✅ Database tables created/verified")
+            break
+        except Exception as e:
+            logger.error(f"❌ Error creating database tables (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                logger.error("❌ Failed to connect to database after all retries")
+                # Don't raise in production, let app start anyway
+                if not is_production():
+                    raise
     
     # Log startup info
     logger.info(f"📊 Environment: {settings.ENVIRONMENT}")
@@ -214,20 +229,27 @@ async def root():
 
 # Health check endpoint
 @app.get("/health", tags=["Health"])
+@app.get("/api/v1/health", tags=["Health"])
 async def health_check():
     """Health check endpoint for monitoring"""
+    db_status = "disconnected"
     try:
         # Check database connection
         from sqlalchemy import text
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         db.close()
-        
-        return {
-            "status": "ok",
-            "environment": settings.ENVIRONMENT,
-            "database": "connected",
-        }
+        db_status = "connected"
+    except Exception as e:
+        logger.error(f"Health check database error: {e}")
+    
+    return {
+        "status": "healthy" if db_status == "connected" else "degraded",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT,
+        "database": db_status,
+    }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return JSONResponse(
