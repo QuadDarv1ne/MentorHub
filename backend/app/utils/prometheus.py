@@ -44,13 +44,9 @@ DB_CONNECTION_POOL = Gauge(
     ["pool_type"],
 )
 
-CACHE_HITS = Counter(
-    "mentorhub_cache_hits_total", "Cache hits", ["cache_type"]
-)
+CACHE_HITS = Counter("mentorhub_cache_hits_total", "Cache hits", ["cache_type"])
 
-CACHE_MISSES = Counter(
-    "mentorhub_cache_misses_total", "Cache misses", ["cache_type"]
-)
+CACHE_MISSES = Counter("mentorhub_cache_misses_total", "Cache misses", ["cache_type"])
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
@@ -82,22 +78,16 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Записываем ошибки
-            ERROR_COUNT.labels(
-                method=method, endpoint=endpoint, exception_type=type(e).__name__
-            ).inc()
+            ERROR_COUNT.labels(method=method, endpoint=endpoint, exception_type=type(e).__name__).inc()
             raise
 
         finally:
             # Записываем время выполнения
             duration = time.time() - start_time
-            REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(
-                duration
-            )
+            REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
 
             # Записываем общее количество запросов
-            REQUEST_COUNT.labels(
-                method=method, endpoint=endpoint, http_status=status_code
-            ).inc()
+            REQUEST_COUNT.labels(method=method, endpoint=endpoint, http_status=status_code).inc()
 
             # Уменьшаем счетчик запросов в процессе
             REQUEST_IN_PROGRESS.labels(method=method, endpoint=endpoint).dec()

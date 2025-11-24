@@ -27,7 +27,20 @@ except ImportError:
 
 from app.config import settings, is_production
 from app.database import engine, Base, SessionLocal
-from app.api import auth, users, mentors, sessions, messages, payments, courses, reviews, progress, stats, monitoring, health
+from app.api import (
+    auth,
+    users,
+    mentors,
+    sessions,
+    messages,
+    payments,
+    courses,
+    reviews,
+    progress,
+    stats,
+    monitoring,
+    health,
+)
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
@@ -254,86 +267,21 @@ async def root():
     }
 
 
-# Health check endpoint
-@app.get("/health", tags=["Health"])
-@app.get("/api/v1/health", tags=["Health"])
-async def health_check():
-    """Health check endpoint for monitoring"""
-    try:
-        db_status = "disconnected"
-        # Check database connection
-        from sqlalchemy import text
-
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
-        db_status = "connected"
-
-        return {
-            "status": "healthy" if db_status == "connected" else "degraded",
-            "service": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-            "environment": settings.ENVIRONMENT,
-            "database": db_status,
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "error",
-                "message": "Service unavailable",
-                "database": "disconnected",
-            },
-        )
-
-
-# Ready check endpoint (Kubernetes)
-@app.get("/ready", tags=["Health"])
-async def ready_check():
-    """Readiness check for Kubernetes"""
-    try:
-        from sqlalchemy import text
-
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
-
-        return {"ready": True}
-    except Exception as e:
-        logger.error(f"Readiness check failed: {e}")
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"ready": False},
-        )
-
-
-# Detailed health check endpoint
-@app.get("/api/v1/health/detailed", tags=["Health"])
-async def detailed_health_check():
-    """Detailed health check with all system metrics"""
-    try:
-        from app.utils.health import get_full_health_check
-
-        health_data = await get_full_health_check()
-
-        if health_data["status"] == "healthy":
-            return health_data
-        else:
-            return JSONResponse(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                content=health_data,
-            )
-    except Exception as e:
-        logger.error(f"Detailed health check failed: {e}")
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"status": "error", "error": str(e)},
-        )
+# Prometheus metrics endpoint
+@app.get("/metrics", tags=["Monitoring"])
+async def get_metrics():
+    """Prometheus metrics endpoint"""
+    return await metrics_endpoint()
 
 
 # ==================== API ROUTES ====================
 api_prefix = "/api/v1"
+
+# Health routes
+app.include_router(
+    health.router,
+    prefix=api_prefix,
+)
 
 # Auth routes
 app.include_router(

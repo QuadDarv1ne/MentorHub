@@ -104,9 +104,7 @@ async def detailed_health_check(db: Session = Depends(get_db)):
         # Предупреждение о высокой нагрузке
         if cpu_percent > 80 or memory.percent > 90 or disk.percent > 90:
             health_status["status"] = "degraded"
-            health_status["components"]["system"]["warning"] = (
-                "High resource usage detected"
-            )
+            health_status["components"]["system"]["warning"] = "High resource usage detected"
 
     except Exception as e:
         logger.error(f"System metrics health check failed: {e}")
