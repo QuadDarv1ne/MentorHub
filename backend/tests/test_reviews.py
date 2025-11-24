@@ -39,9 +39,7 @@ def test_review_lifecycle(client, sample_user_data):
     assert "user_name" in data
 
     # duplicate review should fail
-    res2 = client.post(
-        f"/api/v1/courses/{course_id}/reviews", json={"rating": 4}, headers=headers
-    )
+    res2 = client.post(f"/api/v1/courses/{course_id}/reviews", json={"rating": 4}, headers=headers)
     assert res2.status_code == status.HTTP_400_BAD_REQUEST
 
     # list reviews
