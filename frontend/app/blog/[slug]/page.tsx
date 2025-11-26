@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import { ChevronLeft, Calendar, User, Share2, MessageCircle, Heart } from 'lucide-react'
@@ -7,9 +6,17 @@ import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
 interface BlogPost {
-  slug: string;
-  title: string;
-  [key: string]: unknown;
+  slug: string
+  title: string
+  author: string
+  date: string
+  readTime: string
+  category: string
+  image: string
+  excerpt: string
+  likes: number
+  comments: number
+  content: string
 }
 
 const posts: Record<string, BlogPost> = {
@@ -139,16 +146,97 @@ const relatedPosts = [
   { slug: 'web-optimization', title: 'Оптимизация сайта', image: '🚀' }
 ]
 
+// Функция для парсинга markdown-контента
+function parseContent(content: string) {
+  return content.split('\n\n').map((block, idx) => {
+    // Заголовки
+    if (block.startsWith('#')) {
+      const level = (block.match(/^#+/) || [''])[0].length
+      const text = block.replace(/^#+\s/, '')
+      const classNames: Record<number, string> = {
+        1: 'text-4xl font-bold text-gray-900 mt-8 mb-4',
+        2: 'text-2xl font-bold text-gray-900 mt-6 mb-3',
+        3: 'text-xl font-bold text-gray-900 mt-4 mb-2'
+      }
+      const Tag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements
+      return (
+        <Tag key={idx} className={classNames[level] || 'text-lg font-semibold text-gray-900'}>
+          {text}
+        </Tag>
+      )
+    }
+    
+    // Списки
+    if (block.includes('\n-') || block.includes('\n1.')) {
+      const lines = block.split('\n')
+      const listItems = lines.filter(line => line.trim().startsWith('-') || /^\d+\./.test(line.trim()))
+      const isOrdered = /^\d+\./.test(listItems[0]?.trim() || '')
+      const ListTag = isOrdered ? 'ol' : 'ul'
+      
+      return (
+        <ListTag key={idx} className={`space-y-2 ${isOrdered ? 'list-decimal' : 'list-disc'} list-inside ml-4`}>
+          {listItems.map((item, i) => {
+            const text = item.replace(/^[-\d.]\s*/, '').trim()
+            // Обработка жирного текста **text**
+            const formattedText = text.split(/(\*\*.*?\*\*)/).map((part, j) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={j}>{part.slice(2, -2)}</strong>
+              }
+              return part
+            })
+            return <li key={i} className="text-gray-700 text-lg">{formattedText}</li>
+          })}
+        </ListTag>
+      )
+    }
+    
+    // Обычные параграфы
+    return (
+      <p key={idx} className="text-gray-700 text-lg leading-relaxed">
+        {block}
+      </p>
+    )
+  })
+}
+
 export default function BlogPostPage({ params }: Props) {
   const [liked, setLiked] = useState(false)
+  const [comment, setComment] = useState('')
   const post = posts[params.slug]
 
   if (!post) return notFound()
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt,
+          url: window.location.href,
+        })
+      } catch (err) {
+        console.log('Sharing failed', err)
+      }
+    } else {
+      // Fallback: копирование ссылки в буфер обмена
+      navigator.clipboard.writeText(window.location.href)
+      alert('Ссылка скопирована в буфер обмена!')
+    }
+  }
+
+  const handleCommentSubmit = () => {
+    if (comment.trim()) {
+      // Здесь будет логика отправки комментария
+      console.log('Отправка комментария:', comment)
+      setComment('')
+      alert('Комментарий отправлен!')
+    }
+  }
+
   return (
     <main className="container mx-auto max-w-4xl px-4 py-10">
       {/* Back Button */}
-      <Link href="/blog" className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-6">
+      <Link href="/blog" className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-6 transition-colors">
         <ChevronLeft className="h-4 w-4 mr-1" />
         Вернуться к блогу
       </Link>
@@ -163,7 +251,7 @@ export default function BlogPostPage({ params }: Props) {
             <span className="text-sm text-gray-600">{post.readTime}</span>
           </div>
 
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">{post.title}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{post.title}</h1>
 
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-gray-600 border-t border-b border-gray-200 py-4">
             <div className="flex items-center gap-2">
@@ -172,24 +260,37 @@ export default function BlogPostPage({ params }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(post.date).toLocaleDateString('ru-RU')}</span>
+              <time dateTime={post.date}>
+                {new Date(post.date).toLocaleDateString('ru-RU', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </time>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setLiked(!liked)}
-                title="Лайк"
-                className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg transition-colors ${
+                aria-label={liked ? 'Убрать лайк' : 'Поставить лайк'}
+                className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg transition-all ${
                   liked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-                {post.likes + (liked ? 1 : 0)}
+                <span>{post.likes + (liked ? 1 : 0)}</span>
               </button>
-              <button title="Комментарии" className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
+              <button 
+                aria-label="Комментарии" 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
                 <MessageCircle className="h-4 w-4" />
-                {post.comments}
+                <span>{post.comments}</span>
               </button>
-              <button title="Поделиться" className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
+              <button 
+                onClick={handleShare}
+                aria-label="Поделиться" 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
                 <Share2 className="h-4 w-4" />
               </button>
             </div>
@@ -198,29 +299,9 @@ export default function BlogPostPage({ params }: Props) {
 
         {/* Content */}
         <div className="mb-12">
-          <div className="text-6xl mb-8">{post.image}</div>
-          <div className="text-gray-700 leading-relaxed space-y-6">
-            {post.content.split('\n\n').map((paragraph: string, idx: number) => {
-              if (paragraph.startsWith('#')) {
-                const level = paragraph.match(/^#+/)?.[0].length || 1
-                const text = paragraph.replace(/^#+\s/, '')
-                const classNames: Record<number, string> = {
-                  1: 'text-4xl font-bold text-gray-900 mt-8 mb-4',
-                  2: 'text-2xl font-bold text-gray-900 mt-6 mb-3',
-                  3: 'text-xl font-bold text-gray-900 mt-4 mb-2'
-                }
-                return (
-                  <div key={idx} className={classNames[level] || 'text-lg font-semibold text-gray-900'}>
-                    {text}
-                  </div>
-                )
-              }
-              return (
-                <p key={idx} className="text-gray-700 text-lg leading-relaxed">
-                  {paragraph}
-                </p>
-              )
-            })}
+          <div className="text-6xl mb-8" role="img" aria-label="Иконка поста">{post.image}</div>
+          <div className="prose prose-lg max-w-none">
+            {parseContent(post.content)}
           </div>
         </div>
 
@@ -229,21 +310,22 @@ export default function BlogPostPage({ params }: Props) {
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Теги</h3>
           <div className="flex flex-wrap gap-2">
             {['Обучение', 'Карьера', 'IT', 'Развитие'].map((tag) => (
-              <button
+              <Link
                 key={tag}
-                className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm hover:bg-gray-200"
+                href={`/blog?tag=${tag.toLowerCase()}`}
+                className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition-colors"
               >
                 #{tag}
-              </button>
+              </Link>
             ))}
           </div>
         </div>
 
         {/* Author Info */}
         <Card padding="lg" className="bg-indigo-50 border border-indigo-200 mb-12">
-          <div className="flex items-center gap-4">
-            <div className="text-5xl flex-shrink-0">👨‍💼</div>
-            <div>
+          <div className="flex items-start gap-4">
+            <div className="text-5xl flex-shrink-0" role="img" aria-label="Аватар автора">👨‍💼</div>
+            <div className="flex-1">
               <h4 className="font-bold text-gray-900 mb-1">{post.author}</h4>
               <p className="text-gray-700 mb-3">
                 Опытный разработчик и наставник. Помогает новичкам и профессионалам достичь своих целей в IT.
@@ -264,7 +346,7 @@ export default function BlogPostPage({ params }: Props) {
             {relatedPosts.map((relPost) => (
               <Link key={relPost.slug} href={`/blog/${relPost.slug}`}>
                 <Card padding="md" hover className="h-full flex flex-col">
-                  <div className="text-5xl mb-3">{relPost.image}</div>
+                  <div className="text-5xl mb-3" role="img" aria-label="Иконка статьи">{relPost.image}</div>
                   <h4 className="font-semibold text-gray-900 mb-2 flex-1">{relPost.title}</h4>
                   <span className="text-indigo-600 text-sm font-medium">Читать →</span>
                 </Card>
@@ -276,16 +358,21 @@ export default function BlogPostPage({ params }: Props) {
 
       {/* Comments Section */}
       <div className="mt-16 pt-12 border-t border-gray-200">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">Комментарии</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Комментарии ({post.comments})</h3>
         <Card padding="md" className="mt-6">
           <h4 className="font-semibold text-gray-900 mb-4">Оставить комментарий</h4>
           <textarea
             id="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             placeholder="Ваш комментарий..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 resize-none"
             rows={4}
+            aria-label="Поле для комментария"
           />
-          <Button variant="primary">Отправить комментарий</Button>
+          <Button variant="primary" onClick={handleCommentSubmit}>
+            Отправить комментарий
+          </Button>
         </Card>
       </div>
     </main>
