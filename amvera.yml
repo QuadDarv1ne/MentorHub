@@ -15,25 +15,10 @@ run:
     name: app-data
     mountPath: /data
   
-services:
-  postgres:
-    type: postgres
-    version: "16"
-    persistentVolume: 
-      name: postgres-data
-      mountPath: /var/lib/postgresql/data
-    
-  redis:
-    type: redis
-    version: "7"
-    persistentVolume:
-      name: redis-data
-      mountPath: /data
 
 env:
   # Database (автоматически заполняется Amvera)
   DATABASE_URL: ${POSTGRES_URL}
-  REDIS_URL: ${REDIS_URL}
   
   # Security
   SECRET_KEY: ${SECRET_KEY}
@@ -44,6 +29,7 @@ env:
   AGORA_APP_ID: ${AGORA_APP_ID}
   AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE}
   
+
   # Stripe
   STRIPE_API_KEY: ${STRIPE_API_KEY}
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
@@ -76,9 +62,5 @@ resources:
   # memory: 1Gi
 
 volumes:
-  - name: postgres-data
-    size: 1Gi
-  - name: redis-data
-    size: 512Mi
   - name: app-data
     size: 512Mi
