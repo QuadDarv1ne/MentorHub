@@ -43,6 +43,7 @@ from app.api import (
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
+from app.middleware.rate_limiter import RateLimitMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
@@ -71,6 +72,21 @@ if SENTRY_AVAILABLE and settings.SENTRY_DSN and is_production():
 elif settings.SENTRY_DSN and not SENTRY_AVAILABLE:
     logger.warning("⚠️ Sentry DSN настроен, но sentry-sdk не установлен")
 
+# ==================== REDIS CLIENT SETUP ====================
+redis_client = None
+try:
+    from redis.asyncio import Redis
+    # Initialize Redis if URL is configured (even localhost)
+    if settings.REDIS_URL and settings.REDIS_URL.strip():
+        redis_client = Redis.from_url(settings.REDIS_URL)
+        logger.info(f"✅ Redis client initialized with URL: {settings.REDIS_URL}")
+    else:
+        logger.info("ℹ️ Redis URL not configured, using memory-only features")
+except ImportError:
+    logger.warning("⚠️ redis-py not installed, Redis features disabled")
+except Exception as e:
+    logger.warning(f"⚠️ Redis client initialization failed: {e}")
+    redis_client = None
 
 # ==================== DATABASE STARTUP/SHUTDOWN ====================
 @asynccontextmanager
@@ -83,8 +99,8 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting MentorHub API...")
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
 
-    # Initialize cache
-    init_cache()
+    # Initialize cache with Redis client if available
+    init_cache(redis_client)
     logger.info("✅ Cache initialized")
 
     # Create tables (with retry logic for Amvera)
@@ -118,6 +134,29 @@ async def lifespan(app: FastAPI):
     yield  # Application runs here
 
     # SHUTDOWN
+    # Close Redis connection if it exists
+    if redis_client:
+        try:
+            # Create a task to close the Redis connection
+            import asyncio
+            async def close_redis():
+                await redis_client.close()
+            
+            # Run in a new event loop if needed
+            try:
+                loop = asyncio.get_running_loop()
+                # If we're in an event loop, create a task
+                loop.create_task(close_redis())
+            except RuntimeError:
+                # No event loop running, create a new one
+                close_loop = asyncio.new_event_loop()
+                close_loop.run_until_complete(close_redis())
+                close_loop.close()
+            
+            logger.info("✅ Redis connection closed")
+        except Exception as e:
+            logger.error(f"❌ Error closing Redis connection: {e}")
+    
     logger.info("🛑 Shutting down MentorHub API...")
     logger.info("✅ MentorHub API shutdown complete")
 
@@ -140,6 +179,17 @@ app = FastAPI(
 # Request ID Middleware (должен быть первым)
 app.add_middleware(RequestIDMiddleware)
 logger.info("✅ Request ID middleware added")
+
+# Rate Limiting Middleware (should be early in the chain)
+# Always add rate limiting middleware, even without Redis it will use memory fallback
+if settings.RATE_LIMIT_ENABLED:
+    app.add_middleware(
+        RateLimitMiddleware,
+        redis_client=redis_client  # Will use memory fallback if None
+    )
+    logger.info("✅ Rate limiting middleware added")
+else:
+    logger.info("ℹ️ Rate limiting disabled by configuration")
 
 # Prometheus Metrics Middleware
 app.add_middleware(PrometheusMiddleware)
