@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { notFound } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { ChevronLeft, Calendar, User, Share2, MessageCircle, Heart } from 'lucide-react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
@@ -131,15 +133,6 @@ interface Props {
   params: { slug: string }
 }
 
-export async function generateMetadata({ params }: Props) {
-  const post = posts[params.slug]
-  if (!post) return { title: 'Пост не найден — Блог' }
-  return {
-    title: `${post.title} — Блог MentorHub`,
-    description: post.excerpt,
-  }
-}
-
 const relatedPosts = [
   { slug: 'react-performance', title: 'Оптимизация React', image: '⚙️' },
   { slug: 'typescript-tips', title: 'Tips TypeScript', image: '📘' },
@@ -202,9 +195,13 @@ function parseContent(content: string) {
 export default function BlogPostPage({ params }: Props) {
   const [liked, setLiked] = useState(false)
   const [comment, setComment] = useState('')
+  const router = useRouter()
   const post = posts[params.slug]
 
-  if (!post) return notFound()
+  if (!post) {
+    router.push('/blog')
+    return null
+  }
 
   const handleShare = async () => {
     if (navigator.share) {
