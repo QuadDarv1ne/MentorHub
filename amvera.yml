@@ -4,63 +4,195 @@
 meta:
   environment: production
   project: mentorhub
+  # Добавьте версию для отслеживания релизов
+  version: "1.0.0"
 
 build:
   dockerfile: ./backend/Dockerfile
   context: ./backend
+  # Кэширование для ускорения сборки
+  cache: true
+  # Аргументы сборки (если нужны)
+  args:
+    - NODE_ENV=production
 
 run:
   containerPort: 8000
+  # Проверка здоровья приложения
+  healthcheck:
+    path: /api/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    startPeriod: 60s
+  
+  # Автоматический перезапуск при сбое
+  restartPolicy: always
+  
   persistentVolume:
     name: app-data
     mountPath: /data
   
+  # Лимиты и запросы ресурсов
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
 
 env:
-  # Database (автоматически заполняется Amvera)
+  # ===== Database =====
   DATABASE_URL: ${POSTGRES_URL}
+  # Настройки пула соединений
+  DB_POOL_SIZE: "10"
+  DB_MAX_OVERFLOW: "5"
+  DB_POOL_TIMEOUT: "30"
   
-  # Security
+  # ===== Security =====
   SECRET_KEY: ${SECRET_KEY}
   ALGORITHM: HS256
-  ACCESS_TOKEN_EXPIRE_MINUTES: 30
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
   
-  # Agora (заполните в панели Amvera)
+  # CORS настройки
+  CORS_ORIGINS: ${FRONTEND_URL},${APP_URL}
+  CORS_ALLOW_CREDENTIALS: "true"
+  
+  # Rate limiting
+  RATE_LIMIT_PER_MINUTE: "60"
+  RATE_LIMIT_PER_HOUR: "1000"
+  
+  # ===== Agora =====
   AGORA_APP_ID: ${AGORA_APP_ID}
   AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE}
+  AGORA_TOKEN_EXPIRE_TIME: "3600"
   
-
-  # Stripe
+  # ===== Stripe =====
   STRIPE_API_KEY: ${STRIPE_API_KEY}
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  STRIPE_CURRENCY: "usd"
   
-  # AWS S3
+  # ===== AWS S3 =====
   AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
   AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
   AWS_S3_BUCKET: mentorhub-bucket
+  AWS_REGION: us-east-1
+  # Максимальный размер загружаемых файлов (в байтах)
+  MAX_UPLOAD_SIZE: "10485760"  # 10MB
+  ALLOWED_FILE_TYPES: "image/jpeg,image/png,image/webp,application/pdf"
   
-  # Email
+  # ===== Email =====
   SMTP_SERVER: ${SMTP_SERVER}
-  SMTP_PORT: 587
+  SMTP_PORT: "587"
   SMTP_USER: ${SMTP_USER}
   SMTP_PASSWORD: ${SMTP_PASSWORD}
   EMAIL_SENDER: noreply@mentorhub.com
+  EMAIL_USE_TLS: "true"
   
-  # App
+  # ===== Redis (опционально, для кэширования) =====
+  # REDIS_URL: ${REDIS_URL}
+  # CACHE_TTL: "3600"
+  
+  # ===== Logging =====
+  LOG_LEVEL: INFO
+  LOG_FORMAT: json
+  SENTRY_DSN: ${SENTRY_DSN}  # Для мониторинга ошибок
+  
+  # ===== App Settings =====
   ENVIRONMENT: production
-  BACKEND_PORT: 8000
-  FRONTEND_PORT: 3000
+  BACKEND_PORT: "8000"
+  FRONTEND_PORT: "3000"
   NEXT_PUBLIC_API_URL: ${APP_URL}
-
-resources:
-  # Бесплатный тариф
-  cpu: 0.5
-  memory: 512Mi
+  APP_NAME: MentorHub
   
-  # Или платный для production
-  # cpu: 1
-  # memory: 1Gi
+  # Временная зона
+  TZ: Europe/Moscow
+  
+  # Python настройки
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
 
+# ===== Масштабирование =====
+scaling:
+  # Минимальное количество реплик
+  minReplicas: 1
+  # Максимальное количество реплик (для автоскейлинга)
+  maxReplicas: 3
+  # Процент использования CPU для автоскейлинга
+  targetCPUUtilization: 70
+  # Процент использования памяти
+  targetMemoryUtilization: 80
+
+# ===== Мониторинг =====
+monitoring:
+  enabled: true
+  # Метрики Prometheus (если поддерживается)
+  metrics:
+    enabled: true
+    path: /metrics
+    port: 9090
+
+# ===== Backup =====
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Каждый день в 2:00 AM
+  retention: 7  # Хранить 7 дней
+
+# ===== Сети и безопасность =====
+network:
+  # Разрешенные IP (опционально)
+  # allowedIPs:
+  #   - 0.0.0.0/0
+  
+  # SSL/TLS
+  tls:
+    enabled: true
+    # Автоматический сертификат от Let's Encrypt
+    autoTLS: true
+
+# ===== Volumes =====
 volumes:
   - name: app-data
+    size: 1Gi  # Увеличен размер
+    # Тип хранилища
+    storageClass: standard
+  
+  # Дополнительный volume для логов
+  - name: logs
     size: 512Mi
+    mountPath: /var/log/app
+
+# ===== Дополнительные сервисы =====
+services:
+  # PostgreSQL (если не используется встроенный)
+  # - type: postgres
+  #   version: "15"
+  #   storage: 5Gi
+  
+  # Redis для кэширования
+  # - type: redis
+  #   version: "7"
+  #   memory: 256Mi
+
+# ===== Hooks =====
+hooks:
+  # Команды перед развертыванием
+  preDeploy:
+    - name: migrations
+      command: "alembic upgrade head"
+      timeout: 300s
+  
+  # Команды после развертывания
+  postDeploy:
+    - name: warmup
+      command: "python -m scripts.warmup_cache"
+      timeout: 60s
+
+# ===== Уведомления =====
+notifications:
+  # Webhook для уведомлений о деплое
+  webhook: ${DEPLOY_WEBHOOK_URL}
+  # Email уведомления
+  email: ${ADMIN_EMAIL}
