@@ -60,6 +60,9 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
+        # Amvera domains - these will be overridden by environment variables in production
+        "https://*.amvera.app",
+        "https://*.amvera.io",
     ]
     CORS_CREDENTIALS: bool = True
     CORS_METHODS: List[str] = ["*"]

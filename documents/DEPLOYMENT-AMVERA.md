@@ -31,15 +31,15 @@
 ```
 MentorHub/
 ├── amvera.yml                    # ✅ Конфигурация Amvera
-├── Dockerfile.production         # ✅ Production Dockerfile
-├── docker-entrypoint.sh          # ✅ Скрипт запуска
-├── .dockerignore                 # ✅ Исключения для Docker
+├── backend/Dockerfile            # ✅ Production Dockerfile для backend
+├── backend/docker-entrypoint.sh  # ✅ Скрипт запуска
+├── backend/.dockerignore         # ✅ Исключения для Docker
+├── frontend/Dockerfile           # ✅ Dockerfile для frontend
+├── frontend/.dockerignore        # ✅ Исключения для Docker
 ├── backend/
-│   ├── .dockerignore
 │   ├── requirements.txt
 │   └── ...
 └── frontend/
-    ├── .dockerignore
     ├── package.json
     └── ...
 ```
@@ -48,7 +48,7 @@ MentorHub/
 
 ```bash
 # Сборка production образа
-docker build -f Dockerfile.production -t mentorhub:latest .
+docker build -f backend/Dockerfile -t mentorhub:latest .
 
 # Запуск контейнера
 docker run -p 8000:8000 mentorhub:latest
@@ -88,7 +88,7 @@ docker run -p 8000:8000 mentorhub:latest
 ### Шаг 2: Настройка проекта
 
 **Тип приложения:**
-- ✅ **Docker** (Amvera автоматически определит `Dockerfile.production`)
+- ✅ **Docker** (Amvera автоматически определит `backend/Dockerfile`)
 
 **Порт приложения:**
 - `8000` (backend FastAPI)
