@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { login } from '@/lib/api/auth'
 
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
+  const { login: authLogin } = useAuth()
   
   const [formData, setFormData] = useState({
     email: '',
@@ -55,24 +56,57 @@ export default function LoginPage() {
       return
     }
 
-    // Mock авторизация (в production заменить на API запрос)
-    setTimeout(() => {
-      // Имитация успешной авторизации
-      const mockToken = 'mock_jwt_token_' + Date.now()
-      const mockUserData = {
+    try {
+      // Real API authentication
+      const authResponse = await login({
         email: formData.email,
-        name: formData.email.split('@')[0],
-        id: Date.now()
-      }
+        password: formData.password
+      })
 
-      login(mockToken, mockUserData)
+      // Get user profile
+      const user = await getCurrentUser(authResponse.access_token)
+
+      // Store tokens and user data
+      localStorage.setItem('access_token', authResponse.access_token)
+      if (formData.rememberMe) {
+        localStorage.setItem('refresh_token', authResponse.refresh_token)
+      }
+      
+      localStorage.setItem('user_name', user.full_name || user.email)
+      localStorage.setItem('user_role', user.role)
+
+      authLogin(authResponse.access_token, user)
       setSuccess('Вход выполнен успешно!')
 
       setTimeout(() => {
         const redirect = searchParams.get('redirect') || '/dashboard'
         router.push(redirect)
       }, 1000)
-    }, 1500)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Ошибка при входе в систему')
+      } else {
+        setError('Ошибка при входе в систему')
+      }
+      setLoading(false)
+    }
+  }
+
+  const getCurrentUser = async (token: string) => {
+    const response = await fetch('http://localhost:8000/api/v1/users/me', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.detail || 'Failed to fetch user profile')
+    }
+
+    return response.json()
   }
 
   return (
