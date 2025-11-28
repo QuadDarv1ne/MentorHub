@@ -40,6 +40,7 @@ from app.api import (
     stats,
     monitoring,
     health,
+    achievements,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
