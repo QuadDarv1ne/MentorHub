@@ -23,15 +23,35 @@ class PerformanceMonitor:
         self.request_times = defaultdict(list)
         self.error_counts = defaultdict(int)
         self.endpoint_calls = defaultdict(int)
+        self.status_code_counts = defaultdict(lambda: defaultdict(int))
+        self.slow_requests = defaultdict(list)  # Для отслеживания медленных запросов
         self.start_time = datetime.utcnow()
+        self.alert_thresholds = {
+            "error_rate": 5.0,  # 5% ошибок
+            "response_time": 2.0,  # 2 секунды
+            "cpu_usage": 80.0,  # 80% CPU
+            "memory_usage": 90.0,  # 90% памяти
+        }
 
     def record_request(self, endpoint: str, duration: float, status_code: int):
         """Запись метрик запроса"""
         self.endpoint_calls[endpoint] += 1
         self.request_times[endpoint].append(duration)
+        self.status_code_counts[endpoint][status_code] += 1
 
         if status_code >= 400:
             self.error_counts[endpoint] += 1
+
+        # Отслеживание медленных запросов
+        if duration > 1.0:  # Более 1 секунды
+            self.slow_requests[endpoint].append({
+                "duration": duration,
+                "timestamp": datetime.utcnow().isoformat(),
+                "status_code": status_code
+            })
+            # Ограничение размера массива медленных запросов
+            if len(self.slow_requests[endpoint]) > 100:
+                self.slow_requests[endpoint] = self.slow_requests[endpoint][-50:]
 
         # Ограничение размера массива
         if len(self.request_times[endpoint]) > 1000:
@@ -59,6 +79,8 @@ class PerformanceMonitor:
                     "min": min(times),
                     "max": max(times),
                     "count": len(times),
+                    "error_count": self.error_counts.get(endpoint, 0),
+                    "status_codes": dict(self.status_code_counts.get(endpoint, {}))
                 }
 
         # Топ медленных endpoints
@@ -66,6 +88,9 @@ class PerformanceMonitor:
 
         # Топ популярных endpoints
         popular_endpoints = sorted(self.endpoint_calls.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        # Проверка алертов
+        alerts = self._check_alerts(cpu_percent, memory.percent, error_rate, avg_response_times)
 
         uptime = (datetime.utcnow() - self.start_time).total_seconds()
 
@@ -93,10 +118,21 @@ class PerformanceMonitor:
                     "avg_ms": round(data["avg"] * 1000, 2),
                     "max_ms": round(data["max"] * 1000, 2),
                     "count": data["count"],
+                    "error_count": data["error_count"],
+                    "status_codes": data["status_codes"]
                 }
                 for endpoint, data in slow_endpoints
             ],
-            "popular_endpoints": [{"endpoint": endpoint, "calls": count} for endpoint, count in popular_endpoints],
+            "popular_endpoints": [
+                {
+                    "endpoint": endpoint, 
+                    "calls": count, 
+                    "error_count": self.error_counts.get(endpoint, 0)
+                } 
+                for endpoint, count in popular_endpoints
+            ],
+            "slow_requests_details": dict(self.slow_requests),
+            "alerts": alerts
         }
 
     def reset_metrics(self):
@@ -104,8 +140,60 @@ class PerformanceMonitor:
         self.request_times.clear()
         self.error_counts.clear()
         self.endpoint_calls.clear()
+        self.status_code_counts.clear()
+        self.slow_requests.clear()
         self.start_time = datetime.utcnow()
         logger.info("📊 Metrics reset")
+
+    def _check_alerts(self, cpu_percent: float, memory_percent: float, error_rate: float, avg_response_times: dict) -> list:
+        """Проверка наличия алертов"""
+        alerts = []
+        
+        # Проверка высокого уровня ошибок
+        if error_rate > self.alert_thresholds["error_rate"]:
+            alerts.append({
+                "type": "high_error_rate",
+                "severity": "warning" if error_rate < 10 else "critical",
+                "message": f"Высокий уровень ошибок: {error_rate:.2f}%",
+                "threshold": self.alert_thresholds["error_rate"]
+            })
+        
+        # Проверка высокой нагрузки на CPU
+        if cpu_percent > self.alert_thresholds["cpu_usage"]:
+            alerts.append({
+                "type": "high_cpu_usage",
+                "severity": "warning" if cpu_percent < 90 else "critical",
+                "message": f"Высокая нагрузка на CPU: {cpu_percent:.2f}%",
+                "threshold": self.alert_thresholds["cpu_usage"]
+            })
+            
+        # Проверка высокого использования памяти
+        if memory_percent > self.alert_thresholds["memory_usage"]:
+            alerts.append({
+                "type": "high_memory_usage",
+                "severity": "warning" if memory_percent < 95 else "critical",
+                "message": f"Высокое использование памяти: {memory_percent:.2f}%",
+                "threshold": self.alert_thresholds["memory_usage"]
+            })
+            
+        # Проверка медленных endpoints
+        for endpoint, data in avg_response_times.items():
+            avg_time = data["avg"]
+            if avg_time > self.alert_thresholds["response_time"]:
+                alerts.append({
+                    "type": "slow_endpoint",
+                    "severity": "warning" if avg_time < 5 else "critical",
+                    "message": f"Медленный endpoint {endpoint}: {avg_time:.2f}с",
+                    "threshold": self.alert_thresholds["response_time"],
+                    "endpoint": endpoint
+                })
+                
+        return alerts
+
+    def set_alert_thresholds(self, thresholds: dict):
+        """Установка пороговых значений для алертов"""
+        self.alert_thresholds.update(thresholds)
+        logger.info(f"🔔 Alert thresholds updated: {thresholds}")
 
 
 class PerformanceMiddleware(BaseHTTPMiddleware):
@@ -144,7 +232,7 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
 
 
 @asynccontextmanager
-async def measure_time(operation: str):
+async def measure_time(operation: str, alert_threshold: float = 1.0):
     """
     Context manager для измерения времени выполнения
 
@@ -157,7 +245,10 @@ async def measure_time(operation: str):
         yield
     finally:
         duration = time.time() - start
-        logger.info(f"⏱️ {operation} took {duration:.4f}s")
+        if duration > alert_threshold:
+            logger.warning(f"⏱️ {operation} took {duration:.4f}s (threshold: {alert_threshold}s)")
+        else:
+            logger.info(f"⏱️ {operation} took {duration:.4f}s")
 
 
 def measure_execution_time(func):

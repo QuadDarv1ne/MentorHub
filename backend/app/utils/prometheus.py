@@ -24,6 +24,7 @@ REQUEST_DURATION = Histogram(
     "mentorhub_request_duration_seconds",
     "Request latency",
     ["method", "endpoint"],
+    buckets=(0.05, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0, 15.0, 20.0, 30.0, float("inf"))
 )
 
 REQUEST_IN_PROGRESS = Gauge(
@@ -35,7 +36,7 @@ REQUEST_IN_PROGRESS = Gauge(
 ERROR_COUNT = Counter(
     "mentorhub_errors_total",
     "Total error count",
-    ["method", "endpoint", "exception_type"],
+    ["method", "endpoint", "exception_type", "http_status"],
 )
 
 DB_CONNECTION_POOL = Gauge(
@@ -47,6 +48,35 @@ DB_CONNECTION_POOL = Gauge(
 CACHE_HITS = Counter("mentorhub_cache_hits_total", "Cache hits", ["cache_type"])
 
 CACHE_MISSES = Counter("mentorhub_cache_misses_total", "Cache misses", ["cache_type"])
+
+# Дополнительные метрики
+ACTIVE_USERS = Gauge("mentorhub_active_users", "Number of active users")
+
+REQUEST_SIZE_BYTES = Histogram(
+    "mentorhub_request_size_bytes",
+    "Request size in bytes",
+    ["method", "endpoint"],
+    buckets=(100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, float("inf"))
+)
+
+RESPONSE_SIZE_BYTES = Histogram(
+    "mentorhub_response_size_bytes",
+    "Response size in bytes",
+    ["method", "endpoint", "http_status"],
+    buckets=(100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, float("inf"))
+)
+
+SLOW_REQUESTS = Counter(
+    "mentorhub_slow_requests_total",
+    "Slow requests count (over 1 second)",
+    ["method", "endpoint"]
+)
+
+SECURITY_INCIDENTS = Counter(
+    "mentorhub_security_incidents_total",
+    "Security incidents count",
+    ["incident_type", "endpoint"]
+)
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
@@ -78,19 +108,34 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Записываем ошибки
-            ERROR_COUNT.labels(method=method, endpoint=endpoint, exception_type=type(e).__name__).inc()
+            ERROR_COUNT.labels(method=method, endpoint=endpoint, exception_type=type(e).__name__, http_status=500).inc()
             raise
 
         finally:
             # Записываем время выполнения
             duration = time.time() - start_time
             REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
+            
+            # Отслеживаем медленные запросы
+            if duration > 1.0:
+                SLOW_REQUESTS.labels(method=method, endpoint=endpoint).inc()
 
             # Записываем общее количество запросов
             REQUEST_COUNT.labels(method=method, endpoint=endpoint, http_status=status_code).inc()
 
             # Уменьшаем счетчик запросов в процессе
             REQUEST_IN_PROGRESS.labels(method=method, endpoint=endpoint).dec()
+            
+            # Записываем размеры запроса и ответа
+            if hasattr(request, 'headers'):
+                content_length = request.headers.get('content-length', 0)
+                if content_length:
+                    REQUEST_SIZE_BYTES.labels(method=method, endpoint=endpoint).observe(int(content_length))
+            
+            if hasattr(response, 'headers'):
+                response_size = response.headers.get('content-length', 0)
+                if response_size:
+                    RESPONSE_SIZE_BYTES.labels(method=method, endpoint=endpoint, http_status=status_code).observe(int(response_size))
 
     @staticmethod
     def _get_endpoint_path(path: str) -> str:
@@ -159,3 +204,24 @@ def update_db_pool_metrics(pool_size: int, overflow: int, used: int):
     DB_CONNECTION_POOL.labels(pool_type="size").set(pool_size)
     DB_CONNECTION_POOL.labels(pool_type="overflow").set(overflow)
     DB_CONNECTION_POOL.labels(pool_type="used").set(used)
+
+
+def update_active_users_count(count: int):
+    """
+    Обновление метрики активных пользователей
+
+    Args:
+        count: Количество активных пользователей
+    """
+    ACTIVE_USERS.set(count)
+
+
+def record_security_incident(incident_type: str, endpoint: str = "unknown"):
+    """
+    Запись инцидента безопасности
+
+    Args:
+        incident_type: Тип инцидента
+        endpoint: Endpoint, где произошел инцидент
+    """
+    SECURITY_INCIDENTS.labels(incident_type=incident_type, endpoint=endpoint).inc()

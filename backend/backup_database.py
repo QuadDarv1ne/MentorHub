@@ -6,7 +6,9 @@
 import os
 import subprocess
 import logging
-from datetime import datetime
+import hashlib
+import json
+from datetime import datetime, timedelta
 from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
@@ -24,6 +26,7 @@ class DatabaseBackup:
         self.backup_dir = Path("backups")
         self.backup_dir.mkdir(exist_ok=True)
         self.s3_enabled = all([settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY, settings.AWS_S3_BUCKET])
+        self.backup_metadata_file = self.backup_dir / "backup_metadata.json"
 
         if self.s3_enabled:
             self.s3_client = boto3.client(
@@ -32,6 +35,9 @@ class DatabaseBackup:
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                 region_name=getattr(settings, "AWS_REGION", "eu-west-1"),
             )
+            
+        # Загружаем метаданные backup'ов
+        self.backup_metadata = self._load_backup_metadata()
 
     def create_backup(self) -> Path:
         """Создание резервной копии базы данных"""
@@ -96,6 +102,12 @@ class DatabaseBackup:
         size_mb = backup_file.stat().st_size / (1024 * 1024)
         logger.info(f"📊 Размер backup: {size_mb:.2f} MB")
 
+        # Вычисляем хеш файла для целостности
+        file_hash = self._calculate_file_hash(backup_file)
+        
+        # Сохраняем метаданные
+        self._save_backup_metadata(backup_file.name, size_mb, file_hash, "full")
+
         return backup_file
 
     def upload_to_s3(self, backup_file: Path) -> bool:
@@ -140,6 +152,67 @@ class DatabaseBackup:
                 logger.info(f"🗑️ Удалён: {backup_file.name}")
 
         logger.info(f"✅ Удалено {deleted_count} старых backup'ов")
+        
+    def _calculate_file_hash(self, file_path: Path) -> str:
+        """Вычисление хеша файла для проверки целостности"""
+        hash_md5 = hashlib.md5()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
+        
+    def _save_backup_metadata(self, filename: str, size_mb: float, file_hash: str, backup_type: str):
+        """Сохранение метаданных backup'а"""
+        self.backup_metadata[filename] = {
+            "timestamp": datetime.now().isoformat(),
+            "size_mb": size_mb,
+            "hash": file_hash,
+            "type": backup_type
+        }
+        
+        # Сохраняем в файл
+        with open(self.backup_metadata_file, 'w') as f:
+            json.dump(self.backup_metadata, f, indent=2, default=str)
+            
+    def _load_backup_metadata(self) -> dict:
+        """Загрузка метаданных backup'ов"""
+        if self.backup_metadata_file.exists():
+            try:
+                with open(self.backup_metadata_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.warning(f"⚠️ Ошибка загрузки метаданных: {e}")
+                return {}
+        return {}
+        
+    def get_backup_info(self) -> dict:
+        """Получение информации о backup'ах"""
+        info = {
+            "total_backups": len(self.backup_metadata),
+            "backup_types": {},
+            "recent_backups": []
+        }
+        
+        # Подсчитываем типы backup'ов
+        type_counts = {}
+        for metadata in self.backup_metadata.values():
+            backup_type = metadata.get("type", "unknown")
+            type_counts[backup_type] = type_counts.get(backup_type, 0) + 1
+        info["backup_types"] = type_counts
+        
+        # Получаем последние 10 backup'ов
+        sorted_backups = sorted(
+            self.backup_metadata.items(), 
+            key=lambda x: x[1].get("timestamp", ""), 
+            reverse=True
+        )[:10]
+        
+        info["recent_backups"] = [
+            {"filename": name, "metadata": metadata} 
+            for name, metadata in sorted_backups
+        ]
+        
+        return info
 
     def restore_backup(self, backup_file: Path):
         """Восстановление из резервной копии"""

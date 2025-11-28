@@ -201,7 +201,10 @@ app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
 logger.info("✅ Performance monitoring middleware added")
 
 # Advanced Security Middleware (SQL injection, XSS, CSRF, etc.)
-app.add_middleware(SecurityMiddleware)
+app.add_middleware(
+    SecurityMiddleware,
+    max_body_size=10 * 1024 * 1024,  # 10MB
+)
 logger.info("✅ Advanced Security middleware added")
 
 # CORS Middleware
