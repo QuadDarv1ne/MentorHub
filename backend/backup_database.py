@@ -214,13 +214,22 @@ class DatabaseBackup:
         
         return info
 
-    def restore_backup(self, backup_file: Path):
+    def restore_backup(self, backup_file: Path, verify_integrity: bool = True):
         """Восстановление из резервной копии"""
         logger.warning(f"⚠️ ВОССТАНОВЛЕНИЕ ИЗ BACKUP: {backup_file}")
         logger.warning("⚠️ Все текущие данные будут ПЕРЕЗАПИСАНЫ!")
 
         if not backup_file.exists():
             raise FileNotFoundError(f"Backup файл не найден: {backup_file}")
+            
+        # Проверяем целостность файла, если требуется
+        if verify_integrity and backup_file.name in self.backup_metadata:
+            expected_hash = self.backup_metadata[backup_file.name].get("hash")
+            if expected_hash:
+                actual_hash = self._calculate_file_hash(backup_file)
+                if actual_hash != expected_hash:
+                    raise ValueError(f"❌ Backup файл поврежден: хеш не совпадает")
+                logger.info("✅ Целостность backup файла проверена")
 
         db_url = settings.DATABASE_URL
 
