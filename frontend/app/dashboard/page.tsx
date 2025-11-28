@@ -132,13 +132,21 @@ export default function DashboardPage() {
           ])
         })
 
-      // Mock achievements data (would be replaced with real API call)
-      setAchievements([
-        { id: 1, icon: '🏆', title: '7-дневная серия', description: 'Учитесь 7 дней подряд' },
-        { id: 2, icon: '📚', title: '5 курсов', description: 'Завершено 5 курсов' },
-        { id: 3, icon: '⭐', title: 'Отличник', description: '4.8+ рейтинг в тестах' },
-        { id: 4, icon: '🚀', title: 'Быстрый старт', description: 'Первые 3 дня обучения' }
-      ])
+      // Fetch real achievements data
+      getMyAchievements()
+        .then(data => {
+          setAchievements(data)
+        })
+        .catch(err => {
+          console.error('Failed to fetch achievements:', err)
+          // Fallback to mock data
+          setAchievements([
+            { id: 1, icon: '🏆', title: '7-дневная серия', description: 'Учитесь 7 дней подряд' },
+            { id: 2, icon: '📚', title: '5 курсов', description: 'Завершено 5 курсов' },
+            { id: 3, icon: '⭐', title: 'Отличник', description: '4.8+ рейтинг в тестах' },
+            { id: 4, icon: '🚀', title: 'Быстрый старт', description: 'Первые 3 дня обучения' }
+          ])
+        })
     } else {
       setLoading(false)
     }
