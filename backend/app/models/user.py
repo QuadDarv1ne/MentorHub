@@ -33,10 +33,11 @@ class User(BaseModel, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
 
-    # Связи будут добавлены позже
-    # mentor_profile = relationship("Mentor", back_populates="user", uselist=False)
-    # sessions_as_student = relationship("Session", foreign_keys="Session.student_id")
-    # sessions_as_mentor = relationship("Session", foreign_keys="Session.mentor_id")
+    # Связи
+    from sqlalchemy.orm import relationship
+    mentor_profile = relationship("Mentor", back_populates="user", uselist=False)
+    sessions_as_student = relationship("Session", foreign_keys="Session.student_id", back_populates="student")
+    sessions_as_mentor = relationship("Session", foreign_keys="Session.mentor_id", back_populates="mentor")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"
