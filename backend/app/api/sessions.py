@@ -5,7 +5,7 @@ API для работы с сессиями менторства
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.session import Session as DBSession
