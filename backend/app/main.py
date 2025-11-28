@@ -41,6 +41,7 @@ from app.api import (
     monitoring,
     health,
     achievements,
+    backups,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -385,6 +386,14 @@ app.include_router(
     tags=["Monitoring"],
 )
 logger.info("✅ Monitoring routes loaded")
+
+# Backup routes
+app.include_router(
+    backups.router,
+    prefix=f"{api_prefix}/admin",
+    tags=["Backups"],
+)
+logger.info("✅ Backup routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
