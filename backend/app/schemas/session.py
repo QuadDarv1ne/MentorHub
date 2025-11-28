@@ -60,7 +60,9 @@ class SessionResponse(SessionBase):
     updated_at: datetime
 
     # Relations
-    # student: Optional[UserResponse] = None
-    # mentor: Optional[MentorResponse] = None
+    from app.schemas.user import UserResponse
+    from app.schemas.mentor import MentorResponse
+    student: Optional[UserResponse] = None
+    mentor: Optional[MentorResponse] = None
 
     model_config = ConfigDict(from_attributes=True)

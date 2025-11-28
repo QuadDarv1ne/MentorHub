@@ -45,8 +45,9 @@ class Session(BaseModel):
     )
 
     # Связи
-    # student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
-    # mentor = relationship("Mentor", back_populates="sessions")
+    from sqlalchemy.orm import relationship
+    student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
+    mentor = relationship("Mentor", back_populates="sessions")
 
     def __repr__(self):
         return f"<Session(id={self.id}, student_id={self.student_id}, mentor_id={self.mentor_id}, scheduled_at={self.scheduled_at})>"

@@ -45,6 +45,9 @@ async def get_my_sessions(
         (DBSession.student_id == current_user.id) | (DBSession.mentor_id == current_user.id)
     )
     
+    # Join with mentor and student tables to get related data
+    query = query.options(joinedload(DBSession.mentor)).options(joinedload(DBSession.student))
+    
     # Filter by status if provided
     if status:
         query = query.filter(DBSession.status == status)
