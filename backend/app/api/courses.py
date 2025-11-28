@@ -33,6 +33,21 @@ async def get_courses(
     return courses
 
 
+@router.get("/my", response_model=List[ReviewRead])
+async def get_my_courses(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить список курсов текущего пользователя (временно на основе отзывов)"""
+    # Get course IDs from user's progress records
+    progress_courses = db.query(Progress.course_id).filter(Progress.user_id == current_user.id).distinct().subquery()
+    
+    # Get reviews for those courses
+    courses = db.query(Review).filter(Review.course_id.in_(progress_courses)).all()
+    return courses
+
+
 @router.get("/{course_id}", response_model=ReviewRead)
 async def get_course(course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о курсе по ID (временно возвращает отзыв)"""
@@ -106,21 +121,6 @@ async def delete_course(
     db.delete(db_review)
     db.commit()
     return None
-
-
-@router.get("/my", response_model=List[ReviewRead])
-async def get_my_courses(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    rate_limit: bool = Depends(rate_limit_dependency),
-):
-    """Получить список курсов текущего пользователя (временно на основе отзывов)"""
-    # Get course IDs from user's progress records
-    progress_courses = db.query(Progress.course_id).filter(Progress.user_id == current_user.id).distinct().subquery()
-    
-    # Get reviews for those courses
-    courses = db.query(Review).filter(Review.course_id.in_(progress_courses)).all()
-    return courses
 
 
 @router.get("/{course_id}/similar", response_model=List[ReviewAggregate])
