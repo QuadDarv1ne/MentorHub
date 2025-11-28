@@ -52,6 +52,12 @@ interface Achievement {
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [coursesLoading, setCoursesLoading] = useState(true)
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [achievementsLoading, setAchievementsLoading] = useState(true)
+  const [coursesError, setCoursesError] = useState<string | null>(null)
+  const [sessionsError, setSessionsError] = useState<string | null>(null)
+  const [achievementsError, setAchievementsError] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   const [coursesData, setCoursesData] = useState<Course[]>([])
   const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([])
@@ -96,9 +102,12 @@ export default function DashboardPage() {
             nextLesson: 'Next Lesson' // Temporary next lesson
           }))
           setCoursesData(formattedCourses)
+          setCoursesLoading(false)
+          setCoursesError(null)
         })
         .catch(err => {
           console.error('Failed to fetch courses:', err)
+          setCoursesError('Не удалось загрузить курсы. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setCoursesData([
             { id: 1, name: 'JavaScript Advanced', progress: 75, category: 'Programming', mentor: 'Иван Петров', nextLesson: 'Async/Await patterns' },
@@ -106,6 +115,7 @@ export default function DashboardPage() {
             { id: 3, name: 'SQL Optimization', progress: 45, category: 'Database', mentor: 'Александр Иванов', nextLesson: 'Query optimization' },
             { id: 4, name: 'React Hooks', progress: 90, category: 'Frontend', mentor: 'Дарья Волкова', nextLesson: 'Custom hooks' }
           ])
+          setCoursesLoading(false)
         })
 
       // Fetch real sessions data
@@ -127,11 +137,9 @@ export default function DashboardPage() {
             const dayOfWeek = daysOfWeek[scheduledDate.getDay()];
             
             if (scheduledDate.toDateString() === today.toDateString()) {
-              displayDate = `Сегодня, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-`;
+              displayDate = `Сегодня, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
             } else if (scheduledDate.toDateString() === tomorrow.toDateString()) {
-              displayDate = `Завтра, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-`;
+              displayDate = `Завтра, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
             } else {
               displayDate = `${dayOfWeek}, ${displayDate}`;
             }
@@ -147,24 +155,31 @@ export default function DashboardPage() {
             };
           });
           setUpcomingSessions(formattedSessions);
+          setSessionsLoading(false);
+          setSessionsError(null);
         })
         .catch(err => {
           console.error('Failed to fetch sessions:', err)
+          setSessionsError('Не удалось загрузить сессии. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setUpcomingSessions([
             { id: 1, mentor: 'Иван Петров', topic: 'Async/Await Deep Dive', date: 'Сегодня, 14:00', time: '14:00', duration: '60 мин', status: 'confirmed' },
             { id: 2, mentor: 'Мария Сидорова', topic: 'System Design Discussion', date: 'Завтра, 16:00', time: '16:00', duration: '90 мин', status: 'pending' },
             { id: 3, mentor: 'Александр Иванов', topic: 'Query Review', date: 'Пятница, 23 ноября', time: '15:30', duration: '45 мин', status: 'confirmed' }
           ])
+          setSessionsLoading(false)
         })
 
       // Fetch real achievements data
       getMyAchievements()
         .then(data => {
           setAchievements(data)
+          setAchievementsLoading(false)
+          setAchievementsError(null)
         })
         .catch(err => {
           console.error('Failed to fetch achievements:', err)
+          setAchievementsError('Не удалось загрузить достижения. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setAchievements([
             { id: 1, icon: '🏆', title: '7-дневная серия', description: 'Учитесь 7 дней подряд' },
@@ -172,9 +187,13 @@ export default function DashboardPage() {
             { id: 3, icon: '⭐', title: 'Отличник', description: '4.8+ рейтинг в тестах' },
             { id: 4, icon: '🚀', title: 'Быстрый старт', description: 'Первые 3 дня обучения' }
           ])
+          setAchievementsLoading(false)
         })
     } else {
       setLoading(false)
+      setCoursesLoading(false)
+      setSessionsLoading(false)
+      setAchievementsLoading(false)
     }
   }, [isAuthenticated])
 
@@ -220,37 +239,53 @@ export default function DashboardPage() {
       label: '📚 Мои курсы',
       content: (
         <div className="space-y-4">
-          {coursesData.map((course) => (
-            <Card key={course.id} padding="md" hover>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{course.name}</h3>
-                    <Badge variant="info" size="sm">{course.category}</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">Ментор: {course.mentor}</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600">Прогресс</span>
-                  <span className="text-sm font-semibold text-indigo-600">{course.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all"
-                    style={{ width: `${course.progress}%` }}
-                  />
-                </div>
-              </div>
-              <p className="text-sm text-gray-600">
-                Следующий урок: <span className="font-semibold">{course.nextLesson}</span>
-              </p>
+          {coursesError && (
+            <Card padding="md" className="bg-red-50 border border-red-200">
+              <div className="text-red-800 text-sm">{coursesError}</div>
             </Card>
-          ))}
+          )}
+          {coursesLoading ? (
+            [...Array(3)].map((_, i) => (
+              <Card key={i} padding="md">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-4" />
+                <Skeleton className="h-2 w-full mb-2" />
+                <Skeleton className="h-2 w-3/4" />
+              </Card>
+            ))
+          ) : (
+            coursesData.map((course) => (
+              <Card key={course.id} padding="md" hover>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{course.name}</h3>
+                      <Badge variant="info" size="sm">{course.category}</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">Ментор: {course.mentor}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Прогресс</span>
+                    <span className="text-sm font-semibold text-indigo-600">{course.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all"
+                      style={{ width: `${course.progress}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Следующий урок: <span className="font-semibold">{course.nextLesson}</span>
+                </p>
+              </Card>
+            ))
+          )}
           <Link href="/courses">
             <Button variant="primary" fullWidth>
               <BookOpen className="h-4 w-4 mr-2" />
@@ -265,45 +300,60 @@ export default function DashboardPage() {
       label: '📅 Сессии',
       content: (
         <div className="space-y-4">
-          {upcomingSessions.map((session) => (
-            <Card key={session.id} padding="md" hover>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{session.topic}</h3>
-                    <Badge
-                      variant={session.status === 'confirmed' ? 'success' : 'warning'}
-                      size="sm"
-                    >
-                      {session.status === 'confirmed' ? 'Подтверждена' : 'Ожидание'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">Ментор: {session.mentor}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-indigo-600" />
-                  <span className="text-sm text-gray-600">{session.date}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-indigo-600" />
-                  <span className="text-sm text-gray-600">{session.time}</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="primary" size="sm">
-                  Присоединиться
-                </Button>
-                <Button variant="outline" size="sm">
-                  Отложить
-                </Button>
-                <Button variant="outline" size="sm">
-                  Детали
-                </Button>
-              </div>
+          {sessionsError && (
+            <Card padding="md" className="bg-red-50 border border-red-200">
+              <div className="text-red-800 text-sm">{sessionsError}</div>
             </Card>
-          ))}
+          )}
+          {sessionsLoading ? (
+            [...Array(2)].map((_, i) => (
+              <Card key={i} padding="md">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-4" />
+                <Skeleton className="h-2 w-full" />
+              </Card>
+            ))
+          ) : (
+            upcomingSessions.map((session) => (
+              <Card key={session.id} padding="md" hover>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{session.topic}</h3>
+                      <Badge
+                        variant={session.status === 'confirmed' ? 'success' : 'warning'}
+                        size="sm"
+                      >
+                        {session.status === 'confirmed' ? 'Подтверждена' : 'Ожидание'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">Ментор: {session.mentor}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{session.date}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-indigo-600" />
+                    <span className="text-sm text-gray-600">{session.time}</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="primary" size="sm">
+                    Присоединиться
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Отложить
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Детали
+                  </Button>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       )
     },
@@ -312,15 +362,32 @@ export default function DashboardPage() {
       label: '🏆 Достижения',
       content: (
         <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {achievements.map((achievement) => (
-              <Card key={achievement.id} padding="md" hover className="text-center">
-                <div className="text-4xl mb-3">{achievement.icon}</div>
-                <h3 className="font-semibold text-gray-900 mb-1">{achievement.title}</h3>
-                <p className="text-sm text-gray-600">{achievement.description}</p>
-              </Card>
-            ))}
-          </div>
+          {achievementsError && (
+            <Card padding="md" className="bg-red-50 border border-red-200 mb-4">
+              <div className="text-red-800 text-sm">{achievementsError}</div>
+            </Card>
+          )}
+          {achievementsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} padding="md">
+                  <Skeleton className="h-8 w-8 rounded-full mb-3 mx-auto" />
+                  <Skeleton className="h-4 w-3/4 mx-auto mb-2" />
+                  <Skeleton className="h-3 w-1/2 mx-auto" />
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {achievements.map((achievement) => (
+                <Card key={achievement.id} padding="md" hover className="text-center">
+                  <div className="text-4xl mb-3">{achievement.icon}</div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{achievement.title}</h3>
+                  <p className="text-sm text-gray-600">{achievement.description}</p>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )
     },
