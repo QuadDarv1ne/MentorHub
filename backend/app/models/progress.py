@@ -6,7 +6,6 @@ from sqlalchemy import Column, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
-from app.models.lesson import Lesson
 
 class Progress(BaseModel, TimestampMixin):
     """Модель для хранения прогресса пользователя по курсам и урокам."""
