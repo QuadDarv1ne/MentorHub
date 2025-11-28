@@ -42,29 +42,6 @@ interface Session {
   status: string
 }
 
-interface BackendSession {
-  id: number
-  mentor_id: number
-  student_id: number
-  mentor_name?: string
-  student_name?: string
-  topic: string
-  scheduled_time: string
-  duration: number
-  price: number
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
-  meeting_link?: string
-  notes?: string
-  created_at?: string
-  updated_at?: string
-  mentor?: {
-    full_name?: string
-  }
-  student?: {
-    full_name?: string
-  }
-}
-
 interface Achievement {
   id: number
   icon: string
@@ -134,24 +111,50 @@ export default function DashboardPage() {
       // Fetch real sessions data
       getMySessions('upcoming')
         .then(data => {
-          const formattedSessions = data.map(session => ({
-            id: session.id,
-            mentor: session.mentor_name || 'Ментор',
-            topic: session.topic,
-            date: new Date(session.scheduled_time).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
-            time: new Date(session.scheduled_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            duration: `${session.duration} мин`,
-            status: session.status
-          }))
-          setUpcomingSessions(formattedSessions)
+          const formattedSessions = data.map(session => {
+            const scheduledDate = new Date(session.scheduled_time);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            let displayDate = scheduledDate.toLocaleDateString('ru-RU', { 
+              day: 'numeric', 
+              month: 'long' 
+            });
+            
+            // Add day of week and relative date info
+            const daysOfWeek = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            const dayOfWeek = daysOfWeek[scheduledDate.getDay()];
+            
+            if (scheduledDate.toDateString() === today.toDateString()) {
+              displayDate = `Сегодня, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+`;
+            } else if (scheduledDate.toDateString() === tomorrow.toDateString()) {
+              displayDate = `Завтра, ${scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+`;
+            } else {
+              displayDate = `${dayOfWeek}, ${displayDate}`;
+            }
+            
+            return {
+              id: session.id,
+              mentor: session.mentor?.full_name || session.mentor_name || 'Ментор',
+              topic: session.topic,
+              date: displayDate,
+              time: scheduledDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+              duration: `${session.duration} мин`,
+              status: session.status
+            };
+          });
+          setUpcomingSessions(formattedSessions);
         })
         .catch(err => {
           console.error('Failed to fetch sessions:', err)
           // Fallback to mock data
           setUpcomingSessions([
-            { id: 1, mentor: 'Иван Петров', topic: 'Async/Await Deep Dive', date: '21 ноября', time: '14:00', duration: '60 мин', status: 'confirmed' },
-            { id: 2, mentor: 'Мария Сидорова', topic: 'System Design Discussion', date: '22 ноября', time: '16:00', duration: '90 мин', status: 'pending' },
-            { id: 3, mentor: 'Александр Иванов', topic: 'Query Review', date: '23 ноября', time: '15:30', duration: '45 мин', status: 'confirmed' }
+            { id: 1, mentor: 'Иван Петров', topic: 'Async/Await Deep Dive', date: 'Сегодня, 14:00', time: '14:00', duration: '60 мин', status: 'confirmed' },
+            { id: 2, mentor: 'Мария Сидорова', topic: 'System Design Discussion', date: 'Завтра, 16:00', time: '16:00', duration: '90 мин', status: 'pending' },
+            { id: 3, mentor: 'Александр Иванов', topic: 'Query Review', date: 'Пятница, 23 ноября', time: '15:30', duration: '45 мин', status: 'confirmed' }
           ])
         })
 
@@ -278,7 +281,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600">Ментор: {session.mentor}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-indigo-600" />
                   <span className="text-sm text-gray-600">{session.date}</span>
@@ -287,16 +290,16 @@ export default function DashboardPage() {
                   <Clock className="h-4 w-4 text-indigo-600" />
                   <span className="text-sm text-gray-600">{session.time}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-indigo-600">{session.duration}</span>
-                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="primary" size="sm">
                   Присоединиться
                 </Button>
                 <Button variant="outline" size="sm">
                   Отложить
+                </Button>
+                <Button variant="outline" size="sm">
+                  Детали
                 </Button>
               </div>
             </Card>
