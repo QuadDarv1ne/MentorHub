@@ -38,6 +38,7 @@ class User(BaseModel, TimestampMixin):
     mentor_profile = relationship("Mentor", back_populates="user", uselist=False)
     sessions_as_student = relationship("Session", foreign_keys="Session.student_id", back_populates="student")
     sessions_as_mentor = relationship("Session", foreign_keys="Session.mentor_id", back_populates="mentor")
+    enrollments = relationship("CourseEnrollment", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"

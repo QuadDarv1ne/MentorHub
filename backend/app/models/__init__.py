@@ -12,6 +12,7 @@ from app.models.session import Session, SessionStatus
 from app.models.message import Message
 from app.models.payment import Payment, PaymentStatus
 from app.models.achievement import Achievement
+from app.models.course import Course, Lesson, CourseEnrollment
 
 # Импортируйте все модели здесь для автогенерации Alembic
 
@@ -29,4 +30,7 @@ __all__ = [
     "Payment",
     "PaymentStatus",
     "Achievement",
+    "Course",
+    "Lesson",
+    "CourseEnrollment",
 ]

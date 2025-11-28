@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
-
+from app.models.lesson import Lesson
 
 class Progress(BaseModel, TimestampMixin):
     """Модель для хранения прогресса пользователя по курсам и урокам."""
@@ -19,7 +19,9 @@ class Progress(BaseModel, TimestampMixin):
     progress_percent = Column(Integer, default=0, nullable=False)
     completed = Column(Boolean, default=False, nullable=False)
 
-    user = relationship("User", backref="progress_records")
+    # Связи
+    user = relationship("User", back_populates="progress_records")
+    lesson = relationship("Lesson", back_populates="progress_records")
 
     def __repr__(self):
         return f"<Progress(id={self.id}, user_id={self.user_id}, course_id={self.course_id}, progress={self.progress_percent})>"

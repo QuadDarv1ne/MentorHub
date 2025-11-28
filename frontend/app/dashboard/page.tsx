@@ -11,7 +11,7 @@ import Tabs from '@/components/ui/Tabs'
 import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getMySessions } from '@/lib/api/sessions'
-import { getMyCourses } from '@/lib/api/courses'
+import { getMyCourses } from '@/lib/api/courses-new'
 import { getMyAchievements } from '@/lib/api/achievements'
 
 interface DashboardStats {
