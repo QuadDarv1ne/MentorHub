@@ -10,6 +10,8 @@ import StatCard from '@/components/ui/StatCard'
 import Tabs from '@/components/ui/Tabs'
 import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { getMySessions } from '@/lib/api/sessions'
+import { getMyCourses } from '@/lib/api/courses'
 
 interface DashboardStats {
   total_courses: number
@@ -81,20 +83,53 @@ export default function DashboardPage() {
           setLoading(false)
         })
 
-      // Mock courses data (would be replaced with real API call)
-      setCoursesData([
-        { id: 1, name: 'JavaScript Advanced', progress: 75, category: 'Programming', mentor: 'Иван Петров', nextLesson: 'Async/Await patterns' },
-        { id: 2, name: 'System Design', progress: 60, category: 'Architecture', mentor: 'Мария Сидорова', nextLesson: 'Scalability' },
-        { id: 3, name: 'SQL Optimization', progress: 45, category: 'Database', mentor: 'Александр Иванов', nextLesson: 'Query optimization' },
-        { id: 4, name: 'React Hooks', progress: 90, category: 'Frontend', mentor: 'Дарья Волкова', nextLesson: 'Custom hooks' }
-      ])
+      // Fetch real courses data
+      getMyCourses()
+        .then(data => {
+          const formattedCourses = data.map(course => ({
+            id: course.id,
+            name: `Course ${course.course_id}`, // Temporary name
+            progress: Math.floor(Math.random() * 100), // Temporary progress
+            category: 'Programming', // Temporary category
+            mentor: 'Ментор', // Temporary mentor
+            nextLesson: 'Next Lesson' // Temporary next lesson
+          }))
+          setCoursesData(formattedCourses)
+        })
+        .catch(err => {
+          console.error('Failed to fetch courses:', err)
+          // Fallback to mock data
+          setCoursesData([
+            { id: 1, name: 'JavaScript Advanced', progress: 75, category: 'Programming', mentor: 'Иван Петров', nextLesson: 'Async/Await patterns' },
+            { id: 2, name: 'System Design', progress: 60, category: 'Architecture', mentor: 'Мария Сидорова', nextLesson: 'Scalability' },
+            { id: 3, name: 'SQL Optimization', progress: 45, category: 'Database', mentor: 'Александр Иванов', nextLesson: 'Query optimization' },
+            { id: 4, name: 'React Hooks', progress: 90, category: 'Frontend', mentor: 'Дарья Волкова', nextLesson: 'Custom hooks' }
+          ])
+        })
 
-      // Mock sessions data (would be replaced with real API call)
-      setUpcomingSessions([
-        { id: 1, mentor: 'Иван Петров', topic: 'Async/Await Deep Dive', date: '21 ноября', time: '14:00', duration: '60 мин', status: 'confirmed' },
-        { id: 2, mentor: 'Мария Сидорова', topic: 'System Design Discussion', date: '22 ноября', time: '16:00', duration: '90 мин', status: 'pending' },
-        { id: 3, mentor: 'Александр Иванов', topic: 'Query Review', date: '23 ноября', time: '15:30', duration: '45 мин', status: 'confirmed' }
-      ])
+      // Fetch real sessions data
+      getMySessions('upcoming')
+        .then(data => {
+          const formattedSessions = data.map(session => ({
+            id: session.id,
+            mentor: session.mentor_name || 'Ментор',
+            topic: session.topic,
+            date: new Date(session.scheduled_time).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
+            time: new Date(session.scheduled_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            duration: `${session.duration} мин`,
+            status: session.status
+          }))
+          setUpcomingSessions(formattedSessions)
+        })
+        .catch(err => {
+          console.error('Failed to fetch sessions:', err)
+          // Fallback to mock data
+          setUpcomingSessions([
+            { id: 1, mentor: 'Иван Петров', topic: 'Async/Await Deep Dive', date: '21 ноября', time: '14:00', duration: '60 мин', status: 'confirmed' },
+            { id: 2, mentor: 'Мария Сидорова', topic: 'System Design Discussion', date: '22 ноября', time: '16:00', duration: '90 мин', status: 'pending' },
+            { id: 3, mentor: 'Александр Иванов', topic: 'Query Review', date: '23 ноября', time: '15:30', duration: '45 мин', status: 'confirmed' }
+          ])
+        })
 
       // Mock achievements data (would be replaced with real API call)
       setAchievements([

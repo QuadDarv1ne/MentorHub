@@ -8,8 +8,10 @@ from sqlalchemy import func, desc
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, rate_limit_dependency
+from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.review import Review
+from app.models.progress import Progress
+from app.models.user import User
 from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 from app.utils.sanitization import sanitize_text_field, is_safe_string
 
@@ -104,6 +106,21 @@ async def delete_course(
     db.delete(db_review)
     db.commit()
     return None
+
+
+@router.get("/my", response_model=List[ReviewRead])
+async def get_my_courses(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить список курсов текущего пользователя (временно на основе отзывов)"""
+    # Get course IDs from user's progress records
+    progress_courses = db.query(Progress.course_id).filter(Progress.user_id == current_user.id).distinct().subquery()
+    
+    # Get reviews for those courses
+    courses = db.query(Review).filter(Review.course_id.in_(progress_courses)).all()
+    return courses
 
 
 @router.get("/{course_id}/similar", response_model=List[ReviewAggregate])
