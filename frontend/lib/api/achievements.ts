@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+
 export interface Achievement {
   id: number;
   user_id: number;
@@ -11,12 +13,50 @@ export interface Achievement {
  * Получить все достижения текущего пользователя
  */
 export async function getMyAchievements(): Promise<Achievement[]> {
-  // Since there's no specific achievements endpoint in the backend yet,
-  // we'll return mock data for now
-  return [
-    { id: 1, user_id: 1, title: '7-дневная серия', description: 'Учитесь 7 дней подряд', icon: '🏆', earned_at: '2024-01-15' },
-    { id: 2, user_id: 1, title: '5 курсов', description: 'Завершено 5 курсов', icon: '📚', earned_at: '2024-01-10' },
-    { id: 3, user_id: 1, title: 'Отличник', description: '4.8+ рейтинг в тестах', icon: '⭐', earned_at: '2024-01-05' },
-    { id: 4, user_id: 1, title: 'Быстрый старт', description: 'Первые 3 дня обучения', icon: '🚀', earned_at: '2024-01-01' }
-  ];
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const url = `${API_BASE_URL}/achievements/my`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch achievements: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Получить достижение по ID
+ */
+export async function getAchievement(id: number): Promise<Achievement> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const url = `${API_BASE_URL}/achievements/${id}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch achievement: ${response.statusText}`);
+  }
+
+  return response.json();
 }
