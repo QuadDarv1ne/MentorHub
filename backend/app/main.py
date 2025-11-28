@@ -366,6 +366,14 @@ app.include_router(
 )
 logger.info("✅ Stats routes loaded")
 
+# Achievement routes
+app.include_router(
+    achievements.router,
+    prefix=f"{api_prefix}/achievements",
+    tags=["Achievements"],
+)
+logger.info("✅ Achievement routes loaded")
+
 # Monitoring routes
 app.include_router(
     monitoring.router,
