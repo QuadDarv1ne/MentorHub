@@ -3,7 +3,7 @@
 API для работы с сессиями менторства
 """
 
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -128,3 +128,24 @@ async def delete_session(
     db.delete(db_session)
     db.commit()
     return None
+
+
+@router.get("/my", response_model=List[SessionResponse])
+async def get_my_sessions(
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить список сессий текущего пользователя (как студента или ментора)"""
+    # Build query for sessions where user is either student or mentor
+    query = db.query(DBSession).filter(
+        (DBSession.student_id == current_user.id) | (DBSession.mentor_id == current_user.id)
+    )
+    
+    # Filter by status if provided
+    if status:
+        query = query.filter(DBSession.status == status)
+    
+    sessions = query.order_by(DBSession.scheduled_at.desc()).all()
+    return sessions
