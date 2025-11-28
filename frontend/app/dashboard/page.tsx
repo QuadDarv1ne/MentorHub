@@ -42,6 +42,29 @@ interface Session {
   status: string
 }
 
+interface BackendSession {
+  id: number
+  mentor_id: number
+  student_id: number
+  mentor_name?: string
+  student_name?: string
+  topic: string
+  scheduled_time: string
+  duration: number
+  price: number
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  meeting_link?: string
+  notes?: string
+  created_at?: string
+  updated_at?: string
+  mentor?: {
+    full_name?: string
+  }
+  student?: {
+    full_name?: string
+  }
+}
+
 interface Achievement {
   id: number
   icon: string
