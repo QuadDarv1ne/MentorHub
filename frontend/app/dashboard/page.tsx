@@ -12,6 +12,7 @@ import Skeleton from '@/components/ui/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getMySessions } from '@/lib/api/sessions'
 import { getMyCourses } from '@/lib/api/courses'
+import { getMyAchievements } from '@/lib/api/achievements'
 
 interface DashboardStats {
   total_courses: number
