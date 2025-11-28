@@ -11,6 +11,7 @@ from app.models.mentor import Mentor
 from app.models.session import Session, SessionStatus
 from app.models.message import Message
 from app.models.payment import Payment, PaymentStatus
+from app.models.achievement import Achievement
 
 # Импортируйте все модели здесь для автогенерации Alembic
 
@@ -27,4 +28,5 @@ __all__ = [
     "Message",
     "Payment",
     "PaymentStatus",
+    "Achievement",
 ]

@@ -89,10 +89,10 @@ export default function DashboardPage() {
         .then(data => {
           const formattedCourses = data.map(course => ({
             id: course.id,
-            name: `Course ${course.course_id}`, // Temporary name
+            name: course.comment ? course.comment.substring(0, 50) + (course.comment.length > 50 ? '...' : '') : `Course ${course.course_id}`,
             progress: Math.floor(Math.random() * 100), // Temporary progress
             category: 'Programming', // Temporary category
-            mentor: 'Ментор', // Temporary mentor
+            mentor: course.user_name || 'Ментор', // Use user_name from course data
             nextLesson: 'Next Lesson' // Temporary next lesson
           }))
           setCoursesData(formattedCourses)
