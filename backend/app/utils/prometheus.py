@@ -78,6 +78,66 @@ SECURITY_INCIDENTS = Counter(
     ["incident_type", "endpoint"]
 )
 
+# Новые метрики для детального мониторинга
+USER_SESSIONS = Gauge("mentorhub_user_sessions_total", "Active user sessions")
+API_CALLS_BY_USER_ROLE = Counter(
+    "mentorhub_api_calls_by_user_role_total",
+    "API calls by user role",
+    ["role", "endpoint"]
+)
+DATABASE_QUERIES = Counter(
+    "mentorhub_database_queries_total",
+    "Database query count",
+    ["query_type", "table"]
+)
+DATABASE_QUERY_DURATION = Histogram(
+    "mentorhub_database_query_duration_seconds",
+    "Database query duration",
+    ["query_type", "table"],
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0, float("inf"))
+)
+CACHE_OPERATIONS = Counter(
+    "mentorhub_cache_operations_total",
+    "Cache operations count",
+    ["operation", "cache_type"]
+)
+EXTERNAL_API_CALLS = Counter(
+    "mentorhub_external_api_calls_total",
+    "External API calls count",
+    ["service", "endpoint", "status"]
+)
+EXTERNAL_API_DURATION = Histogram(
+    "mentorhub_external_api_duration_seconds",
+    "External API call duration",
+    ["service", "endpoint"],
+    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, float("inf"))
+)
+BACKGROUND_TASKS = Counter(
+    "mentorhub_background_tasks_total",
+    "Background tasks count",
+    ["task_type", "status"]
+)
+PAYMENT_TRANSACTIONS = Counter(
+    "mentorhub_payment_transactions_total",
+    "Payment transactions count",
+    ["status", "payment_method"]
+)
+MESSAGES_SENT = Counter(
+    "mentorhub_messages_sent_total",
+    "Messages sent count",
+    ["message_type"]
+)
+VIDEO_SESSIONS = Counter(
+    "mentorhub_video_sessions_total",
+    "Video sessions count",
+    ["status"]
+)
+VIDEO_SESSION_DURATION = Histogram(
+    "mentorhub_video_session_duration_seconds",
+    "Video session duration",
+    buckets=(60, 300, 600, 1800, 3600, 7200, float("inf"))
+)
+
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
     """
@@ -172,8 +232,10 @@ def track_cache_hit(cache_type: str = "redis"):
             result = await func(*args, **kwargs)
             if result is not None:
                 CACHE_HITS.labels(cache_type=cache_type).inc()
+                CACHE_OPERATIONS.labels(operation="hit", cache_type=cache_type).inc()
             else:
                 CACHE_MISSES.labels(cache_type=cache_type).inc()
+                CACHE_OPERATIONS.labels(operation="miss", cache_type=cache_type).inc()
             return result
 
         return wrapper
@@ -225,3 +287,99 @@ def record_security_incident(incident_type: str, endpoint: str = "unknown"):
         endpoint: Endpoint, где произошел инцидент
     """
     SECURITY_INCIDENTS.labels(incident_type=incident_type, endpoint=endpoint).inc()
+
+
+def record_user_role_access(role: str, endpoint: str):
+    """
+    Запись доступа по роли пользователя
+
+    Args:
+        role: Роль пользователя
+        endpoint: Endpoint, к которому был доступ
+    """
+    API_CALLS_BY_USER_ROLE.labels(role=role, endpoint=endpoint).inc()
+
+
+def record_database_query(query_type: str, table: str, duration: float = 0):
+    """
+    Запись метрик запроса к БД
+
+    Args:
+        query_type: Тип запроса (select, insert, update, delete)
+        table: Таблица
+        duration: Время выполнения запроса в секундах
+    """
+    DATABASE_QUERIES.labels(query_type=query_type, table=table).inc()
+    if duration > 0:
+        DATABASE_QUERY_DURATION.labels(query_type=query_type, table=table).observe(duration)
+
+
+def record_cache_operation(operation: str, cache_type: str = "redis"):
+    """
+    Запись операции с кэшем
+
+    Args:
+        operation: Тип операции (get, set, delete, clear)
+        cache_type: Тип кэша (redis, memory)
+    """
+    CACHE_OPERATIONS.labels(operation=operation, cache_type=cache_type).inc()
+
+
+def record_external_api_call(service: str, endpoint: str, status: str, duration: float = 0):
+    """
+    Запись вызова внешнего API
+
+    Args:
+        service: Сервис (stripe, agora, aws)
+        endpoint: Endpoint
+        status: Статус ответа
+        duration: Время выполнения в секундах
+    """
+    EXTERNAL_API_CALLS.labels(service=service, endpoint=endpoint, status=status).inc()
+    if duration > 0:
+        EXTERNAL_API_DURATION.labels(service=service, endpoint=endpoint).observe(duration)
+
+
+def record_background_task(task_type: str, status: str):
+    """
+    Запись фоновой задачи
+
+    Args:
+        task_type: Тип задачи
+        status: Статус (success, failed)
+    """
+    BACKGROUND_TASKS.labels(task_type=task_type, status=status).inc()
+
+
+def record_payment_transaction(status: str, payment_method: str):
+    """
+    Запись транзакции оплаты
+
+    Args:
+        status: Статус (success, failed, pending)
+        payment_method: Метод оплаты (card, stripe, paypal)
+    """
+    PAYMENT_TRANSACTIONS.labels(status=status, payment_method=payment_method).inc()
+
+
+def record_message_sent(message_type: str):
+    """
+    Запись отправленного сообщения
+
+    Args:
+        message_type: Тип сообщения (email, sms, notification)
+    """
+    MESSAGES_SENT.labels(message_type=message_type).inc()
+
+
+def record_video_session(status: str, duration: float = 0):
+    """
+    Запись видеосессии
+
+    Args:
+        status: Статус (started, ended, failed)
+        duration: Длительность в секундах
+    """
+    VIDEO_SESSIONS.labels(status=status).inc()
+    if duration > 0 and status == "ended":
+        VIDEO_SESSION_DURATION.observe(duration)

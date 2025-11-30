@@ -1,0 +1,56 @@
+groups:
+- name: mentorhub-alerts
+  rules:
+  - alert: HighErrorRate
+    expr: rate(mentorhub_errors_total[5m]) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value }} errors/second"
+
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, rate(mentorhub_request_duration_seconds_bucket[5m])) > 2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High latency detected"
+      description: "95th percentile latency is {{ $value }}s"
+
+  - alert: ServiceDown
+    expr: up{job="mentorhub"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service is down"
+      description: "MentorHub API is not responding"
+
+  - alert: HighCPULoad
+    expr: rate(node_cpu_seconds_total{mode!="idle"}[5m]) > 0.8
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU load"
+      description: "CPU usage is above 80%"
+
+  - alert: LowCacheHitRate
+    expr: (sum(mentorhub_cache_hits_total) / (sum(mentorhub_cache_hits_total) + sum(mentorhub_cache_misses_total))) < 0.8
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Low cache hit rate"
+      description: "Cache hit rate is below 80%"
+
+  - alert: HighDatabaseConnectionUsage
+    expr: mentorhub_db_connection_pool{pool_type="used"} / mentorhub_db_connection_pool{pool_type="size"} > 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High database connection usage"
+      description: "Database connection pool usage is above 90%"

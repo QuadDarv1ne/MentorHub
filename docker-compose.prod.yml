@@ -245,6 +245,60 @@ services:
       - mentorhub_network
     restart: unless-stopped
 
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: mentorhub_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - mentorhub_network
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: mentorhub_grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/mentorhub-dashboard.json:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - mentorhub_network
+    depends_on:
+      - prometheus
+
+  # Monitoring - Node Exporter
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: mentorhub_node_exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - mentorhub_network
+
 networks:
   mentorhub_network:
     driver: bridge
@@ -259,4 +313,8 @@ volumes:
   media_volume:
     driver: local
   logs_volume:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
