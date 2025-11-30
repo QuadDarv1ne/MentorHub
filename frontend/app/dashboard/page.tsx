@@ -8,7 +8,8 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import StatCard from '@/components/ui/StatCard'
 import Tabs from '@/components/ui/Tabs'
-import Skeleton from '@/components/ui/Skeleton'
+import { PageLoader, SectionLoader } from '@/components/LoadingSpinner'
+import { DashboardErrorBoundary } from '@/components/ErrorBoundary'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getMySessions } from '@/lib/api/sessions'
 import { getMyCourses } from '@/lib/api/courses-new'
@@ -198,21 +199,7 @@ export default function DashboardPage() {
   }, [isAuthenticated])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <Skeleton className="h-10 w-64 mb-3" />
-            <Skeleton className="h-6 w-96" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+    return <PageLoader text="Загрузка личного кабинета..." />;
   }
 
   if (!isAuthenticated()) {
@@ -245,14 +232,7 @@ export default function DashboardPage() {
             </Card>
           )}
           {coursesLoading ? (
-            [...Array(3)].map((_, i) => (
-              <Card key={i} padding="md">
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2 mb-4" />
-                <Skeleton className="h-2 w-full mb-2" />
-                <Skeleton className="h-2 w-3/4" />
-              </Card>
-            ))
+            <SectionLoader text="Загрузка курсов..." />
           ) : (
             coursesData.map((course) => (
               <Card key={course.id} padding="md" hover>
@@ -306,13 +286,7 @@ export default function DashboardPage() {
             </Card>
           )}
           {sessionsLoading ? (
-            [...Array(2)].map((_, i) => (
-              <Card key={i} padding="md">
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2 mb-4" />
-                <Skeleton className="h-2 w-full" />
-              </Card>
-            ))
+            <SectionLoader text="Загрузка сессий..." />
           ) : (
             upcomingSessions.map((session) => (
               <Card key={session.id} padding="md" hover>
@@ -368,15 +342,7 @@ export default function DashboardPage() {
             </Card>
           )}
           {achievementsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {[...Array(4)].map((_, i) => (
-                <Card key={i} padding="md">
-                  <Skeleton className="h-8 w-8 rounded-full mb-3 mx-auto" />
-                  <Skeleton className="h-4 w-3/4 mx-auto mb-2" />
-                  <Skeleton className="h-3 w-1/2 mx-auto" />
-                </Card>
-              ))}
-            </div>
+            <SectionLoader text="Загрузка достижений..." />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {achievements.map((achievement) => (
@@ -458,51 +424,53 @@ export default function DashboardPage() {
   ]
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+    <DashboardErrorBoundary>
+      <main className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+          <div className="container mx-auto max-w-7xl px-4 py-10">
+            <h1 className="text-4xl font-bold mb-2">
+              Добро пожаловать, {userName || 'пользователь'}! 👋
+            </h1>
+            <p className="text-indigo-100 text-lg">
+              Продолжайте развивать свои навыки вместе с лучшими менторами
+            </p>
+          </div>
+        </div>
+
         <div className="container mx-auto max-w-7xl px-4 py-10">
-          <h1 className="text-4xl font-bold mb-2">
-            Добро пожаловать, {userName || 'пользователь'}! 👋
-          </h1>
-          <p className="text-indigo-100 text-lg">
-            Продолжайте развивать свои навыки вместе с лучшими менторами
-          </p>
-        </div>
-      </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <StatCard
+              icon={<BookOpen className="h-6 w-6" />}
+              value={stats?.total_courses || 0}
+              title="Всего курсов"
+              trend={{ value: 12, isPositive: true }}
+            />
+            <StatCard
+              icon={<TrendingUp className="h-6 w-6" />}
+              value={stats?.in_progress || 0}
+              title="В процессе"
+              trend={{ value: 8, isPositive: true }}
+            />
+            <StatCard
+              icon={<Award className="h-6 w-6" />}
+              value={stats?.completed || 0}
+              title="Завершено"
+              trend={{ value: 5, isPositive: true }}
+            />
+            <StatCard
+              icon={<Calendar className="h-6 w-6" />}
+              value={stats?.upcoming_sessions || 0}
+              title="Предстоящие сессии"
+              trend={{ value: 2, isPositive: true }}
+            />
+          </div>
 
-      <div className="container mx-auto max-w-7xl px-4 py-10">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <StatCard
-            icon={<BookOpen className="h-6 w-6" />}
-            value={stats?.total_courses || 0}
-            title="Всего курсов"
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatCard
-            icon={<TrendingUp className="h-6 w-6" />}
-            value={stats?.in_progress || 0}
-            title="В процессе"
-            trend={{ value: 8, isPositive: true }}
-          />
-          <StatCard
-            icon={<Award className="h-6 w-6" />}
-            value={stats?.completed || 0}
-            title="Завершено"
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatCard
-            icon={<Calendar className="h-6 w-6" />}
-            value={stats?.upcoming_sessions || 0}
-            title="Предстоящие сессии"
-            trend={{ value: 2, isPositive: true }}
-          />
+          {/* Tabs with content */}
+          <Tabs tabs={tabsContent} defaultTab="courses" />
         </div>
-
-        {/* Tabs with content */}
-        <Tabs tabs={tabsContent} defaultTab="courses" />
-      </div>
-    </main>
+      </main>
+    </DashboardErrorBoundary>
   )
 }

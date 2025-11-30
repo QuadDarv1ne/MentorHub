@@ -4,6 +4,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { NotificationProvider } from '@/components/NotificationProvider'
+import { GlobalLoadingProvider } from '@/components/GlobalLoadingProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
@@ -24,15 +25,16 @@ export default function RootLayout({
       <body className="antialiased">
         <SkipLinks />
         <RouteAnnouncer />
-        <NotificationProvider>
-          <Header />
-          <main id="main-content" tabIndex={-1} className="focus:outline-none">
-            {children}
-          </main>
-          <Footer />
-        </NotificationProvider>
+        <GlobalLoadingProvider>
+          <NotificationProvider>
+            <Header />
+            <main id="main-content" tabIndex={-1} className="focus:outline-none">
+              {children}
+            </main>
+            <Footer />
+          </NotificationProvider>
+        </GlobalLoadingProvider>
       </body>
     </html>
   )
 }
-

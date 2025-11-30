@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Nginx reverse proxy
   nginx:
-    image: nginx:alpine
+    image: nginx:alpine-slim
     container_name: mentorhub_nginx
     ports:
       - "80:80"
@@ -19,6 +19,12 @@ services:
     networks:
       - mentorhub_network
     restart: unless-stopped
+    # Performance tuning
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
 
   # PostgreSQL Database
   postgres:
@@ -29,6 +35,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-mentorhub}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -40,17 +47,43 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    # Performance tuning
+    command: >
+      postgres
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c maintenance_work_mem=256MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=32MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=32MB
+      -c min_wal_size=2GB
+      -c max_wal_size=8GB
     deploy:
       resources:
         limits:
           cpus: '2'
           memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: mentorhub_redis
-    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PASSWORD} 
+      --maxmemory 1G 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --notify-keyspace-events Ex
     volumes:
       - redis_data:/data
     networks:
@@ -65,13 +98,16 @@ services:
       resources:
         limits:
           cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
           memory: 512M
 
   # Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.production
       target: production
     container_name: mentorhub_backend
     environment:
@@ -107,17 +143,20 @@ services:
       resources:
         limits:
           cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
           memory: 1G
-      replicas: 2
+      replicas: 3
 
   # Celery Worker
   celery_worker:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.production
       target: production
     container_name: mentorhub_celery
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=8 --pool=threads
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
@@ -136,12 +175,15 @@ services:
         limits:
           cpus: '2'
           memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
 
   # Celery Beat (Scheduler)
   celery_beat:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.production
       target: production
     container_name: mentorhub_celery_beat
     command: celery -A app.celery_app beat --loglevel=info
@@ -177,6 +219,9 @@ services:
       resources:
         limits:
           cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
           memory: 512M
 
   # Database backup

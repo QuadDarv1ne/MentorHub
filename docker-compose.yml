@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: ${DB_USER:-mentorhub_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_password}
       POSTGRES_DB: ${DB_NAME:-mentorhub}
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -21,6 +22,20 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
+    # Performance tuning
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=16MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
 
   # ==================== REDIS (Cache & Sessions) ====================
   redis:
@@ -38,12 +53,22 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    # Performance tuning
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --notify-keyspace-events Ex
 
   # ==================== BACKEND (FastAPI) ====================
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-backend
     environment:
@@ -81,8 +106,8 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,12 +116,13 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Development mode with auto-reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app
 
   # ==================== CELERY WORKER (Background Tasks) ====================
   celery_worker:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-celery
     environment:
@@ -114,15 +140,15 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: celery -A app.tasks worker --loglevel=info
+    command: celery -A app.tasks worker --loglevel=info --concurrency=4 --pool=threads
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
 
   # ==================== CELERY BEAT (Scheduled Tasks) ====================
   celery_beat:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-celery-beat
     environment:
@@ -137,8 +163,8 @@ services:
     restart: unless-stopped
     command: celery -A app.tasks beat --loglevel=info
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
 
   # ==================== FRONTEND (Next.js) ====================
   frontend:
@@ -164,7 +190,7 @@ services:
 
   # ==================== NGINX (Reverse Proxy) ====================
   nginx:
-    image: nginx:alpine
+    image: nginx:alpine-slim
     container_name: mentorhub-nginx
     ports:
       - "80:80"
