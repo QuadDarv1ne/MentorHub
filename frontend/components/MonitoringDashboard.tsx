@@ -8,7 +8,10 @@ import {
   Clock, 
   HardDrive,
   Cpu,
-  MemoryStick
+  MemoryStick,
+  Settings,
+  Bell,
+  Trash2
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import MetricCard from '@/components/ui/MetricCard';
@@ -16,7 +19,9 @@ import Chart from '@/components/ui/Chart';
 import AlertDisplay from '@/components/ui/AlertDisplay';
 import { 
   getMetrics, 
-  getAlerts
+  getAlerts,
+  updateAlertThresholds,
+  resetMetrics
 } from '@/lib/api/monitoring';
 import { MetricsData, Alert } from '@/lib/api/monitoring';
 
@@ -26,6 +31,13 @@ const MonitoringDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [refreshInterval] = useState(30000); // 30 seconds
+  const [showThresholdModal, setShowThresholdModal] = useState(false);
+  const [newThresholds, setNewThresholds] = useState<Record<string, number>>({
+    error_rate: 5.0,
+    response_time: 2.0,
+    cpu_usage: 80.0,
+    memory_usage: 90.0
+  });
 
   // Fetch metrics
   const fetchMetrics = async () => {
@@ -48,6 +60,41 @@ const MonitoringDashboard: React.FC = () => {
       console.error('Error fetching metrics:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Reset metrics
+  const handleResetMetrics = async () => {
+    if (window.confirm('Вы уверены, что хотите сбросить все метрики? Это действие нельзя отменить.')) {
+      try {
+        await resetMetrics();
+        fetchMetrics(); // Refresh after reset
+        alert('Метрики успешно сброшены');
+      } catch (err) {
+        alert('Ошибка при сбросе метрик');
+        console.error('Error resetting metrics:', err);
+      }
+    }
+  };
+
+  // Handle threshold update
+  const handleThresholdChange = (key: string, value: string) => {
+    setNewThresholds(prev => ({
+      ...prev,
+      [key]: parseFloat(value) || 0
+    }));
+  };
+
+  // Save threshold updates
+  const saveThresholds = async () => {
+    try {
+      await updateAlertThresholds(newThresholds);
+      setShowThresholdModal(false);
+      fetchMetrics(); // Refresh after update
+      alert('Пороговые значения успешно обновлены');
+    } catch (err) {
+      alert('Ошибка при обновлении пороговых значений');
+      console.error('Error updating thresholds:', err);
     }
   };
 
@@ -120,16 +167,30 @@ const MonitoringDashboard: React.FC = () => {
       {/* Control Panel */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Мониторинг системы</h2>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <div className="text-sm text-gray-500">
             Обновлено: {new Date(metrics.timestamp).toLocaleTimeString()}
           </div>
           <button
+            onClick={() => setShowThresholdModal(true)}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            title="Настройки алертов"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleResetMetrics}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            title="Сбросить метрики"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          <button
             onClick={fetchMetrics}
             className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            title="Обновить данные"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Обновить
+            <RefreshCw className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -189,8 +250,90 @@ const MonitoringDashboard: React.FC = () => {
         />
       </div>
 
+      {/* Threshold Settings Modal */}
+      {showThresholdModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Настройки алертов</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Порог ошибок (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={newThresholds.error_rate}
+                  onChange={(e) => handleThresholdChange('error_rate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Порог времени ответа (сек)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={newThresholds.response_time}
+                  onChange={(e) => handleThresholdChange('response_time', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Порог CPU (%)
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  value={newThresholds.cpu_usage}
+                  onChange={(e) => handleThresholdChange('cpu_usage', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Порог памяти (%)
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  value={newThresholds.memory_usage}
+                  onChange={(e) => handleThresholdChange('memory_usage', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowThresholdModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={saveThresholds}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Alerts Section */}
       <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Системные предупреждения</h3>
+          <Bell className="h-5 w-5 text-gray-500" />
+        </div>
         <AlertDisplay alerts={alerts} />
       </Card>
 
