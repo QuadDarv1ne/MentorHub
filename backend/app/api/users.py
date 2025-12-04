@@ -12,6 +12,7 @@ from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import PaginatedResponse
 from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
+from app.utils.cache import cached, invalidate_cache, CACHE_TTL
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

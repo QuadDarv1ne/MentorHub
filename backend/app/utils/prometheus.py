@@ -36,7 +36,7 @@ REQUEST_IN_PROGRESS = Gauge(
 ERROR_COUNT = Counter(
     "mentorhub_errors_total",
     "Total error count",
-    ["method", "endpoint", "exception_type", "http_status"],
+    ["method", "endpoint", "exception_type"],
 )
 
 DB_CONNECTION_POOL = Gauge(
