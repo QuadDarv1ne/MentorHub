@@ -31,6 +31,7 @@ class Course(BaseModel, TimestampMixin):
     instructor = relationship("Mentor", back_populates="courses")
     enrollments = relationship("CourseEnrollment", back_populates="course")
     lessons = relationship("Lesson", back_populates="course")
+    progress_records = relationship("Progress", back_populates="course")
 
     def __repr__(self):
         return f"<Course(id={self.id}, title={self.title}, instructor_id={self.instructor_id})>"
@@ -52,7 +53,7 @@ class Lesson(BaseModel, TimestampMixin):
 
     # Связи
     course = relationship("Course", back_populates="lessons")
-    # progress_records = relationship("Progress", back_populates="lesson")  # Временно отключено
+    progress_records = relationship("Progress", back_populates="lesson")
 
     def __repr__(self):
         return f"<Lesson(id={self.id}, course_id={self.course_id}, title={self.title})>"

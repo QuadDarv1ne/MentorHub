@@ -85,15 +85,13 @@ async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool
             detail="Некорректный ID пользователя",
         )
 
-    # Оптимизация N+1: временно отключено из-за проблем с relationships
-    # TODO: Исправить relationships в моделях Progress и Session
-    # from sqlalchemy.orm import joinedload
-    # user = db.query(User).options(
-    #     joinedload(User.mentor_profile),
-    #     joinedload(User.sessions_as_student)
-    # ).filter(User.id == user_id).first()
-    
-    user = db.query(User).filter(User.id == user_id).first()
+    # Оптимизация N+1: загружаем связанные данные
+    from sqlalchemy.orm import joinedload
+    user = db.query(User).options(
+        joinedload(User.mentor_profile),
+        joinedload(User.sessions_as_student),
+        joinedload(User.progress_records)
+    ).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(
