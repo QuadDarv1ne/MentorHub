@@ -191,6 +191,12 @@ async def update_course(
     
     db.commit()
     db.refresh(db_course)
+    
+    # Инвалидируем кеш обновленного курса
+    import asyncio
+    asyncio.create_task(invalidate_cache(f"course_detail:{db_course.id}"))
+    asyncio.create_task(invalidate_cache("courses_list:*"))
+    
     return db_course
 
 
@@ -213,6 +219,12 @@ async def delete_course(
     
     db.delete(db_course)
     db.commit()
+    
+    # Инвалидируем кеш удаленного курса
+    import asyncio
+    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
+    asyncio.create_task(invalidate_cache("courses_list:*"))
+    
     return None
 
 
