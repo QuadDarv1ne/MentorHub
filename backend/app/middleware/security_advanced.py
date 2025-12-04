@@ -378,14 +378,31 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
     async def _check_csrf_token(self, request: Request):
         """Проверка CSRF токена для защиты от межсайтовой подделки запросов"""
-        # Для API с JWT токенами CSRF защита не всегда необходима, но добавим для форм
+        # Для REST API с JWT токенами CSRF защита не нужна
+        # Исключаем публичные эндпоинты (регистрация, логин)
+        csrf_exempt_paths = [
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/verify-email",
+            "/api/v1/auth/reset-password",
+            "/api/v1/auth/forgot-password",
+        ]
+        
+        # Если путь в списке исключений, пропускаем проверку
+        if any(request.url.path.startswith(path) for path in csrf_exempt_paths):
+            return
         
         # Проверяем наличие CSRF токена в заголовке
         csrf_token = request.headers.get("X-CSRF-Token")
         
-        # Если это запрос на изменение данных и нет JWT токена, проверяем CSRF
+        # Если есть JWT токен в Authorization, CSRF не требуется (REST API)
         auth_header = request.headers.get("Authorization")
-        if not auth_header and csrf_token is None and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+        if auth_header and auth_header.startswith("Bearer "):
+            return
+        
+        # Если это запрос на изменение данных и нет JWT токена, проверяем CSRF
+        if csrf_token is None and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
             # Проверяем CSRF токен из cookies/form
             csrf_from_cookie = request.cookies.get("csrf_token")
             if csrf_from_cookie is None:

@@ -18,9 +18,9 @@ class Progress(BaseModel, TimestampMixin):
     progress_percent = Column(Integer, default=0, nullable=False)
     completed = Column(Boolean, default=False, nullable=False)
 
-    # Связи
-    user = relationship("User", back_populates="progress_records")
-    lesson = relationship("Lesson", back_populates="progress_records")
+    # Связи - временно отключены из-за ошибок в FK
+    # user = relationship("User", back_populates="progress_records")
+    # lesson = relationship("Lesson", back_populates="progress_records")
 
     def __repr__(self):
         return f"<Progress(id={self.id}, user_id={self.user_id}, course_id={self.course_id}, progress={self.progress_percent})>"

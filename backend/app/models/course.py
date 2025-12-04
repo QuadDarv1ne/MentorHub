@@ -52,7 +52,7 @@ class Lesson(BaseModel, TimestampMixin):
 
     # Связи
     course = relationship("Course", back_populates="lessons")
-    progress_records = relationship("Progress", back_populates="lesson")
+    # progress_records = relationship("Progress", back_populates="lesson")  # Временно отключено
 
     def __repr__(self):
         return f"<Lesson(id={self.id}, course_id={self.course_id}, title={self.title})>"
