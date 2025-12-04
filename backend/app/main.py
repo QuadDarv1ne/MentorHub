@@ -45,6 +45,7 @@ from app.api import (
     email_verification,
     websocket,
     notifications,
+    analytics,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -53,6 +54,7 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
+from app.utils.cache_advanced import init_cache_backend
 from app.utils.error_handlers import register_error_handlers
 
 
@@ -107,6 +109,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize cache with Redis client if available
     init_cache(redis_client)
+    init_cache_backend(redis_client)
     logger.info("✅ Cache initialized")
 
     # Create tables (with retry logic for Amvera)
@@ -425,6 +428,14 @@ app.include_router(
     tags=["Notifications"],
 )
 logger.info("✅ Notification routes loaded")
+
+# Analytics routes
+app.include_router(
+    analytics.router,
+    prefix=f"{api_prefix}",
+    tags=["Analytics"],
+)
+logger.info("✅ Analytics routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
