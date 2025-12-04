@@ -80,6 +80,7 @@ async def get_my_courses(
 
 
 @router.get("/{course_id}", response_model=CourseWithLessonsResponse)
+@cached(ttl=CACHE_TTL['course'], key_prefix="course_detail")
 async def get_course(course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о курсе по ID с уроками"""
     course = db.query(Course).filter(Course.id == course_id).first()
