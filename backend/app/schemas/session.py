@@ -60,8 +60,6 @@ class SessionResponse(SessionBase):
     updated_at: datetime
 
     # Relations
-    from app.schemas.user import UserResponse
-    from app.schemas.mentor import MentorResponse
     student: Optional[UserResponse] = None
     mentor: Optional[MentorResponse] = None
 
