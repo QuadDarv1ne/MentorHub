@@ -69,16 +69,16 @@ export default function LoginPage() {
       // Get user profile
       const user = await getCurrentUser(authResponse.access_token)
 
-      // Store tokens and user data
-      localStorage.setItem('access_token', authResponse.access_token)
-      if (formData.rememberMe) {
-        localStorage.setItem('refresh_token', authResponse.refresh_token)
-      }
+      // Store tokens and user data using improved authLogin
+      authLogin(
+        authResponse.access_token, 
+        user, 
+        authResponse.expires_in,
+        formData.rememberMe ? authResponse.refresh_token : undefined
+      )
       
       localStorage.setItem('user_name', user.full_name || user.email)
       localStorage.setItem('user_role', user.role)
-
-      authLogin(authResponse.access_token, user)
       setSuccess('Вход выполнен успешно!')
 
       setTimeout(() => {

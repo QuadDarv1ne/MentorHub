@@ -5,7 +5,7 @@
 
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 import jwt
@@ -96,7 +96,10 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    credentials: UserLogin, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    credentials: UserLogin, 
+    response: Response,
+    db: Session = Depends(get_db), 
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Вход пользователя и возврат JWT токенов"""
 
@@ -172,6 +175,16 @@ async def login(
             "type": "refresh",
         },
         expires_delta=refresh_token_expires,
+    )
+    
+    # Set httpOnly cookie для refresh token (защита от XSS)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,  # Защита от XSS
+        secure=settings.ENVIRONMENT == "production",  # HTTPS only в production
+        samesite="strict",  # Защита от CSRF
+        max_age=7 * 24 * 60 * 60  # 7 дней
     )
 
     logger.info(f"Пользователь вошел в систему: {user.email}")

@@ -77,7 +77,7 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ width, height }}>
+    <div className={`relative overflow-hidden ${className}`} style={{ width, height } as React.CSSProperties}>
       <Image
         src={src}
         alt={alt}
@@ -120,7 +120,7 @@ export function LazyImageGallery({
       style={{
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gap: `${gap * 0.25}rem`,
-      }}
+      } as React.CSSProperties}
     >
       {images.map((image, index) => (
         <OptimizedImage

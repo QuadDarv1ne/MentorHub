@@ -85,7 +85,13 @@ async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool
             detail="Некорректный ID пользователя",
         )
 
-    user = db.query(User).filter(User.id == user_id).first()
+    # Оптимизация N+1: загружаем связанные данные
+    from sqlalchemy.orm import joinedload
+    user = db.query(User).options(
+        joinedload(User.mentor_profile),
+        joinedload(User.sessions_as_student),
+        joinedload(User.sessions_as_mentor)
+    ).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(

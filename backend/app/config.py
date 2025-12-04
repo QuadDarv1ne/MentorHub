@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "MentorHub API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "development")
 
     @field_validator("DEBUG", mode="before")
     @classmethod
