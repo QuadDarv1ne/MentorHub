@@ -89,12 +89,15 @@ export default function BlogPage() {
       return matchesSearch && matchesCategory
     })
     .sort((a, b) => {
-      if (sortBy === 'latest') {
-        return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-      } else if (sortBy === 'trending') {
-        return (b.trending ? 1 : 0) - (a.trending ? 1 : 0)
-      } else {
-        return b.views - a.views
+      switch (sortBy) {
+        case 'latest':
+          return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+        case 'trending':
+          return (b.trending ? 1 : 0) - (a.trending ? 1 : 0)
+        case 'popular':
+          return b.views - a.views
+        default:
+          return 0
       }
     })
 

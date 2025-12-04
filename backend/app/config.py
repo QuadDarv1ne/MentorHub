@@ -126,12 +126,12 @@ class Settings(BaseSettings):
 
     # ==================== SESSION ====================
     SESSION_EXPIRE_DAYS: int = 7
-    SESSION_COOKIE_SECURE: bool = False
+    SESSION_COOKIE_SECURE: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
     SESSION_COOKIE_HTTPONLY: bool = True
 
     # ==================== SECURITY ====================
     ALLOWED_HOSTS: List[str] = ["*"]
-    SECURE_SSL_REDIRECT: bool = False
+    SECURE_SSL_REDIRECT: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
     HSTS_SECONDS: int = 31536000
 
     # ==================== FEATURE FLAGS ====================
@@ -204,3 +204,5 @@ if is_production():
     assert settings.DEBUG is False, "❌ ERROR: DEBUG must be False in production!"
     assert settings.DATABASE_URL.startswith("postgresql://"), "❌ ERROR: Use PostgreSQL in production!"
     assert settings.AGORA_APP_ID, "❌ ERROR: AGORA_APP_ID required in production!"
+    assert settings.SESSION_COOKIE_SECURE, "❌ ERROR: SESSION_COOKIE_SECURE must be True in production!"
+    assert settings.SECURE_SSL_REDIRECT, "❌ ERROR: SECURE_SSL_REDIRECT must be True in production!"

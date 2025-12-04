@@ -168,7 +168,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             # Записываем ошибки
-            ERROR_COUNT.labels(method=method, endpoint=endpoint, exception_type=type(e).__name__, http_status=500).inc()
+            ERROR_COUNT.labels(method=method, endpoint=endpoint, exception_type=type(e).__name__).inc()
             raise
 
         finally:
