@@ -44,10 +44,12 @@ from app.api import (
     backups,
     email_verification,
     websocket,
+    notifications,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.rate_limiter import RateLimitMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
@@ -183,6 +185,10 @@ app = FastAPI(
 # Request ID Middleware (должен быть первым)
 app.add_middleware(RequestIDMiddleware)
 logger.info("✅ Request ID middleware added")
+
+# Request Logging Middleware (сразу после Request ID)
+app.add_middleware(RequestLoggingMiddleware, max_body_length=1000)
+logger.info("✅ Request Logging middleware added")
 
 # Rate Limiting Middleware (should be early in the chain)
 # Always add rate limiting middleware, even without Redis it will use memory fallback

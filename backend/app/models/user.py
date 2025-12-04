@@ -39,6 +39,7 @@ class User(BaseModel, TimestampMixin):
     sessions_as_student = relationship("Session", foreign_keys="Session.student_id", back_populates="student")
     enrollments = relationship("CourseEnrollment", back_populates="user")
     progress_records = relationship("Progress", back_populates="user")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"
