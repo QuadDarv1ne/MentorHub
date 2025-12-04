@@ -95,13 +95,13 @@ class Settings(BaseSettings):
     AWS_S3_REGION: str = "us-east-1"
 
     # ==================== EMAIL CONFIGURATION ====================
-    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_TLS: bool = True
-    EMAIL_SENDER: str = "noreply@mentorhub.com"
-    EMAIL_SENDER_NAME: str = "MentorHub"
+    SMTP_FROM_EMAIL: str = "noreply@mentorhub.com"
+    SMTP_FROM_NAME: str = "MentorHub"
+    FRONTEND_URL: str = "http://localhost:3001"
 
     # ==================== SENTRY ====================
     SENTRY_DSN: Optional[str] = None

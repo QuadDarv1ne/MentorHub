@@ -42,6 +42,8 @@ from app.api import (
     health,
     achievements,
     backups,
+    email_verification,
+    websocket,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -299,6 +301,14 @@ app.include_router(
 )
 logger.info("✅ Auth routes loaded")
 
+# Email verification routes
+app.include_router(
+    email_verification.router,
+    prefix=f"{api_prefix}/email",
+    tags=["Email Verification"],
+)
+logger.info("✅ Email verification routes loaded")
+
 # User routes
 app.include_router(
     users.router,
@@ -394,6 +404,13 @@ app.include_router(
     tags=["Backups"],
 )
 logger.info("✅ Backup routes loaded")
+
+# WebSocket routes
+app.include_router(
+    websocket.router,
+    tags=["WebSocket"],
+)
+logger.info("✅ WebSocket routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
