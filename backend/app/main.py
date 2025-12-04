@@ -418,6 +418,14 @@ app.include_router(
 )
 logger.info("✅ WebSocket routes loaded")
 
+# Notification routes
+app.include_router(
+    notifications.router,
+    prefix=f"{api_prefix}",
+    tags=["Notifications"],
+)
+logger.info("✅ Notification routes loaded")
+
 
 # ==================== STARTUP EVENTS ====================
 
