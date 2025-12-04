@@ -5,7 +5,7 @@ API для работы с курсами
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc
 
 from app.dependencies import get_db, rate_limit_dependency, get_current_user
@@ -31,7 +31,8 @@ async def get_courses(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    courses = db.query(Course).offset(skip).limit(limit).all()
+    # Используем joinedload для загрузки instructor данных вместе с курсом (избегаем N+1)
+    courses = db.query(Course).options(joinedload(Course.instructor)).offset(skip).limit(limit).all()
     return courses
 
 
@@ -83,12 +84,16 @@ async def get_my_courses(
 @cached(ttl=CACHE_TTL['course'], key_prefix="course_detail")
 async def get_course(course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о курсе по ID с уроками"""
-    course = db.query(Course).filter(Course.id == course_id).first()
+    # Используем joinedload для загрузки instructor и lessons вместе с курсом (избегаем N+1)
+    course = db.query(Course).options(
+        joinedload(Course.instructor),
+        joinedload(Course.lessons)
+    ).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Курс не найден")
     
-    # Get lessons for the course
-    lessons = db.query(Lesson).filter(Lesson.course_id == course_id).order_by(Lesson.order).all()
+    # Lessons уже загружены через joinedload, сортируем их
+    lessons = sorted(course.lessons, key=lambda x: x.order)
     
     course_with_lessons = CourseWithLessonsResponse(
         id=course.id,

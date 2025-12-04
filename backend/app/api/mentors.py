@@ -5,7 +5,8 @@ API для работы с профилями менторов
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, desc
 
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.mentor import Mentor
@@ -29,7 +30,8 @@ async def get_mentors(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    mentors = db.query(Mentor).offset(skip).limit(limit).all()
+    # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
+    mentors = db.query(Mentor).options(joinedload(Mentor.user)).offset(skip).limit(limit).all()
     return mentors
 
 
@@ -41,7 +43,8 @@ async def get_mentor(mentor_id: int, db: Session = Depends(get_db), rate_limit: 
     if mentor_id <= 0:
         raise HTTPException(status_code=400, detail="Некорректный ID ментора")
 
-    mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+    # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
+    mentor = db.query(Mentor).options(joinedload(Mentor.user)).filter(Mentor.id == mentor_id).first()
     if not mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
     return mentor
