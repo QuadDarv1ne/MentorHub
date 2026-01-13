@@ -102,6 +102,11 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "noreply@mentorhub.com"
     SMTP_FROM_NAME: str = "MentorHub"
     FRONTEND_URL: str = "http://localhost:3001"
+    
+    # ==================== FIREBASE CLOUD MESSAGING ====================
+    FCM_SERVER_KEY: str = ""
+    FCM_PROJECT_ID: str = ""
+    FCM_SENDER_ID: str = ""
 
     # ==================== SENTRY ====================
     SENTRY_DSN: Optional[str] = None
@@ -148,6 +153,9 @@ class Settings(BaseSettings):
     # ==================== FILE UPLOAD ====================
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx"]
+    
+    # ==================== PUSH NOTIFICATIONS ====================
+    PUSH_NOTIFICATIONS_ENABLED: bool = True
 
     class Config:
         env_file = ".env"
