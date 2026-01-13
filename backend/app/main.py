@@ -46,6 +46,7 @@ from app.api import (
     websocket,
     notifications,
     analytics,
+    push_notifications,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -436,6 +437,14 @@ app.include_router(
     tags=["Analytics"],
 )
 logger.info("✅ Analytics routes loaded")
+
+# Push notifications routes
+app.include_router(
+    push_notifications.router,
+    prefix=f"{api_prefix}",
+    tags=["Push Notifications"],
+)
+logger.info("✅ Push notifications routes loaded")
 
 
 # ==================== STARTUP EVENTS ====================
