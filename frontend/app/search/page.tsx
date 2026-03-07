@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Search, X, Filter, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
@@ -22,7 +22,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false)
   const [filterType, setFilterType] = useState<'all' | 'mentor' | 'course' | 'article' | 'question'>('all')
 
-  const mockData: SearchResult[] = [
+  const mockData = useMemo<SearchResult[]>(() => [
     {
       id: '1',
       title: 'Иван Петров - React Expert',
@@ -94,6 +94,7 @@ export default function SearchPage() {
       url: '/courses/3'
     }
   ]
+  , [])
 
   useEffect(() => {
     if (!query.trim()) {
