@@ -13,7 +13,8 @@ from app.config import settings
 from app.dependencies import get_db
 from app.models.user import User
 from app.utils.email import email_service
-from app.utils.security import create_access_token, get_password_hash
+from app.api.auth import create_access_token
+from app.utils.security import get_password_hash
 from pydantic import BaseModel, EmailStr
 
 logger = logging.getLogger(__name__)

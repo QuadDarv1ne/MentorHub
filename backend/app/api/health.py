@@ -13,7 +13,6 @@ import psutil
 import time
 
 from app.database import get_db
-from app.dependencies import get_redis
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -34,8 +33,7 @@ def get_system_metrics() -> Dict[str, Any]:
 
 @router.get("")
 async def health_check(
-    db = Depends(get_db),
-    redis_client = Depends(get_redis)
+    db = Depends(get_db)
 ) -> JSONResponse:
     """
     Базовая проверка здоровья приложения
@@ -45,7 +43,7 @@ async def health_check(
         "timestamp": time.time(),
         "services": {}
     }
-    
+
     # Проверка базы данных
     try:
         db.execute(text("SELECT 1"))
@@ -54,16 +52,7 @@ async def health_check(
         logger.error(f"Database health check failed: {e}")
         health_status["services"]["database"] = "unhealthy"
         health_status["status"] = "unhealthy"
-    
-    # Проверка Redis
-    try:
-        redis_client.ping()
-        health_status["services"]["redis"] = "healthy"
-    except (redis.ConnectionError, redis.TimeoutError) as e:
-        logger.error(f"Redis health check failed: {e}")
-        health_status["services"]["redis"] = "unhealthy"
-        health_status["status"] = "unhealthy"
-    
+
     return JSONResponse(
         status_code=status.HTTP_200_OK if health_status["status"] == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE,
         content=health_status
@@ -71,8 +60,7 @@ async def health_check(
 
 @router.get("/detailed")
 async def detailed_health_check(
-    db = Depends(get_db),
-    redis_client = Depends(get_redis)
+    db = Depends(get_db)
 ) -> JSONResponse:
     """
     Детальная проверка здоровья с расширенной информацией
@@ -85,23 +73,23 @@ async def detailed_health_check(
         "services": {},
         "system": get_system_metrics()
     }
-    
+
     # Проверка базы данных с детальной информацией
     try:
         # Базовая проверка
         result = db.execute(text("SELECT 1")).fetchone()
-        
+
         # Получение информации о соединениях
         connections_info = db.execute(text("""
-            SELECT count(*) as active_connections 
-            FROM pg_stat_activity 
+            SELECT count(*) as active_connections
+            FROM pg_stat_activity
             WHERE datname = current_database()
         """)).fetchone()
-        
+
         health_status["services"]["database"] = {
             "status": "healthy",
             "active_connections": connections_info[0] if connections_info else 0,
-            "response_time_ms": 0  # Можно добавить измерение времени
+            "response_time_ms": 0
         }
     except SQLAlchemyError as e:
         logger.error(f"Detailed database health check failed: {e}")
@@ -155,8 +143,7 @@ async def detailed_health_check(
 
 @router.get("/ready")
 async def readiness_check(
-    db = Depends(get_db),
-    redis_client = Depends(get_redis)
+    db = Depends(get_db)
 ) -> JSONResponse:
     """
     Проверка готовности приложения к приему запросов
@@ -164,8 +151,7 @@ async def readiness_check(
     try:
         # Проверка что все необходимые сервисы доступны
         db.execute(text("SELECT 1"))
-        redis_client.ping()
-        
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={"status": "ready", "timestamp": time.time()}
@@ -209,37 +195,6 @@ async def database_health(db = Depends(get_db)) -> JSONResponse:
         )
     except SQLAlchemyError as e:
         logger.error(f"Database specific health check failed: {e}")
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "unhealthy",
-                "error": str(e),
-                "timestamp": time.time()
-            }
-        )
-
-@router.get("/cache")
-async def cache_health(redis_client = Depends(get_redis)) -> JSONResponse:
-    """Проверка здоровья только кэша/Redis"""
-    try:
-        start_time = time.time()
-        info = redis_client.info()
-        response_time = (time.time() - start_time) * 1000
-        
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "status": "healthy",
-                "version": info.get("redis_version", "unknown"),
-                "used_memory_mb": round(info.get("used_memory_rss", 0) / 1024 / 1024, 2),
-                "connected_clients": info.get("connected_clients", 0),
-                "uptime_days": round(info.get("uptime_in_days", 0), 2),
-                "response_time_ms": round(response_time, 2),
-                "timestamp": time.time()
-            }
-        )
-    except (redis.ConnectionError, redis.TimeoutError) as e:
-        logger.error(f"Cache specific health check failed: {e}")
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={

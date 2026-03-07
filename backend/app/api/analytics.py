@@ -8,19 +8,17 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user, require_admin
+from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.services.analytics import AnalyticsService
-from app.utils.cache import cache_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/analytics/platform")
-@cache_response(ttl=300)  # 5 минут кэш
 async def get_platform_analytics(
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -42,10 +40,9 @@ async def get_platform_analytics(
 
 
 @router.get("/analytics/user-growth")
-@cache_response(ttl=3600)  # 1 час кэш
 async def get_user_growth(
     days: int = Query(30, ge=1, le=365),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -70,10 +67,9 @@ async def get_user_growth(
 
 
 @router.get("/analytics/sessions")
-@cache_response(ttl=600)  # 10 минут кэш
 async def get_session_analytics(
     days: int = Query(30, ge=1, le=365),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -98,10 +94,9 @@ async def get_session_analytics(
 
 
 @router.get("/analytics/courses")
-@cache_response(ttl=600)  # 10 минут кэш
 async def get_course_analytics(
     course_id: Optional[int] = Query(None),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -123,10 +118,9 @@ async def get_course_analytics(
 
 
 @router.get("/analytics/revenue")
-@cache_response(ttl=600)  # 10 минут кэш
 async def get_revenue_analytics(
     days: int = Query(30, ge=1, le=365),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """

@@ -6,35 +6,36 @@ API для управления push-уведомлениями через Fireb
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.device_token import DeviceToken
 from app.utils.fcm import fcm_service
 from app.config import settings
-from app.schemas.base import SuccessResponse
+
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/push-notifications", tags=["Push Notifications"])
 
 
-class DeviceTokenRegisterRequest:
+class DeviceTokenRegisterRequest(BaseModel):
     """Схема для регистрации токена устройства"""
     token: str
     platform: str  # ios, android, web
-    device_name: str = None
+    device_name: str | None = None
 
 
-class PushNotificationRequest:
+class PushNotificationRequest(BaseModel):
     """Схема для отправки push-уведомления"""
     title: str
     body: str
-    data: dict = None
-    user_ids: List[int] = None  # Если указано, отправляется группе пользователей
+    data: dict | None = None
+    user_ids: List[int] | None = None
 
 
-@router.post("/devices/register", response_model=SuccessResponse)
+@router.post("/devices/register")
 async def register_device_token(
     request: DeviceTokenRegisterRequest,
     current_user: User = Depends(get_current_user),
@@ -74,11 +75,8 @@ async def register_device_token(
         )
         
         logger.info(f"Device token registered for user {current_user.id}")
-        
-        return SuccessResponse(
-            success=True,
-            message="Device token registered successfully"
-        )
+
+        return {"success": True, "message": "Device token registered successfully"}
         
     except Exception as e:
         logger.error(f"Error registering device token: {e}")
@@ -88,7 +86,7 @@ async def register_device_token(
         )
 
 
-@router.delete("/devices/unregister", response_model=SuccessResponse)
+@router.delete("/devices/unregister")
 async def unregister_device_token(
     token: str,
     current_user: User = Depends(get_current_user),
@@ -114,10 +112,7 @@ async def unregister_device_token(
         
         if success:
             logger.info(f"Device token unregistered for user {current_user.id}")
-            return SuccessResponse(
-                success=True,
-                message="Device token unregistered successfully"
-            )
+            return {"success": True, "message": "Device token unregistered successfully"}
         else:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -11,8 +11,25 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict
 from collections import defaultdict
 import logging
+import jwt
+from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def decode_access_token(token: str) -> Dict:
+    """Декодирование access токена"""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Token expired")
+    except jwt.InvalidTokenError:
+        raise ValueError("Invalid token")
 
 
 # ===== Базовые функции хеширования =====
