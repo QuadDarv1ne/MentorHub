@@ -7,9 +7,6 @@ python-multipart==0.0.6
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.12.1
-# Для других БД (опционально):
-# pymongo==4.5.0        # MongoDB
-# redis==5.0.1          # Redis
 
 # ==================== AUTHENTICATION & SECURITY ====================
 pydantic==2.5.0
