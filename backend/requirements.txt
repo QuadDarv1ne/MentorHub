@@ -2,6 +2,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
+pydantic-core==2.41.5
 
 # ==================== DATABASE ====================
 sqlalchemy==2.0.23
@@ -92,4 +93,5 @@ slowapi==0.1.9
 cachetools==5.3.2
 
 # ==================== SERIALIZATION ====================
+antlr4-python3-runtime==4.9.3
 orjson==3.9.10          # Быстрый JSON парсер

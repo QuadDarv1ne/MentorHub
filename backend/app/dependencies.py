@@ -286,8 +286,8 @@ def get_search_query(q: Optional[str] = Query(None, min_length=1, max_length=100
 
 
 def get_sort_param(
-    sort_by: str = Query(default="created_at", regex="^[a-zA-Z_]+$"),
-    sort_order: str = Query(default="desc", regex="^(asc|desc)$"),
+    sort_by: str = Query(default="created_at", pattern="^[a-zA-Z_]+$"),
+    sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> tuple[str, str]:
     """Get sorting parameters"""
     return sort_by, sort_order
