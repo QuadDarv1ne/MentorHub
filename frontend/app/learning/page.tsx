@@ -33,7 +33,6 @@ interface Course {
 }
 
 export default function LearningPage() {
-  const [activeTab, setActiveTab] = useState('active')
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null)
 
   const mockCourses: Course[] = [
@@ -85,7 +84,7 @@ export default function LearningPage() {
   const completedCourses = mockCourses.filter(c => c.progress === 100)
   const activeCourses = mockCourses.filter(c => c.progress < 100)
 
-  const displayCourses = activeTab === 'active' ? activeCourses : completedCourses
+  const displayCourses = activeCourses
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -160,15 +159,15 @@ export default function LearningPage() {
         </div>
 
         {/* Табы */}
-        <Tabs
-          tabs={[
-            { id: 'active', label: `Активные (${activeCourses.length})`, count: activeCourses.length },
-            { id: 'completed', label: `Завершенные (${completedCourses.length})`, count: completedCourses.length }
-          ]}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          className="mb-8"
-        />
+        <div className="mb-8">
+          <Tabs
+            tabs={[
+              { id: 'active', label: `Активные (${activeCourses.length})`, content: null },
+              { id: 'completed', label: `Завершенные (${completedCourses.length})`, content: null }
+            ]}
+            defaultTab="active"
+          />
+        </div>
 
         {/* Курсы */}
         <div className="space-y-6">
@@ -218,7 +217,7 @@ export default function LearningPage() {
                   {/* Действия */}
                   <div className="flex flex-col space-y-2">
                     {course.progress < 100 && (
-                      <Button variant="primary" size="sm">
+                      <Button variant="secondary" size="sm">
                         <PlayCircle size={16} className="mr-2" />
                         Продолжить
                       </Button>
@@ -302,15 +301,13 @@ export default function LearningPage() {
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {activeTab === 'active' ? 'Нет активных курсов' : 'Нет завершенных курсов'}
+                Нет активных курсов
               </h3>
               <p className="text-gray-600 mb-6">
-                {activeTab === 'active'
-                  ? 'Начните изучение нового курса из нашего каталога'
-                  : 'Завершите курсы для получения сертификатов'}
+                Начните изучение нового курса из нашего каталога
               </p>
               <Link href="/courses">
-                <Button variant="primary">
+                <Button variant="secondary">
                   Просмотреть курсы
                 </Button>
               </Link>
@@ -319,10 +316,9 @@ export default function LearningPage() {
         </div>
 
         {/* Рекомендации */}
-        {activeTab === 'active' && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Рекомендованные курсы</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Рекомендованные курсы</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
                   title: 'Advanced React Patterns',
@@ -348,15 +344,14 @@ export default function LearningPage() {
                     <Badge variant={rec.level === 'Продвинутый' ? 'danger' : 'success'}>
                       {rec.level}
                     </Badge>
-                    <Button variant="primary" size="sm">
+                    <Button variant="secondary" size="sm">
                       Подробнее
                     </Button>
                   </div>
                 </Card>
               ))}
             </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   )

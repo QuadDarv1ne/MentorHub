@@ -1,18 +1,20 @@
+const withNextIntl = require('next-intl/plugin')('./i18n.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'standalone', // Standalone build для Docker
-  
+
   // Оптимизация производительности
   poweredByHeader: false,
   compress: true,
-  
+
   eslint: {
     // Временный флаг: не падать на сборке из‑за ESLint ошибок
     ignoreDuringBuilds: true,
   },
-  
+
   images: {
     remotePatterns: [
       {
@@ -28,15 +30,15 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  
+
   // Experimental features для производительности
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react'],
   },
-  
+
   // Webpack оптимизации
-  webpack: (config, { isServer }) => {
+  webpack: (config, {isServer}) => {
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
@@ -70,4 +72,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withNextIntl(nextConfig);

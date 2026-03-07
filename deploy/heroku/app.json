@@ -1,0 +1,135 @@
+{
+  "name": "MentorHub",
+  "description": "Платформа для профессионального менторства и карьерного развития в IT",
+  "keywords": [
+    "mentorship",
+    "education",
+    "fastapi",
+    "nextjs",
+    "react"
+  ],
+  "website": "https://mentorhub.com",
+  "repository": "https://github.com/QuadDarv1ne/MentorHub",
+  "logo": "https://github.com/QuadDarv1ne/MentorHub/raw/main/img/img_1.png",
+  "success_url": "/api/v1/health",
+  "stack": "container",
+  "env": {
+    "SECRET_KEY": {
+      "description": "Секретный ключ для JWT токенов",
+      "generator": "secret",
+      "required": true
+    },
+    "DATABASE_URL": {
+      "description": "PostgreSQL connection string (будет установлен автоматически с Heroku Postgres)",
+      "required": false
+    },
+    "REDIS_URL": {
+      "description": "Redis connection string (будет установлен автоматически с Heroku Redis)",
+      "required": false
+    },
+    "ALGORITHM": {
+      "description": "Алгоритм шифрования JWT",
+      "value": "HS256",
+      "required": false
+    },
+    "ACCESS_TOKEN_EXPIRE_MINUTES": {
+      "description": "Время жизни access токена в минутах",
+      "value": "30",
+      "required": false
+    },
+    "ENVIRONMENT": {
+      "description": "Окружение",
+      "value": "production",
+      "required": false
+    },
+    "AGORA_APP_ID": {
+      "description": "Agora App ID для видеоконференций",
+      "required": false
+    },
+    "AGORA_APP_CERTIFICATE": {
+      "description": "Agora App Certificate",
+      "required": false
+    },
+    "STRIPE_API_KEY": {
+      "description": "Stripe API ключ для платежей",
+      "required": false
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "description": "Stripe Webhook секрет",
+      "required": false
+    },
+    "AWS_ACCESS_KEY_ID": {
+      "description": "AWS Access Key для S3",
+      "required": false
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "AWS Secret Key для S3",
+      "required": false
+    },
+    "AWS_S3_BUCKET": {
+      "description": "S3 bucket name",
+      "value": "mentorhub-bucket",
+      "required": false
+    },
+    "SMTP_SERVER": {
+      "description": "SMTP сервер для отправки email",
+      "value": "smtp.gmail.com",
+      "required": false
+    },
+    "SMTP_PORT": {
+      "description": "SMTP порт",
+      "value": "587",
+      "required": false
+    },
+    "SMTP_USER": {
+      "description": "SMTP пользователь",
+      "required": false
+    },
+    "SMTP_PASSWORD": {
+      "description": "SMTP пароль",
+      "required": false
+    },
+    "EMAIL_SENDER": {
+      "description": "Email отправителя",
+      "value": "noreply@mentorhub.com",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard-2x"
+    },
+    "worker": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0",
+      "as": "DATABASE"
+    },
+    {
+      "plan": "heroku-redis:mini",
+      "as": "REDIS"
+    },
+    {
+      "plan": "papertrail:choklad"
+    },
+    {
+      "plan": "sentry:developer"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "python backend/scripts/init_db.py && alembic upgrade head"
+  }
+}

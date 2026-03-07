@@ -210,7 +210,7 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Требуется авторизация</h2>
           <p className="text-gray-600 mb-6">Войдите в систему, чтобы просмотреть личный кабинет</p>
           <Link href="/auth/login">
-            <Button variant="primary" fullWidth>
+            <Button variant="secondary" fullWidth>
               Войти
             </Button>
           </Link>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">{course.name}</h3>
-                      <Badge variant="info" size="sm">{course.category}</Badge>
+                      <Badge variant="default" size="sm">{course.category}</Badge>
                     </div>
                     <p className="text-sm text-gray-600">Ментор: {course.mentor}</p>
                   </div>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
             ))
           )}
           <Link href="/courses">
-            <Button variant="primary" fullWidth>
+            <Button variant="secondary" fullWidth>
               <BookOpen className="h-4 w-4 mr-2" />
               Открыть все курсы
             </Button>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="primary" size="sm">
+                  <Button variant="secondary" size="sm">
                     Присоединиться
                   </Button>
                   <Button variant="outline" size="sm">

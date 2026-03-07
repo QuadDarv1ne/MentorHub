@@ -1,0 +1,30 @@
+# Heroku requirements
+# Включает все зависимости для деплоя на Heroku
+
+# Основные зависимости проекта
+-r ../../backend/requirements.txt
+
+# Heroku специфичные пакеты
+gunicorn==21.2.0
+uvicorn[standard]==0.27.0
+
+# PostgreSQL адаптер
+psycopg2-binary==2.9.9
+
+# Redis
+redis==5.0.1
+
+# Celery
+celery[redis]==5.3.4
+
+# Миграции
+alembic==1.13.1
+
+# Мониторинг
+sentry-sdk[fastapi]==1.39.2
+
+# Логи
+python-json-logger==2.0.7
+
+# Health checks
+requests==2.31.0

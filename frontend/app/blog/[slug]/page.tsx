@@ -328,7 +328,7 @@ export default function BlogPostPage({ params }: Props) {
                 Опытный разработчик и наставник. Помогает новичкам и профессионалам достичь своих целей в IT.
               </p>
               <Link href="/mentors/1">
-                <Button variant="primary" size="sm">
+                <Button variant="secondary" size="sm">
                   Связаться с автором
                 </Button>
               </Link>
@@ -367,7 +367,7 @@ export default function BlogPostPage({ params }: Props) {
             rows={4}
             aria-label="Поле для комментария"
           />
-          <Button variant="primary" onClick={handleCommentSubmit}>
+          <Button variant="secondary" onClick={handleCommentSubmit}>
             Отправить комментарий
           </Button>
         </Card>

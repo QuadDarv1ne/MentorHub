@@ -93,7 +93,7 @@ export default function SettingsPage() {
 
           <div className="flex justify-end gap-3 pt-6 border-t">
             <Button variant="outline">Отмена</Button>
-            <Button variant="primary">Сохранить изменения</Button>
+            <Button variant="secondary">Сохранить изменения</Button>
           </div>
         </div>
       )
@@ -176,7 +176,7 @@ export default function SettingsPage() {
 
           <div className="flex justify-end gap-3 pt-6 border-t">
             <Button variant="outline">Отмена</Button>
-            <Button variant="primary">Сохранить изменения</Button>
+            <Button variant="secondary">Сохранить изменения</Button>
           </div>
         </div>
       )
@@ -207,7 +207,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="mt-4">
-              <Button variant="primary">Изменить пароль</Button>
+              <Button variant="secondary">Изменить пароль</Button>
             </div>
           </div>
 

@@ -15,7 +15,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "export": "next export",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "i18n:check": "next-intl verify"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.7",
@@ -27,6 +28,7 @@
     "lucide-react": "^0.292.0",
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
+    "next-intl": "^3.26.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.0",

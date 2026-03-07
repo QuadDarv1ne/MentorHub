@@ -240,7 +240,7 @@ export default function NotificationsPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-2 mt-4">
                     {notification.action && (
-                      <Button variant="primary" size="sm">
+                      <Button variant="secondary" size="sm">
                         {notification.action.label}
                       </Button>
                     )}
@@ -277,7 +277,7 @@ export default function NotificationsPage() {
                 : 'У вас нет уведомлений'}
             </p>
             {notificationList.length > 0 && filter === 'unread' && (
-              <Button variant="primary" onClick={() => setFilter('all')}>
+              <Button variant="secondary" onClick={() => setFilter('all')}>
                 Посмотреть все уведомления
               </Button>
             )}
@@ -291,7 +291,7 @@ export default function NotificationsPage() {
         <p className="text-indigo-800 mb-4">
           Настройте, какие уведомления вы хотите получать
         </p>
-        <Button variant="primary">
+        <Button variant="secondary">
           Перейти в настройки уведомлений
         </Button>
       </Card>

@@ -116,7 +116,7 @@ export default function MentorsPage() {
   const [filterRating, setFilterRating] = useState('all')
   const [sortBy, setSortBy] = useState('rating')
 
-  const specialties = ['all', ...new Set(mentors.map(m => m.specialty))]
+  const specialties = ['all', ...Array.from(new Set(mentors.map(m => m.specialty)))]
   const ratings = [
     { value: 'all', label: 'Все рейтинги' },
     { value: '4.9', label: '⭐ 4.9+' },
@@ -257,7 +257,7 @@ export default function MentorsPage() {
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {mentor.tags.map((tag) => (
-                  <Badge key={tag} variant="primary" size="sm">
+                  <Badge key={tag} variant="default" size="sm">
                     {tag}
                   </Badge>
                 ))}
@@ -267,7 +267,7 @@ export default function MentorsPage() {
               <p className="text-xs text-gray-500 mb-4">{mentor.availability}</p>
 
               {/* Actions */}
-              <Button variant="primary" fullWidth>
+              <Button variant="secondary" fullWidth>
                 <ArrowRight className="h-4 w-4 mr-2" />
                 Забронировать сессию
               </Button>

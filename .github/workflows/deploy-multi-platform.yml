@@ -1,0 +1,299 @@
+# Multi-Platform Deployment Workflow
+# Deploys to multiple platforms simultaneously
+
+name: Multi-Platform Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to deploy to'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - heroku
+          - railway
+          - render
+          - aws
+          - gcp
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # ==================== BUILD DOCKER IMAGE ====================
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==================== DEPLOY TO HEROKU ====================
+  deploy-heroku:
+    name: Deploy to Heroku
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'heroku'
+
+    environment:
+      name: heroku
+      url: https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Heroku Container Registry
+        run: echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
+
+      - name: Build and push to Heroku
+        run: |
+          docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web -f Dockerfile.production .
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+
+      - name: Release to Heroku
+        run: heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
+
+  # ==================== DEPLOY TO RAILWAY ====================
+  deploy-railway:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'railway'
+
+    environment:
+      name: railway
+      url: https://${{ secrets.RAILWAY_PROJECT_ID }}.up.railway.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        uses: railwayapp/railway-action@v1
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+  # ==================== DEPLOY TO RENDER ====================
+  deploy-render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'render'
+
+    environment:
+      name: render
+      url: https://${{ secrets.RENDER_SERVICE_NAME }}.onrender.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -d '{"serviceId": "${{ secrets.RENDER_SERVICE_ID }}"}' \
+            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+
+  # ==================== DEPLOY TO AWS ====================
+  deploy-aws:
+    name: Deploy to AWS ECS
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'aws'
+
+    environment:
+      name: aws
+      url: https://${{ secrets.AWS_ALB_DNS_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: mentorhub
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.production .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster mentorhub-cluster \
+            --service mentorhub-service \
+            --force-new-deployment \
+            --region eu-central-1
+
+  # ==================== DEPLOY TO GCP ====================
+  deploy-gcp:
+    name: Deploy to Google Cloud Run
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'gcp'
+
+    environment:
+      name: gcp
+      url: https://${{ secrets.GCP_SERVICE_NAME }}-{{random}}.a.run.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push to Artifact Registry
+        run: |
+          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/mentorhub:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/mentorhub:${{ github.sha }} \
+            --platform managed \
+            --region europe-west1 \
+            --allow-unauthenticated
+
+  # ==================== DEPLOY TO NETLIFY ====================
+  deploy-netlify:
+    name: Deploy to Netlify
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'netlify'
+
+    environment:
+      name: netlify
+      url: https://${{ secrets.NETLIFY_SITE_NAME }}.netlify.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Next.js
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2
+        with:
+          publish-dir: './frontend/.next'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions - ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  # ==================== DEPLOY TO CLOUDFLARE ====================
+  deploy-cloudflare:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: inputs.platform == 'all' || inputs.platform == 'cloudflare'
+
+    environment:
+      name: cloudflare
+      url: https://${{ secrets.CLOUDFLARE_PROJECT_NAME }}.pages.dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Next.js
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: pages deploy frontend/.next --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }}

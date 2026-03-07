@@ -80,7 +80,7 @@ const faqs = [
   }
 ]
 
-const categories = ['Все', ...new Set(faqs.map(f => f.category))]
+const categories = ['Все', ...Array.from(new Set(faqs.map(f => f.category)))]
 
 export default function FAQPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
@@ -186,13 +186,13 @@ export default function FAQPage() {
           <p className="text-gray-700 mb-6">Свяжитесь с нашей командой поддержки!</p>
           <div className="flex flex-wrap justify-center gap-3">
             <a href="mailto:maksimqwe42@mail.ru">
-              <Button variant="primary">📧 maksimqwe42@mail.ru</Button>
+              <Button variant="secondary">📧 maksimqwe42@mail.ru</Button>
             </a>
             <a href="https://t.me/quadd4rv1n7">
-              <Button variant="primary">📱 @quadd4rv1n7</Button>
+              <Button variant="secondary">📱 @quadd4rv1n7</Button>
             </a>
             <a href="tel:+79150480249">
-              <Button variant="primary">☎️ +7 915 048-02-49</Button>
+              <Button variant="secondary">☎️ +7 915 048-02-49</Button>
             </a>
           </div>
         </div>
