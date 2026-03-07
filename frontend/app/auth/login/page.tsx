@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -9,17 +9,17 @@ import { login } from '@/lib/api/auth'
 import { AuthErrorBoundary } from '@/components/ErrorBoundary'
 import { InlineLoader } from '@/components/LoadingSpinner'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login: authLogin } = useAuth()
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   })
-  
+
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<{ google: boolean; github: boolean }>({ google: false, github: false })
@@ -317,5 +317,13 @@ export default function LoginPage() {
         </div>
       </div>
     </AuthErrorBoundary>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Загрузка...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }

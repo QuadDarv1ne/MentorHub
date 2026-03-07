@@ -1,20 +1,17 @@
-import createMiddleware from 'next-intl/middleware';
+// Временно отключено до миграции на [locale] роутинг
+// import createMiddleware from 'next-intl/middleware';
 
-export default createMiddleware({
-  // Список поддерживаемых локалей
-  locales: ['ru', 'en', 'zh', 'he'],
+// export default createMiddleware({
+//   locales: ['ru', 'en', 'zh', 'he'],
+//   defaultLocale: 'ru',
+//   localePrefix: 'always',
+//   localeDetection: true,
+// });
 
-  // Локаль по умолчанию
-  defaultLocale: 'ru',
-
-  // Префикс URL всегда (кроме defaultLocale при localePrefix: 'as-needed')
-  localePrefix: 'always',
-
-  // Определение локали из заголовков
-  localeDetection: true,
-});
+export function middleware() {
+  // Пустой middleware пока i18n не настроен на уровне роутинга
+}
 
 export const config = {
-  // Матчер для всех маршрутов кроме api, static файлов и файлов с точкой
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  matcher: [],
 };
