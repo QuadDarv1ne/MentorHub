@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url);
-    const courseId = url.searchParams.get('course');
+    const { searchParams } = new URL(request.url);
+    const courseId = searchParams.get('course');
     
     if (!courseId) {
       return NextResponse.json(
