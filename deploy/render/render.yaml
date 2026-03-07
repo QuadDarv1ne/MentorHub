@@ -9,9 +9,9 @@ services:
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
+    rootDir: .
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
@@ -92,9 +92,9 @@ services:
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks worker --loglevel=info --concurrency=2
+    rootDir: .
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && celery -A app.tasks worker --loglevel=info --concurrency=2
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -122,9 +122,9 @@ services:
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks beat --loglevel=info
+    rootDir: .
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && celery -A app.tasks beat --loglevel=info
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -150,9 +150,9 @@ services:
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: alembic upgrade head
+    rootDir: .
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && alembic upgrade head
     autoDeploy: false
     envVars:
       - key: PYTHON_VERSION
