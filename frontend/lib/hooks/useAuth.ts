@@ -35,12 +35,13 @@ export function useAuth() {
    * Проверка истечения токена
    */
   const isTokenExpired = useCallback(() => {
+    if (typeof window === 'undefined') return true;
     const expiresAt = localStorage.getItem('token_expires_at')
     if (!expiresAt) return true
-    
+
     const expirationTime = parseInt(expiresAt, 10)
     const currentTime = Math.floor(Date.now() / 1000)
-    
+
     return currentTime >= expirationTime
   }, [])
 
@@ -48,12 +49,13 @@ export function useAuth() {
    * Проверка необходимости обновления токена
    */
   const shouldRefreshToken = useCallback(() => {
+    if (typeof window === 'undefined') return false;
     const expiresAt = localStorage.getItem('token_expires_at')
     if (!expiresAt) return false
-    
+
     const expirationTime = parseInt(expiresAt, 10)
     const currentTime = Math.floor(Date.now() / 1000)
-    
+
     // Обновляем если осталось меньше 5 минут до истечения
     return expirationTime - currentTime <= REFRESH_THRESHOLD
   }, [])
@@ -62,23 +64,23 @@ export function useAuth() {
    * Автоматическое обновление токена
    */
   const autoRefreshToken = useCallback(async () => {
-    if (isRefreshing) return
-    
+    if (typeof window === 'undefined' || isRefreshing) return
+
     const refreshTokenValue = localStorage.getItem('refresh_token')
     if (!refreshTokenValue) return
 
     try {
       setIsRefreshing(true)
       const response = await refreshToken(refreshTokenValue)
-      
+
       // Обновляем токены
       localStorage.setItem('access_token', response.access_token)
       localStorage.setItem('refresh_token', response.refresh_token)
-      
+
       // Сохраняем время истечения
       const expiresAt = Math.floor(Date.now() / 1000) + response.expires_in
       localStorage.setItem('token_expires_at', expiresAt.toString())
-      
+
       console.log('✅ Token автоматически обновлен')
     } catch (error) {
       console.error('❌ Ошибка обновления токена:', error)
@@ -112,6 +114,7 @@ export function useAuth() {
    * Защита роутов
    */
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const token = localStorage.getItem('access_token')
     const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 
@@ -133,36 +136,39 @@ export function useAuth() {
   }, [pathname, router, isTokenExpired, autoRefreshToken])
 
   const isAuthenticated = () => {
+    if (typeof window === 'undefined') return false;
     const token = localStorage.getItem('access_token')
     return !!token && !isTokenExpired()
   }
 
   const login = (token: string, userData: Record<string, unknown>, expiresIn?: number, refreshToken?: string) => {
+    if (typeof window === 'undefined') return;
     // Сохраняем токен
     localStorage.setItem('access_token', token)
-    
+
     // Сохраняем refresh token
     if (refreshToken) {
       localStorage.setItem('refresh_token', refreshToken)
     }
-    
+
     // Сохраняем данные пользователя
     localStorage.setItem('user_data', JSON.stringify(userData))
     const userName = (userData.name as string) || (userData.email as string) || 'User'
     localStorage.setItem('user_name', userName)
-    
+
     // Сохраняем время истечения токена
     if (expiresIn) {
       const expiresAt = Math.floor(Date.now() / 1000) + expiresIn
       localStorage.setItem('token_expires_at', expiresAt.toString())
     }
-    
+
     // Добавляем защиту от CSRF
     const csrfToken = generateCSRFToken()
     localStorage.setItem('csrf_token', csrfToken)
   }
 
   const logout = () => {
+    if (typeof window === 'undefined') return;
     // Очищаем все данные
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
@@ -170,17 +176,19 @@ export function useAuth() {
     localStorage.removeItem('user_name')
     localStorage.removeItem('token_expires_at')
     localStorage.removeItem('csrf_token')
-    
+
     // Перенаправляем на главную
     router.push('/')
   }
 
   const getUserData = () => {
+    if (typeof window === 'undefined') return null;
     const data = localStorage.getItem('user_data')
     return data ? JSON.parse(data) : null
   }
 
   const getCSRFToken = () => {
+    if (typeof window === 'undefined') return '';
     return localStorage.getItem('csrf_token') || ''
   }
 
