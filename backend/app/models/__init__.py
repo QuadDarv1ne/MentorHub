@@ -14,6 +14,7 @@ from app.models.payment import Payment, PaymentStatus
 from app.models.achievement import Achievement
 from app.models.course import Course, Lesson, CourseEnrollment
 from app.models.device_token import DeviceToken
+from app.models.notification import Notification
 
 # Импортируйте все модели здесь для автогенерации Alembic
 
@@ -35,4 +36,5 @@ __all__ = [
     "Lesson",
     "CourseEnrollment",
     "DeviceToken",
+    "Notification",
 ]
