@@ -98,7 +98,16 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
     }
 
     return () => {
-      socket.close()
+      // Cleanup typing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = undefined
+      }
+      // Close WebSocket connection
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close()
+      }
+      setWs(null)
     }
   }, [isOpen, getToken])
 

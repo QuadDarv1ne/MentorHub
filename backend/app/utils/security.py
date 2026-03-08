@@ -7,7 +7,7 @@ import bcrypt
 import re
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict
 from collections import defaultdict
 import logging
@@ -154,17 +154,17 @@ class PasswordValidator:
 class BruteForceProtection:
     """Защита от brute-force атак"""
 
-    def __init__(self, max_attempts: int = 5, lockout_duration: int = 900, cleanup_interval: int = 3600):  # 15 минут
+    def __init__(self, max_attempts: int = 5, lockout_duration: int = 900, cleanup_interval: int = 3600):
         self.max_attempts = max_attempts
         self.lockout_duration = lockout_duration
         self.cleanup_interval = cleanup_interval
         self.login_attempts = defaultdict(list)
         self.lockouts = {}
-        self.last_cleanup = datetime.utcnow()
+        self.last_cleanup = datetime.now(timezone.utc)
 
     def record_failed_attempt(self, identifier: str):
         """Записать неудачную попытку входа"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         self._cleanup_old_attempts(identifier, now)
         self.login_attempts[identifier].append(now)
 
@@ -177,7 +177,7 @@ class BruteForceProtection:
         if identifier not in self.lockouts:
             return False
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if now < self.lockouts[identifier]:
             return True
         else:
@@ -190,7 +190,7 @@ class BruteForceProtection:
         if identifier not in self.lockouts:
             return None
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if now < self.lockouts[identifier]:
             return int((self.lockouts[identifier] - now).total_seconds())
         return None
@@ -238,7 +238,7 @@ class CSRFProtection:
     @classmethod
     def generate_token(cls, user_id: int) -> str:
         token = secrets.token_urlsafe(32)
-        expires_at = datetime.utcnow() + timedelta(hours=2)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
         cls._tokens[token] = (user_id, expires_at)
         return token
 
@@ -249,7 +249,7 @@ class CSRFProtection:
 
         stored_user_id, expires_at = cls._tokens[token]
 
-        if datetime.utcnow() > expires_at:
+        if datetime.now(timezone.utc) > expires_at:
             del cls._tokens[token]
             return False
 

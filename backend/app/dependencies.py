@@ -5,7 +5,7 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 
 import logging
 from typing import Generator, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -36,20 +36,13 @@ security = HTTPBearer(auto_error=False)
 
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    Get database session
-    Dependency for all routes that need database access
-
-    Usage:
-        @app.get("/users")
-        def get_users(db: Session = Depends(get_db)):
-            ...
-    """
+    """Get database session with proper error handling."""
     db = SessionLocal()
     try:
         yield db
+        db.commit()
     except Exception as e:
-        logger.error(f"Database error: {e}")
+        logger.error(f"Database error: {e}", exc_info=True)
         db.rollback()
         raise
     finally:
