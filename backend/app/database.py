@@ -96,6 +96,12 @@ def log_checkin(dbapi_conn, connection_record):
         logger.debug("📡 Database connection returned to pool")
 
 
+@event.listens_for(Engine, "invalid_checkout")
+def log_invalid_checkout(dbapi_conn, connection_record):
+    """Handle invalid connection checkout"""
+    logger.warning("⚠️ Invalid database connection detected, reconnecting")
+
+
 # ==================== SESSION FACTORY ====================
 
 SessionLocal = sessionmaker(

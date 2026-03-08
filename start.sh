@@ -72,10 +72,33 @@ export PORT=$BACKEND_PORT
 export BACKEND_PORT=$BACKEND_PORT
 
 # =====================================================
-# ЗАПУСК
+# DATABASE WAIT (опционально)
 # =====================================================
 
-echo "📊 Database URL configured: ${DATABASE_URL%%:*}://***@${DATABASE_URL##*@}" 2>/dev/null || true
+if [ -n "$DATABASE_URL" ]; then
+    echo "📊 Database URL configured: ${DATABASE_URL%%:*}://***@${DATABASE_URL##*@}"
+    echo "⏳ Waiting for database..."
+    
+    # Extract host from DATABASE_URL
+    DB_HOST=$(echo $DATABASE_URL | sed -E 's|.*@([^:/]+).*|\1|')
+    DB_PORT=$(echo $DATABASE_URL | sed -E 's|.*:([0-9]+)/.*|\1|')
+    DB_PORT=${DB_PORT:-5432}
+    
+    # Wait for database with timeout
+    for i in $(seq 1 30); do
+        if (echo > /dev/tcp/$DB_HOST/$DB_PORT) 2>/dev/null; then
+            echo "✅ Database is ready"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "⚠️ Database not ready, continuing anyway..."
+        fi
+        sleep 1
+    done
+else
+    echo "⚠️ DATABASE_URL not set"
+fi
+
 echo ""
 echo "🎯 Starting Backend and Frontend..."
 echo ""
