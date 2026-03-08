@@ -188,8 +188,15 @@ class Settings(BaseSettings):
     def validate_allowed_hosts(cls, v):
         """Валидация ALLOWED_HOSTS - запрет wildcard в production"""
         if os.environ.get("ENVIRONMENT") == "production":
-            if not v or "*" in v or any(host == "*" for host in v):
-                raise ValueError("ALLOWED_HOSTS must be set and cannot contain '*' in production!")
+            if "*" in v or any(host == "*" for host in v):
+                raise ValueError("ALLOWED_HOSTS cannot contain '*' in production!")
+            # Если пустой список - добавляем .onrender.com для Render
+            if not v:
+                render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+                if render_host:
+                    v = [render_host, ".onrender.com"]
+                else:
+                    v = [".onrender.com"]  # Fallback для Render
         return v
 
     # ==================== FEATURE FLAGS ====================
