@@ -28,12 +28,9 @@ describe('ProgressTracker', () => {
 
   it('shows success message and allows cancel to revert changes', async () => {
     localStorage.setItem('access_token', 'fake-token');
-    global.fetch = jest.fn((url: string, opts?: RequestInit) => {
-      if (opts && opts.method === 'POST') {
-        return Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 30 }) });
-      }
-      return Promise.resolve({ ok: true, json: async () => ([])});
-    });
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({ ok: true, json: async () => ({ id: 1, course_id: 200, progress_percent: 30 }) });
+    }) as jest.Mock;
 
     const { container } = render(<ProgressTracker courseId={200} />);
     expect(container).toBeInTheDocument();
