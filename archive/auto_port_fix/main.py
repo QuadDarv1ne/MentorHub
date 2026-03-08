@@ -1,13 +1,9 @@
 """
 MentorHub Backend - Main Entry Point
 FastAPI application initialization and configuration
-WITH GRACEFUL SHUTDOWN SUPPORT
 """
 
 import logging
-import signal
-import sys
-import asyncio
 import socket
 import os
 from contextlib import asynccontextmanager
@@ -77,7 +73,7 @@ def is_port_available(port: int, host: str = "0.0.0.0") -> bool:
     
     Args:
         port: Номер порта для проверки
-        host: Хост для привязки
+        host: Хост для привязки (по умолчанию 0.0.0.0)
     
     Returns:
         True если порт свободен, False если занят
@@ -108,6 +104,9 @@ def find_free_port(
     
     Returns:
         Номер свободного порта
+    
+    Raises:
+        RuntimeError: Если свободный порт не найден
     """
     exclude_ports = exclude_ports or []
     
@@ -137,7 +136,7 @@ def resolve_port(preferred_port: int = 8000) -> int:
     # Порты, которые нужно исключить (используются другими сервисами)
     exclude_ports = [3000, 12600, 19001, 19005, 19006, 6060, 6061, 81]
     
-    # Проверяем переменную окружения PORT
+    # Проверяем переменную окружения PORT (для Render, Railway, Heroku)
     env_port = os.environ.get("PORT")
     if env_port:
         preferred_port = int(env_port)
@@ -152,42 +151,6 @@ def resolve_port(preferred_port: int = 8000) -> int:
     free_port = find_free_port(preferred_port + 1, exclude_ports=exclude_ports)
     logger.info(f"✅ Найден свободный порт: {free_port}")
     return free_port
-
-
-# ==================== GRACEFUL SHUTDOWN ====================
-# Глобальное событие для координации shutdown
-_shutdown_event = asyncio.Event()
-_shutdown_in_progress = False
-
-
-def signal_handler(signum, frame):
-    """
-    Обработчик сигналов для graceful shutdown.
-
-    Вызывается при получении SIGTERM или SIGINT.
-    Устанавливает флаг shutdown для graceful остановки.
-    """
-    global _shutdown_in_progress
-
-    signal_name = signal.Signals(signum).name
-
-    if _shutdown_in_progress:
-        logger.warning(f"Received {signal_name} but shutdown already in progress, ignoring...")
-        return
-
-    _shutdown_in_progress = True
-    logger.info(f"🛑 Received {signal_name}. Initiating graceful shutdown...")
-
-    # Устанавливаем событие shutdown
-    _shutdown_event.set()
-
-
-# Регистрируем обработчики сигналов
-# SIGTERM: отправляется Docker/Kubernetes при остановке контейнера
-# SIGINT: отправляется при нажатии Ctrl+C
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
-logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")
 
 
 # ==================== SENTRY SETUP ====================
@@ -207,7 +170,6 @@ if SENTRY_AVAILABLE and settings.SENTRY_DSN and is_production():
 elif settings.SENTRY_DSN and not SENTRY_AVAILABLE:
     logger.warning("⚠️ Sentry DSN настроен, но sentry-sdk не установлен")
 
-
 # ==================== REDIS CLIENT SETUP ====================
 redis_client = None
 try:
@@ -224,18 +186,14 @@ except Exception as e:
     logger.warning(f"⚠️ Redis client initialization failed: {e}")
     redis_client = None
 
-
 # ==================== DATABASE STARTUP/SHUTDOWN ====================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Lifespan context manager for startup and shutdown events.
-    Manages database connections and other resources.
-
-    IMPORTANT: Shutdown код выполняется при корректном завершении.
-    При получении SIGTERM, Uvicorn вызывает этот shutdown код.
+    Lifespan context manager for startup and shutdown events
+    Manages database connections and other resources
     """
-    # ==================== STARTUP ====================
+    # STARTUP
     logger.info("🚀 Starting MentorHub API...")
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
 
@@ -274,33 +232,32 @@ async def lifespan(app: FastAPI):
 
     yield  # Application runs here
 
-    # ==================== SHUTDOWN ====================
-    logger.info("🛑 Lifespan shutdown triggered...")
-    logger.info("🔄 Closing all connections gracefully...")
-
+    # SHUTDOWN
     # Close Redis connection if it exists
     if redis_client:
         try:
-            await redis_client.close()
+            # Create a task to close the Redis connection
+            import asyncio
+            async def close_redis():
+                await redis_client.close()
+            
+            # Run in a new event loop if needed
+            try:
+                loop = asyncio.get_running_loop()
+                # If we're in an event loop, create a task
+                loop.create_task(close_redis())
+            except RuntimeError:
+                # No event loop running, create a new one
+                close_loop = asyncio.new_event_loop()
+                close_loop.run_until_complete(close_redis())
+                close_loop.close()
+            
             logger.info("✅ Redis connection closed")
         except Exception as e:
             logger.error(f"❌ Error closing Redis connection: {e}")
-
-    # Close database connections
-    try:
-        engine.dispose()
-        logger.info("✅ Database engine disposed")
-    except Exception as e:
-        logger.error(f"❌ Error disposing database engine: {e}")
-
-    # Close any active sessions
-    try:
-        SessionLocal.close_all()
-        logger.info("✅ All database sessions closed")
-    except Exception as e:
-        logger.error(f"❌ Error closing database sessions: {e}")
-
-    logger.info("✅ Lifespan shutdown complete")
+    
+    logger.info("🛑 Shutting down MentorHub API...")
+    logger.info("✅ MentorHub API shutdown complete")
 
 
 # ==================== CREATE FASTAPI APP ====================
@@ -327,10 +284,11 @@ app.add_middleware(RequestLoggingMiddleware, max_body_length=1000)
 logger.info("✅ Request Logging middleware added")
 
 # Rate Limiting Middleware (should be early in the chain)
+# Always add rate limiting middleware, even without Redis it will use memory fallback
 if settings.RATE_LIMIT_ENABLED:
     app.add_middleware(
         RateLimitMiddleware,
-        redis_client=redis_client
+        redis_client=redis_client  # Will use memory fallback if None
     )
     logger.info("✅ Rate limiting middleware added")
 else:
@@ -344,7 +302,7 @@ logger.info("✅ Prometheus metrics middleware added")
 app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
 logger.info("✅ Performance monitoring middleware added")
 
-# Advanced Security Middleware
+# Advanced Security Middleware (SQL injection, XSS, CSRF, etc.)
 app.add_middleware(
     SecurityMiddleware,
     max_body_size=10 * 1024 * 1024,  # 10MB
@@ -378,46 +336,20 @@ logger.info("✅ GZIP middleware added")
 
 
 # ==================== EXCEPTION HANDLERS ====================
+
+# Регистрируем централизованные обработчики ошибок
 register_error_handlers(app)
 
 
-# ==================== HEALTH ENDPOINTS ====================
-
-@app.get("/health/ready", tags=["Health"])
-async def readiness_check():
-    """
-    Readiness probe for Kubernetes/Docker.
-
-    Returns 503 if shutdown is in progress.
-    Returns 200 if app is ready to accept requests.
-    """
-    if _shutdown_event.is_set():
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"status": "shutting_down", "message": "Service is shutting down"}
-        )
-    return {"status": "ready"}
-
-
-@app.get("/health/live", tags=["Health"])
-async def liveness_check():
-    """
-    Liveness probe for Kubernetes/Docker.
-
-    Returns 200 if the app process is running.
-    If this fails, Kubernetes will restart the container.
-    """
-    return {"status": "alive"}
-
-
 # ==================== REQUEST/RESPONSE LOGGING ====================
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all HTTP requests and responses"""
 
     # Skip logging for health checks and docs
-    if request.url.path in ["/health", "/health/ready", "/health/live", "/docs", "/redoc", "/openapi.json"]:
+    if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
 
     logger.info(f"📨 {request.method} {request.url.path}")
@@ -430,6 +362,7 @@ async def log_requests(request: Request, call_next):
 
 
 # ==================== ROUTES SETUP ====================
+
 
 # Root endpoint
 @app.get("/", tags=["Root"])
@@ -603,6 +536,12 @@ app.include_router(
 logger.info("✅ Push notifications routes loaded")
 
 
+# ==================== STARTUP EVENTS ====================
+
+# Note: Using lifespan context manager instead of deprecated @app.on_event
+# Startup/shutdown logic is handled in the lifespan() function above
+
+
 # ==================== RUN APPLICATION ====================
 
 if __name__ == "__main__":
@@ -615,7 +554,7 @@ if __name__ == "__main__":
     
     logger.info(f"🎯 Запуск сервера на {host}:{port}")
     
-    # Сохраняем выбранный порт в переменную окружения
+    # Сохраняем выбранный порт в переменную окружения для других процессов
     os.environ["SERVER_PORT"] = str(port)
 
     uvicorn.run(
@@ -625,6 +564,4 @@ if __name__ == "__main__":
         reload=getattr(settings, 'RELOAD', False),
         log_level=getattr(settings, 'LOG_LEVEL', 'INFO').lower(),
         access_log=True,
-        # Graceful shutdown settings
-        timeout_graceful_shutdown=30,
     )
