@@ -1,7 +1,8 @@
 # =====================================================
 # УНИВЕРСАЛЬНЫЙ DOCKERFILE ДЛЯ MENTORHUB
-# Работает на: Render, Railway, Fly.io, VPS
+# Работает на: Render, Railway, Fly.io, VPS, Amvera, Heroku
 # Запускает: Backend (FastAPI) + Frontend (Next.js)
+# С исправленным Graceful Shutdown
 # =====================================================
 
 # ==================== STAGE 1: Frontend Build ====================
@@ -38,7 +39,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Переменные окружения
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    NODE_ENV=production
+    NODE_ENV=production \
+    # Default ports (can be overridden by $PORT)
+    BACKEND_PORT=8000 \
+    FRONTEND_PORT=3000
 
 # ==================== Backend ====================
 WORKDIR /app/backend
@@ -56,51 +60,31 @@ COPY --from=frontend-builder /app/frontend/.next/standalone ./
 COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
 RUN mkdir -p public
 
-# ==================== Supervisor ====================
+# ==================== Supervisor Configuration ====================
 WORKDIR /app
 
-# Создаём конфигурацию supervisor
+# Создаём директории
 RUN mkdir -p /var/log/supervisor
 
-RUN echo '[supervisord]' > /etc/supervisor/conf.d/app.conf && \
-    echo 'nodaemon=true' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'logfile=/var/log/supervisor/supervisord.log' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'pidfile=/var/run/supervisord.pid' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'user=root' >> /etc/supervisor/conf.d/app.conf && \
-    echo '' >> /etc/supervisor/conf.d/app.conf && \
-    echo '[program:backend]' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'command=uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'directory=/app/backend' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'autostart=true' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'autorestart=true' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'stdout_logfile=/var/log/supervisor/backend.log' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'stderr_logfile=/var/log/supervisor/backend.err' >> /etc/supervisor/conf.d/app.conf && \
-    echo '' >> /etc/supervisor/conf.d/app.conf && \
-    echo '[program:frontend]' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'command=node server.js' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'directory=/app/frontend' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'environment=PORT="3000"' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'autostart=true' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'autorestart=true' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'stdout_logfile=/var/log/supervisor/frontend.log' >> /etc/supervisor/conf.d/app.conf && \
-    echo 'stderr_logfile=/var/log/supervisor/frontend.err' >> /etc/supervisor/conf.d/app.conf
+# Копируем подготовленный конфигурационный файл supervisor
+# Это файл должен быть в репозитории: deploy/supervisor/app.conf
+COPY deploy/supervisor/app.conf /etc/supervisor/conf.d/app.conf
 
-# Стартовый скрипт (обрабатывает $PORT от Render/Railway)
-RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo 'BACKEND_PORT=${PORT:-8000}' >> /app/start.sh && \
-    echo 'echo "Starting MentorHub..."' >> /app/start.sh && \
-    echo 'echo "Backend port: $BACKEND_PORT"' >> /app/start.sh && \
-    echo 'echo "Frontend port: 3000"' >> /app/start.sh && \
-    echo 'sed -i "s/--port [0-9]*/--port $BACKEND_PORT/g" /etc/supervisor/conf.d/app.conf' >> /app/start.sh && \
-    echo 'exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf' >> /app/start.sh && \
-    chmod +x /app/start.sh
+# ==================== Start Script ====================
+# Скрипт запуска с поддержкой переменной $PORT от облачных платформ
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Health check
+# ==================== Health Check ====================
+# Проверка здоровья приложения
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${BACKEND_PORT}/api/v1/health || curl -f http://localhost:${BACKEND_PORT}/health || exit 1
 
-# Порты (Render использует $PORT, другие платформы могут использовать стандартные)
+# ==================== Ports ====================
+# Render использует $PORT, другие платформы могут использовать стандартные
+# Backend: 8000 (или $PORT)
+# Frontend: 3000 (внутренний)
 EXPOSE 8000 3000
 
-# Запуск
+# ==================== Entrypoint ====================
 CMD ["/app/start.sh"]
