@@ -22,6 +22,10 @@ services:
         value: "true"
       - key: ENVIRONMENT
         value: production
+      - key: PORT
+        value: "8000"
+      - key: BACKEND_PORT
+        value: "8000"
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES

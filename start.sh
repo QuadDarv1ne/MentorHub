@@ -136,15 +136,25 @@ echo "🚀 Starting backend on port $BACKEND_PORT..."
 exec uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
-# Frontend
-cd /app/frontend
-echo "🚀 Starting frontend on port $FRONTEND_PORT..."
-exec node server.js &
-FRONTEND_PID=$!
+# Frontend - запускаем только если не в Render (в Render фронтенд работает отдельно)
+if [ "${RENDER:-false}" != "true" ]; then
+    cd /app/frontend
+    echo "🚀 Starting frontend on port $FRONTEND_PORT..."
+    exec node server.js &
+    FRONTEND_PID=$!
 
-# Ожидание завершения
-wait -n $BACKEND_PID $FRONTEND_PID
-EXIT_CODE=$?
+    # Ожидание завершения
+    wait -n $BACKEND_PID $FRONTEND_PID
+    EXIT_CODE=$?
 
-kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+else
+    echo "ℹ️ Running in Render mode - backend only"
+    # Ожидание завершения только бэкенда
+    wait -n $BACKEND_PID
+    EXIT_CODE=$?
+
+    kill $BACKEND_PID 2>/dev/null || true
+fi
+
 exit $EXIT_CODE
