@@ -350,7 +350,9 @@ dist/
 
 # ==================== TEMPORARY FILES ====================
 *.tmp
+*.temp
 *.bak
+*.new
 *.swp
 *.swo
 *~
