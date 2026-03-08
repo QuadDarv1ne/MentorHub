@@ -28,7 +28,10 @@ async def get_sessions(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    sessions = db.query(DBSession).offset(skip).limit(limit).all()
+    sessions = db.query(DBSession).options(
+        joinedload(DBSession.mentor),
+        joinedload(DBSession.student)
+    ).offset(skip).limit(limit).all()
     return sessions
 
 

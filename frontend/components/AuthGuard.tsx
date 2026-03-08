@@ -10,14 +10,24 @@ interface AuthGuardProps {
   requireAuth?: boolean
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    if (!payload.exp) return false
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
 /**
  * Компонент защиты страниц от неавторизованного доступа
- * Используйте этот компонент для оборачивания приватных страниц
+ * Использует проверку истечения JWT токена
  */
-export default function AuthGuard({ 
-  children, 
+export default function AuthGuard({
+  children,
   redirectTo = '/auth/login',
-  requireAuth = true 
+  requireAuth = true
 }: AuthGuardProps) {
   const router = useRouter()
   const [isChecking, setIsChecking] = useState(true)
@@ -26,17 +36,30 @@ export default function AuthGuard({
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('access_token')
-      const hasAuth = !!token
-
-      if (requireAuth && !hasAuth) {
-        // Сохраняем текущий URL для редиректа после входа
-        const currentPath = window.location.pathname
-        router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
-        setIsAuthorized(false)
-      } else {
-        setIsAuthorized(true)
-      }
       
+      if (!token) {
+        if (requireAuth) {
+          const currentPath = window.location.pathname
+          router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
+        }
+        setIsAuthorized(false)
+        setIsChecking(false)
+        return
+      }
+
+      if (isTokenExpired(token)) {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        if (requireAuth) {
+          const currentPath = window.location.pathname
+          router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
+        }
+        setIsAuthorized(false)
+        setIsChecking(false)
+        return
+      }
+
+      setIsAuthorized(true)
       setIsChecking(false)
     }
 

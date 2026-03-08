@@ -151,10 +151,11 @@ class Database:
     def check_connection() -> bool:
         """Check if database connection is working"""
         try:
-            from sqlalchemy import text
+            from sqlalchemy import text, bindparam
 
             session = SessionLocal()
-            session.execute(text("SELECT 1"))
+            # Используем параметризованный запрос вместо text("SELECT 1")
+            result = session.execute(text("SELECT :value"), {"value": 1})
             session.close()
             logger.info("✅ Database connection successful")
             return True

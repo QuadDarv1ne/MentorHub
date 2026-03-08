@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     REDIS_DB: int = 0
 
     # ==================== JWT AUTHENTICATION ====================
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: str = os.environ.get("SECRET_KEY") or ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -176,9 +176,18 @@ class Settings(BaseSettings):
     SESSION_COOKIE_HTTPONLY: bool = True
 
     # ==================== SECURITY ====================
-    ALLOWED_HOSTS: List[str] = ["*"]
+    ALLOWED_HOSTS: List[str] = []
     SECURE_SSL_REDIRECT: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
     HSTS_SECONDS: int = 31536000
+
+    @field_validator("ALLOWED_HOSTS", mode="after")
+    @classmethod
+    def validate_allowed_hosts(cls, v):
+        """Валидация ALLOWED_HOSTS - запрет wildcard в production"""
+        if os.environ.get("ENVIRONMENT") == "production":
+            if not v or "*" in v or any(host == "*" for host in v):
+                raise ValueError("ALLOWED_HOSTS must be set and cannot contain '*' in production!")
+        return v
 
     # ==================== FEATURE FLAGS ====================
     FEATURE_VIDEO_SESSIONS: bool = True
