@@ -386,3 +386,19 @@ git fetch --all && git branch -vv
 # Обновить локальный репозиторий
 git pull origin main
 ```
+
+---
+
+## Две команды для синхронизации
+
+1. **Синхронизировать dev с main (dev подтягивает изменения из main):**
+
+```powershell
+git checkout dev && git pull origin dev && git merge main && git push origin dev && git checkout main
+```
+
+2. **Синхронизировать main с dev (main подтягивает изменения из dev):**
+
+```powershell
+git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev
+```
