@@ -1,31 +1,28 @@
-# Render Configuration - Исправленная версия
+# Render Configuration
 # https://render.com/docs/blueprints
 
 services:
-  # ==================== BACKEND ====================
+  # ==================== BACKEND (Docker) ====================
   - type: web
     name: mentorhub-backend
-    env: python
+    env: docker
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/v1/health/ready
     envVars:
       - key: RENDER
         value: "true"
-      - key: PYTHON_VERSION
-        value: 3.11.8
+      - key: ENVIRONMENT
+        value: production
       - key: SECRET_KEY
         generateValue: true
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      - key: ENVIRONMENT
-        value: production
       - key: DATABASE_URL
         fromDatabase:
           name: mentorhub-db
@@ -59,47 +56,24 @@ services:
         sync: false
       - key: EMAIL_SENDER
         value: noreply@mentorhub.com
-    disk:
-      name: backend-data
-      mountPath: /app/data
-      sizeGB: 10
-
-  # ==================== FRONTEND ====================
-  - type: web
-    name: mentorhub-frontend
-    env: node
-    region: frankfurt
-    plan: starter
-    branch: main
-    rootDir: frontend
-    buildCommand: npm install --legacy-peer-deps && npm run build
-    startCommand: node .next/standalone/server.js
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-      - key: NODE_ENV
-        value: production
-      # NEXT_PUBLIC_API_URL нужно указать вручную после создания backend
       - key: NEXT_PUBLIC_API_URL
         sync: false
-      - key: NEXT_PUBLIC_AGORA_APP_ID
-        sync: false
 
-  # ==================== CELERY WORKER ====================
+  # ==================== CELERY WORKER (Docker) ====================
   - type: worker
     name: mentorhub-worker
-    env: python
+    env: docker
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks.celery_tasks worker --loglevel=info --concurrency=2
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.tasks.celery_tasks worker --loglevel=info --concurrency=2
     envVars:
       - key: RENDER
         value: "true"
-      - key: PYTHON_VERSION
-        value: 3.11.8
+      - key: ENVIRONMENT
+        value: production
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
@@ -111,24 +85,22 @@ services:
           type: redis
           name: mentorhub-redis
           property: connectionString
-      - key: ENVIRONMENT
-        value: production
 
-  # ==================== CELERY BEAT ====================
+  # ==================== CELERY BEAT (Docker) ====================
   - type: worker
     name: mentorhub-beat
-    env: python
+    env: docker
     region: frankfurt
     plan: starter
     branch: main
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks.celery_tasks beat --loglevel=info
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.tasks.celery_tasks beat --loglevel=info
     envVars:
       - key: RENDER
         value: "true"
-      - key: PYTHON_VERSION
-        value: 3.11.8
+      - key: ENVIRONMENT
+        value: production
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
@@ -140,8 +112,6 @@ services:
           type: redis
           name: mentorhub-redis
           property: connectionString
-      - key: ENVIRONMENT
-        value: production
 
   # ==================== REDIS ====================
   - type: redis

@@ -59,14 +59,17 @@ class Settings(BaseSettings):
     # ==================== DATABASE ====================
     # Auto-detect cloud/Docker environment
     _is_docker = os.path.exists("/.dockerenv") or "KUBERNETES_SERVICE_HOST" in os.environ
-    _is_render = "RENDER" in os.environ
-    _is_cloud = _is_docker or _is_render or "RAILWAY" in os.environ or "FLY" in os.environ
-    
+    _is_render = "RENDER" in os.environ or "RENDER_EXTERNAL_HOST" in os.environ
+    _is_railway = "RAILWAY" in os.environ or "RAILWAY_SERVICE_NAME" in os.environ
+    _is_fly = "FLY" in os.environ or "FLY_APP_NAME" in os.environ
+    _is_cloud = _is_docker or _is_render or _is_railway or _is_fly
+
     # Cloud providers set DATABASE_URL directly - always use it if available
     _default_db_host = "postgres" if _is_cloud and not _is_render else "localhost"
     _default_redis_host = "redis" if _is_cloud else "localhost"
-    
-    DATABASE_URL: str = os.environ.get("DATABASE_URL", f"postgresql://mentorhub_user:password@{_default_db_host}/mentorhub")
+
+    # Priority: DATABASE_URL env var > cloud default > local default
+    DATABASE_URL: str = os.environ.get("DATABASE_URL") or f"postgresql://mentorhub_user:password@{_default_db_host}/mentorhub"
     DB_ECHO: bool = False
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 40
@@ -262,6 +265,9 @@ if is_production():
         raise ValueError("❌ ERROR: DEBUG must be False in production!")
     if not settings.DATABASE_URL.startswith("postgresql://"):
         raise ValueError("❌ ERROR: Use PostgreSQL in production!")
+    # Check if DATABASE_URL is using default fallback (indicates missing env var)
+    if "localhost" in settings.DATABASE_URL or "127.0.0.1" in settings.DATABASE_URL:
+        raise ValueError("❌ ERROR: DATABASE_URL must be set in production! Cannot use localhost.")
     if not settings.AGORA_APP_ID:
         logging.warning("⚠️ WARNING: AGORA_APP_ID not set in production!")
     if not settings.SESSION_COOKIE_SECURE:

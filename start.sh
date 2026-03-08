@@ -6,6 +6,16 @@
 
 set -e
 
+echo "========================================="
+echo "🔍 MentorHub Environment Check"
+echo "========================================="
+echo "ENVIRONMENT: ${ENVIRONMENT:-not set}"
+echo "PORT: ${PORT:-not set}"
+echo "DATABASE_URL: ${DATABASE_URL:-not set}"
+echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
+echo "RENDER: ${RENDER:-not set}"
+echo "========================================="
+
 # =====================================================
 # ПОИСК СВОБОДНОГО ПОРТА
 # =====================================================
@@ -103,14 +113,21 @@ echo ""
 echo "🎯 Starting Backend and Frontend..."
 echo ""
 
-# Backend
+# Export all environment variables for child processes
+export PORT=$BACKEND_PORT
+export BACKEND_PORT=$BACKEND_PORT
+export PGPASSWORD="${POSTGRES_PASSWORD:-}"
+
+# Backend - запускаем с явным указанием переменных окружения
 cd /app/backend
-uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
+echo "🚀 Starting backend on port $BACKEND_PORT..."
+exec uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
 # Frontend
 cd /app/frontend
-node server.js &
+echo "🚀 Starting frontend on port $FRONTEND_PORT..."
+exec node server.js &
 FRONTEND_PID=$!
 
 # Ожидание завершения
