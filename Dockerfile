@@ -7,7 +7,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # Install dependencies with frozen lockfile for reproducible builds
-RUN npm ci --prefer-offline --no-audit --no-fund
+RUN npm install --legacy-peer-deps
 
 # Copy frontend source
 COPY frontend/ ./
