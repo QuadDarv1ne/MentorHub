@@ -1,0 +1,46 @@
+# ==================== DOCKERFILE ДЛЯ FRONTEND (ОТДЕЛЬНЫЙ СЕРВИС) ====================
+# Используйте этот Dockerfile если деплоите только frontend как Docker сервис на Render
+
+# Build stage
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy source
+COPY frontend/ ./
+
+# Create public folder
+RUN mkdir -p public
+
+# Build
+RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Environment
+ENV NODE_ENV=production \
+    PORT=10000
+
+# Copy built files
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT} || wget -q --spider http://localhost:${PORT} || exit 1
+
+# Expose port
+EXPOSE 10000
+
+# Start
+CMD node server.js
