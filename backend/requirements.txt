@@ -1,28 +1,28 @@
 # ==================== CORE FRAMEWORK ====================
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
 
 # ==================== DATABASE ====================
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-alembic==1.12.1
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+alembic==1.14.0
 
 # ==================== AUTHENTICATION & SECURITY ====================
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-jose[cryptography]==3.3.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 PyJWT==2.10.1
 
 # ==================== EMAIL & NOTIFICATIONS ====================
-email-validator==2.1.0
+email-validator==2.2.0
 aiosmtplib==3.0.2
 
 # ==================== ASYNC & BACKGROUND TASKS ====================
-celery==5.3.4
-redis==5.0.1
+celery==5.4.0
+redis==5.2.1
 # (или используйте rq вместо celery)
 # rq==1.14.1
 
