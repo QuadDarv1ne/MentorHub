@@ -126,14 +126,15 @@ echo "🎯 Starting Backend and Frontend..."
 echo ""
 
 # Export all environment variables for child processes
-export PORT=$BACKEND_PORT
+# Для Render: используем BACKEND_PORT, а не PORT (чтобы избежать конфликта)
 export BACKEND_PORT=$BACKEND_PORT
 export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 
 # Backend - запускаем с явным указанием переменных окружения
 cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
-exec uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
+# Передаём BACKEND_PORT вместо PORT для корректной работы auto port detection
+BACKEND_PORT=$BACKEND_PORT PORT=$BACKEND_PORT exec uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
 # Frontend - запускаем только если не в Render (в Render фронтенд работает отдельно)
