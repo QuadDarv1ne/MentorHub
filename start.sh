@@ -16,6 +16,18 @@ echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
 echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
 
+# Проверка критических переменных для production
+if [ "${ENVIRONMENT}" = "production" ] && [ -z "${DATABASE_URL}" ]; then
+    echo "❌ ERROR: DATABASE_URL is required in production!"
+    echo "   Set DATABASE_URL environment variable in Render dashboard."
+    echo "   See deploy/render/README.md for instructions."
+    exit 1
+fi
+
+if [ -z "${SECRET_KEY}" ]; then
+    echo "⚠️ WARNING: SECRET_KEY not set, using temporary key"
+fi
+
 # =====================================================
 # ПОИСК СВОБОДНОГО ПОРТА
 # =====================================================
