@@ -1,5 +1,6 @@
 # Render Configuration
 # https://render.com/docs/blueprints
+# Примечание: DATABASE_URL и REDIS_URL нужно настроить в панели Render
 
 services:
   # ==================== BACKEND (Docker) ====================
@@ -23,15 +24,8 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      - key: DATABASE_URL
-        fromDatabase:
-          name: mentorhub-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: mentorhub-redis
-          property: connectionString
+      # DATABASE_URL: настроить в панели Render (из PostgreSQL)
+      # REDIS_URL: настроить в панели Render (из Redis)
       - key: AGORA_APP_ID
         sync: false
       - key: AGORA_APP_CERTIFICATE
