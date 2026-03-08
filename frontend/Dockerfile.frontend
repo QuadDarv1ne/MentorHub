@@ -1,46 +1,45 @@
-# ==================== DOCKERFILE ДЛЯ FRONTEND (ОТДЕЛЬНЫЙ СЕРВИС) ====================
-# Используйте этот Dockerfile если деплоите только frontend как Docker сервис на Render
+# =====================================================
+# DOCKERFILE ДЛЯ FRONTEND (ОТДЕЛЬНЫЙ ДЕПЛОЙ)
+# Использовать если Backend на другом хостинге
+# =====================================================
 
-# Build stage
+# ==================== BUILD ====================
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Кэшируем зависимости
 COPY frontend/package*.json ./
-
-# Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Copy source
+# Копируем и собираем
 COPY frontend/ ./
-
-# Create public folder
 RUN mkdir -p public
 
-# Build
-RUN NEXT_TELEMETRY_DISABLED=1 npm run build
+# Собираем (NEXT_PUBLIC_API_URL передаётся через env)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
 
-# Production stage
+# ==================== PRODUCTION ====================
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Environment
-ENV NODE_ENV=production \
-    PORT=10000
+ENV NODE_ENV=production
 
-# Copy built files
+# Копируем standalone build
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:${PORT} || wget -q --spider http://localhost:${PORT} || exit 1
+    CMD wget -q --spider http://localhost:${PORT:-3000} || exit 1
 
-# Expose port
-EXPOSE 10000
+# Порт
+EXPOSE 3000
 
-# Start
+# Запуск
 CMD node server.js

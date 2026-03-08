@@ -1,11 +1,14 @@
-# ==================== DOCKERFILE ДЛЯ BACKEND (ОТДЕЛЬНЫЙ СЕРВИС) ====================
-# Используйте этот Dockerfile если деплоите только backend как Docker сервис на Render
+# =====================================================
+# DOCKERFILE ДЛЯ BACKEND (ОТДЕЛЬНЫЙ ДЕПЛОЙ)
+# Использовать если Frontend на Netlify/Vercel
+# Работает на: Render, Railway, Fly.io, VPS
+# =====================================================
 
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
@@ -13,27 +16,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Environment variables
+# Переменные окружения
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8000
+    PYTHONDONTWRITEBYTECODE=1
 
-# Copy requirements and install
+# Зависимости Python
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
+# Код приложения
 COPY backend/ .
 
-# Create data directory
-RUN mkdir -p /app/data
+# Создаём папки
+RUN mkdir -p /app/data /app/logs
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/api/v1/health || curl -f http://localhost:${PORT}/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/api/v1/health || curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Expose port
+# Порт
 EXPOSE 8000
 
-# Start with Render's $PORT
+# Запуск (использует $PORT от Render/Railway/Fly.io)
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2
