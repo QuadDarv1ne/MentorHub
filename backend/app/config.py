@@ -4,7 +4,7 @@ Handles all environment variables and app settings
 """
 
 from pydantic_settings import BaseSettings
-from pydantic import field_validator, ValidationError
+from pydantic import field_validator, model_validator, ValidationError
 from typing import Optional, List
 from functools import lru_cache
 import os
@@ -183,21 +183,20 @@ class Settings(BaseSettings):
     SECURE_SSL_REDIRECT: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
     HSTS_SECONDS: int = 31536000
 
-    @field_validator("ALLOWED_HOSTS", mode="after")
-    @classmethod
-    def validate_allowed_hosts(cls, v):
+    @model_validator(mode='after')
+    def validate_allowed_hosts(self):
         """Валидация ALLOWED_HOSTS - запрет wildcard в production"""
-        if os.environ.get("ENVIRONMENT") == "production":
-            if "*" in v or any(host == "*" for host in v):
+        if self.ENVIRONMENT == "production":
+            if "*" in self.ALLOWED_HOSTS or any(host == "*" for host in self.ALLOWED_HOSTS):
                 raise ValueError("ALLOWED_HOSTS cannot contain '*' in production!")
             # Если пустой список - добавляем .onrender.com для Render
-            if not v:
+            if not self.ALLOWED_HOSTS:
                 render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
                 if render_host:
-                    v = [render_host, ".onrender.com"]
+                    self.ALLOWED_HOSTS = [render_host, ".onrender.com"]
                 else:
-                    v = [".onrender.com"]  # Fallback для Render
-        return v
+                    self.ALLOWED_HOSTS = [".onrender.com"]  # Fallback для Render
+        return self
 
     # ==================== FEATURE FLAGS ====================
     FEATURE_VIDEO_SESSIONS: bool = True
