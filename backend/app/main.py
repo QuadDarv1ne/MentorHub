@@ -262,10 +262,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Error creating database tables (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
-                logger.error("❌ Failed to connect to database after all retries")
-                # Don't raise in production, let app start anyway
-                if not is_production():
-                    raise
+                logger.error("❌ Failed to connect to database after all retries - starting anyway")
+                # Don't crash on startup - database might not be ready yet
+                pass
 
     # Log startup info
     logger.info(f"📊 Environment: {settings.ENVIRONMENT}")
