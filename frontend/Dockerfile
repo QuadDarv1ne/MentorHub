@@ -3,7 +3,8 @@ FROM node:18-alpine as builder
 WORKDIR /app
 COPY package*.json ./
 # Install dependencies with frozen lockfile for reproducible builds
-RUN npm ci --prefer-offline --no-audit --no-fund
+#RUN npm ci --prefer-offline --no-audit --no-fund
+RUN npm install --legacy-peer-deps
 COPY . .
 # Build with telemetry disabled for faster builds
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build
