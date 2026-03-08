@@ -57,6 +57,8 @@ isort==5.13.2
 
 # ==================== UTILITIES ====================
 requests==2.32.3
+urllib3>=2.0.0,<3.0.0
+chardet>=5.0.0
 httpx==0.28.1
 pyyaml==6.0.2
 python-slugify==8.0.4
