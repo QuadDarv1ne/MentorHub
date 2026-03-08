@@ -30,7 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libpq5 \
     curl \
-    supervisor \
     && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/* \
@@ -60,32 +59,19 @@ COPY --from=frontend-builder /app/frontend/.next/standalone ./
 COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
 RUN mkdir -p public
 
-# ==================== Supervisor Configuration ====================
-WORKDIR /app
-
-# Создаём директории
-RUN mkdir -p /var/log/supervisor
-
-# Копируем подготовленный конфигурационный файл supervisor
-# Это файл должен быть в репозитории: deploy/supervisor/app.conf
-COPY deploy/supervisor/app.conf /etc/supervisor/conf.d/app.conf
-
 # ==================== Start Script ====================
 # Скрипт запуска с поддержкой переменной $PORT от облачных платформ
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 # ==================== Environment Setup ====================
-# Устанавливаем переменные окружения для supervisor
 ENV BACKEND_PORT=8000
-# Проверка здоровья приложения
+
+# ==================== Health Check ====================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${BACKEND_PORT}/api/v1/health || curl -f http://localhost:${BACKEND_PORT}/health || exit 1
+    CMD curl -f http://localhost:${BACKEND_PORT}/api/v1/health/ready || exit 1
 
 # ==================== Ports ====================
-# Render использует $PORT, другие платформы могут использовать стандартные
-# Backend: 8000 (или $PORT)
-# Frontend: 3000 (внутренний)
 EXPOSE 8000 3000
 
 # ==================== Entrypoint ====================
