@@ -7,6 +7,9 @@
 .env.test.local
 .env.*.example
 
+# ==================== QWEN CONTEXT ====================
+.qwen/
+
 # ==================== PYTHON ====================
 # Byte-compiled / optimized / DLL files
 __pycache__/
