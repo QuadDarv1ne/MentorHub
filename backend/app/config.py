@@ -4,10 +4,11 @@ Handles all environment variables and app settings
 """
 
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, ValidationError
 from typing import Optional, List
 from functools import lru_cache
 import os
+import logging
 
 
 class Settings(BaseSettings):
@@ -30,6 +31,25 @@ class Settings(BaseSettings):
         if env_debug and env_debug.upper() == "WARN":
             return False
         return bool(v) if v is not None else False
+
+    @field_validator("SECRET_KEY", mode="after")
+    @classmethod
+    def validate_secret_key(cls, v):
+        """Валидация SECRET_KEY - не允许 использовать значения по умолчанию"""
+        if not v or v == "your-secret-key-change-in-production":
+            # В production это критическая ошибка, в development - предупреждение
+            if os.environ.get("ENVIRONMENT") == "production":
+                raise ValueError("SECRET_KEY must be set in production! Use a strong random key.")
+            # Для development генерируем временный ключ
+            import secrets
+            logger_warning = logging.getLogger("config")
+            logger_warning.warning("⚠️ SECRET_KEY not set, using temporary key. Set SECRET_KEY env var!")
+            return secrets.token_urlsafe(32)
+        # Проверка на слабые ключи
+        if len(v) < 32:
+            if os.environ.get("ENVIRONMENT") == "production":
+                raise ValueError("SECRET_KEY must be at least 32 characters in production!")
+        return v
 
     # ==================== SERVER ====================
     HOST: str = "0.0.0.0"
@@ -60,13 +80,25 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
-        # Amvera domains - these will be overridden by environment variables in production
-        "https://*.amvera.app",
-        "https://*.amvera.io",
     ]
     CORS_CREDENTIALS: bool = True
-    CORS_METHODS: List[str] = ["*"]
-    CORS_HEADERS: List[str] = ["*"]
+    CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
+
+    @field_validator("CORS_ORIGINS", mode="after")
+    @classmethod
+    def validate_cors_origins(cls, v):
+        """Валидация CORS_ORIGINS - запрет wildcard в production"""
+        if os.environ.get("ENVIRONMENT") == "production":
+            if "*" in v or any(origin == "*" for origin in v):
+                raise ValueError("CORS_ORIGINS cannot contain '*' in production! Specify exact origins.")
+            # Проверка на наличие https origins в production
+            for origin in v:
+                if not origin.startswith("https://") and "localhost" not in origin:
+                    logging.getLogger("config").warning(
+                        f"⚠️ CORS origin '{origin}' does not use HTTPS in production!"
+                    )
+        return v
 
     # ==================== AGORA VIDEO ====================
     AGORA_APP_ID: str = ""
@@ -206,11 +238,21 @@ def get_redis_url() -> str:
 # ==================== VALIDATION ====================
 if is_production():
     # Production validations
-    assert (
-        settings.SECRET_KEY != "your-secret-key-change-in-production"
-    ), "❌ ERROR: SECRET_KEY must be changed in production!"
-    assert settings.DEBUG is False, "❌ ERROR: DEBUG must be False in production!"
-    assert settings.DATABASE_URL.startswith("postgresql://"), "❌ ERROR: Use PostgreSQL in production!"
-    assert settings.AGORA_APP_ID, "❌ ERROR: AGORA_APP_ID required in production!"
-    assert settings.SESSION_COOKIE_SECURE, "❌ ERROR: SESSION_COOKIE_SECURE must be True in production!"
-    assert settings.SECURE_SSL_REDIRECT, "❌ ERROR: SECURE_SSL_REDIRECT must be True in production!"
+    if settings.SECRET_KEY == "your-secret-key-change-in-production" or not settings.SECRET_KEY:
+        raise ValueError("❌ ERROR: SECRET_KEY must be changed in production!")
+    if settings.DEBUG is True:
+        raise ValueError("❌ ERROR: DEBUG must be False in production!")
+    if not settings.DATABASE_URL.startswith("postgresql://"):
+        raise ValueError("❌ ERROR: Use PostgreSQL in production!")
+    if not settings.AGORA_APP_ID:
+        logging.warning("⚠️ WARNING: AGORA_APP_ID not set in production!")
+    if not settings.SESSION_COOKIE_SECURE:
+        raise ValueError("❌ ERROR: SESSION_COOKIE_SECURE must be True in production!")
+    if not settings.SECURE_SSL_REDIRECT:
+        raise ValueError("❌ ERROR: SECURE_SSL_REDIRECT must be True in production!")
+    # CORS validation
+    if "*" in settings.CORS_ORIGINS:
+        raise ValueError("❌ ERROR: CORS_ORIGINS cannot contain '*' in production!")
+    # Rate limiting validation
+    if not settings.RATE_LIMIT_ENABLED:
+        logging.warning("⚠️ WARNING: Rate limiting is disabled in production!")

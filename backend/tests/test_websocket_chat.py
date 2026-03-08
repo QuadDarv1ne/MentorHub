@@ -12,7 +12,8 @@ import websockets
 
 from app.models.user import User, UserRole
 from app.models.message import Message
-from app.utils.security import get_password_hash, create_access_token
+from app.utils.security import get_password_hash
+from app.api.auth import create_access_token
 
 
 class TestWebSocketChat:

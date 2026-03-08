@@ -1,12 +1,19 @@
 """
 Rate Limiting Middleware
 Защита от DDoS атак и злоупотреблений API
+
+Features:
+- Redis-backed rate limiting with automatic memory fallback
+- Configurable limits per endpoint type
+- IP-based and user-based rate limiting
+- Returns proper 429 responses with retry-after headers
 """
 
-from typing import Callable
+from typing import Callable, Dict, Any
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+import logging
 
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -14,15 +21,23 @@ from redis.asyncio import Redis
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 
 class RateLimiter:
-    """Rate limiter with Redis backend"""
+    """Rate limiter with Redis backend and automatic memory fallback"""
 
-    def __init__(self, redis_client: Redis):
+    def __init__(self, redis_client: Redis = None):
         self.redis = redis_client
-        self.memory_store = defaultdict(list)  # Fallback if Redis unavailable
+        self.memory_store: Dict[str, list] = defaultdict(list)  # Fallback if Redis unavailable
+        self.memory_store_locks: Dict[str, datetime] = {}  # Track lock expiration
 
-    async def is_rate_limited(self, key: str, max_requests: int = 100, window_seconds: int = 60) -> bool:
+    async def is_rate_limited(
+        self,
+        key: str,
+        max_requests: int = 100,
+        window_seconds: int = 60
+    ) -> bool:
         """
         Check if request should be rate limited
 
@@ -34,35 +49,50 @@ class RateLimiter:
         Returns:
             True if rate limit exceeded, False otherwise
         """
-        try:
-            # Try Redis first
-            current_time = time.time()
-            redis_key = f"rate_limit:{key}"
+        # Try Redis first if available
+        if self.redis:
+            try:
+                current_time = time.time()
+                redis_key = f"rate_limit:{key}"
 
-            # Get current count
-            pipe = self.redis.pipeline()
-            pipe.zadd(redis_key, {str(current_time): current_time})
-            pipe.zremrangebyscore(redis_key, 0, current_time - window_seconds)
-            pipe.zcard(redis_key)
-            pipe.expire(redis_key, window_seconds)
+                # Use Redis pipeline for atomic operations
+                pipe = self.redis.pipeline()
+                pipe.zadd(redis_key, {str(current_time): current_time})
+                pipe.zremrangebyscore(redis_key, 0, current_time - window_seconds)
+                pipe.zcard(redis_key)
+                pipe.expire(redis_key, window_seconds)
 
-            results = await pipe.execute()
-            request_count = results[2]
+                results = await pipe.execute()
+                request_count = results[2]
 
-            return request_count > max_requests
+                if request_count > max_requests:
+                    logger.warning(f"Rate limit exceeded for {key}: {request_count}/{max_requests}")
+                    return True
+                return False
 
-        except Exception:
-            # Fallback to memory store
-            current_time = datetime.now()
-            window_start = current_time - timedelta(seconds=window_seconds)
+            except Exception as e:
+                # Log Redis error and fallback to memory store
+                logger.warning(f"Redis rate limit failed, using memory fallback: {e}")
+                self.redis = None  # Disable Redis, use memory
 
-            # Clean old entries
-            self.memory_store[key] = [req_time for req_time in self.memory_store[key] if req_time > window_start]
+        # Fallback to memory store
+        current_time = datetime.now()
+        window_start = current_time - timedelta(seconds=window_seconds)
 
-            # Add current request
-            self.memory_store[key].append(current_time)
+        # Clean old entries
+        self.memory_store[key] = [
+            req_time for req_time in self.memory_store[key]
+            if req_time > window_start
+        ]
 
-            return len(self.memory_store[key]) > max_requests
+        # Add current request
+        self.memory_store[key].append(current_time)
+
+        is_limited = len(self.memory_store[key]) > max_requests
+        if is_limited:
+            logger.warning(f"Rate limit exceeded for {key} (memory): {len(self.memory_store[key])}/{max_requests}")
+
+        return is_limited
 
     async def get_remaining_requests(self, key: str, max_requests: int = 100, window_seconds: int = 60) -> int:
         """Get number of remaining requests in current window"""

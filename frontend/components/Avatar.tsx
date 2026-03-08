@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import Image from 'next/image';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 
 interface AvatarProps {
@@ -16,17 +17,31 @@ const sizeClasses = {
   xl: 'h-24 w-24 text-3xl',
 };
 
+const sizeDimensions = {
+  sm: 32,
+  md: 48,
+  lg: 64,
+  xl: 96,
+};
+
 export default function Avatar({ name, imageUrl, size = 'md', className = '' }: AvatarProps) {
   const initials = getInitials(name);
   const colorClass = getAvatarColor(name);
+  const dimension = sizeDimensions[size];
 
   if (imageUrl) {
     return (
-      <img
-        src={imageUrl}
-        alt={name}
-        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
-      />
+      <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${className}`} style={{ position: 'relative' }}>
+        <Image
+          src={imageUrl}
+          alt={name}
+          width={dimension}
+          height={dimension}
+          className="rounded-full object-cover"
+          loading="lazy"
+          quality={75}
+        />
+      </div>
     );
   }
 
