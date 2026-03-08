@@ -19,7 +19,7 @@ RUN NEXT_TELEMETRY_DISABLED=1 npm run build
 FROM python:3.11-slim
 
 # Create non-root user for security
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+RUN groupadd -r appgroup && useradd -r -m -g appgroup appuser
 
 WORKDIR /app
 
