@@ -57,14 +57,19 @@ class Settings(BaseSettings):
     RELOAD: bool = True
 
     # ==================== DATABASE ====================
-    DATABASE_URL: str = "postgresql://mentorhub_user:password@localhost/mentorhub"
+    # Auto-detect Docker environment
+    _is_docker = os.path.exists("/.dockerenv") or "KUBERNETES_SERVICE_HOST" in os.environ
+    _db_host = "postgres" if _is_docker else "localhost"
+    _redis_host = "redis" if _is_docker else "localhost"
+    
+    DATABASE_URL: str = os.environ.get("DATABASE_URL", f"postgresql://mentorhub_user:password@{_db_host}/mentorhub")
     DB_ECHO: bool = False
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 40
 
     # ==================== REDIS ====================
-    REDIS_URL: str = "redis://localhost:6379/0"
-    REDIS_HOST: str = "localhost"
+    REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_redis_host}:6379/0")
+    REDIS_HOST: str = _redis_host
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
