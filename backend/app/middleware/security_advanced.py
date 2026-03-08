@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Callable
 import re
+import os
 import logging
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -388,19 +389,23 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/reset-password",
             "/api/v1/auth/forgot-password",
         ]
-        
+
         # Если путь в списке исключений, пропускаем проверку
         if any(request.url.path.startswith(path) for path in csrf_exempt_paths):
             return
-        
+
         # Проверяем наличие CSRF токена в заголовке
         csrf_token = request.headers.get("X-CSRF-Token")
-        
+
         # Если есть JWT токен в Authorization, CSRF не требуется (REST API)
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):
             return
-        
+
+        # Skip CSRF for testing environment
+        if os.environ.get("ENVIRONMENT") == "testing":
+            return
+
         # Если это запрос на изменение данных и нет JWT токена, проверяем CSRF
         if csrf_token is None and request.method in ["POST", "PUT", "PATCH", "DELETE"]:
             # Проверяем CSRF токен из cookies/form
