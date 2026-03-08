@@ -6,11 +6,14 @@ WORKDIR /app/frontend
 # Copy package files for dependency installation
 COPY frontend/package*.json ./
 
-# Install dependencies with frozen lockfile for reproducible builds
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
 # Copy frontend source
 COPY frontend/ ./
+
+# Create public folder if not exists
+RUN mkdir -p public
 
 # Build frontend with telemetry disabled for faster builds
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build
@@ -18,7 +21,7 @@ RUN NEXT_TELEMETRY_DISABLED=1 npm run build
 # ==================== MAIN RUNTIME ====================
 FROM python:3.11-slim
 
-# Create non-root user for security
+# Create non-root user for security (with home directory)
 RUN groupadd -r appgroup && useradd -r -m -g appgroup appuser
 
 WORKDIR /app
@@ -42,10 +45,6 @@ ENV PYTHONUNBUFFERED=1 \
     NODE_ENV=production \
     PORT=80
 
-# Change ownership to non-root user
-RUN chown -R appuser:appgroup /app
-USER appuser
-
 # ==================== BACKEND SETUP ====================
 WORKDIR /app/backend
 
@@ -61,17 +60,19 @@ COPY --chown=appuser:appgroup backend/ .
 # ==================== FRONTEND SETUP ====================
 WORKDIR /app/frontend
 
-# Install Next.js globally
-RUN npm install -g next
-
-# Copy built frontend from builder
+# Copy built frontend from builder (standalone includes everything needed)
 COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/.next/standalone ./
 COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/.next/static ./.next/static
-COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/public ./public
+
+# Create public folder
+RUN mkdir -p public && chown -R appuser:appgroup public
+
+# Change ownership to non-root user
+WORKDIR /app
+RUN chown -R appuser:appgroup /app
+USER appuser
 
 # ==================== SUPERVISOR CONFIGURATION ====================
-WORKDIR /app
-
 # Create log directories with proper permissions
 RUN mkdir -p /home/appuser/logs/supervisor
 
