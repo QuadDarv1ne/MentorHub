@@ -1,6 +1,10 @@
 # Render Configuration
 # https://render.com/docs/blueprints
-# Примечание: DATABASE_URL и REDIS_URL нужно настроить в панели Render
+# 
+# ВАЖНО: Для работы с Docker нужно настроить переменные в панели Render:
+# 1. Открыть Web Service → Environment
+# 2. Добавить: DATABASE_URL, REDIS_URL, SECRET_KEY
+# 3. Manual Deploy
 
 services:
   # ==================== BACKEND (Docker) ====================
@@ -18,14 +22,14 @@ services:
         value: "true"
       - key: ENVIRONMENT
         value: production
-      - key: SECRET_KEY
-        generateValue: true
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      # DATABASE_URL: настроить в панели Render (из PostgreSQL)
-      # REDIS_URL: настроить в панели Render (из Redis)
+      # Эти переменные НАСТРОИТЬ В ПАНЕЛИ RENDER (Environment):
+      # - DATABASE_URL (из PostgreSQL)
+      # - REDIS_URL (из Redis)
+      # - SECRET_KEY (сгенерировать)
       - key: AGORA_APP_ID
         sync: false
       - key: AGORA_APP_CERTIFICATE

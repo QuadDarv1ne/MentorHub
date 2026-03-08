@@ -35,10 +35,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Переменные окружения
+# Переменные окружения (могут быть переопределены в Render)
+ARG DATABASE_URL
+ARG REDIS_URL
+ARG SECRET_KEY
+ARG ENVIRONMENT=production
+ARG RENDER=true
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
+    DATABASE_URL=${DATABASE_URL} \
+    REDIS_URL=${REDIS_URL} \
+    SECRET_KEY=${SECRET_KEY} \
+    ENVIRONMENT=${ENVIRONMENT} \
+    RENDER=${RENDER} \
     # Default ports (can be overridden by $PORT)
     BACKEND_PORT=8000 \
     FRONTEND_PORT=3000
