@@ -57,20 +57,24 @@ class Settings(BaseSettings):
     RELOAD: bool = True
 
     # ==================== DATABASE ====================
-    # Auto-detect Docker environment
+    # Auto-detect cloud/Docker environment
     _is_docker = os.path.exists("/.dockerenv") or "KUBERNETES_SERVICE_HOST" in os.environ
-    _db_host = "postgres" if _is_docker else "localhost"
-    _redis_host = "redis" if _is_docker else "localhost"
+    _is_render = "RENDER" in os.environ
+    _is_cloud = _is_docker or _is_render or "RAILWAY" in os.environ or "FLY" in os.environ
     
-    DATABASE_URL: str = os.environ.get("DATABASE_URL", f"postgresql://mentorhub_user:password@{_db_host}/mentorhub")
+    # Cloud providers set DATABASE_URL directly - always use it if available
+    _default_db_host = "postgres" if _is_cloud and not _is_render else "localhost"
+    _default_redis_host = "redis" if _is_cloud else "localhost"
+    
+    DATABASE_URL: str = os.environ.get("DATABASE_URL", f"postgresql://mentorhub_user:password@{_default_db_host}/mentorhub")
     DB_ECHO: bool = False
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 40
 
     # ==================== REDIS ====================
-    REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_redis_host}:6379/0")
-    REDIS_HOST: str = _redis_host
-    REDIS_PORT: int = 6379
+    REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:6379/0")
+    REDIS_HOST: str = os.environ.get("REDIS_HOST", _default_redis_host)
+    REDIS_PORT: int = int(os.environ.get("REDIS_PORT", "6379"))
     REDIS_DB: int = 0
 
     # ==================== JWT AUTHENTICATION ====================

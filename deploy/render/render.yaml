@@ -14,6 +14,8 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
     healthCheckPath: /api/v1/health/ready
     envVars:
+      - key: RENDER
+        value: "true"
       - key: PYTHON_VERSION
         value: 3.11.8
       - key: SECRET_KEY
@@ -94,6 +96,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: celery -A app.tasks.celery_tasks worker --loglevel=info --concurrency=2
     envVars:
+      - key: RENDER
+        value: "true"
       - key: PYTHON_VERSION
         value: 3.11.8
       - key: SECRET_KEY
@@ -121,6 +125,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: celery -A app.tasks.celery_tasks beat --loglevel=info
     envVars:
+      - key: RENDER
+        value: "true"
       - key: PYTHON_VERSION
         value: 3.11.8
       - key: SECRET_KEY
