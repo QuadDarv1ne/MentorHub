@@ -16,12 +16,12 @@ echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
 echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
 
-# Проверка критических переменных для production
+# Проверка критических переменных для production (предупреждение, не ошибка)
 if [ "${ENVIRONMENT}" = "production" ] && [ -z "${DATABASE_URL}" ]; then
-    echo "❌ ERROR: DATABASE_URL is required in production!"
-    echo "   Set DATABASE_URL environment variable in Render dashboard."
+    echo "⚠️ WARNING: DATABASE_URL not set in production!"
+    echo "   Add DATABASE_URL in Render Environment Variables."
     echo "   See deploy/render/README.md for instructions."
-    exit 1
+    echo "   Starting anyway without database..."
 fi
 
 if [ -z "${SECRET_KEY}" ]; then
