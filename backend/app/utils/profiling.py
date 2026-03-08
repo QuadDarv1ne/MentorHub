@@ -80,7 +80,7 @@ def explain_query(db: Session, query_str: str) -> List[Dict[str, Any]]:
 
     Пример:
         result = explain_query(db, "SELECT * FROM users WHERE email = 'test@example.com'")
-        print(result)
+        logger.info(result)
     """
     try:
         # Используем EXPLAIN для PostgreSQL
@@ -132,7 +132,7 @@ def find_n_plus_one_queries(db: Session, threshold: int = 10) -> Dict[str, int]:
     Пример:
         n_plus_one = find_n_plus_one_queries(db)
         if n_plus_one:
-            print("N+1 queries detected:", n_plus_one)
+            logger.warning("N+1 queries detected: %s", n_plus_one)
     """
     query_patterns = {}
 
@@ -155,7 +155,7 @@ def get_index_suggestions(db: Session) -> List[str]:
     Пример:
         suggestions = get_index_suggestions(db)
         for suggestion in suggestions:
-            print(suggestion)
+            logger.info(suggestion)
     """
     suggestions = []
 

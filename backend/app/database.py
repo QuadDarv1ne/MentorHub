@@ -49,6 +49,7 @@ else:
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_pre_ping=True,
+            pool_recycle=3600,  # Recycle connections after 1 hour
             echo=settings.DB_ECHO,
             connect_args={
                 "connect_timeout": 10,
