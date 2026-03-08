@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { NotificationProvider } from '@/components/NotificationProvider'
 import { GlobalLoadingProvider } from '@/components/GlobalLoadingProvider'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
@@ -21,19 +22,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ru" className={inter.variable}>
+    <html lang="ru" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased">
-        <SkipLinks />
-        <RouteAnnouncer />
-        <GlobalLoadingProvider>
-          <NotificationProvider>
-            <Header />
-            <main id="main-content" tabIndex={-1} className="focus:outline-none">
-              {children}
-            </main>
-            <Footer />
-          </NotificationProvider>
-        </GlobalLoadingProvider>
+        <ThemeProvider defaultTheme="system">
+          <SkipLinks />
+          <RouteAnnouncer />
+          <GlobalLoadingProvider>
+            <NotificationProvider>
+              <Header />
+              <main id="main-content" tabIndex={-1} className="focus:outline-none">
+                {children}
+              </main>
+              <Footer />
+            </NotificationProvider>
+          </GlobalLoadingProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

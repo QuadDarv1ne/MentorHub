@@ -8,7 +8,7 @@ COPY . .
 # Build with telemetry disabled for faster builds
 RUN NEXT_TELEMETRY_DISABLED=1 npm run build
 
-FROM node:18-alpine-slim
+FROM node:18-alpine
 WORKDIR /app
 # Copy built assets from builder stage
 COPY --from=builder /app/.next ./.next
