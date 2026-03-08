@@ -16,7 +16,21 @@ from app.database import Base
 from app.config import settings
 
 # Импортируйте все модели здесь для обнаружения Alembic
-from app.models import User, Mentor, Session, Message, Payment  # noqa
+from app.models import (  # noqa
+    User,
+    Mentor,
+    Session,
+    Message,
+    Payment,
+    Review,
+    Progress,
+    Achievement,
+    Course,
+    Lesson,
+    CourseEnrollment,
+    DeviceToken,
+    Notification,
+)
 
 # Это объект конфигурации Alembic, который предоставляет
 # доступ к значениям в используемом .ini файле.
