@@ -22,8 +22,8 @@ router = APIRouter()
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Создание JWT токена доступа"""
+def create_access_token(data: dict, expires_delta: timedelta | None = None, token_type: str = "access") -> str:
+    """Создание JWT токена с audience и issuer validation"""
     to_encode = data.copy()
 
     if expires_delta:
@@ -31,7 +31,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),
+        "aud": "mentorhub",
+        "iss": "mentorhub-api",
+        "type": token_type,
+    })
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -167,14 +173,15 @@ async def login(
             "role": user.role.value,
         },
         expires_delta=access_token_expires,
+        token_type="access",
     )
 
     refresh_token = create_access_token(
         data={
             "sub": str(user.id),  # JWT требует строку для sub
-            "type": "refresh",
         },
         expires_delta=refresh_token_expires,
+        token_type="refresh",
     )
     
     # Set httpOnly cookie для refresh token (защита от XSS)
@@ -207,6 +214,9 @@ async def refresh_token(
             refresh_token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
+            audience="mentorhub",
+            issuer="mentorhub-api",
+            options={"require": ["aud", "iss", "exp", "type"]},
         )
 
         if payload.get("type") != "refresh":
@@ -248,6 +258,7 @@ async def refresh_token(
                 "role": user.role.value,
             },
             expires_delta=access_token_expires,
+            token_type="access",
         )
 
         return TokenResponse(

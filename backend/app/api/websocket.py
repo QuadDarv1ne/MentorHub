@@ -7,7 +7,7 @@ import logging
 import json
 from datetime import datetime
 from typing import Dict, Set
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
@@ -72,7 +72,7 @@ manager = ConnectionManager()
 
 
 async def get_current_user_ws(
-    token: str = Query(...),
+    token: str,
     db: Session = Depends(get_db)
 ) -> User:
     """Получить текущего пользователя из WebSocket токена"""
@@ -81,11 +81,11 @@ async def get_current_user_ws(
         user_id = payload.get("sub")
         if not user_id:
             raise ValueError("Invalid token")
-        
+
         user = db.query(User).filter(User.id == int(user_id)).first()
         if not user:
             raise ValueError("User not found")
-        
+
         return user
     except Exception as e:
         logger.error(f"WebSocket auth error: {e}")
@@ -95,22 +95,24 @@ async def get_current_user_ws(
 @router.websocket("/ws/chat")
 async def websocket_chat_endpoint(
     websocket: WebSocket,
-    token: str = Query(...),
     db: Session = Depends(get_db)
 ):
     """
     WebSocket endpoint для чата
-    
-    Query params:
-        - token: JWT access token для аутентификации
-    
+
+    Для аутентификации отправьте токен в первом сообщении:
+    {
+        "type": "auth",
+        "token": "your_jwt_token"
+    }
+
     Message format (client -> server):
     {
         "type": "message",
         "recipient_id": 123,
         "content": "Hello!"
     }
-    
+
     Message format (server -> client):
     {
         "type": "message",
@@ -123,6 +125,20 @@ async def websocket_chat_endpoint(
     """
     user = None
     try:
+        # Получаем токен из первого сообщения
+        data = await websocket.receive_json()
+        
+        if data.get("type") != "auth":
+            await websocket.send_json({"type": "error", "message": "First message must be auth type"})
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+        
+        token = data.get("token")
+        if not token:
+            await websocket.send_json({"type": "error", "message": "Missing token"})
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+        
         # Аутентификация
         user = await get_current_user_ws(token=token, db=db)
         
