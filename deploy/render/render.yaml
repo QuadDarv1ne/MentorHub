@@ -12,7 +12,7 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
-    healthCheckPath: /api/v1/health
+    healthCheckPath: /api/v1/health/ready
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -92,7 +92,7 @@ services:
     branch: main
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks worker --loglevel=info --concurrency=2
+    startCommand: celery -A app.tasks.celery_tasks worker --loglevel=info --concurrency=2
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
@@ -119,7 +119,7 @@ services:
     branch: main
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.tasks beat --loglevel=info
+    startCommand: celery -A app.tasks.celery_tasks beat --loglevel=info
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8

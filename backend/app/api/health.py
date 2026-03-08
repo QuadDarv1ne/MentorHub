@@ -8,15 +8,31 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-import redis
 import psutil
 import time
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    logging.getLogger(__name__).warning("redis-py not installed, health checks limited")
 
 from app.database import get_db
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/health", tags=["Health"])
+
+# Redis client import
+redis_client = None
+try:
+    if REDIS_AVAILABLE and settings.REDIS_URL and settings.REDIS_URL.strip():
+        redis_client = redis.Redis.from_url(settings.REDIS_URL)
+        logger.info("✅ Redis client initialized for health checks")
+except Exception as e:
+    logger.warning(f"⚠️ Redis client initialization failed: {e}")
+    redis_client = None
 
 def get_system_metrics() -> Dict[str, Any]:
     """Получает системные метрики"""
@@ -100,28 +116,34 @@ async def detailed_health_check(
         health_status["status"] = "unhealthy"
     
     # Проверка Redis с детальной информацией
-    try:
-        start_time = time.time()
-        redis_client.ping()
-        response_time = (time.time() - start_time) * 1000
-        
-        # Получение информации о Redis
-        info = redis_client.info()
-        
+    if redis_client:
+        try:
+            start_time = time.time()
+            redis_client.ping()
+            response_time = (time.time() - start_time) * 1000
+
+            # Получение информации о Redis
+            info = redis_client.info()
+
+            health_status["services"]["redis"] = {
+                "status": "healthy",
+                "response_time_ms": round(response_time, 2),
+                "used_memory_mb": round(info.get("used_memory_rss", 0) / 1024 / 1024, 2),
+                "connected_clients": info.get("connected_clients", 0),
+                "uptime_seconds": info.get("uptime_in_seconds", 0)
+            }
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Detailed Redis health check failed: {e}")
+            health_status["services"]["redis"] = {
+                "status": "unhealthy",
+                "error": str(e)
+            }
+            health_status["status"] = "unhealthy"
+    else:
         health_status["services"]["redis"] = {
-            "status": "healthy",
-            "response_time_ms": round(response_time, 2),
-            "used_memory_mb": round(info.get("used_memory_rss", 0) / 1024 / 1024, 2),
-            "connected_clients": info.get("connected_clients", 0),
-            "uptime_seconds": info.get("uptime_in_seconds", 0)
+            "status": "not_configured",
+            "message": "Redis URL not configured"
         }
-    except (redis.ConnectionError, redis.TimeoutError) as e:
-        logger.error(f"Detailed Redis health check failed: {e}")
-        health_status["services"]["redis"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
-        health_status["status"] = "unhealthy"
     
     # Проверка внешних сервисов (если есть)
     external_services = []

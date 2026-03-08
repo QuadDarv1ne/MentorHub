@@ -75,7 +75,9 @@ COPY deploy/supervisor/app.conf /etc/supervisor/conf.d/app.conf
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# ==================== Health Check ====================
+# ==================== Environment Setup ====================
+# Устанавливаем переменные окружения для supervisor
+ENV BACKEND_PORT=8000
 # Проверка здоровья приложения
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:${BACKEND_PORT}/api/v1/health || curl -f http://localhost:${BACKEND_PORT}/health || exit 1

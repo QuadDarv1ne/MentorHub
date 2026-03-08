@@ -104,7 +104,7 @@ if [ -f "$SUPERVISOR_CONF" ]; then
     echo "📝 Updating supervisor configuration..."
 
     # Заменяем плейсхолдер порта на реальное значение
-    sed -i "s/%(ENV_BACKEND_PORT)s/$BACKEND_PORT/g" "$SUPERVISOR_CONF"
+    sed -i "s/%(ENV_PORT)s/$BACKEND_PORT/g" "$SUPERVISOR_CONF"
     sed -i "s/--port [0-9]*/--port $BACKEND_PORT/g" "$SUPERVISOR_CONF"
     sed -i "s/PORT=\"[0-9]*\"/PORT=\"$BACKEND_PORT\"/g" "$SUPERVISOR_CONF"
 
