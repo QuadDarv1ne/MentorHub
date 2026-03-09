@@ -14,6 +14,7 @@ from app.models.mentor import Mentor
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, LessonCreate, LessonUpdate, LessonResponse, CourseEnrollmentCreate, CourseEnrollmentUpdate, CourseEnrollmentResponse, CourseWithLessonsResponse, CourseWithEnrollmentResponse
 from app.utils.sanitization import sanitize_text_field, is_safe_string
 from app.services.cache import cached
+from sqlalchemy import or_
 
 router = APIRouter()
 
@@ -383,13 +384,51 @@ async def delete_lesson(
     db_lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
     if not db_lesson:
         raise HTTPException(status_code=404, detail="Урок не найден")
-    
+
     # Check if user is the course instructor
     course = db.query(Course).filter(Course.id == db_lesson.course_id).first()
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     if not mentor or mentor.id != course.instructor_id:
         raise HTTPException(status_code=403, detail="Вы не являетесь инструктором этого курса")
-    
+
     db.delete(db_lesson)
     db.commit()
     return None
+
+
+@router.get("/{course_id}/similar", response_model=List[dict])
+async def get_similar_courses(
+    course_id: int,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить похожие курсы на основе категории"""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+
+    # Найти курсы с той же категорией
+    similar = (
+        db.query(Course)
+        .filter(
+            Course.id != course_id,
+            Course.is_active == True,
+            or_(
+                Course.category == course.category,
+                Course.difficulty == course.difficulty,
+            )
+        )
+        .limit(5)
+        .all()
+    )
+
+    # Вернуть упрощённые данные
+    result = []
+    for c in similar:
+        result.append({
+            "course_id": c.id,
+            "average_rating": c.rating,
+            "total_reviews": c.total_reviews,
+        })
+
+    return result
