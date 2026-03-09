@@ -55,6 +55,11 @@
 - [x] prometheus.py UnboundLocalError fix
 - [x] dependencies.py - дубли импортов
 - [x] .gitignore - test.db, *.db-shm, *.db-wal
+- [x] cache.py - восстановлены @cached декораторы
+- [x] courses.ts getSimilarCourses - реализована логика
+- [x] cleanup unused imports (payments.py, websocket.py, courses.py, mentors.py, users.py, stats.py)
+- [x] request_logging.py - убраны debug логи
+- [x] ErrorBoundary упрощён (1 компонент вместо 3)
 
 ---
 
@@ -238,7 +243,7 @@ docs/:
 ### Технические долги
 1. ~~Удалить закомментированный код~~ ✅ console.log удалены
 2. ~~Обновить устаревшие зависимости~~ ✅ timezone, prometheus fix
-3. [ ] Рефакторить большие компоненты (ErrorBoundary.tsx, main.py)
+3. ~~Рефакторить большие компоненты~~ ✅ ErrorBoundary упрощён
 4. [ ] Добавить типизацию для всех API endpoints
 
 ### Идеи для улучшений
@@ -248,14 +253,32 @@ docs/:
 4. [ ] Интеграция с календарями (Google, Outlook)
 
 ### Новые задачи (из code review)
-1. [ ] Logger cleanup в production (logger.debug → logger.info)
-2. [ ] ErrorBoundary упростить (2 компонента вместо 3)
-3. [ ] courses.ts getSimilarCourses - реализовать логику
-4. [ ] request_logging.py - убрать debug логи
-5. [ ] cache.py - восстановить декораторы @cached
+1. ~~Logger cleanup в production~~ ✅ request_logging.py
+2. ~~ErrorBoundary упростить~~ ✅ 1 компонент вместо 3
+3. ~~courses.ts getSimilarCourses~~ ✅ реализована
+4. ~~request_logging.py~~ ✅ убраны debug логи
+5. ~~cache.py - восстановить декораторы~~ ✅ @cached работают
 
 ---
 
-**Последнее обновление:** 2026-03-09
-**Статус:** P0 задачи выполнены (Redis, Image optimization)
+**Последнее обновление:** 2026-03-09 22:45
+**Статус:** P0 задачи выполнены (Redis, Image optimization, Cache, Similar Courses)
 **Следующий приоритет:** Тесты coverage 80%+
+
+### Сессия 2026-03-09 (20 коммитов)
+**Исправления сборки:**
+- ErrorBoundary экспорт (AuthErrorBoundary, DashboardErrorBoundary, EnhancedAppError → ErrorBoundary)
+- courses.ts apiRequest импорт
+- getCourses параметры (skip, limit)
+
+**Оптимизация:**
+- 250+ строк кода удалено (unused imports, debug logs)
+- console.log cleanup (12 файлов)
+- alert() → useToast (3 компонента)
+
+**Фичи:**
+- getSimilarCourses API + backend endpoint
+- @cached декораторы восстановлены
+
+**Синхронизация:**
+- dev ↔ main ✅
