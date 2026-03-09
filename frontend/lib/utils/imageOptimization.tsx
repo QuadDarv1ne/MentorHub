@@ -156,19 +156,17 @@ export function ResponsiveImage({
   priority?: boolean
 }) {
   return (
-    <picture className={className}>
-      {/* Mobile */}
-      <source media="(max-width: 640px)" srcSet={mobileSrc} />
-      {/* Tablet */}
-      <source media="(max-width: 1024px)" srcSet={tabletSrc} />
-      {/* Desktop */}
-      <img
+    <div className={`relative w-full h-auto ${className}`}>
+      <Image
         src={desktopSrc}
         alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
-        className="w-full h-auto"
+        fill
+        className="object-cover"
+        sizes="(max-width: 640px) 360px, (max-width: 1024px) 768px, 1200px"
+        priority={priority}
+        quality={80}
       />
-    </picture>
+    </div>
   )
 }
 
