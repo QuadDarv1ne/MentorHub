@@ -1,14 +1,88 @@
 # ==================== MentorHub Backend Requirements ====================
 # Main requirements file for deployment on any platform
-# 
+#
 # For deployment (Render, Railway, Fly.io, Amvera, etc.):
 # pip install -r requirements.txt
 #
 # For development:
-# pip install -r requirements/requirements-dev.txt
+# pip install -r requirements-dev.txt
 #
 # For minimal installation:
-# pip install -r requirements/requirements-base.txt
+# pip install -r requirements-base.txt
 
-# Include all production requirements
--r requirements/requirements-prod.txt
+# ==================== CORE FRAMEWORK ====================
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+
+# ==================== PYDANTIC ====================
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.0
+
+# ==================== DATABASE ====================
+sqlalchemy>=2.0.35
+alembic>=1.13.0
+psycopg2-binary>=2.9.9
+
+# ==================== AUTHENTICATION & SECURITY ====================
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+PyJWT>=2.8.0
+bcrypt>=4.0.0
+
+# ==================== HTTP CLIENT ====================
+httpx>=0.27.0
+requests>=2.31.0
+urllib3>=2.0.0,<3.0.0
+
+# ==================== REDIS & CACHING ====================
+redis>=5.0.0
+aioredis>=2.0.0
+cachetools>=5.3.0
+
+# ==================== BACKGROUND TASKS ====================
+celery>=5.3.0
+
+# ==================== WEBSOCKET ====================
+websockets>=12.0
+
+# ==================== EMAIL ====================
+aiosmtplib>=3.0.0
+email-validator>=2.1.0
+
+# ==================== CLOUD STORAGE ====================
+boto3>=1.34.0
+
+# ==================== PAYMENTS ====================
+stripe>=7.0.0
+
+# ==================== MONITORING & LOGGING ====================
+sentry-sdk[fastapi]>=2.0.0
+psutil>=5.9.0
+python-json-logger>=2.0.0
+prometheus-client>=0.20.0
+
+# ==================== UTILITIES ====================
+python-slugify>=8.0.0
+python-dateutil>=2.8.0
+pyyaml>=6.0.0
+Pillow>=10.0.0
+chardet>=5.0.0
+orjson>=3.9.0
+
+# ==================== CORS ====================
+fastapi-cors>=0.0.6
+
+# ==================== RATE LIMITING ====================
+slowapi>=0.1.9
+
+# ==================== DATABASE TOOLS ====================
+sqlmodel>=0.0.21
+
+# ==================== PRODUCTION SERVER ====================
+gunicorn>=21.0.0
+
+# ==================== PERFORMANCE (Unix only) ====================
+uvloop>=0.19.0; sys_platform != 'win32'
+httptools>=0.6.0; sys_platform != 'win32'

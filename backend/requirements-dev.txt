@@ -1,0 +1,23 @@
+# ==================== MentorHub Development Requirements ====================
+# Development dependencies - includes base + testing/linting tools
+# Install with: pip install -r requirements-dev.txt
+
+# Include base requirements from requirements.txt
+-r requirements.txt
+
+# ==================== TESTING ====================
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+coverage>=7.0.0
+pytest-httpx>=0.30.0
+
+# ==================== CODE QUALITY ====================
+black>=24.0.0
+flake8>=7.0.0
+isort>=5.13.0
+mypy>=1.10.0
+pre-commit>=3.6.0
+
+# ==================== DEVELOPMENT SERVER ====================
+watchfiles>=1.0.0
