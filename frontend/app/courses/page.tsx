@@ -5,7 +5,7 @@ import { Search, Filter, Star, Users, Clock, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { getCourses } from '@/lib/api/courses-new'
+import { getCourses } from '@/lib/api/courses'
 
 interface Course {
   id: number

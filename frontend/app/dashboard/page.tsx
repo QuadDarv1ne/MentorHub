@@ -9,10 +9,10 @@ import Badge from '@/components/ui/Badge'
 import StatCard from '@/components/ui/StatCard'
 import Tabs from '@/components/ui/Tabs'
 import { PageLoader, SectionLoader } from '@/components/LoadingSpinner'
-import { DashboardErrorBoundary } from '@/components/ErrorBoundary'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getMySessions } from '@/lib/api/sessions'
-import { getMyCourses } from '@/lib/api/courses-new'
+import { getMyCourses } from '@/lib/api/courses'
 import { getMyAchievements } from '@/lib/api/achievements'
 
 interface DashboardStats {
@@ -425,7 +425,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <DashboardErrorBoundary>
+    <ErrorBoundary>
       <main className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
@@ -472,6 +472,6 @@ export default function DashboardPage() {
           <Tabs tabs={tabsContent} defaultTab="courses" />
         </div>
       </main>
-    </DashboardErrorBoundary>
+    </ErrorBoundary>
   )
 }
