@@ -212,10 +212,9 @@ export default function BlogPostPage({ params }: Props) {
           url: window.location.href,
         })
       } catch (err) {
-        console.log('Sharing failed', err)
+        // Sharing failed silently
       }
     } else {
-      // Fallback: копирование ссылки в буфер обмена
       navigator.clipboard.writeText(window.location.href)
       alert('Ссылка скопирована в буфер обмена!')
     }
@@ -223,8 +222,6 @@ export default function BlogPostPage({ params }: Props) {
 
   const handleCommentSubmit = () => {
     if (comment.trim()) {
-      // Здесь будет логика отправки комментария
-      console.log('Отправка комментария:', comment)
       setComment('')
       alert('Комментарий отправлен!')
     }

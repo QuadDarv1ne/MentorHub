@@ -52,7 +52,6 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
     const socket = new WebSocket(websocketUrl)
 
     socket.onopen = () => {
-      console.log('✅ WebSocket connected')
       setConnectionStatus('connected')
       setWs(socket)
     }
@@ -79,7 +78,6 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
             )
             break
           case 'connected':
-            console.log('Connected as:', data.username)
             break
         }
       } catch (error) {
@@ -93,7 +91,6 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
     }
 
     socket.onclose = () => {
-      console.log('WebSocket disconnected')
       setConnectionStatus('disconnected')
     }
 
