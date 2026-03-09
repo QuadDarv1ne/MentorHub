@@ -63,11 +63,11 @@ export default function DashboardPage() {
   const [coursesData, setCoursesData] = useState<Course[]>([])
   const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
-  const { isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
-    if (token && isAuthenticated) {
+    if (token && user) {
       // Fetch user data
       fetch('http://localhost:8000/api/v1/users/me', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -196,13 +196,13 @@ export default function DashboardPage() {
       setSessionsLoading(false)
       setAchievementsLoading(false)
     }
-  }, [isAuthenticated])
+  }, [user])
 
   if (loading) {
     return <PageLoader text="Загрузка личного кабинета..." />;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card padding="lg" className="max-w-md w-full text-center">
