@@ -3,21 +3,16 @@
 API для работы с платежами через Stripe
 """
 
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from decimal import Decimal
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.models.payment import Payment as DBPayment, PaymentStatus
 from app.models.user import User
-from app.models.mentor import Mentor
-from app.models.session import Session as DBSession
-from app.schemas.payment import PaymentCreate, PaymentUpdate, PaymentResponse
+from app.schemas.payment import PaymentResponse
 from app.services.stripe_service import stripe_service
 from app.services.sbp_service import sbp_service
-from app.utils.sanitization import sanitize_string, is_safe_string
 
 router = APIRouter()
 
