@@ -42,6 +42,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Requirements lock files (generated)
+requirements*.lock
+
 # PyInstaller
 *.manifest
 *.spec

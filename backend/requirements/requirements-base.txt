@@ -1,0 +1,75 @@
+# ==================== MentorHub Base Requirements ====================
+# Core dependencies required for all environments
+# Use minimum versions for compatibility across platforms
+
+# ------------------- Core Framework -------------------
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+
+# ------------------- Pydantic -------------------
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.0
+
+# ------------------- Database -------------------
+sqlalchemy>=2.0.35
+alembic>=1.13.0
+# psycopg2-binary for development, psycopg2 for production
+psycopg2-binary>=2.9.9
+
+# ------------------- Authentication & Security -------------------
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+PyJWT>=2.8.0
+bcrypt>=4.0.0
+
+# ------------------- HTTP Client -------------------
+httpx>=0.27.0
+requests>=2.31.0
+urllib3>=2.0.0,<3.0.0
+
+# ------------------- Redis & Caching -------------------
+redis>=5.0.0
+aioredis>=2.0.0
+cachetools>=5.3.0
+
+# ------------------- Background Tasks -------------------
+celery>=5.3.0
+
+# ------------------- WebSocket -------------------
+websockets>=12.0
+
+# ------------------- Email -------------------
+aiosmtplib>=3.0.0
+email-validator>=2.1.0
+
+# ------------------- Cloud Storage -------------------
+boto3>=1.34.0
+
+# ------------------- Payments -------------------
+stripe>=7.0.0
+
+# ------------------- Monitoring & Logging -------------------
+sentry-sdk[fastapi]>=2.0.0
+psutil>=5.9.0
+python-json-logger>=2.0.0
+prometheus-client>=0.20.0
+
+# ------------------- Utilities -------------------
+python-slugify>=8.0.0
+python-dateutil>=2.8.0
+pyyaml>=6.0.0
+Pillow>=10.0.0
+chardet>=5.0.0
+orjson>=3.9.0
+
+# ------------------- CORS -------------------
+# Note: FastAPI has built-in CORS middleware, fastapi-cors is optional
+fastapi-cors>=0.0.6
+
+# ------------------- Rate Limiting -------------------
+slowapi>=0.1.9
+
+# ------------------- Database Tools -------------------
+sqlmodel>=0.0.21

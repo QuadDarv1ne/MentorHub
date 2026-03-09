@@ -1,84 +1,14 @@
-# ==================== CORE FRAMEWORK ====================
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-python-multipart==0.0.20
+# ==================== MentorHub Backend Requirements ====================
+# Main requirements file for deployment on any platform
+# 
+# For deployment (Render, Railway, Fly.io, Amvera, etc.):
+# pip install -r requirements.txt
+#
+# For development:
+# pip install -r requirements/requirements-dev.txt
+#
+# For minimal installation:
+# pip install -r requirements/requirements-base.txt
 
-# ==================== DATABASE ====================
-sqlalchemy==2.0.36
-psycopg2-binary==2.9.10
-alembic==1.14.0
-
-# ==================== AUTHENTICATION & SECURITY ====================
-pydantic==2.10.4
-pydantic-settings==2.7.0
-python-jose[cryptography]==3.4.0
-passlib[bcrypt]==1.7.4
-python-dotenv==1.0.1
-PyJWT==2.10.1
-
-# ==================== EMAIL & NOTIFICATIONS ====================
-email-validator==2.2.0
-aiosmtplib==3.0.2
-
-# ==================== ASYNC & BACKGROUND TASKS ====================
-celery==5.4.0
-redis==5.2.1
-# (или используйте rq вместо celery)
-# rq==1.14.1
-
-# ==================== WEBSOCKETS ====================
-websockets==12.0
-aioredis==2.0.1
-
-# ==================== FILE STORAGE ====================
-boto3==1.36.0          # AWS S3
-
-# ==================== PAYMENTS ====================
-stripe==7.11.0
-# sbp-qr==0.2.0  # Пакет недоступен в PyPI, закомментирован для деплоя
-
-# ==================== VIDEO & REAL-TIME ====================
-# Agora SDK будет устанавливаться через npm в frontend
-# или используйте: agora-sdk==1.0.0
-
-# ==================== MONITORING & LOGGING ====================
-python-json-logger==2.0.7
-sentry-sdk==2.20.0
-psutil==6.1.1
-prometheus-client==0.21.1
-
-# ==================== DEVELOPMENT ====================
-pytest==8.3.4
-pytest-asyncio==0.24.0
-pytest-cov==6.0.0
-black==24.10.0
-flake8==7.1.1
-mypy==1.14.0
-isort==5.13.2
-
-# ==================== UTILITIES ====================
-requests==2.32.3
-urllib3>=2.0.0,<3.0.0
-chardet>=5.0.0
-httpx==0.28.1
-pyyaml==6.0.2
-python-slugify==8.0.4
-Pillow==11.1.0          # Image processing
-
-# ==================== CORS ====================
-fastapi-cors==0.0.6
-
-# ==================== DATABASE TOOLS ====================
-sqlmodel==0.0.22
-
-# ==================== DEPLOYMENT ====================
-gunicorn==23.0.0
-
-# ==================== RATE LIMITING ====================
-slowapi==0.1.9
-
-# ==================== CACHING ====================
-cachetools==5.5.1
-
-# ==================== SERIALIZATION ====================
-orjson==3.10.14          # Быстрый JSON парсер
+# Include all production requirements
+-r requirements/requirements-prod.txt

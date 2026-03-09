@@ -1,0 +1,56 @@
+# ==================== MentorHub Cloud Platform Requirements ====================
+# Optional dependencies for specific cloud platforms
+# Install only if deploying on the corresponding platform
+
+# ------------------- Render -------------------
+# Render automatically sets DATABASE_URL and PORT
+# No additional packages needed
+
+# ------------------- Railway -------------------
+# Railway automatically sets DATABASE_URL, PORT, RAILWAY_* variables
+# No additional packages needed
+
+# ------------------- Fly.io -------------------
+# Fly.io uses FLY_* environment variables
+# No additional packages needed
+
+# ------------------- Amvera -------------------
+# Amvera uses custom volume mounts and environment variables
+# No additional packages needed
+
+# ------------------- Google Cloud Run -------------------
+# For Cloud SQL connections (if not using public IP)
+# Uncomment if using Cloud SQL Auth Proxy
+# cloud-sql-python-connector[pg8000]>=1.0.0
+
+# ------------------- AWS (ECS/App Runner/Lambda) -------------------
+# For RDS connections and AWS services
+# Already included: boto3
+# For Secrets Manager integration:
+# aws-secretsmanager-caching>=1.1.0
+
+# ------------------- Azure (App Service/Container Apps) -------------------
+# For Azure Database for PostgreSQL
+# Uncomment if using Azure services
+# azure-identity>=1.15.0
+# azure-keyvault-secrets>=4.7.0
+
+# ------------------- Heroku -------------------
+# Heroku sets DATABASE_URL automatically
+# For additional Heroku features:
+# Uncomment if needed
+# sentry-sdk[fastapi]>=2.0.0  # Already included
+
+# ------------------- DigitalOcean App Platform -------------------
+# DigitalOcean sets DATABASE_URL automatically
+# No additional packages needed
+
+# ------------------- Vercel (Serverless) -------------------
+# For serverless deployment
+# Uncomment if deploying on Vercel
+# vercel>=37.0.0
+
+# ------------------- Cloudflare Workers -------------------
+# For Workers deployment (requires different approach)
+# Uncomment if using Workers
+# pyodide>=0.23.0

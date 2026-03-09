@@ -1,0 +1,43 @@
+# ==================== MentorHub Production Requirements ====================
+# Production dependencies - includes base + production-specific packages
+# Install with: pip install -r requirements-prod.txt
+
+# Include base requirements
+-r requirements-base.txt
+
+# ------------------- Production Server -------------------
+# Gunicorn for production (Unix/Linux/Mac)
+gunicorn>=21.0.0; sys_platform != 'win32'
+
+# ------------------- Database Driver -------------------
+# Use psycopg2 (not binary) in production for better compatibility
+# psycopg2>=2.9.9; sys_platform != 'win32'
+# Keep psycopg2-binary for Windows compatibility
+psycopg2-binary>=2.9.9
+
+# ------------------- Performance -------------------
+# uvloop for better async performance (Unix only)
+uvloop>=0.19.0; sys_platform != 'win32'
+
+# httptools for faster HTTP parsing (Unix only)
+httptools>=0.6.0; sys_platform != 'win32'
+
+# ------------------- Error Tracking -------------------
+# Sentry SDK with all integrations
+sentry-sdk[fastapi,redis,sqlalchemy,celery]>=2.0.0
+
+# ------------------- Security -------------------
+# Additional security packages for production
+python-multipart>=0.0.20
+
+# ------------------- Cloud Platform Support -------------------
+# Render/Railway/Fly.io - these platforms set DATABASE_URL automatically
+# No additional packages needed - using standard PostgreSQL driver
+
+# ------------------- Optional: Agora Video (if needed) -------------------
+# Uncomment if using Agora server-side token generation
+# agora-token>=2.0.0
+
+# ------------------- Optional: SBP Payments (Russia) -------------------
+# Uncomment if using SBP payments
+# sbp-qr>=0.2.0
