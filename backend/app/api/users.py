@@ -12,7 +12,7 @@ from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import PaginatedResponse
 from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
-from app.utils.cache import cached, invalidate_cache, CACHE_TTL
+from app.services.cache import cached
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -66,16 +66,12 @@ async def update_current_user_profile(
     db.refresh(current_user)
 
     logger.info(f"Профиль пользователя обновлен: {current_user.email}")
-    
-    # Инвалидируем кеш обновленного пользователя
-    import asyncio
-    asyncio.create_task(invalidate_cache(f"user_detail:{current_user.id}"))
 
     return current_user
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-@cached(ttl=CACHE_TTL['user'], key_prefix="user_detail")
+@cached(ttl=600, key_prefix="user_detail")
 async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить пользователя по ID"""
     # Проверка на корректность ID
