@@ -133,11 +133,11 @@ export default function PaymentIntegration() {
 
   const handlePayment = async (planId: string) => {
     // Проверка авторизации перед оплатой
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/payment')
       return
     }
-    
+
     setProcessing(true)
     setSelectedPlan(planId)
 
@@ -166,9 +166,9 @@ export default function PaymentIntegration() {
 
   const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Проверка авторизации перед добавлением карты
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/payment')
       return
     }
