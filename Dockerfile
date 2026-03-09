@@ -63,9 +63,7 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
-    # Оптимизация памяти для Node.js
-    NODE_OPTIONS="--max-old-space-size=128 --optimize-for-size" \
-    # Оптимизация для Python
+    # Оптимизация памяти для Python
     PYTHONMALLOC=malloc \
     MALLOC_ARENA_MAX=2
 
@@ -85,10 +83,6 @@ COPY --from=frontend-builder /app/frontend/public ./public
 # Копируем скрипт запуска
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
-
-# Очищаем кэши для уменьшения размера
-RUN npm cache clean --force && \
-    rm -rf /root/.npm /root/.node-gyp /tmp/*
 
 # Устанавливаем владельца на appuser
 RUN chown -R appuser:appgroup /app
