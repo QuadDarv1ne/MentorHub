@@ -4,6 +4,7 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 """
 
 import logging
+from collections import defaultdict
 from typing import Generator, Optional
 from datetime import datetime, timedelta, timezone
 
@@ -398,9 +399,6 @@ def verify_session_access(
 
 
 # ==================== RATE LIMITING DEPENDENCY ====================
-
-from collections import defaultdict
-from datetime import datetime, timedelta
 
 
 class RateLimiter:
