@@ -12,12 +12,16 @@ interface LazyComponentOptions {
 
 /**
  * Lazy загрузка компонентов с loading fallback
+ * Поддерживает как default, так и именованные экспорты
  */
 export function createLazyComponent<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
+  importFn: () => Promise<{ default?: T } | T>,
   options?: LazyComponentOptions
 ) {
-  return dynamic<T>(importFn, {
+  return dynamic<T>(async () => {
+    const module = await importFn()
+    return module.default || (module as T)
+  }, {
     loading: options?.loading,
     ssr: options?.ssr ?? true,
   })
