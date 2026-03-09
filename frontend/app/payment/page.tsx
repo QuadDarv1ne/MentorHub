@@ -68,7 +68,7 @@ export default function PaymentIntegration() {
 
   // Проверка авторизации
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/payment')
     } else {
       setIsLoading(true)

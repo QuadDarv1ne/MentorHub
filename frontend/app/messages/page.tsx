@@ -121,7 +121,7 @@ export default function MessagesPage() {
 
   // Проверка авторизации
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/messages')
     } else {
       setIsLoading(true)

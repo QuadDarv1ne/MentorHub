@@ -33,20 +33,22 @@ interface Subscription {
 
 export default function BillingPage() {
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'subscription' | 'payments' | 'invoices' | 'billing'>('subscription')
   const [showAddCard, setShowAddCard] = useState(false)
 
   // Проверка авторизации
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (authLoading) return
+    
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/billing')
     } else {
       setIsLoading(true)
       setTimeout(() => setIsLoading(false), 300)
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, authLoading, router])
 
   if (isLoading) {
     return (

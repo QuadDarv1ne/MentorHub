@@ -21,7 +21,7 @@ export default function SettingsPage() {
 
   // Проверка авторизации
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/settings')
     } else {
       setIsLoading(true)

@@ -89,7 +89,7 @@ export default function SessionsPage() {
 
   // Проверка авторизации
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push('/auth/login?redirect=/sessions')
     } else {
       setIsLoading(true)

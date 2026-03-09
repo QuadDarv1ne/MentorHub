@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
-    if (token && isAuthenticated()) {
+    if (token && isAuthenticated) {
       // Fetch user data
       fetch('http://localhost:8000/api/v1/users/me', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -202,7 +202,7 @@ export default function DashboardPage() {
     return <PageLoader text="Загрузка личного кабинета..." />;
   }
 
-  if (!isAuthenticated()) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card padding="lg" className="max-w-md w-full text-center">
