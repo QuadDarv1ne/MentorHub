@@ -17,7 +17,7 @@ echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
 
 # Оптимизация памяти для Node.js (Frontend)
-export NODE_OPTIONS="--max-old-space-size=256 --optimize-for-size"
+export NODE_OPTIONS="--max-old-space-size=256"
 
 # Оптимизация для Python (Backend)
 export PYTHONMALLOC=malloc
