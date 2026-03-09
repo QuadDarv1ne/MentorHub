@@ -14,13 +14,13 @@ from app.models.user import User
 from app.models.mentor import Mentor
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, LessonCreate, LessonUpdate, LessonResponse, CourseEnrollmentCreate, CourseEnrollmentUpdate, CourseEnrollmentResponse, CourseWithLessonsResponse, CourseWithEnrollmentResponse
 from app.utils.sanitization import sanitize_text_field, is_safe_string
-from app.utils.cache import cached, invalidate_cache, CACHE_TTL
+from app.services.cache import cached, cache_service
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[CourseResponse])
-@cached(ttl=CACHE_TTL['course'], key_prefix="courses_list")
+@cached(ttl=1800, key_prefix="courses_list")
 async def get_courses(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
@@ -81,7 +81,7 @@ async def get_my_courses(
 
 
 @router.get("/{course_id}", response_model=CourseWithLessonsResponse)
-@cached(ttl=CACHE_TTL['course'], key_prefix="course_detail")
+@cached(ttl=1800, key_prefix="course_detail")
 async def get_course(course_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о курсе по ID с уроками"""
     # Используем joinedload для загрузки instructor и lessons вместе с курсом (избегаем N+1)

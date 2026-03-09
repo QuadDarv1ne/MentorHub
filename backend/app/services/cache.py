@@ -6,6 +6,7 @@ import logging
 from typing import Any, Optional
 import json
 from datetime import timedelta
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,6 @@ class CacheService:
                 self.redis_client.setex(key, ttl, serialized)
             else:
                 self.memory_cache[key] = value
-                # Note: memory cache doesn't support TTL
 
             return True
         except Exception as e:
@@ -124,25 +124,24 @@ def cached(ttl: int = 3600, key_prefix: str = ""):
 
     Usage:
         @cached(ttl=600, key_prefix="user")
-        def get_user(user_id: int):
+        async def get_user(user_id: int):
             return db.query(User).filter(User.id == user_id).first()
     """
 
     def decorator(func):
-        def wrapper(*args, **kwargs):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
             # Generate cache key from function name and arguments
             cache_key = f"{key_prefix}:{func.__name__}:{str(args)}:{str(kwargs)}"
 
             # Try to get from cache
             cached_result = cache_service.get(cache_key)
             if cached_result is not None:
-                logger.debug(f"Cache hit for {cache_key}")
                 return cached_result
 
             # Execute function and cache result
-            result = func(*args, **kwargs)
+            result = await func(*args, **kwargs)
             cache_service.set(cache_key, result, ttl)
-            logger.debug(f"Cached result for {cache_key}")
 
             return result
 
