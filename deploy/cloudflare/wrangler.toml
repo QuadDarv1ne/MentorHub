@@ -1,87 +1,33 @@
 # Cloudflare Pages Configuration
 # https://developers.cloudflare.com/pages/
+#
+# Быстрый старт:
+# 1. npm install -g wrangler
+# 2. wrangler login
+# 3. ./deploy/cloudflare/deploy.sh
+
+name = "mentorhub-frontend"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 # Build settings
-build:
-  # Build command
-  command: "cd frontend && npm install && npm run build"
-  
-  # Output directory
-  path: "frontend/.next"
-  
-  # Root directory
-  root: "frontend"
-  
-  # Environment variables
-  environment:
-    NODE_VERSION: "18"
-    NEXT_TELEMETRY_DISABLED: "1"
-    
-# Deployment settings
-deploy:
-  # Production branch
-  production_branch: main
-  
-  # Preview deployments
-  preview_branches:
-    enabled: true
-    auto_deploy: true
-    
-# Functions (Cloudflare Workers)
-functions:
-  # Functions directory
-  directory: "frontend/functions"
-  
-  # Node.js compatibility
-  nodejs_compat: true
-  
-# Routes and redirects
-routes:
-  # API proxy
-  - pattern: "/api/*"
-    to: "https://api.mentorhub.com/api/:splat"
-    status: 200
-    
-  # SPA fallback
-  - pattern: "/*"
-    to: "/index.html"
-    status: 200
-    
-# Security headers
-headers:
-  - pattern: "/*"
-    headers:
-      X-Frame-Options: "DENY"
-      X-Content-Type-Options: "nosniff"
-      X-XSS-Protection: "1; mode=block"
-      Referrer-Policy: "strict-origin-when-cross-origin"
-      Permissions-Policy: "camera=(), microphone=(), geolocation=()"
-      Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"
-      
-  - pattern: "/static/*"
-    headers:
-      Cache-Control: "public, max-age=31536000, immutable"
-      
-# Cache rules
-cache:
-  - pattern: "/static/*"
-    ttl: 31536000
-    
-  - pattern: "/*"
-    ttl: 3600
-    
-# Environment overrides
-environments:
-  production:
-    build:
-      environment:
-        NEXT_PUBLIC_API_URL: "https://api.mentorhub.com"
-        NODE_ENV: "production"
-        
-  staging:
-    build:
-      environment:
-        NEXT_PUBLIC_API_URL: "https://staging-api.mentorhub.com"
-        NODE_ENV: "staging"
-    deploy:
-      production_branch: staging
+[build]
+command = "cd frontend && npm install && npm run build"
+build_caching = true
+
+# Pages deployment settings
+[site]
+bucket = "./frontend/.next"
+
+# Environment variables
+[vars]
+NEXT_TELEMETRY_DISABLED = "1"
+NODE_ENV = "production"
+
+# Production environment
+[env.production]
+vars = { NEXT_PUBLIC_API_BASE_URL = "https://mentorhub-api.onrender.com/api/v1", NEXT_PUBLIC_SITE_URL = "https://mentorhub.pages.dev" }
+
+# Staging environment
+[env.staging]
+vars = { NEXT_PUBLIC_API_BASE_URL = "https://staging-mentorhub.onrender.com/api/v1", NEXT_PUBLIC_SITE_URL = "https://staging-mentorhub.pages.dev" }
