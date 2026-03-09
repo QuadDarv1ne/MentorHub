@@ -15,10 +15,18 @@ services:
       - media_volume:/app/media
     depends_on:
       - backend
+        condition: service_healthy
       - frontend
+        condition: service_healthy
     networks:
       - mentorhub_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     # Performance tuning
     ulimits:
       nproc: 65535
@@ -166,9 +174,17 @@ services:
       - logs_volume:/app/logs
     depends_on:
       - postgres
+        condition: service_healthy
       - redis
+        condition: service_healthy
     networks:
       - mentorhub_network
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.celery_app inspect ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
     deploy:
       resources:
@@ -196,9 +212,17 @@ services:
       - logs_volume:/app/logs
     depends_on:
       - postgres
+        condition: service_healthy
       - redis
+        condition: service_healthy
     networks:
       - mentorhub_network
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'celery.*beat'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
 
   # Frontend (Next.js)
@@ -214,6 +238,12 @@ services:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     networks:
       - mentorhub_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
     deploy:
       resources:
@@ -262,6 +292,12 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
     networks:
       - mentorhub_network
@@ -280,11 +316,18 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
     networks:
       - mentorhub_network
     depends_on:
       - prometheus
+        condition: service_healthy
 
   # Monitoring - Node Exporter
   node_exporter:
