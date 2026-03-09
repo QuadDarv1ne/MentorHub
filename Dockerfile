@@ -71,7 +71,8 @@ ENV PYTHONUNBUFFERED=1 \
 COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
-# Копируем backend код
+# Копируем backend код в правильную директорию
+WORKDIR /app
 COPY backend/ ./backend/
 
 # Копируем frontend build
@@ -81,6 +82,7 @@ COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
 COPY --from=frontend-builder /app/frontend/public ./public
 
 # Копируем скрипт запуска
+WORKDIR /app
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 

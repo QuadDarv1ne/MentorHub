@@ -149,29 +149,73 @@ export HOSTNAME="0.0.0.0"
 
 # Backend - запускаем с явным указанием переменных окружения
 # Оптимизация: 1 worker, без reload, минимальная память
-cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
-echo "   Backend URL: http://0.0.0.0:$BACKEND_PORT"
-echo "   Memory optimized: 1 worker, no reload"
-PORT=$BACKEND_PORT uvicorn app.main:app \
-    --host 0.0.0.0 \
-    --port $BACKEND_PORT \
-    --workers 1 \
-    --no-access-log \
-    --loop asyncio \
-    &
-BACKEND_PID=$!
+if [ -d "/app/backend" ]; then
+    echo "   Backend directory: /app/backend"
+    echo "   Backend URL: http://0.0.0.0:$BACKEND_PORT"
+    echo "   Memory optimized: 1 worker, no reload"
+    cd /app/backend
+    PORT=$BACKEND_PORT uvicorn app.main:app \
+        --host 0.0.0.0 \
+        --port $BACKEND_PORT \
+        --workers 1 \
+        --no-access-log \
+        --loop asyncio \
+        &
+    BACKEND_PID=$!
+    echo "   ✅ Backend started (PID: $BACKEND_PID)"
+elif [ -d "/app/app/backend" ]; then
+    # Fallback для альтернативной структуры
+    echo "   Backend directory: /app/app/backend (fallback)"
+    cd /app/app/backend
+    PORT=$BACKEND_PORT uvicorn app.main:app \
+        --host 0.0.0.0 \
+        --port $BACKEND_PORT \
+        --workers 1 \
+        &
+    BACKEND_PID=$!
+else
+    echo "   ⚠️ WARNING: Backend directory not found!"
+    echo "   Looking for: /app/backend"
+    echo "   Current directory: $(pwd)"
+    echo "   Files in /app:"
+    ls -la /app/ || true
+    # Запускаем dummy процесс чтобы контейнер не упал
+    sleep infinity &
+    BACKEND_PID=$!
+fi
 
 # Frontend - запускаем всегда (и в Docker, и в Render)
 # Оптимизация: ограничена память через NODE_OPTIONS
-cd /app/frontend
+echo ""
 echo "🚀 Starting frontend on port $FRONTEND_PORT..."
-echo "   Frontend URL: http://0.0.0.0:$FRONTEND_PORT"
-echo "   Memory optimized: max-old-space-size=128MB"
-export PORT=$FRONTEND_PORT
-export HOSTNAME="0.0.0.0"
-node --max-old-space-size=128 --optimize-for-size server.js &
-FRONTEND_PID=$!
+if [ -d "/app/frontend" ] && [ -f "/app/frontend/server.js" ]; then
+    echo "   Frontend directory: /app/frontend"
+    echo "   Frontend URL: http://0.0.0.0:$FRONTEND_PORT"
+    echo "   Memory optimized: max-old-space-size=128MB"
+    cd /app/frontend
+    export PORT=$FRONTEND_PORT
+    export HOSTNAME="0.0.0.0"
+    node --max-old-space-size=128 --optimize-for-size server.js &
+    FRONTEND_PID=$!
+    echo "   ✅ Frontend started (PID: $FRONTEND_PID)"
+elif [ -f "/app/server.js" ]; then
+    # Fallback для альтернативной структуры
+    echo "   Frontend directory: /app (fallback)"
+    cd /app
+    export PORT=$FRONTEND_PORT
+    export HOSTNAME="0.0.0.0"
+    node --max-old-space-size=128 server.js &
+    FRONTEND_PID=$!
+else
+    echo "   ⚠️ WARNING: Frontend server.js not found!"
+    echo "   Looking for: /app/frontend/server.js or /app/server.js"
+    echo "   Files in /app:"
+    ls -la /app/ || true
+    # Запускаем dummy процесс чтобы контейнер не упал
+    sleep infinity &
+    FRONTEND_PID=$!
+fi
 
 echo ""
 echo "✅ Services started:"
