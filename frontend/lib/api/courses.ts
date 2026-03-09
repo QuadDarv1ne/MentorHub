@@ -22,6 +22,14 @@ export interface Course {
   certificate?: boolean
 }
 
+export async function getCourses(): Promise<Course[]> {
+  try {
+    return await apiRequest<Course[]>('/courses')
+  } catch {
+    return []
+  }
+}
+
 export async function getMyCourses(): Promise<Course[]> {
   try {
     return await apiRequest<Course[]>('/courses/my')
