@@ -16,6 +16,7 @@ services:
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    dockerCommand: /app/start.sh
     healthCheckPath: /api/v1/health/ready
     envVars:
       - key: RENDER

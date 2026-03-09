@@ -88,11 +88,11 @@ COPY --from=frontend-builder /app/frontend/public ./public
 
 # Копируем скрипт запуска
 WORKDIR /app
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+COPY --chmod=755 start.sh /app/start.sh
 
 # Устанавливаем владельца на appuser
 RUN chown -R appuser:appgroup /app
+RUN chown appuser:appgroup /app/start.sh
 
 USER appuser
 
