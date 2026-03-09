@@ -76,13 +76,12 @@ COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 # ==================== Environment Setup ====================
-# Для Render: PORT должен быть 8000 (backend only)
 ENV BACKEND_PORT=8000 \
     FRONTEND_PORT=3000
 
 # ==================== Health Check ====================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${BACKEND_PORT}/api/v1/health/ready || exit 1
+    CMD curl -f http://localhost:${FRONTEND_PORT}/ || curl -f http://localhost:${BACKEND_PORT}/api/v1/health/ready || exit 1
 
 # ==================== Ports ====================
 EXPOSE 8000 3000

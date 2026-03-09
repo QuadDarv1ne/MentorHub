@@ -130,8 +130,8 @@ echo "🎯 Starting Backend and Frontend..."
 echo ""
 
 # Export all environment variables for child processes
-# Для Render: используем BACKEND_PORT, а не PORT (чтобы избежать конфликта)
 export BACKEND_PORT=$BACKEND_PORT
+export FRONTEND_PORT=$FRONTEND_PORT
 export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 
 # Backend - запускаем с явным указанием переменных окружения
