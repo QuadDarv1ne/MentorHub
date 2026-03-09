@@ -238,22 +238,19 @@ def cached(ttl: int = 300, key_prefix: str = "", skip_auth: bool = False, cache_
             # Попытка получить из кеша
             cached_result = await cache_manager.get(cache_key)
             if cached_result is not None:
-                logger.debug(f"🎯 Cache HIT: {cache_key}")
                 return cached_result
 
             # Выполнение функции
-            logger.debug(f"❌ Cache MISS: {cache_key}")
             try:
                 result = await func(*args, **kwargs)
-                
+
                 # Сохранение в кеш
                 if result is not None or cache_none:
                     await cache_manager.set(cache_key, result, ttl)
-                
+
                 return result
             except Exception as e:
                 if invalidate_on_error:
-                    # Инвалидируем кеш при ошибке
                     await cache_manager.delete(cache_key)
                 raise
 

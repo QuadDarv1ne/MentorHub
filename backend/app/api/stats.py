@@ -5,9 +5,7 @@ Provides platform statistics and analytics
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
-from datetime import datetime, timedelta
-from typing import Optional
+from sqlalchemy import func
 
 from app.database import get_db
 from app.models.user import User

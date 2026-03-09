@@ -6,7 +6,6 @@ API для работы с профилями менторов
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc
 
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.mentor import Mentor

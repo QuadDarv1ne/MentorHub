@@ -6,7 +6,6 @@ API для работы с курсами
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc
 
 from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.course import Course, Lesson, CourseEnrollment
@@ -14,7 +13,7 @@ from app.models.user import User
 from app.models.mentor import Mentor
 from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, LessonCreate, LessonUpdate, LessonResponse, CourseEnrollmentCreate, CourseEnrollmentUpdate, CourseEnrollmentResponse, CourseWithLessonsResponse, CourseWithEnrollmentResponse
 from app.utils.sanitization import sanitize_text_field, is_safe_string
-from app.services.cache import cached, cache_service
+from app.services.cache import cached
 
 router = APIRouter()
 

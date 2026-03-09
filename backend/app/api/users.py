@@ -3,7 +3,6 @@
 Обработка операций с профилем пользователя
 """
 
-import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -14,7 +13,6 @@ from app.schemas.common import PaginatedResponse
 from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
 from app.services.cache import cached
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
