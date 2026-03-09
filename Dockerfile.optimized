@@ -62,7 +62,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
     # Оптимизация памяти для Node.js
-    NODE_OPTIONS="--max-old-space-size=128 --optimize-for-size" \
+    NODE_OPTIONS="--max-old-space-size=128" \
     # Оптимизация для Python
     PYTHONMALLOC=malloc \
     MALLOC_ARENA_MAX=2

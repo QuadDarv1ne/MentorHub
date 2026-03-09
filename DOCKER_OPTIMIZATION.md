@@ -43,12 +43,12 @@ FROM node:18-alpine
 ### 3. **Оптимизация памяти Node.js**
 
 ```dockerfile
-ENV NODE_OPTIONS="--max-old-space-size=128 --optimize-for-size"
+ENV NODE_OPTIONS="--max-old-space-size=128"
 ```
 
 **В start.sh:**
 ```bash
-node --max-old-space-size=128 --optimize-for-size server.js
+node --max-old-space-size=128 server.js
 ```
 
 **Преимущества:**
