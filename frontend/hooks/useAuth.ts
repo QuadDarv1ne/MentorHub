@@ -173,11 +173,13 @@ export function useOptionalAuth(): {
 } {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('access_token');
-      
+      setIsAuthenticated(!!token);
+
       if (token) {
         try {
           const response = await fetch('/api/v1/users/me', {
@@ -194,14 +196,13 @@ export function useOptionalAuth(): {
           console.error('Optional auth check failed:', err);
         }
       }
-      
+
       setLoading(false);
     };
 
     initAuth();
   }, []);
 
-  const isAuthenticated = () => !!localStorage.getItem('access_token');
   const getToken = () => localStorage.getItem('access_token');
 
   return {
