@@ -58,40 +58,44 @@ find_free_port() {
 # ОПРЕДЕЛЕНИЕ ПОРТА
 # =====================================================
 
-if [ -n "$PORT" ]; then
-    PREFERRED_PORT=$PORT
-elif [ -n "$BACKEND_PORT" ]; then
-    PREFERRED_PORT=$BACKEND_PORT
-else
-    PREFERRED_PORT=8000
-fi
-
-FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+# Render устанавливает PORT=3000 для frontend
+# BACKEND_PORT используется для backend (по умолчанию 8000)
+FRONTEND_PORT="${PORT:-${FRONTEND_PORT:-3000}}"
+BACKEND_PORT="${BACKEND_PORT:-8000}"
 
 echo "========================================="
 echo "🔍 MentorHub Port Detection"
 echo "========================================="
-echo "Preferred port: $PREFERRED_PORT"
+echo "Frontend port: $FRONTEND_PORT"
+echo "Backend port: $BACKEND_PORT"
 
-if is_port_free $PREFERRED_PORT; then
-    BACKEND_PORT=$PREFERRED_PORT
-    echo "✅ Port $PREFERRED_PORT is available"
+if is_port_free $FRONTEND_PORT; then
+    echo "✅ Frontend port $FRONTEND_PORT is available"
 else
-    echo "⚠️ Port $PREFERRED_PORT is in use, searching..."
-    BACKEND_PORT=$(find_free_port $((PREFERRED_PORT + 1)))
+    echo "⚠️ Frontend port $FRONTEND_PORT is in use, searching..."
+    FRONTEND_PORT=$(find_free_port $((FRONTEND_PORT + 1)))
+    echo "✅ Found free port: $FRONTEND_PORT"
+fi
+
+if is_port_free $BACKEND_PORT; then
+    echo "✅ Backend port $BACKEND_PORT is available"
+else
+    echo "⚠️ Backend port $BACKEND_PORT is in use, searching..."
+    BACKEND_PORT=$(find_free_port $((BACKEND_PORT + 1)))
     echo "✅ Found free port: $BACKEND_PORT"
 fi
 
 echo "========================================="
 echo "🚀 Starting MentorHub..."
 echo "========================================="
-echo "Backend port:  $BACKEND_PORT"
 echo "Frontend port: $FRONTEND_PORT"
+echo "Backend port:  $BACKEND_PORT"
 echo "Environment:   ${ENVIRONMENT:-production}"
 echo "========================================="
 
-export PORT=$BACKEND_PORT
+export PORT=$FRONTEND_PORT
 export BACKEND_PORT=$BACKEND_PORT
+export FRONTEND_PORT=$FRONTEND_PORT
 
 # =====================================================
 # DATABASE WAIT (опционально)
@@ -133,7 +137,7 @@ export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 # Backend - запускаем с явным указанием переменных окружения
 cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
-BACKEND_PORT=$BACKEND_PORT PORT=$BACKEND_PORT uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
+PORT=$BACKEND_PORT uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
 # Frontend - запускаем всегда (и в Docker, и в Render)

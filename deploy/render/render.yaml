@@ -7,9 +7,9 @@
 # 3. Manual Deploy
 
 services:
-  # ==================== BACKEND (Docker) ====================
+  # ==================== BACKEND + FRONTEND (Docker) ====================
   - type: web
-    name: mentorhub-backend
+    name: mentorhub
     env: docker
     region: frankfurt
     plan: starter
@@ -23,9 +23,11 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: PORT
-        value: "8000"
+        value: "3000"
       - key: BACKEND_PORT
         value: "8000"
+      - key: FRONTEND_PORT
+        value: "3000"
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
