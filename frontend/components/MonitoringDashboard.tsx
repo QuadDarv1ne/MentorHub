@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Server, 
-  Activity, 
-  AlertTriangle, 
-  Clock, 
+import {
+  Server,
+  Activity,
+  AlertTriangle,
+  Clock,
   HardDrive,
   Cpu,
   MemoryStick,
@@ -17,15 +17,17 @@ import Card from '@/components/ui/Card';
 import MetricCard from '@/components/ui/MetricCard';
 import Chart from '@/components/ui/Chart';
 import AlertDisplay from '@/components/ui/AlertDisplay';
-import { 
-  getMetrics, 
+import {
+  getMetrics,
   getAlerts,
   updateAlertThresholds,
   resetMetrics
 } from '@/lib/api/monitoring';
 import { MetricsData, Alert } from '@/lib/api/monitoring';
+import { useToast } from '@/lib/hooks/useNotifications';
 
 const MonitoringDashboard: React.FC = () => {
+  const { success, error: showError } = useToast();
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,9 +71,9 @@ const MonitoringDashboard: React.FC = () => {
       try {
         await resetMetrics();
         fetchMetrics(); // Refresh after reset
-        alert('Метрики успешно сброшены');
+        success('Метрики успешно сброшены');
       } catch (err) {
-        alert('Ошибка при сбросе метрик');
+        showError('Ошибка при сбросе метрик');
         console.error('Error resetting metrics:', err);
       }
     }
@@ -91,9 +93,9 @@ const MonitoringDashboard: React.FC = () => {
       await updateAlertThresholds(newThresholds);
       setShowThresholdModal(false);
       fetchMetrics(); // Refresh after update
-      alert('Пороговые значения успешно обновлены');
+      success('Пороговые значения успешно обновлены');
     } catch (err) {
-      alert('Ошибка при обновлении пороговых значений');
+      showError('Ошибка при обновлении пороговых значений');
       console.error('Error updating thresholds:', err);
     }
   };
