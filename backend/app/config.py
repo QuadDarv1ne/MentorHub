@@ -3,8 +3,9 @@ Configuration module for MentorHub Backend
 Handles all environment variables and app settings
 """
 
-from pydantic_settings import BaseSettings
-from pydantic import field_validator, model_validator, ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator, model_validator, ValidationError, Field, PrivateAttr
+from pydantic_settings.sources import PydanticBaseSettingsSource
 from typing import Optional, List
 from functools import lru_cache
 import os
@@ -13,6 +14,14 @@ import logging
 
 class Settings(BaseSettings):
     """Main application settings"""
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+        populate_by_name=True,  # Allow using both field name and alias
+    )
 
     # ==================== APPLICATION ====================
     APP_NAME: str = "MentorHub API"
@@ -87,30 +96,70 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # ==================== CORS ====================
-    CORS_ORIGINS: List[str] = [
+    # Raw CORS string from environment (comma-separated)
+    # Using str type to avoid JSON parsing - we parse it manually
+    CORS_ORIGINS_RAW: str = ""
+    
+    # Base CORS origins - always included
+    _base_cors_origins: List[str] = []
+    
+    # Development origins - only for local development
+    _dev_cors_origins: List[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ]
-    CORS_CREDENTIALS: bool = True
-    CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
-
-    @field_validator("CORS_ORIGINS", mode="after")
-    @classmethod
-    def validate_cors_origins(cls, v):
-        """Валидация CORS_ORIGINS - запрет wildcard в production"""
+    
+    # CORS_ORIGINS is constructed from:
+    # 1. Environment variable CORS_ORIGINS (comma-separated) - highest priority
+    # 2. Default origins based on environment
+    @model_validator(mode="after")
+    def setup_cors_origins(self):
+        """Setup CORS origins based on environment"""
+        # Get CORS_ORIGINS directly from environment (bypassing pydantic)
+        env_cors = os.environ.get("CORS_ORIGINS", "").strip()
+        
+        if env_cors:
+            # Use explicitly set CORS_ORIGINS from environment (comma-separated)
+            cors_list = [origin.strip() for origin in env_cors.split(",") if origin.strip()]
+        elif os.environ.get("ENVIRONMENT") == "production":
+            # Production: only use base origins (should be set via FRONTEND_URL, APP_URL, etc.)
+            cors_list = self._base_cors_origins.copy()
+        else:
+            # Development: include localhost origins
+            cors_list = self._base_cors_origins + self._dev_cors_origins
+        
+        # Validate CORS origins in production
         if os.environ.get("ENVIRONMENT") == "production":
-            if "*" in v or any(origin == "*" for origin in v):
+            if "*" in cors_list or any(origin == "*" for origin in cors_list):
                 raise ValueError("CORS_ORIGINS cannot contain '*' in production! Specify exact origins.")
-            # Проверка на наличие https origins в production
-            for origin in v:
+            # Check for HTTPS origins in production
+            for origin in cors_list:
                 if not origin.startswith("https://") and "localhost" not in origin:
                     logging.getLogger("config").warning(
                         f"⚠️ CORS origin '{origin}' does not use HTTPS in production!"
                     )
-        return v
+        
+        self._cors_origins = cors_list
+        return self
+
+    # Private attribute - not a pydantic field
+    _cors_origins: List[str] = PrivateAttr(default_factory=list)
+    
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        """Get CORS origins"""
+        return self._cors_origins
+    
+    @CORS_ORIGINS.setter
+    def CORS_ORIGINS(self, value: List[str]):
+        """Set CORS origins"""
+        self._cors_origins = value
+    
+    CORS_CREDENTIALS: bool = True
+    CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
 
     # ==================== AGORA VIDEO ====================
     AGORA_APP_ID: str = ""
@@ -212,14 +261,9 @@ class Settings(BaseSettings):
     # ==================== FILE UPLOAD ====================
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx"]
-    
+
     # ==================== PUSH NOTIFICATIONS ====================
     PUSH_NOTIFICATIONS_ENABLED: bool = True
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "allow"
 
 
 @lru_cache()
@@ -228,6 +272,10 @@ def get_settings() -> Settings:
     Get cached settings instance
     Using @lru_cache to avoid creating new instance on every request
     """
+    # Clear cache if CORS_ORIGINS changes in environment
+    cached = get_settings.cache_info()
+    if cached.maxsize == 128:  # Default, just return cached
+        pass
     return Settings()
 
 

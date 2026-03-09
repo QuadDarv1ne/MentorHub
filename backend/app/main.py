@@ -17,7 +17,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -432,6 +432,7 @@ async def log_requests(request: Request, call_next):
 
 # Root endpoint
 @app.get("/", tags=["Root"])
+@app.head("/", tags=["Root"], include_in_schema=False)
 async def root():
     """Welcome endpoint"""
     return {
@@ -440,6 +441,13 @@ async def root():
         "environment": settings.ENVIRONMENT,
         "docs": "/docs" if not is_production() else None,
     }
+
+
+# Favicon endpoint (prevents 404 errors)
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Return empty favicon to prevent 404 errors"""
+    return Response(status_code=204)
 
 
 # Prometheus metrics endpoint
