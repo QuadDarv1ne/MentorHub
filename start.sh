@@ -1,6 +1,6 @@
 #!/bin/bash
 # =====================================================
-# MentorHub Startup Script
+# MentorHub Startup Script - Optimized for Low Memory
 # С автоматическим определением свободного порта
 # =====================================================
 
@@ -15,6 +15,14 @@ echo "DATABASE_URL: ${DATABASE_URL:-not set}"
 echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
 echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
+
+# Оптимизация памяти для Node.js (Frontend)
+export NODE_OPTIONS="--max-old-space-size=128 --optimize-for-size --max-semi-space-size=16"
+
+# Оптимизация для Python (Backend)
+export PYTHONMALLOC=malloc
+export MALLOC_ARENA_MAX=2
+export PYTHONDONTWRITEBYTECODE=1
 
 # Проверка критических переменных для production (предупреждение, не ошибка)
 if [ "${ENVIRONMENT}" = "production" ] && [ -z "${DATABASE_URL}" ]; then
@@ -140,25 +148,36 @@ export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 export HOSTNAME="0.0.0.0"
 
 # Backend - запускаем с явным указанием переменных окружения
+# Оптимизация: 1 worker, без reload, минимальная память
 cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
 echo "   Backend URL: http://0.0.0.0:$BACKEND_PORT"
-PORT=$BACKEND_PORT uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
+echo "   Memory optimized: 1 worker, no reload"
+PORT=$BACKEND_PORT uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port $BACKEND_PORT \
+    --workers 1 \
+    --no-access-log \
+    --loop asyncio \
+    &
 BACKEND_PID=$!
 
 # Frontend - запускаем всегда (и в Docker, и в Render)
+# Оптимизация: ограничена память через NODE_OPTIONS
 cd /app/frontend
 echo "🚀 Starting frontend on port $FRONTEND_PORT..."
 echo "   Frontend URL: http://0.0.0.0:$FRONTEND_PORT"
+echo "   Memory optimized: max-old-space-size=128MB"
 export PORT=$FRONTEND_PORT
 export HOSTNAME="0.0.0.0"
-node server.js &
+node --max-old-space-size=128 --optimize-for-size server.js &
 FRONTEND_PID=$!
 
 echo ""
 echo "✅ Services started:"
 echo "   Backend PID: $BACKEND_PID on port $BACKEND_PORT"
 echo "   Frontend PID: $FRONTEND_PID on port $FRONTEND_PORT"
+echo "   Memory: Optimized for 512MB RAM"
 echo ""
 
 # Ожидание завершения
