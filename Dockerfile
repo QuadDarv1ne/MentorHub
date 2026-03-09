@@ -2,7 +2,11 @@
 # ОПТИМИЗИРОВАННЫЙ DOCKERFILE ДЛЯ MENTORHUB
 # Оптимизация для Free тарифов (512MB RAM)
 # Fix: start.sh paths corrected (2026-03-09)
+# CACHE_BUST: render-cache-flush-20260309
 # =====================================================
+
+# CACHE_BUST arg для инвалидации кэша Render
+ARG CACHE_BUST=render-cache-flush-20260309
 
 # ==================== STAGE 1: Frontend Build ====================
 FROM node:18-alpine AS frontend-builder
