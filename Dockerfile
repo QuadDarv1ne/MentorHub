@@ -65,10 +65,10 @@ COPY backend/ .
 # ==================== Frontend ====================
 WORKDIR /app/frontend
 
-# Копируем standalone build (включает всё необходимое)
+# Копируем standalone build (включает server.js в package/server.js)
 COPY --from=frontend-builder /app/frontend/.next/standalone ./
 COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
-RUN mkdir -p public
+COPY --from=frontend-builder /app/frontend/public ./public
 
 # ==================== Start Script ====================
 # Скрипт запуска с поддержкой переменной $PORT от облачных платформ

@@ -5,7 +5,6 @@ Handles all environment variables and app settings
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator, model_validator, ValidationError, Field, PrivateAttr
-from pydantic_settings.sources import PydanticBaseSettingsSource
 from typing import Optional, List
 from functools import lru_cache
 import os
@@ -272,10 +271,6 @@ def get_settings() -> Settings:
     Get cached settings instance
     Using @lru_cache to avoid creating new instance on every request
     """
-    # Clear cache if CORS_ORIGINS changes in environment
-    cached = get_settings.cache_info()
-    if cached.maxsize == 128:  # Default, just return cached
-        pass
     return Settings()
 
 
