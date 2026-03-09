@@ -104,13 +104,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             f"IP: {client_ip} | "
             f"User-Agent: {user_agent}"
         )
-        
-        if query_params:
-            logger.debug(f"🔍 [{request_id}] Query params: {query_params}")
-        
-        if body:
-            logger.debug(f"📦 [{request_id}] Request body: {body}")
-        
+
         # Обрабатываем запрос
         try:
             response = await call_next(request)
