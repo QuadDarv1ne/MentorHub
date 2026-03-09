@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Send, X, MessageCircle, User, Check, CheckCheck } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { useOptionalAuth } from '@/hooks/useAuth'
 
 interface Message {
   id: number
@@ -28,7 +28,7 @@ interface ChatWidgetProps {
 }
 
 export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: ChatWidgetProps) {
-  const { getToken } = useAuth()
+  const { getToken } = useOptionalAuth()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -45,7 +45,7 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
 
   // WebSocket connection
   useEffect(() => {
-    const token = getToken()
+    const token = localStorage.getItem('access_token')
     if (!isOpen || !token) return
 
     const websocketUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'}/ws/chat?token=${token}`
@@ -109,7 +109,7 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
       }
       setWs(null)
     }
-  }, [isOpen, getToken])
+  }, [isOpen])
 
   const sendMessage = () => {
     if (!newMessage.trim() || !ws || ws.readyState !== WebSocket.OPEN) return
