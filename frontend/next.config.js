@@ -1,16 +1,15 @@
-const withNextIntl = require('next-intl/plugin')('./i18n.ts');
+const { withSentryConfig } = require('@sentry/nextjs')
+const withNextIntl = require('next-intl/plugin')('./i18n.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone', // Standalone build для Docker
+  output: 'standalone',
 
-  // Оптимизация производительности
   poweredByHeader: false,
   compress: true,
-  
-  // Явно указываем порт для standalone server
+
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
@@ -18,7 +17,6 @@ const nextConfig = {
   },
 
   eslint: {
-    // Временный флаг: не падать на сборке из‑за ESLint ошибок
     ignoreDuringBuilds: true,
   },
 
@@ -38,13 +36,11 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Experimental features для производительности
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react'],
   },
 
-  // Webpack оптимизации
   webpack: (config, {isServer}) => {
     if (!isServer) {
       config.optimization = {
@@ -79,4 +75,14 @@ const nextConfig = {
   },
 }
 
-module.exports = withNextIntl(nextConfig);
+const sentryWebpackPluginOptions = {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+}
+
+module.exports = withSentryConfig(
+  withNextIntl(nextConfig),
+  sentryWebpackPluginOptions
+)
