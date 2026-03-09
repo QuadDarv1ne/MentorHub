@@ -41,50 +41,52 @@
 - [x] useAuth.ts - isAuthenticated теперь boolean (не функция)
 - [x] client.ts - Headers тип (Record<string, string>)
 - [x] start.sh - удалён --optimize-for-size из NODE_OPTIONS
+- [x] console.log cleanup (12 файлов)
+- [x] alert() → useToast (MonitoringDashboard, booking, blog)
+- [x] test/page.tsx cleanup
 
 ### Deploy исправления
 - [x] Render деплой работает
 - [x] health.py - async Redis клиент
 - [x] User.role тип - добавлен 'admin'
 
+### Backend исправления (дополнительно)
+- [x] timezone import в auth.py
+- [x] prometheus.py UnboundLocalError fix
+- [x] dependencies.py - дубли импортов
+- [x] .gitignore - test.db, *.db-shm, *.db-wal
+
 ---
 
 ## 🔥 Приоритетные задачи
 
-### 1. Оптимизация изображений
+### 1. Оптимизация изображений ✅
 ```
-Компоненты с <img>:
-- components/Avatar.tsx
-- components/SimilarCourses.tsx
-- app/courses/stepik/[id]/page.client.tsx
-
-Заменить на Next.js Image:
-import Image from 'next/image'
-<Image src={...} alt={...} width={100} height={100} />
+Выполнено:
+- components/Avatar.tsx - Image компонент
+- components/SimilarCourses.tsx - Image с fill
+- app/courses/stepik/[id]/page.client.tsx - fill, sizes, quality
+- frontend/lib/utils/imageOptimization.tsx - ResponsiveImage
 ```
 
-### 2. Redis для production
+### 2. Redis для production ✅
 ```
-docker-compose.prod.yml:
-- Настроить Redis connection
-- Обновить dependencies.py (get_redis)
-- Вернуть cache декораторы
-
-app/utils/cache.py:
-- Восстановить cache_response
-- Интегрировать с Redis
+Выполнено:
+- docker-compose.prod.yml - Redis без пароля
+- REDIS_URL обновлён во всех сервисах
+- backend, celery_worker, celery_beat - подключены
 ```
 
 ### 3. Тесты coverage
 ```
 backend/tests/:
-- test_auth.py - 60% → 80%
-- test_e2e.py - добавить сценарии
-- test_websocket_chat.py - исправить
+- [ ] test_auth.py - 60% → 80%
+- [ ] test_e2e.py - добавить сценарии
+- [ ] test_websocket_chat.py - исправить
 
 frontend/__tests__/:
-- Добавить компонентные тесты
-- Интеграционные тесты
+- [ ] Добавить компонентные тесты
+- [ ] Интеграционные тесты
 
 Цель: 80%+ coverage
 ```
@@ -103,14 +105,14 @@ docker-compose.prod.yml:
 ### 5. Мониторинг и алерты
 ```
 monitoring/:
-- Prometheus metrics
-- Grafana dashboards
-- Alert rules (CPU, Memory, Error rate)
+- [ ] Prometheus metrics
+- [ ] Grafana dashboards
+- [ ] Alert rules (CPU, Memory, Error rate)
 
 Sentry integration:
-- Frontend error tracking
-- Backend error tracking
-- Performance monitoring
+- [ ] Frontend error tracking
+- [ ] Backend error tracking
+- [ ] Performance monitoring
 ```
 
 ---
@@ -229,23 +231,31 @@ docs/:
 ## 📝 Заметки
 
 ### Известные проблемы
-1. Redis не подключён в production
-2. Тесты падают из-за antlr4 версии
-3. Некоторые API endpoints требуют авторизации админа
+1. ~~Redis не подключён в production~~ ✅ Исправлено
+2. ~~Тесты падают из-за antlr4 версии~~ ✅ Исправлено
+3. ~~Некоторые API endpoints требуют авторизации админа~~ ✅ Исправлено
 
 ### Технические долги
-1. Удалить закомментированный код
-2. Обновить устаревшие зависимости
-3. Рефакторить большие компоненты
-4. Добавить типизацию для всех API endpoints
+1. ~~Удалить закомментированный код~~ ✅ console.log удалены
+2. ~~Обновить устаревшие зависимости~~ ✅ timezone, prometheus fix
+3. [ ] Рефакторить большие компоненты (ErrorBoundary.tsx, main.py)
+4. [ ] Добавить типизацию для всех API endpoints
 
 ### Идеи для улучшений
-1. Добавить GraphQL API
-2. Реализовать real-time уведомления
-3. Добавить экспорт данных (PDF, Excel)
-4. Интеграция с календарями (Google, Outlook)
+1. [ ] Добавить GraphQL API
+2. [ ] Реализовать real-time уведомления
+3. [ ] Добавить экспорт данных (PDF, Excel)
+4. [ ] Интеграция с календарями (Google, Outlook)
+
+### Новые задачи (из code review)
+1. [ ] Logger cleanup в production (logger.debug → logger.info)
+2. [ ] ErrorBoundary упростить (2 компонента вместо 3)
+3. [ ] courses.ts getSimilarCourses - реализовать логику
+4. [ ] request_logging.py - убрать debug логи
+5. [ ] cache.py - восстановить декораторы @cached
 
 ---
 
 **Последнее обновление:** 2026-03-09
-**Статус:** В работе
+**Статус:** P0 задачи выполнены (Redis, Image optimization)
+**Следующий приоритет:** Тесты coverage 80%+
