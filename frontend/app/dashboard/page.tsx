@@ -63,7 +63,8 @@ export default function DashboardPage() {
   const [coursesData, setCoursesData] = useState<Course[]>([])
   const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
-  const { user } = useAuth()
+  const { isAuthenticated, getUserData } = useAuth()
+  const user = getUserData()
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
