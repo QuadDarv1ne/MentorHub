@@ -5,18 +5,21 @@ API для работы с профилями менторов
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, desc
 
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.mentor import Mentor
 from app.models.user import User
 from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
 from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe_string
+from app.utils.cache import cached, invalidate_cache, CACHE_TTL
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[MentorResponse])
+@cached(ttl=CACHE_TTL['mentor'], key_prefix="mentors_list")
 async def get_mentors(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
@@ -27,18 +30,21 @@ async def get_mentors(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    mentors = db.query(Mentor).offset(skip).limit(limit).all()
+    # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
+    mentors = db.query(Mentor).options(joinedload(Mentor.user)).offset(skip).limit(limit).all()
     return mentors
 
 
 @router.get("/{mentor_id}", response_model=MentorResponse)
+@cached(ttl=CACHE_TTL['mentor'], key_prefix="mentor_detail")
 async def get_mentor(mentor_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о менторе по ID"""
     # Проверка на корректность ID
     if mentor_id <= 0:
         raise HTTPException(status_code=400, detail="Некорректный ID ментора")
 
-    mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+    # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
+    mentor = db.query(Mentor).options(joinedload(Mentor.user)).filter(Mentor.id == mentor_id).first()
     if not mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
     return mentor
@@ -118,6 +124,12 @@ async def update_mentor(
 
     db.commit()
     db.refresh(db_mentor)
+    
+    # Инвалидируем кеш обновленного ментора
+    import asyncio
+    asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
+    asyncio.create_task(invalidate_cache("mentors_list:*"))
+    
     return db_mentor
 
 
@@ -132,4 +144,9 @@ async def delete_mentor(
 
     db.delete(db_mentor)
     db.commit()
+    
+    # Инвалидируем кеш удаленного ментора
+    import asyncio
+    asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))
+    asyncio.create_task(invalidate_cache("mentors_list:*"))
     return None

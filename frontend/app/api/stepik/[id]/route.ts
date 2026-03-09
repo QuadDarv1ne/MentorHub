@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
-    const url = new URL(request.url);
-    const searchParams = url.searchParams;
+    const { searchParams } = new URL(request.url);
     
     console.log(`Fetching data for ID: ${id} with search params: ${searchParams.toString()}`);
     

@@ -5,9 +5,18 @@
 
 import os
 
-# Ensure tests run with testing environment and sqlite DB
+# MUST be set BEFORE any other imports
 os.environ.setdefault("ENVIRONMENT", "testing")
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
+os.environ.setdefault("DEBUG", "False")
+os.environ.setdefault("RATE_LIMIT_ENABLED", "False")
+os.environ.setdefault("RATE_LIMIT_REQUESTS", "10000")
+os.environ.setdefault("CORS_ORIGINS", '["http://localhost:3000"]')
+
+# Import and clear settings cache BEFORE importing app
+import importlib
+import app.config
+importlib.reload(app.config)
 
 import pytest
 import pytest_asyncio
@@ -19,10 +28,21 @@ from httpx import AsyncClient
 from app.database import Base
 from app.dependencies import get_db
 from app.main import app
+from app.models.user import User, UserRole
+from app.utils.security import get_password_hash
 
 
 # URL тестовой базы данных (SQLite для тестов)
 TEST_DATABASE_URL = "sqlite:///./test.db"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """Setup test database once per session"""
+    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
@@ -92,3 +112,76 @@ def sample_user_data():
         "password": "TestPass123!",
         "full_name": "Test User",
     }
+
+
+@pytest.fixture
+def sample_mentor_data():
+    """Примерные данные ментора для тестирования"""
+    return {
+        "specialization": "Python Developer",
+        "experience_years": 5,
+        "bio": "Experienced Python developer with 5+ years in the industry",
+        "hourly_rate": 50,
+        "skills": ["Python", "FastAPI", "PostgreSQL"],
+    }
+
+
+@pytest.fixture
+def sample_course_data():
+    """Примерные данные курса для тестирования"""
+    return {
+        "title": "Python для начинающих",
+        "description": "Полный курс по Python с нуля до продвинутого уровня",
+        "level": "beginner",
+        "duration_hours": 40,
+        "price": 99.99,
+    }
+
+
+@pytest.fixture
+def sample_session_data():
+    """Примерные данные сессии для тестирования"""
+    from datetime import datetime, timedelta
+
+    future_time = datetime.utcnow() + timedelta(days=7)
+    return {
+        "mentor_id": 1,
+        "start_time": future_time.isoformat(),
+        "duration_minutes": 60,
+        "notes": "Test session",
+    }
+
+
+@pytest.fixture
+def create_user(db_session):
+    """Фикстура для создания пользователя в БД"""
+
+    def _create_user(email, username, password, role=UserRole.STUDENT):
+        user = User(
+            email=email,
+            username=username,
+            hashed_password=get_password_hash(password),
+            role=role,
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+
+    return _create_user
+
+
+@pytest.fixture
+def authenticated_headers(client, sample_user_data):
+    """Фикстура для получения авторизационных заголовков"""
+    # Регистрация
+    client.post("/api/v1/auth/register", json=sample_user_data)
+
+    # Вход
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+    )
+
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}

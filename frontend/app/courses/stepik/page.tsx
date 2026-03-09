@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StepikCourseCard from '@/components/StepikCourseCard';
 import { Search, BarChart3, Users, Award, DollarSign, X } from 'lucide-react';
 
@@ -98,15 +98,15 @@ export default function StepikCoursesPage() {
     applyFilters();
   }, [filters]);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     setLoading(true);
-    
+
     let filtered = [...allCourses];
 
     // Фильтр по поиску
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(course => 
+      filtered = filtered.filter(course =>
         course.title.toLowerCase().includes(searchLower) ||
         course.description.toLowerCase().includes(searchLower) ||
         course.category.toLowerCase().includes(searchLower)
@@ -115,7 +115,7 @@ export default function StepikCoursesPage() {
 
     // Фильтр по категории
     if (filters.category) {
-      filtered = filtered.filter(course => 
+      filtered = filtered.filter(course =>
         course.category.toLowerCase() === filters.category.toLowerCase()
       );
     }
@@ -144,7 +144,7 @@ export default function StepikCoursesPage() {
       setCourses(filtered);
       setLoading(false);
     }, 300);
-  };
+  }, [filters, allCourses]);
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

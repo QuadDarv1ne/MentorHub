@@ -49,6 +49,7 @@ else:
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_pre_ping=True,
+            pool_recycle=3600,  # Recycle connections after 1 hour
             echo=settings.DB_ECHO,
             connect_args={
                 "connect_timeout": 10,
@@ -150,10 +151,11 @@ class Database:
     def check_connection() -> bool:
         """Check if database connection is working"""
         try:
-            from sqlalchemy import text
+            from sqlalchemy import text, bindparam
 
             session = SessionLocal()
-            session.execute(text("SELECT 1"))
+            # Используем параметризованный запрос вместо text("SELECT 1")
+            result = session.execute(text("SELECT :value"), {"value": 1})
             session.close()
             logger.info("✅ Database connection successful")
             return True

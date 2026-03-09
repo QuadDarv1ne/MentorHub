@@ -1,0 +1,38 @@
+{
+  "name": "mentorhub-frontend",
+  "output": "frontend/.next",
+  "build": {
+    "command": "cd frontend && npm install && npm run build",
+    "environment": {
+      "NODE_VERSION": "18",
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "functions": {
+    "directory": "frontend/netlify/functions",
+    "node_bundler": "esbuild"
+  },
+  "plugins": [
+    {
+      "package": "@netlify/plugin-nextjs"
+    }
+  ],
+  "redirects": [
+    {
+      "from": "/api/*",
+      "to": "https://api.mentorhub.com/api/:splat",
+      "status": 200,
+      "force": true
+    }
+  ],
+  "headers": [
+    {
+      "for": "/*",
+      "values": {
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
+      }
+    }
+  ]
+}

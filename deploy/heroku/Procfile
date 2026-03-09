@@ -1,0 +1,14 @@
+# Heroku Procfile
+# https://devcenter.heroku.com/articles/procfile
+
+# Web процесс - основной API сервер
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2
+
+# Worker процесс - фоновые задачи Celery
+worker: celery -A app.tasks worker --loglevel=info --concurrency=2
+
+# Beat процесс - планировщик задач Celery
+beat: celery -A app.tasks beat --loglevel=info
+
+# Release процесс - миграции базы данных перед запуском
+release: python backend/scripts/init_db.py && alembic upgrade head

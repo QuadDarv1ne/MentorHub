@@ -1,17 +1,23 @@
 """
 MentorHub Backend - Main Entry Point
 FastAPI application initialization and configuration
+WITH GRACEFUL SHUTDOWN SUPPORT
 """
 
 import logging
+import signal
+import sys
+import asyncio
+import socket
+import os
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -40,18 +46,148 @@ from app.api import (
     stats,
     monitoring,
     health,
+    achievements,
+    backups,
+    email_verification,
+    websocket,
+    notifications,
+    analytics,
+    push_notifications,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
+from app.middleware.rate_limiter import RateLimitMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
 from app.utils.cache import init_cache
+from app.utils.cache_advanced import init_cache_backend
 from app.utils.error_handlers import register_error_handlers
 
 
 # ==================== LOGGING SETUP ====================
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+# ==================== AUTO PORT DETECTION ====================
+def is_port_available(port: int, host: str = "0.0.0.0") -> bool:
+    """
+    Проверить, свободен ли порт.
+    
+    Args:
+        port: Номер порта для проверки
+        host: Хост для привязки
+    
+    Returns:
+        True если порт свободен, False если занят
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((host, port))
+            return True
+    except OSError:
+        return False
+
+
+def find_free_port(
+    start_port: int = 8000,
+    max_attempts: int = 100,
+    host: str = "0.0.0.0",
+    exclude_ports: Optional[List[int]] = None
+) -> int:
+    """
+    Найти первый свободный порт, начиная с start_port.
+    
+    Args:
+        start_port: Начальный порт для поиска
+        max_attempts: Максимальное количество попыток
+        host: Хост для проверки
+        exclude_ports: Список портов, которые нужно пропустить
+    
+    Returns:
+        Номер свободного порта
+    """
+    exclude_ports = exclude_ports or []
+    
+    for port in range(start_port, start_port + max_attempts):
+        if port in exclude_ports:
+            continue
+        if is_port_available(port, host):
+            return port
+    
+    raise RuntimeError(
+        f"Не удалось найти свободный порт в диапазоне {start_port}-{start_port + max_attempts}"
+    )
+
+
+def resolve_port(preferred_port: int = 8000) -> int:
+    """
+    Определить порт для запуска сервера.
+    
+    Приоритет:
+    1. Переменная окружения PORT (для облачных платформ)
+    2. Preferred_port из аргумента
+    3. Автоматический поиск свободного порта
+    
+    Returns:
+        Номер свободного порта
+    """
+    # Порты, которые нужно исключить (используются другими сервисами)
+    exclude_ports = [3000, 12600, 19001, 19005, 19006, 6060, 6061, 81]
+    
+    # Проверяем переменную окружения PORT
+    env_port = os.environ.get("PORT")
+    if env_port:
+        preferred_port = int(env_port)
+    
+    # Если предпочитаемый порт свободен, используем его
+    if is_port_available(preferred_port):
+        logger.info(f"✅ Порт {preferred_port} свободен")
+        return preferred_port
+    
+    # Иначе ищем следующий свободный
+    logger.warning(f"⚠️ Порт {preferred_port} занят, поиск свободного порта...")
+    free_port = find_free_port(preferred_port + 1, exclude_ports=exclude_ports)
+    logger.info(f"✅ Найден свободный порт: {free_port}")
+    return free_port
+
+
+# ==================== GRACEFUL SHUTDOWN ====================
+# Глобальное событие для координации shutdown
+_shutdown_event = asyncio.Event()
+_shutdown_in_progress = False
+
+
+def signal_handler(signum, frame):
+    """
+    Обработчик сигналов для graceful shutdown.
+
+    Вызывается при получении SIGTERM или SIGINT.
+    Устанавливает флаг shutdown для graceful остановки.
+    """
+    global _shutdown_in_progress
+
+    signal_name = signal.Signals(signum).name
+
+    if _shutdown_in_progress:
+        logger.warning(f"Received {signal_name} but shutdown already in progress, ignoring...")
+        return
+
+    _shutdown_in_progress = True
+    logger.info(f"🛑 Received {signal_name}. Initiating graceful shutdown...")
+
+    # Устанавливаем событие shutdown
+    _shutdown_event.set()
+
+
+# Регистрируем обработчики сигналов
+# SIGTERM: отправляется Docker/Kubernetes при остановке контейнера
+# SIGINT: отправляется при нажатии Ctrl+C
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")
 
 
 # ==================== SENTRY SETUP ====================
@@ -72,19 +208,40 @@ elif settings.SENTRY_DSN and not SENTRY_AVAILABLE:
     logger.warning("⚠️ Sentry DSN настроен, но sentry-sdk не установлен")
 
 
+# ==================== REDIS CLIENT SETUP ====================
+redis_client = None
+try:
+    from redis.asyncio import Redis
+    # Initialize Redis if URL is configured (even localhost)
+    if settings.REDIS_URL and settings.REDIS_URL.strip():
+        redis_client = Redis.from_url(settings.REDIS_URL)
+        logger.info(f"✅ Redis client initialized with URL: {settings.REDIS_URL}")
+    else:
+        logger.info("ℹ️ Redis URL not configured, using memory-only features")
+except ImportError:
+    logger.warning("⚠️ redis-py not installed, Redis features disabled")
+except Exception as e:
+    logger.warning(f"⚠️ Redis client initialization failed: {e}")
+    redis_client = None
+
+
 # ==================== DATABASE STARTUP/SHUTDOWN ====================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Lifespan context manager for startup and shutdown events
-    Manages database connections and other resources
+    Lifespan context manager for startup and shutdown events.
+    Manages database connections and other resources.
+
+    IMPORTANT: Shutdown код выполняется при корректном завершении.
+    При получении SIGTERM, Uvicorn вызывает этот shutdown код.
     """
-    # STARTUP
+    # ==================== STARTUP ====================
     logger.info("🚀 Starting MentorHub API...")
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
 
-    # Initialize cache
-    init_cache()
+    # Initialize cache with Redis client if available
+    init_cache(redis_client)
+    init_cache_backend(redis_client)
     logger.info("✅ Cache initialized")
 
     # Create tables (with retry logic for Amvera)
@@ -105,10 +262,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Error creating database tables (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
-                logger.error("❌ Failed to connect to database after all retries")
-                # Don't raise in production, let app start anyway
-                if not is_production():
-                    raise
+                logger.error("❌ Failed to connect to database after all retries - starting anyway")
+                # Don't crash on startup - database might not be ready yet
+                pass
 
     # Log startup info
     logger.info(f"📊 Environment: {settings.ENVIRONMENT}")
@@ -117,9 +273,33 @@ async def lifespan(app: FastAPI):
 
     yield  # Application runs here
 
-    # SHUTDOWN
-    logger.info("🛑 Shutting down MentorHub API...")
-    logger.info("✅ MentorHub API shutdown complete")
+    # ==================== SHUTDOWN ====================
+    logger.info("🛑 Lifespan shutdown triggered...")
+    logger.info("🔄 Closing all connections gracefully...")
+
+    # Close Redis connection if it exists
+    if redis_client:
+        try:
+            await redis_client.close()
+            logger.info("✅ Redis connection closed")
+        except Exception as e:
+            logger.error(f"❌ Error closing Redis connection: {e}")
+
+    # Close database connections
+    try:
+        engine.dispose()
+        logger.info("✅ Database engine disposed")
+    except Exception as e:
+        logger.error(f"❌ Error disposing database engine: {e}")
+
+    # Close any active sessions
+    try:
+        SessionLocal.close_all()
+        logger.info("✅ All database sessions closed")
+    except Exception as e:
+        logger.error(f"❌ Error closing database sessions: {e}")
+
+    logger.info("✅ Lifespan shutdown complete")
 
 
 # ==================== CREATE FASTAPI APP ====================
@@ -141,6 +321,20 @@ app = FastAPI(
 app.add_middleware(RequestIDMiddleware)
 logger.info("✅ Request ID middleware added")
 
+# Request Logging Middleware (сразу после Request ID)
+app.add_middleware(RequestLoggingMiddleware, max_body_length=1000)
+logger.info("✅ Request Logging middleware added")
+
+# Rate Limiting Middleware (should be early in the chain)
+if settings.RATE_LIMIT_ENABLED:
+    app.add_middleware(
+        RateLimitMiddleware,
+        redis_client=redis_client
+    )
+    logger.info("✅ Rate limiting middleware added")
+else:
+    logger.info("ℹ️ Rate limiting disabled by configuration")
+
 # Prometheus Metrics Middleware
 app.add_middleware(PrometheusMiddleware)
 logger.info("✅ Prometheus metrics middleware added")
@@ -149,8 +343,11 @@ logger.info("✅ Prometheus metrics middleware added")
 app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
 logger.info("✅ Performance monitoring middleware added")
 
-# Advanced Security Middleware (SQL injection, XSS, CSRF, etc.)
-app.add_middleware(SecurityMiddleware)
+# Advanced Security Middleware
+app.add_middleware(
+    SecurityMiddleware,
+    max_body_size=10 * 1024 * 1024,  # 10MB
+)
 logger.info("✅ Advanced Security middleware added")
 
 # CORS Middleware
@@ -180,20 +377,46 @@ logger.info("✅ GZIP middleware added")
 
 
 # ==================== EXCEPTION HANDLERS ====================
-
-# Регистрируем централизованные обработчики ошибок
 register_error_handlers(app)
 
 
-# ==================== REQUEST/RESPONSE LOGGING ====================
+# ==================== HEALTH ENDPOINTS ====================
 
+@app.get("/health/ready", tags=["Health"])
+async def readiness_check():
+    """
+    Readiness probe for Kubernetes/Docker.
+
+    Returns 503 if shutdown is in progress.
+    Returns 200 if app is ready to accept requests.
+    """
+    if _shutdown_event.is_set():
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "shutting_down", "message": "Service is shutting down"}
+        )
+    return {"status": "ready"}
+
+
+@app.get("/health/live", tags=["Health"])
+async def liveness_check():
+    """
+    Liveness probe for Kubernetes/Docker.
+
+    Returns 200 if the app process is running.
+    If this fails, Kubernetes will restart the container.
+    """
+    return {"status": "alive"}
+
+
+# ==================== REQUEST/RESPONSE LOGGING ====================
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all HTTP requests and responses"""
 
     # Skip logging for health checks and docs
-    if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"]:
+    if request.url.path in ["/health", "/health/ready", "/health/live", "/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
 
     logger.info(f"📨 {request.method} {request.url.path}")
@@ -207,9 +430,9 @@ async def log_requests(request: Request, call_next):
 
 # ==================== ROUTES SETUP ====================
 
-
 # Root endpoint
 @app.get("/", tags=["Root"])
+@app.head("/", tags=["Root"], include_in_schema=False)
 async def root():
     """Welcome endpoint"""
     return {
@@ -218,6 +441,13 @@ async def root():
         "environment": settings.ENVIRONMENT,
         "docs": "/docs" if not is_production() else None,
     }
+
+
+# Favicon endpoint (prevents 404 errors)
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Return empty favicon to prevent 404 errors"""
+    return Response(status_code=204)
 
 
 # Prometheus metrics endpoint
@@ -243,6 +473,14 @@ app.include_router(
     tags=["Authentication"],
 )
 logger.info("✅ Auth routes loaded")
+
+# Email verification routes
+app.include_router(
+    email_verification.router,
+    prefix=f"{api_prefix}/email",
+    tags=["Email Verification"],
+)
+logger.info("✅ Email verification routes loaded")
 
 # User routes
 app.include_router(
@@ -316,6 +554,14 @@ app.include_router(
 )
 logger.info("✅ Stats routes loaded")
 
+# Achievement routes
+app.include_router(
+    achievements.router,
+    prefix=f"{api_prefix}/achievements",
+    tags=["Achievements"],
+)
+logger.info("✅ Achievement routes loaded")
+
 # Monitoring routes
 app.include_router(
     monitoring.router,
@@ -324,23 +570,68 @@ app.include_router(
 )
 logger.info("✅ Monitoring routes loaded")
 
+# Backup routes
+app.include_router(
+    backups.router,
+    prefix=f"{api_prefix}/admin",
+    tags=["Backups"],
+)
+logger.info("✅ Backup routes loaded")
 
-# ==================== STARTUP EVENTS ====================
+# WebSocket routes
+app.include_router(
+    websocket.router,
+    tags=["WebSocket"],
+)
+logger.info("✅ WebSocket routes loaded")
 
-# Note: Using lifespan context manager instead of deprecated @app.on_event
-# Startup/shutdown logic is handled in the lifespan() function above
+# Notification routes
+app.include_router(
+    notifications.router,
+    prefix=f"{api_prefix}",
+    tags=["Notifications"],
+)
+logger.info("✅ Notification routes loaded")
+
+# Analytics routes
+app.include_router(
+    analytics.router,
+    prefix=f"{api_prefix}",
+    tags=["Analytics"],
+)
+logger.info("✅ Analytics routes loaded")
+
+# Push notifications routes
+app.include_router(
+    push_notifications.router,
+    prefix=f"{api_prefix}",
+    tags=["Push Notifications"],
+)
+logger.info("✅ Push notifications routes loaded")
 
 
 # ==================== RUN APPLICATION ====================
 
 if __name__ == "__main__":
     import uvicorn
+    
+    # Автоматическое определение свободного порта
+    preferred_port = getattr(settings, 'PORT', 8000)
+    port = resolve_port(preferred_port)
+    host = getattr(settings, 'HOST', '0.0.0.0')
+    
+    logger.info(f"🎯 Запуск сервера на {host}:{port}")
+    
+    # Сохраняем выбранный порт в переменную окружения
+    os.environ["SERVER_PORT"] = str(port)
 
     uvicorn.run(
         app=app,
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.RELOAD,
-        log_level=settings.LOG_LEVEL.lower(),
+        host=host,
+        port=port,
+        reload=getattr(settings, 'RELOAD', False),
+        log_level=getattr(settings, 'LOG_LEVEL', 'INFO').lower(),
         access_log=True,
+        # Graceful shutdown settings
+        timeout_graceful_shutdown=30,
     )

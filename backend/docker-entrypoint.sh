@@ -14,7 +14,7 @@ fi
 
 echo "✅ DATABASE_URL: ${DATABASE_URL%%:*}://***:***@${DATABASE_URL##*@}"
 
-# Wait for database to be ready
+# Wait for database to be ready with exponential backoff
 echo "Waiting for PostgreSQL..."
 python -c "
 import time
@@ -26,6 +26,7 @@ result = urlparse(db_url)
 
 max_retries = 30
 retry_count = 0
+backoff_time = 1
 
 while retry_count < max_retries:
     try:
@@ -42,7 +43,8 @@ while retry_count < max_retries:
     except Exception as e:
         retry_count += 1
         print(f'Waiting for PostgreSQL... ({retry_count}/{max_retries})')
-        time.sleep(2)
+        time.sleep(backoff_time)
+        backoff_time = min(backoff_time * 1.5, 10)  # Exponential backoff, max 10s
         if retry_count >= max_retries:
             print('❌ PostgreSQL connection timeout!')
             raise
@@ -54,10 +56,15 @@ alembic upgrade head || {
     echo "⚠️  Migrations failed, but continuing..."
 }
 
-# Start application
+# Start application with optimized settings
 echo "Starting FastAPI application..."
 echo "Port: 8000"
-echo "Workers: 2"
+echo "Workers: 4"
 echo "========================================="
 
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+# Use gunicorn for better performance in production
+if [ "$ENVIRONMENT" = "production" ]; then
+    exec gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 120 app.main:app
+else
+    exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+fi

@@ -1,0 +1,71 @@
+# Railway Configuration
+# https://docs.railway.app
+
+[build]
+# Использовать Dockerfile для сборки
+dockerfile = "Dockerfile"
+
+# Рабочая директория
+workdir = "/app"
+
+# Команда сборки
+builder = "dockerfile"
+
+[deploy]
+# Команда запуска
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+
+# Health check
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 60
+
+# Restart policy
+restartPolicy = "on-failure"
+maxRestarts = 3
+
+# Environment
+environment = "production"
+
+# Ports
+[[ports]]
+port = 8000
+protocol = "http"
+description = "Backend API"
+
+[[ports]]
+port = 3000
+protocol = "http"
+description = "Frontend"
+
+# Volumes
+[[volumes]]
+path = "/app/data"
+size = 10240  # 10GB
+description = "Application data"
+
+# Services
+[[services]]
+name = "backend"
+type = "web"
+command = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+
+[[services]]
+name = "worker"
+type = "worker"
+command = "celery -A app.tasks worker --loglevel=info --concurrency=2"
+
+[[services]]
+name = "beat"
+type = "worker"
+command = "celery -A app.tasks beat --loglevel=info"
+
+# Resources
+[resources]
+cpu = 1.0
+memory = 2048  # 2GB
+disk = 10240   # 10GB
+
+# Auto-deploy
+[autoDeploy]
+enabled = true
+branch = "main"

@@ -139,7 +139,7 @@ export default function MentorDetailPage() {
 
             {/* CTA Buttons */}
             <div className="flex gap-3">
-              <Button variant="primary" size="lg" onClick={() => setShowBookingModal(true)}>
+              <Button variant="secondary" size="lg" onClick={() => setShowBookingModal(true)}>
                 <Calendar className="h-5 w-5 mr-2" />
                 Забронировать сессию
               </Button>
@@ -176,7 +176,7 @@ export default function MentorDetailPage() {
           { id: 'portfolio', label: '💼 Портфолио', icon: Users },
           { id: 'reviews', label: '⭐ Отзывы', icon: Star }
         ]}
-        defaultTab={0}
+        defaultTab="about"
       >
         {/* Tab 1: About */}
         <div className="space-y-6">
@@ -202,7 +202,7 @@ export default function MentorDetailPage() {
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Компетенции</h3>
             <div className="flex flex-wrap gap-3">
               {mentorData.tags.map((tag) => (
-                <Badge key={tag} variant="primary" size="md">
+                <Badge key={tag} variant="default" size="md">
                   {tag}
                 </Badge>
               ))}
@@ -361,7 +361,7 @@ export default function MentorDetailPage() {
 
           {/* Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button variant="primary" fullWidth onClick={handleBooking} disabled={!selectedDate || !selectedTime}>
+            <Button variant="secondary" fullWidth onClick={handleBooking} disabled={!selectedDate || !selectedTime}>
               <Send className="h-4 w-4 mr-2" />
               Забронировать сессию
             </Button>

@@ -3,7 +3,7 @@ Middleware Module
 """
 
 from .rate_limiter import RateLimitMiddleware, create_rate_limiter
-from .security import SecurityHeadersMiddleware, RequestLoggingMiddleware
+from .security import SecurityHeadersMiddleware
 
 __all__ = [
     "RateLimitMiddleware",

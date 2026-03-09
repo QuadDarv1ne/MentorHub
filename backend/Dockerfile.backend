@@ -1,0 +1,41 @@
+# =====================================================
+# DOCKERFILE ДЛЯ BACKEND (ОТДЕЛЬНЫЙ ДЕПЛОЙ)
+# Использовать если Frontend на Netlify/Vercel
+# Работает на: Render, Railway, Fly.io, VPS
+# =====================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Системные зависимости
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Переменные окружения
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Зависимости Python
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Код приложения
+COPY backend/ .
+
+# Создаём папки
+RUN mkdir -p /app/data /app/logs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/api/v1/health || curl -f http://localhost:${PORT:-8000}/health || exit 1
+
+# Порт
+EXPOSE 8000
+
+# Запуск (использует $PORT от Render/Railway/Fly.io)
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2

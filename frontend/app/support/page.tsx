@@ -227,7 +227,7 @@ export default function SupportPage() {
               })}
             </div>
             <Button
-              variant="primary"
+              variant="secondary"
               fullWidth
               onClick={() => setShowTicketForm(true)}
             >
@@ -298,7 +298,7 @@ export default function SupportPage() {
 
             <div className="flex gap-3">
               <Button
-                variant="primary"
+                variant="secondary"
                 fullWidth
                 onClick={handleSubmitTicket}
                 disabled={!subject || !message}

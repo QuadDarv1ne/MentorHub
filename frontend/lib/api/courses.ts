@@ -1,15 +1,31 @@
-export type SimilarCourse = {
+export interface SimilarCourse {
   course_id: number;
   average_rating: number;
   total_reviews: number;
-};
+}
 
-export async function getSimilarCourses(courseId: number, limit = 5): Promise<SimilarCourse[]> {
-  const res = await fetch(`/api/v1/courses/${courseId}/similar?limit=${limit}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  if (!res.ok) throw new Error('Failed to fetch similar courses');
-  return res.json();
+/**
+ * Заглушка для getSimilarCourses
+ * TODO: реализовать логику подбора похожих курсов
+ */
+export async function getSimilarCourses(courseId: number): Promise<SimilarCourse[]> {
+  // Временная заглушка - возвращаем пустой массив
+  // TODO: реализовать логику подбора похожих курсов
+  return [];
+}
+
+export interface Course {
+  id: number;
+  title: string;
+  description: string;
+  progress: number;
+  certificate?: boolean;
+}
+
+export async function getMyCourses(): Promise<Course[]> {
+  return [];
+}
+
+export async function getCourse(id: number): Promise<Course> {
+  return { id, title: '', description: '', progress: 0 };
 }

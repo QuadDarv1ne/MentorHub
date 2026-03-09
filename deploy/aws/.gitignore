@@ -1,0 +1,23 @@
+# Ignore files
+*.tfstate
+*.tfstate.backup
+*.tfstate.lockfile
+.crash.log
+*.override.tf
+
+# Directory for modules
+modules/
+
+# Credentials
+credentials.tfvars
+*.tfvars
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

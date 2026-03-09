@@ -185,7 +185,7 @@ export default function SessionsPage() {
           <div className="flex gap-2 w-full">
             {isUpcoming ? (
               <>
-                <Button variant="primary" fullWidth size="sm">
+                <Button variant="secondary" fullWidth size="sm">
                   Присоединиться
                 </Button>
                 <Button
@@ -200,7 +200,7 @@ export default function SessionsPage() {
               <>
                 {!session.rating && (
                   <Button
-                    variant="primary"
+                    variant="secondary"
                     fullWidth
                     size="sm"
                     onClick={() => {
@@ -289,7 +289,7 @@ export default function SessionsPage() {
           ) : (
             <Card padding="lg" className="text-center">
               <p className="text-gray-600 mb-4">У вас нет предстоящих сессий</p>
-              <Button variant="primary">Забронировать сессию</Button>
+              <Button variant="secondary">Забронировать сессию</Button>
             </Card>
           )}
         </div>
@@ -362,7 +362,7 @@ export default function SessionsPage() {
 
           {/* Buttons */}
           <div className="flex gap-3">
-            <Button variant="primary" fullWidth onClick={handleSubmitRating}>
+            <Button variant="secondary" fullWidth onClick={handleSubmitRating}>
               Отправить оценку
             </Button>
             <Button variant="outline" fullWidth onClick={() => setShowRatingModal(false)}>

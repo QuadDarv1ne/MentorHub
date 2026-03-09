@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -19,6 +20,7 @@ module.exports = {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
+          950: '#082f49',
         },
         secondary: {
           50: '#faf5ff',
@@ -31,6 +33,7 @@ module.exports = {
           700: '#7e22ce',
           800: '#6b21a8',
           900: '#581c87',
+          950: '#3b0764',
         },
       },
       fontFamily: {

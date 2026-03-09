@@ -5,7 +5,7 @@
 
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 import jwt
@@ -22,16 +22,22 @@ router = APIRouter()
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """Создание JWT токена доступа"""
+def create_access_token(data: dict, expires_delta: timedelta | None = None, token_type: str = "access") -> str:
+    """Создание JWT токена с audience и issuer validation"""
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "aud": "mentorhub",
+        "iss": "mentorhub-api",
+        "type": token_type,
+    })
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -96,7 +102,10 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    credentials: UserLogin, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    credentials: UserLogin, 
+    response: Response,
+    db: Session = Depends(get_db), 
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Вход пользователя и возврат JWT токенов"""
 
@@ -164,14 +173,25 @@ async def login(
             "role": user.role.value,
         },
         expires_delta=access_token_expires,
+        token_type="access",
     )
 
     refresh_token = create_access_token(
         data={
             "sub": str(user.id),  # JWT требует строку для sub
-            "type": "refresh",
         },
         expires_delta=refresh_token_expires,
+        token_type="refresh",
+    )
+    
+    # Set httpOnly cookie для refresh token (защита от XSS)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,  # Защита от XSS
+        secure=settings.ENVIRONMENT == "production",  # HTTPS only в production
+        samesite="strict",  # Защита от CSRF
+        max_age=7 * 24 * 60 * 60  # 7 дней
     )
 
     logger.info(f"Пользователь вошел в систему: {user.email}")
@@ -194,6 +214,9 @@ async def refresh_token(
             refresh_token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
+            audience="mentorhub",
+            issuer="mentorhub-api",
+            options={"require": ["aud", "iss", "exp", "type"]},
         )
 
         if payload.get("type") != "refresh":
@@ -235,6 +258,7 @@ async def refresh_token(
                 "role": user.role.value,
             },
             expires_delta=access_token_expires,
+            token_type="access",
         )
 
         return TokenResponse(

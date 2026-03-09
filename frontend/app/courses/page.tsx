@@ -1,210 +1,67 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, Filter, Star, Users, Clock, BarChart3, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Filter, Star, Users, Clock, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import { getCourses } from '@/lib/api/courses-new'
 
 interface Course {
   id: number
   title: string
-  description: string
-  instructor: string
+  description: string | null
+  category: string | null
+  difficulty: string | null
+  duration_hours: number
   price: number
+  is_active: boolean
   rating: number
-  reviews: number
-  students: number
-  level: 'Начинающий' | 'Средний' | 'Продвинутый'
-  duration: string
-  modules: number
-  image?: string
-  tags: string[]
+  total_reviews: number
+  thumbnail_url: string | null
+  instructor_id: number
+  created_at: string
+  updated_at: string
+  instructor?: {
+    id: number
+    user_id: number
+    full_name?: string
+    specialization?: string
+  } | null
 }
 
 export default function CoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('popular')
 
-  const mockCourses: Course[] = [
-    {
-      id: 1,
-      title: 'React для профессионалов',
-      description: 'Полный курс по современному React 18. Хуки, контекст, оптимизация производительности и лучшие практики.',
-      instructor: 'Иван Петров',
-      price: 2999,
-      rating: 4.9,
-      reviews: 842,
-      students: 15420,
-      level: 'Средний',
-      duration: '40 часов',
-      modules: 12,
-      tags: ['React', 'JavaScript', 'Frontend']
-    },
-    {
-      id: 2,
-      title: 'TypeScript с нуля до мастера',
-      description: 'Глубокое изучение TypeScript. Типы, интерфейсы, дженерики, типизация и промышленные практики.',
-      instructor: 'Мария Сидорова',
-      price: 1999,
-      rating: 4.8,
-      reviews: 623,
-      students: 11230,
-      level: 'Начинающий',
-      duration: '35 часов',
-      modules: 10,
-      tags: ['TypeScript', 'JavaScript', 'Frontend']
-    },
-    {
-      id: 3,
-      title: 'Node.js и базы данных',
-      description: 'Создание серверов на Node.js. Express, MongoDB, PostgreSQL, масштабирование приложений.',
-      instructor: 'Алексей Иванов',
-      price: 2499,
-      rating: 4.7,
-      reviews: 534,
-      students: 9856,
-      level: 'Средний',
-      duration: '45 часов',
-      modules: 14,
-      tags: ['Node.js', 'Backend', 'Database']
-    },
-    {
-      id: 4,
-      title: 'Продвинутые паттерны React',
-      description: 'Архитектурные паттерны, оптимизация кода, работа с большими приложениями и экосистемой.',
-      instructor: 'Иван Петров',
-      price: 3499,
-      rating: 4.9,
-      reviews: 421,
-      students: 7640,
-      level: 'Продвинутый',
-      duration: '48 часов',
-      modules: 15,
-      tags: ['React', 'Advanced', 'Architecture']
-    },
-    {
-      id: 5,
-      title: 'Система дизайна в React',
-      description: 'Создание масштабируемых компонентных библиотек. Storybook, темизация, документация.',
-      instructor: 'Екатерина Лебедева',
-      price: 2299,
-      rating: 4.6,
-      reviews: 312,
-      students: 5421,
-      level: 'Средний',
-      duration: '32 часов',
-      modules: 9,
-      tags: ['React', 'Design Systems', 'UI/UX']
-    },
-    {
-      id: 6,
-      title: 'REST API и микросервисы',
-      description: 'Проектирование и разработка REST API. Docker, микросервисная архитектура, мониторинг.',
-      instructor: 'Дмитрий Волков',
-      price: 2699,
-      rating: 4.8,
-      reviews: 289,
-      students: 6234,
-      level: 'Продвинутый',
-      duration: '38 часов',
-      modules: 11,
-      tags: ['Backend', 'API', 'DevOps']
-    },
-    {
-      id: 7,
-      title: 'Next.js полный курс',
-      description: 'Фреймворк Next.js для production-приложений. SSR, SSG, API роуты, деплой на Vercel.',
-      instructor: 'Игорь Сметанин',
-      price: 2799,
-      rating: 4.7,
-      reviews: 456,
-      students: 8923,
-      level: 'Средний',
-      duration: '42 часов',
-      modules: 13,
-      tags: ['Next.js', 'React', 'Frontend']
-    },
-    {
-      id: 8,
-      title: 'GraphQL в production',
-      description: 'Изучение GraphQL. Apollo Server, клиенты, оптимизация запросов, кеширование.',
-      instructor: 'Ольга Русанова',
-      price: 2399,
-      rating: 4.5,
-      reviews: 178,
-      students: 3891,
-      level: 'Продвинутый',
-      duration: '36 часов',
-      modules: 10,
-      tags: ['GraphQL', 'Backend', 'API']
-    },
-    {
-      id: 9,
-      title: 'Тестирование на Jest и React Testing Library',
-      description: 'Unit тесты, интеграционные тесты, E2E тестирование. Лучшие практики тестирования.',
-      instructor: 'Павел Морозов',
-      price: 1899,
-      rating: 4.6,
-      reviews: 267,
-      students: 4156,
-      level: 'Средний',
-      duration: '28 часов',
-      modules: 8,
-      tags: ['Testing', 'JavaScript', 'Quality']
-    },
-    {
-      id: 10,
-      title: 'AWS и облачные технологии',
-      description: 'Деплой приложений на AWS. EC2, S3, Lambda, RDS, мониторинг и масштабирование.',
-      instructor: 'Станислав Кузнецов',
-      price: 2899,
-      rating: 4.7,
-      reviews: 298,
-      students: 5672,
-      level: 'Продвинутый',
-      duration: '44 часов',
-      modules: 12,
-      tags: ['AWS', 'DevOps', 'Cloud']
-    },
-    {
-      id: 11,
-      title: 'Vanilla JavaScript для фронтенда',
-      description: 'Фундамент веб-разработки. DOM, события, асинхронность, прототипы и классы.',
-      instructor: 'Евгений Рыжов',
-      price: 1499,
-      rating: 4.8,
-      reviews: 1203,
-      students: 22341,
-      level: 'Начинающий',
-      duration: '30 часов',
-      modules: 9,
-      tags: ['JavaScript', 'Frontend', 'Basics']
-    },
-    {
-      id: 12,
-      title: 'Vue.js 3 - полный путь',
-      description: 'Полный курс по Vue 3. Composition API, Pinia, Vue Router, интеграция с бэкендом.',
-      instructor: 'Юлия Козлова',
-      price: 2199,
-      rating: 4.6,
-      reviews: 389,
-      students: 6789,
-      level: 'Начинающий',
-      duration: '38 часов',
-      modules: 11,
-      tags: ['Vue.js', 'JavaScript', 'Frontend']
+  // Fetch courses from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await getCourses(0, 100)
+        setCourses(data)
+        setLoading(false)
+      } catch (err) {
+        console.error('Failed to fetch courses:', err)
+        setError('Не удалось загрузить курсы. Пожалуйста, попробуйте позже.')
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchCourses()
+  }, [])
 
   // Фильтрация
-  const filteredCourses = mockCourses.filter(course => {
+  const filteredCourses = courses.filter(course => {
     const matchSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       course.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchLevel = selectedLevel === 'all' || course.level === selectedLevel
-    const matchCategory = selectedCategory === 'all' || course.tags.includes(selectedCategory)
+                       (course.description && course.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const matchLevel = selectedLevel === 'all' || (course.difficulty && course.difficulty === selectedLevel)
+    const matchCategory = selectedCategory === 'all' || (course.category && course.category === selectedCategory)
     return matchSearch && matchLevel && matchCategory
   })
 
@@ -218,27 +75,86 @@ export default function CoursesPage() {
       case 'rating':
         return b.rating - a.rating
       case 'students':
-        return b.students - a.students
+        return b.total_reviews - a.total_reviews
       default:
-        return b.students - a.students
+        return b.total_reviews - a.total_reviews
     }
   })
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'Начинающий':
+      case 'beginner':
         return 'success'
-      case 'Средний':
+      case 'intermediate':
         return 'info'
-      case 'Продвинутый':
+      case 'advanced':
         return 'danger'
       default:
         return 'default'
     }
   }
 
-  const categories = ['React', 'Node.js', 'JavaScript', 'TypeScript', 'Frontend', 'Backend']
-  const levels = ['Начинающий', 'Средний', 'Продвинутый']
+  const getLevelLabel = (level: string) => {
+    switch (level) {
+      case 'beginner':
+        return 'Начинающий'
+      case 'intermediate':
+        return 'Средний'
+      case 'advanced':
+        return 'Продвинутый'
+      default:
+        return level
+    }
+  }
+
+  const categories = Array.from(new Set(courses.map(course => course.category).filter(Boolean))) as string[]
+  const levels = Array.from(new Set(courses.map(course => course.difficulty).filter(Boolean))) as string[]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="h-10 bg-white/20 rounded animate-pulse mb-4"></div>
+            <div className="h-6 bg-white/20 rounded animate-pulse w-2/3"></div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <div className="h-12 bg-gray-200 rounded-lg animate-pulse mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow animate-pulse h-96"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow p-8 max-w-md text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Ошибка загрузки</h3>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Повторить попытку
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -247,7 +163,7 @@ export default function CoursesPage() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-4">Каталог курсов</h1>
           <p className="text-indigo-100 text-lg max-w-2xl">
-            Более {mockCourses.length} качественных курсов от опытных менторов. Изучайте в своем темпе.
+            Более {courses.length} качественных курсов от опытных менторов. Изучайте в своем темпе.
           </p>
         </div>
       </div>
@@ -283,7 +199,7 @@ export default function CoursesPage() {
               >
                 <option value="all">Все уровни</option>
                 {levels.map(level => (
-                  <option key={level} value={level}>{level}</option>
+                  <option key={level} value={level}>{getLevelLabel(level)}</option>
                 ))}
               </select>
             </div>
@@ -317,7 +233,7 @@ export default function CoursesPage() {
                 <option value="price-low">Цена: от меньшей к большей</option>
                 <option value="price-high">Цена: от большей к меньшей</option>
                 <option value="rating">По рейтингу</option>
-                <option value="students">По количеству студентов</option>
+                <option value="students">По количеству отзывов</option>
               </select>
             </div>
           </div>
@@ -336,9 +252,11 @@ export default function CoursesPage() {
                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                   {/* Уровень */}
                   <div className="mb-3">
-                    <Badge variant={getLevelColor(course.level)}>
-                      {course.level}
-                    </Badge>
+                    {course.difficulty && (
+                      <Badge variant={getLevelColor(course.difficulty)}>
+                        {getLevelLabel(course.difficulty)}
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Заголовок */}
@@ -348,51 +266,44 @@ export default function CoursesPage() {
 
                   {/* Инструктор */}
                   <p className="text-sm text-gray-600 mb-3">
-                    👨‍🏫 {course.instructor}
+                    👨‍🏫 {course.instructor?.full_name || 'Инструктор'}
                   </p>
 
                   {/* Описание */}
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {course.description}
+                    {course.description || 'Описание курса отсутствует'}
                   </p>
 
-                  {/* Теги */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {course.tags.slice(0, 3).map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded"
-                      >
-                        {tag}
+                  {/* Категория */}
+                  {course.category && (
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      <span className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-medium rounded">
+                        {course.category}
                       </span>
-                    ))}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Информация */}
                   <div className="grid grid-cols-2 gap-3 mb-4 py-4 border-y border-gray-200">
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Clock size={16} />
-                      <span>{course.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <BarChart3 size={16} />
-                      <span>{course.modules} модулей</span>
+                      <span>{course.duration_hours} часов</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Star size={16} className="fill-amber-400 text-amber-400" />
-                      <span className="font-semibold">{course.rating}</span>
-                      <span className="text-gray-500">({course.reviews})</span>
+                      <span className="font-semibold">{course.rating.toFixed(1)}</span>
+                      <span className="text-gray-500">({course.total_reviews})</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Users size={16} />
-                      <span>{(course.students / 1000).toFixed(1)}k студентов</span>
+                      <span>{course.total_reviews} отзывов</span>
                     </div>
                   </div>
 
                   {/* Цена и кнопка */}
                   <div className="flex items-center justify-between">
                     <p className="text-2xl font-bold text-indigo-600">
-                      {course.price.toLocaleString('ru-RU')}₽
+                      {(course.price / 100).toLocaleString('ru-RU')}₽
                     </p>
                     <ChevronRight size={20} className="text-gray-400" />
                   </div>

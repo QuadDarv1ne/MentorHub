@@ -1,0 +1,137 @@
+# Render Configuration
+# https://render.com/docs/blueprints
+# 
+# ВАЖНО: Для работы с Docker нужно настроить переменные в панели Render:
+# 1. Открыть Web Service → Environment
+# 2. Добавить: DATABASE_URL, REDIS_URL, SECRET_KEY
+# 3. Manual Deploy
+
+services:
+  # ==================== BACKEND + FRONTEND (Docker) ====================
+  - type: web
+    name: mentorhub
+    env: docker
+    region: frankfurt
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: BACKEND_PORT
+        value: "8000"
+      - key: FRONTEND_PORT
+        value: "3000"
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      # Эти переменные НАСТРОИТЬ В ПАНЕЛИ RENDER (Environment):
+      # - DATABASE_URL (из PostgreSQL)
+      # - REDIS_URL (из Redis)
+      # - SECRET_KEY (сгенерировать)
+      - key: AGORA_APP_ID
+        sync: false
+      - key: AGORA_APP_CERTIFICATE
+        sync: false
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_BUCKET
+        value: mentorhub-bucket
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_SENDER
+        value: noreply@mentorhub.com
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+
+  # ==================== CELERY WORKER (Docker) ====================
+  - type: worker
+    name: mentorhub-worker
+    env: docker
+    region: frankfurt
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.tasks.celery_tasks worker --loglevel=info --concurrency=2
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mentorhub-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: mentorhub-redis
+          property: connectionString
+
+  # ==================== CELERY BEAT (Docker) ====================
+  - type: worker
+    name: mentorhub-beat
+    env: docker
+    region: frankfurt
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A app.tasks.celery_tasks beat --loglevel=info
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mentorhub-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: mentorhub-redis
+          property: connectionString
+
+  # ==================== REDIS ====================
+  - type: redis
+    name: mentorhub-redis
+    region: frankfurt
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all
+
+databases:
+  - name: mentorhub-db
+    databaseName: mentorhub
+    user: mentorhub_user
+    ipAllowList: []
+    region: frankfurt
+    plan: starter
+    diskSizeGB: 10

@@ -6,6 +6,10 @@
 .env.development.local
 .env.test.local
 .env.*.example
+.env.render
+
+# ==================== QWEN CONTEXT ====================
+.qwen/
 
 # ==================== PYTHON ====================
 # Byte-compiled / optimized / DLL files
@@ -38,6 +42,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Requirements lock files (generated)
+requirements*.lock
 
 # PyInstaller
 *.manifest
@@ -350,7 +357,9 @@ dist/
 
 # ==================== TEMPORARY FILES ====================
 *.tmp
+*.temp
 *.bak
+*.new
 *.swp
 *.swo
 *~

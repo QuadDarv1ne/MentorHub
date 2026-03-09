@@ -1,0 +1,188 @@
+# Google Cloud Run Deployment Configuration
+# https://cloud.google.com/run
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mentorhub
+  namespace: default
+  labels:
+    app: mentorhub
+    environment: production
+spec:
+  template:
+    metadata:
+      annotations:
+        # Container settings
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/startup-cpu-boost: "true"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/execution-environment: gen2
+      labels:
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: mentorhub-sa@PROJECT_ID.iam.gserviceaccount.com
+      containers:
+        - image: gcr.io/PROJECT_ID/mentorhub:latest
+          ports:
+            - name: http1
+              containerPort: 8000
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+            - name: PORT
+              value: "8000"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mentorhub-secrets
+                  key: database-url
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mentorhub-secrets
+                  key: secret-key
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mentorhub-secrets
+                  key: redis-url
+            - name: AGORA_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: mentorhub-secrets
+                  key: agora-app-id
+            - name: STRIPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mentorhub-secrets
+                  key: stripe-api-key
+          startupProbe:
+            timeoutSeconds: 240
+            periodSeconds: 240
+            failureThreshold: 1
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+          livenessProbe:
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+          readinessProbe:
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+      # Volumes for persistent data (optional)
+      # volumes:
+      #   - name: data
+      #     persistentVolumeClaim:
+      #       claimName: mentorhub-pvc
+
+---
+# Cloud SQL Proxy (for database connection)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mentorhub-sa
+  namespace: default
+  labels:
+    app: mentorhub
+
+---
+# IAM Binding for Cloud SQL
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccountPolicy
+metadata:
+  name: mentorhub-sa-cloudsql
+  namespace: default
+spec:
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    name: mentorhub-sa
+  bindings:
+    - role: roles/cloudsql.client
+      members:
+        - serviceAccount:mentorhub-sa@PROJECT_ID.iam.gserviceaccount.com
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mentorhub-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: mentorhub
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# Cloud Monitoring Dashboard (optional)
+apiVersion: monitoring.cnrm.cloud.google.com/v1beta1
+kind: MonitoringDashboard
+metadata:
+  name: mentorhub-dashboard
+  namespace: default
+spec:
+  dashboardJson: |
+    {
+      "displayName": "MentorHub Dashboard",
+      "gridLayout": {
+        "widgets": [
+          {
+            "title": "Request Count",
+            "xyChart": {
+              "dataSets": [{
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/request_count\""
+                  }
+                }
+              }]
+            }
+          },
+          {
+            "title": "Latency",
+            "xyChart": {
+              "dataSets": [{
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" AND metric.type=\"run.googleapis.com/request_latencies\""
+                  }
+                }
+              }]
+            }
+          }
+        ]
+      }
+    }

@@ -468,7 +468,7 @@ mentorhub/
 
 **После запуска backend, документация доступна по адресу:**
 
-```bash
+```
 http://localhost:8000/docs
 ```
 
@@ -515,9 +515,17 @@ POST   /api/v1/sessions/{id}/complete # Завершить сессию
 #### Курсы
 
 ```
-GET    /api/v1/courses              # Список курсов
-GET    /api/v1/courses/{course_id}  # Информация курса
-POST   /api/v1/courses/{id}/enroll  # Записаться на курс
+GET    /api/v1/courses              # Список всех курсов
+GET    /api/v1/courses/my           # Курсы текущего пользователя
+GET    /api/v1/courses/{course_id}  # Информация о курсе
+POST   /api/v1/courses              # Создать курс (только для менторов)
+PUT    /api/v1/courses/{course_id}  # Обновить курс
+DELETE /api/v1/courses/{course_id}  # Удалить курс
+POST   /api/v1/courses/{course_id}/enroll # Записаться на курс
+GET    /api/v1/courses/{course_id}/lessons # Уроки курса
+POST   /api/v1/courses/{course_id}/lessons # Создать урок
+PUT    /api/v1/courses/lessons/{lesson_id} # Обновить урок
+DELETE /api/v1/courses/lessons/{lesson_id} # Удалить урок
 ```
 
 #### Сообщения

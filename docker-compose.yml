@@ -7,8 +7,9 @@ services:
     container_name: mentorhub-postgres
     environment:
       POSTGRES_USER: ${DB_USER:-mentorhub_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_password}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD environment variable must be set for security}
       POSTGRES_DB: ${DB_NAME:-mentorhub}
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -21,6 +22,20 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
+    # Performance tuning
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=16MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
 
   # ==================== REDIS (Cache & Sessions) ====================
   redis:
@@ -38,21 +53,31 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    # Performance tuning
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --notify-keyspace-events Ex
 
   # ==================== BACKEND (FastAPI) ====================
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-backend
     environment:
       # Database
-      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@postgres:5432/${DB_NAME:-mentorhub}
       REDIS_URL: redis://redis:6379/0
-      
+
       # JWT
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
       ALGORITHM: ${ALGORITHM:-HS256}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       
@@ -81,8 +106,8 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,18 +116,19 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Development mode with auto-reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app
 
   # ==================== CELERY WORKER (Background Tasks) ====================
   celery_worker:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-celery
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@postgres:5432/${DB_NAME:-mentorhub}
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
       SMTP_SERVER: ${SMTP_SERVER:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -114,21 +140,21 @@ services:
     networks:
       - mentorhub-network
     restart: unless-stopped
-    command: celery -A app.tasks worker --loglevel=info
+    command: celery -A app.tasks worker --loglevel=info --concurrency=4 --pool=threads
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
 
   # ==================== CELERY BEAT (Scheduled Tasks) ====================
   celery_beat:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: mentorhub-celery-beat
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_password}@postgres:5432/${DB_NAME:-mentorhub}
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@postgres:5432/${DB_NAME:-mentorhub}
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
     depends_on:
       - postgres
       - redis
@@ -137,8 +163,8 @@ services:
     restart: unless-stopped
     command: celery -A app.tasks beat --loglevel=info
     volumes:
-      - ./backend:/app
-      - /app/__pycache__
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
 
   # ==================== FRONTEND (Next.js) ====================
   frontend:
@@ -164,7 +190,7 @@ services:
 
   # ==================== NGINX (Reverse Proxy) ====================
   nginx:
-    image: nginx:alpine
+    image: nginx:alpine-slim
     container_name: mentorhub-nginx
     ports:
       - "80:80"
@@ -179,10 +205,69 @@ services:
       - mentorhub-network
     restart: unless-stopped
 
+  # ==================== MONITORING ====================
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: mentorhub-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - mentorhub-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: mentorhub-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/mentorhub-dashboard.json:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - mentorhub-network
+    depends_on:
+      - prometheus
+
+  # Node Exporter
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: mentorhub-node-exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - mentorhub-network
+
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

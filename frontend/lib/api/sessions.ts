@@ -15,6 +15,12 @@ export interface Session {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  mentor?: {
+    full_name?: string;
+  };
+  student?: {
+    full_name?: string;
+  };
 }
 
 export interface CreateSessionRequest {

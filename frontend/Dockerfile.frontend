@@ -1,0 +1,45 @@
+# =====================================================
+# DOCKERFILE ДЛЯ FRONTEND (ОТДЕЛЬНЫЙ ДЕПЛОЙ)
+# Использовать если Backend на другом хостинге
+# =====================================================
+
+# ==================== BUILD ====================
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Кэшируем зависимости
+COPY frontend/package*.json ./
+RUN npm install --legacy-peer-deps
+
+# Копируем и собираем
+COPY frontend/ ./
+RUN mkdir -p public
+
+# Собираем (NEXT_PUBLIC_API_URL передаётся через env)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# ==================== PRODUCTION ====================
+FROM node:18-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Копируем standalone build
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget -q --spider http://localhost:${PORT:-3000} || exit 1
+
+# Порт
+EXPOSE 3000
+
+# Запуск
+CMD node server.js

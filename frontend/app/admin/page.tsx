@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { BarChart, Users, BookOpen, TrendingUp, AlertCircle, Filter, Download } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import MonitoringDashboard from '@/components/MonitoringDashboard'
 
 interface User {
   id: number
@@ -163,7 +164,8 @@ export default function AdminDashboard() {
               { id: 'overview', label: 'Обзор' },
               { id: 'users', label: 'Пользователи' },
               { id: 'courses', label: 'Курсы' },
-              { id: 'reports', label: 'Отчеты' }
+              { id: 'reports', label: 'Отчеты' },
+              { id: 'monitoring', label: 'Мониторинг' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -240,6 +242,15 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </Card>
+          </div>
+        )}
+
+        {/* Мониторинг */}
+        {activeTab === 'monitoring' && (
+          <div className="mt-6">
+            <Suspense fallback={<div>Загрузка мониторинга...</div>}>
+              <MonitoringDashboard />
+            </Suspense>
           </div>
         )}
 

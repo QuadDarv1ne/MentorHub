@@ -89,12 +89,15 @@ export default function BlogPage() {
       return matchesSearch && matchesCategory
     })
     .sort((a, b) => {
-      if (sortBy === 'latest') {
-        return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-      } else if (sortBy === 'trending') {
-        return (b.trending ? 1 : 0) - (a.trending ? 1 : 0)
-      } else {
-        return b.views - a.views
+      switch (sortBy) {
+        case 'latest':
+          return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+        case 'trending':
+          return (b.trending ? 1 : 0) - (a.trending ? 1 : 0)
+        case 'popular':
+          return b.views - a.views
+        default:
+          return 0
       }
     })
 
@@ -153,7 +156,7 @@ export default function BlogPage() {
               <label className="text-sm font-medium text-gray-700 mb-2 block">Сортировка:</label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value as 'latest' | 'trending' | 'popular')}
                 title="Выберите способ сортировки"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >

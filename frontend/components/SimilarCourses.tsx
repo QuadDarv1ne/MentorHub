@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { getSimilarCourses, type SimilarCourse } from '@/lib/api/courses';
 import { getCourse, type StepikCourse } from '@/lib/api/stepik';
 
@@ -64,9 +65,16 @@ export default function SimilarCourses({ courseId }: { courseId: number }) {
             {items.map((it) => (
               <li key={it.course_id} className="flex items-center justify-between border rounded p-2 hover:bg-gray-50 transition">
                 <a href={`/courses/stepik/${it.course_id}`} className="flex items-center gap-3">
-                  <div className="w-12 h-8 bg-gray-100 rounded overflow-hidden">
+                  <div className="w-12 h-8 bg-gray-100 rounded overflow-hidden relative flex-shrink-0">
                     {details?.[it.course_id]?.cover ? (
-                      <img src={details[it.course_id].cover} alt={details[it.course_id].title} className="w-full h-full object-cover" />
+                      <Image
+                        src={details[it.course_id].cover}
+                        alt={details[it.course_id].title || `Курс #${it.course_id}`}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                        quality={60}
+                      />
                     ) : null}
                   </div>
                   <div>
