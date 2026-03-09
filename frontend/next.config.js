@@ -9,6 +9,13 @@ const nextConfig = {
   // Оптимизация производительности
   poweredByHeader: false,
   compress: true,
+  
+  // Явно указываем порт для standalone server
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
 
   eslint: {
     // Временный флаг: не падать на сборке из‑за ESLint ошибок

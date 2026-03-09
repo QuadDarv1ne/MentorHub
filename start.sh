@@ -58,9 +58,12 @@ find_free_port() {
 # ОПРЕДЕЛЕНИЕ ПОРТА
 # =====================================================
 
-# Render устанавливает PORT=3000 для frontend
+# Render устанавливает PORT (например, 10000)
+# Этот порт должен использовать frontend (Next.js)
 # BACKEND_PORT используется для backend (по умолчанию 8000)
-FRONTEND_PORT="${PORT:-${FRONTEND_PORT:-3000}}"
+
+# В Render PORT устанавливается платформой, использу его для frontend
+FRONTEND_PORT="${PORT:-3000}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 
 echo "========================================="
@@ -132,19 +135,31 @@ echo ""
 # Export all environment variables for child processes
 export BACKEND_PORT=$BACKEND_PORT
 export FRONTEND_PORT=$FRONTEND_PORT
+export PORT=$FRONTEND_PORT
 export PGPASSWORD="${POSTGRES_PASSWORD:-}"
+export HOSTNAME="0.0.0.0"
 
 # Backend - запускаем с явным указанием переменных окружения
 cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
+echo "   Backend URL: http://0.0.0.0:$BACKEND_PORT"
 PORT=$BACKEND_PORT uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
 # Frontend - запускаем всегда (и в Docker, и в Render)
 cd /app/frontend
 echo "🚀 Starting frontend on port $FRONTEND_PORT..."
-PORT=$FRONTEND_PORT node server.js &
+echo "   Frontend URL: http://0.0.0.0:$FRONTEND_PORT"
+export PORT=$FRONTEND_PORT
+export HOSTNAME="0.0.0.0"
+node server.js &
 FRONTEND_PID=$!
+
+echo ""
+echo "✅ Services started:"
+echo "   Backend PID: $BACKEND_PID on port $BACKEND_PORT"
+echo "   Frontend PID: $FRONTEND_PID on port $FRONTEND_PORT"
+echo ""
 
 # Ожидание завершения
 wait $BACKEND_PID $FRONTEND_PID
