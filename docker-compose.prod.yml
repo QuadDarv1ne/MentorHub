@@ -83,9 +83,8 @@ services:
     image: redis:7-alpine
     container_name: mentorhub_redis
     command: >
-      redis-server 
-      --requirepass ${REDIS_PASSWORD} 
-      --maxmemory 1G 
+      redis-server
+      --maxmemory 1G
       --maxmemory-policy allkeys-lru
       --save 900 1
       --save 300 10
@@ -120,7 +119,7 @@ services:
     container_name: mentorhub_backend
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
       - DEBUG=false
@@ -167,7 +166,7 @@ services:
     command: celery -A app.celery_app worker --loglevel=info --concurrency=8 --pool=threads
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
     volumes:
@@ -205,7 +204,7 @@ services:
     command: celery -A app.celery_app beat --loglevel=info
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
     volumes:

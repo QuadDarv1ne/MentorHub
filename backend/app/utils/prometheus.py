@@ -160,6 +160,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
         start_time = time.time()
         status_code = 500
+        response = None
 
         try:
             response = await call_next(request)
@@ -175,7 +176,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             # Записываем время выполнения
             duration = time.time() - start_time
             REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
-            
+
             # Отслеживаем медленные запросы
             if duration > 1.0:
                 SLOW_REQUESTS.labels(method=method, endpoint=endpoint).inc()
@@ -185,14 +186,14 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
             # Уменьшаем счетчик запросов в процессе
             REQUEST_IN_PROGRESS.labels(method=method, endpoint=endpoint).dec()
-            
+
             # Записываем размеры запроса и ответа
             if hasattr(request, 'headers'):
                 content_length = request.headers.get('content-length', 0)
                 if content_length:
                     REQUEST_SIZE_BYTES.labels(method=method, endpoint=endpoint).observe(int(content_length))
-            
-            if hasattr(response, 'headers'):
+
+            if response and hasattr(response, 'headers'):
                 response_size = response.headers.get('content-length', 0)
                 if response_size:
                     RESPONSE_SIZE_BYTES.labels(method=method, endpoint=endpoint, http_status=status_code).observe(int(response_size))
