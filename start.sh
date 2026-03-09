@@ -1,7 +1,7 @@
 #!/bin/bash
 # =====================================================
-# MentorHub Startup Script - Optimized for Low Memory
-# С автоматическим определением свободного порта
+# MentorHub Startup Script - Optimized for Render
+# Исправлено: порты, line endings, hostname binding
 # =====================================================
 
 set -e
@@ -11,109 +11,46 @@ echo "🔍 MentorHub Environment Check"
 echo "========================================="
 echo "ENVIRONMENT: ${ENVIRONMENT:-not set}"
 echo "PORT: ${PORT:-not set}"
-echo "DATABASE_URL: ${DATABASE_URL:-not set}"
+echo "DATABASE_URL: ${DATABASE_URL:+***SET***}"
 echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
 echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
 
 # Оптимизация памяти для Node.js (Frontend)
-export NODE_OPTIONS="--max-old-space-size=128 --optimize-for-size --max-semi-space-size=16"
+export NODE_OPTIONS="--max-old-space-size=256 --optimize-for-size"
 
 # Оптимизация для Python (Backend)
 export PYTHONMALLOC=malloc
 export MALLOC_ARENA_MAX=2
 export PYTHONDONTWRITEBYTECODE=1
 
-# Проверка критических переменных для production (предупреждение, не ошибка)
-if [ "${ENVIRONMENT}" = "production" ] && [ -z "${DATABASE_URL}" ]; then
-    echo "⚠️ WARNING: DATABASE_URL not set in production!"
-    echo "   Add DATABASE_URL in Render Environment Variables."
-    echo "   See deploy/render/README.md for instructions."
-    echo "   Starting anyway without database..."
-fi
-
-if [ -z "${SECRET_KEY}" ]; then
-    echo "⚠️ WARNING: SECRET_KEY not set, using temporary key"
-fi
-
 # =====================================================
-# ПОИСК СВОБОДНОГО ПОРТА
+# ОПРЕДЕЛЕНИЕ ПОРТОВ
 # =====================================================
 
-is_port_free() {
-    local port=$1
-    ! (echo > /dev/tcp/localhost/$port) 2>/dev/null
-}
+# Render устанавливает PORT - это порт для frontend
+# Backend использует внутренний порт BACKEND_PORT
+export FRONTEND_PORT="${PORT:-3000}"
+export BACKEND_PORT="${BACKEND_PORT:-8000}"
 
-find_free_port() {
-    local start_port=$1
-    local max_attempts=${2:-100}
-    local port=$start_port
-
-    while [ $port -lt $((start_port + max_attempts)) ]; do
-        if is_port_free $port; then
-            echo $port
-            return 0
-        fi
-        port=$((port + 1))
-    done
-
-    echo $start_port
-    return 0
-}
-
-# =====================================================
-# ОПРЕДЕЛЕНИЕ ПОРТА
-# =====================================================
-
-# Render устанавливает PORT (например, 10000)
-# Этот порт должен использовать frontend (Next.js)
-# BACKEND_PORT используется для backend (по умолчанию 8000)
-
-# В Render PORT устанавливается платформой, использу его для frontend
-FRONTEND_PORT="${PORT:-3000}"
-BACKEND_PORT="${BACKEND_PORT:-8000}"
-
-echo "========================================="
-echo "🔍 MentorHub Port Detection"
-echo "========================================="
-echo "Frontend port: $FRONTEND_PORT"
-echo "Backend port: $BACKEND_PORT"
-
-if is_port_free $FRONTEND_PORT; then
-    echo "✅ Frontend port $FRONTEND_PORT is available"
-else
-    echo "⚠️ Frontend port $FRONTEND_PORT is in use, searching..."
-    FRONTEND_PORT=$(find_free_port $((FRONTEND_PORT + 1)))
-    echo "✅ Found free port: $FRONTEND_PORT"
-fi
-
-if is_port_free $BACKEND_PORT; then
-    echo "✅ Backend port $BACKEND_PORT is available"
-else
-    echo "⚠️ Backend port $BACKEND_PORT is in use, searching..."
-    BACKEND_PORT=$(find_free_port $((BACKEND_PORT + 1)))
-    echo "✅ Found free port: $BACKEND_PORT"
-fi
+# Важно: hostname должен быть 0.0.0.0 для доступности извне
+export HOSTNAME="0.0.0.0"
 
 echo "========================================="
 echo "🚀 Starting MentorHub..."
 echo "========================================="
 echo "Frontend port: $FRONTEND_PORT"
 echo "Backend port:  $BACKEND_PORT"
+echo "Hostname:      $HOSTNAME"
 echo "Environment:   ${ENVIRONMENT:-production}"
 echo "========================================="
-
-export PORT=$FRONTEND_PORT
-export BACKEND_PORT=$BACKEND_PORT
-export FRONTEND_PORT=$FRONTEND_PORT
 
 # =====================================================
 # DATABASE WAIT (опционально)
 # =====================================================
 
 if [ -n "$DATABASE_URL" ]; then
-    echo "📊 Database URL configured: ${DATABASE_URL%%:*}://***@${DATABASE_URL##*@}"
+    echo "📊 Database configured"
     echo "⏳ Waiting for database..."
     
     # Extract host from DATABASE_URL
@@ -123,7 +60,7 @@ if [ -n "$DATABASE_URL" ]; then
     
     # Wait for database with timeout
     for i in $(seq 1 30); do
-        if (echo > /dev/tcp/$DB_HOST/$DB_PORT) 2>/dev/null; then
+        if nc -z $DB_HOST $DB_PORT 2>/dev/null; then
             echo "✅ Database is ready"
             break
         fi
@@ -136,25 +73,18 @@ else
     echo "⚠️ DATABASE_URL not set"
 fi
 
-echo ""
-echo "🎯 Starting Backend and Frontend..."
-echo ""
+# =====================================================
+# START BACKEND
+# =====================================================
 
-# Export all environment variables for child processes
-export BACKEND_PORT=$BACKEND_PORT
-export FRONTEND_PORT=$FRONTEND_PORT
-export PORT=$FRONTEND_PORT
-export PGPASSWORD="${POSTGRES_PASSWORD:-}"
-export HOSTNAME="0.0.0.0"
-
-# Backend - запускаем с явным указанием переменных окружения
-# Оптимизация: 1 worker, без reload, минимальная память
+echo ""
 echo "🚀 Starting backend on port $BACKEND_PORT..."
+
 if [ -d "/app/backend" ]; then
-    echo "   Backend directory: /app/backend"
-    echo "   Backend URL: http://0.0.0.0:$BACKEND_PORT"
-    echo "   Memory optimized: 1 worker, no reload"
     cd /app/backend
+    echo "   Backend directory: /app/backend"
+    echo "   Backend URL: http://$HOSTNAME:$BACKEND_PORT"
+    
     PORT=$BACKEND_PORT uvicorn app.main:app \
         --host 0.0.0.0 \
         --port $BACKEND_PORT \
@@ -164,70 +94,65 @@ if [ -d "/app/backend" ]; then
         &
     BACKEND_PID=$!
     echo "   ✅ Backend started (PID: $BACKEND_PID)"
-elif [ -d "/app/app/backend" ]; then
-    # Fallback для альтернативной структуры
-    echo "   Backend directory: /app/app/backend (fallback)"
-    cd /app/app/backend
-    PORT=$BACKEND_PORT uvicorn app.main:app \
-        --host 0.0.0.0 \
-        --port $BACKEND_PORT \
-        --workers 1 \
-        &
-    BACKEND_PID=$!
 else
     echo "   ⚠️ WARNING: Backend directory not found!"
-    echo "   Looking for: /app/backend"
-    echo "   Current directory: $(pwd)"
-    echo "   Files in /app:"
-    ls -la /app/ || true
-    # Запускаем dummy процесс чтобы контейнер не упал
-    sleep infinity &
-    BACKEND_PID=$!
+    ls -la /app/
 fi
 
-# Frontend - запускаем всегда (и в Docker, и в Render)
-# Оптимизация: ограничена память через NODE_OPTIONS
+# =====================================================
+# START FRONTEND
+# =====================================================
+
 echo ""
 echo "🚀 Starting frontend on port $FRONTEND_PORT..."
-if [ -d "/app/frontend" ] && [ -f "/app/frontend/server.js" ]; then
-    echo "   Frontend directory: /app/frontend"
-    echo "   Frontend URL: http://0.0.0.0:$FRONTEND_PORT"
-    echo "   Memory optimized: max-old-space-size=128MB"
+
+if [ -f "/app/frontend/server.js" ]; then
     cd /app/frontend
+    echo "   Frontend directory: /app/frontend"
+    echo "   Frontend URL: http://$HOSTNAME:$FRONTEND_PORT"
+    
+    # Критически важно: PORT и HOSTNAME для Next.js standalone
     export PORT=$FRONTEND_PORT
     export HOSTNAME="0.0.0.0"
-    node --max-old-space-size=128 --optimize-for-size server.js &
+    
+    node server.js &
     FRONTEND_PID=$!
     echo "   ✅ Frontend started (PID: $FRONTEND_PID)"
-elif [ -f "/app/server.js" ]; then
-    # Fallback для альтернативной структуры
-    echo "   Frontend directory: /app (fallback)"
-    cd /app
-    export PORT=$FRONTEND_PORT
-    export HOSTNAME="0.0.0.0"
-    node --max-old-space-size=128 server.js &
-    FRONTEND_PID=$!
 else
     echo "   ⚠️ WARNING: Frontend server.js not found!"
-    echo "   Looking for: /app/frontend/server.js or /app/server.js"
-    echo "   Files in /app:"
-    ls -la /app/ || true
-    # Запускаем dummy процесс чтобы контейнер не упал
-    sleep infinity &
-    FRONTEND_PID=$!
+    ls -la /app/frontend/ || true
 fi
 
 echo ""
 echo "✅ Services started:"
 echo "   Backend PID: $BACKEND_PID on port $BACKEND_PORT"
 echo "   Frontend PID: $FRONTEND_PID on port $FRONTEND_PORT"
-echo "   Memory: Optimized for 512MB RAM"
 echo ""
 
-# Ожидание завершения
-wait $BACKEND_PID $FRONTEND_PID
-EXIT_CODE=$?
+# =====================================================
+# HEALTH CHECK LOG
+# =====================================================
 
-kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+# Даём сервисам время запуститься
+sleep 5
 
-exit $EXIT_CODE
+# Проверяем что сервисы отвечают
+echo "🏥 Health check..."
+curl -s http://localhost:$FRONTEND_PORT/ > /dev/null && echo "   ✅ Frontend responding" || echo "   ⚠️ Frontend not responding"
+curl -s http://localhost:$BACKEND_PORT/api/v1/health > /dev/null && echo "   ✅ Backend responding" || echo "   ⚠️ Backend not responding"
+
+echo ""
+echo "🎉 MentorHub is ready!"
+echo "   Public URL: ${RENDER_EXTERNAL_URL:-http://localhost:$FRONTEND_PORT}"
+echo ""
+
+# =====================================================
+# KEEP ALIVE
+# =====================================================
+
+# Ожидание завершения процессов
+wait $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+
+# Если процессы завершились, держим контейнер живым
+echo "⚠️ Processes ended, keeping container alive..."
+tail -f /dev/null

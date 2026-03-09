@@ -1,7 +1,6 @@
 # =====================================================
 # ОПТИМИЗИРОВАННЫЙ DOCKERFILE ДЛЯ MENTORHUB
-# Оптимизация для Free тарифов (512MB RAM)
-# Fix: start.sh paths corrected (2026-03-09)
+# Fix: start.sh и порты для Render (2026-03-09)
 # =====================================================
 
 # ==================== STAGE 1: Frontend Build ====================
@@ -38,7 +37,7 @@ RUN apk add --no-cache \
     libffi-dev \
     openssl-dev
 
-COPY backend/requirements.txt .
+COPY backend/requirements.txt ./
 
 # Устанавливаем зависимости без кэша
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -51,9 +50,9 @@ FROM python:3.11-alpine
 RUN apk add --no-cache \
     libpq \
     nodejs \
-    npm \
     curl \
-    tini
+    tini \
+    bash
 
 # Создаём не-root пользователя для безопасности
 RUN addgroup -g 1000 appgroup && \
@@ -64,7 +63,6 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
-    # Оптимизация памяти для Python
     PYTHONMALLOC=malloc \
     MALLOC_ARENA_MAX=2
 
@@ -72,20 +70,19 @@ ENV PYTHONUNBUFFERED=1 \
 COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
-# Копируем backend код в правильную директорию
-WORKDIR /app
+# Копируем backend код
 COPY backend/ ./backend/
 
-# Копируем frontend build
+# Копируем frontend build (standalone)
 WORKDIR /app/frontend
 COPY --from=frontend-builder /app/frontend/.next/standalone ./
 COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
 COPY --from=frontend-builder /app/frontend/public ./public
 
-# Копируем скрипт запуска в корень /app
+# Копируем скрипт запуска и конвертируем line endings
 WORKDIR /app
-COPY --chmod=755 ./start.sh ./start.sh
-RUN ls -la /app/start.sh || echo "DEBUG: start.sh not found"
+COPY start.sh ./start.sh
+RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 
 # Устанавливаем владельца на appuser
 RUN chown -R appuser:appgroup /app
@@ -94,13 +91,14 @@ USER appuser
 
 # Переменные окружения по умолчанию
 ENV BACKEND_PORT=8000 \
-    FRONTEND_PORT=3000
+    FRONTEND_PORT=3000 \
+    HOSTNAME=0.0.0.0
 
-# Health check с меньшим интервалом
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${FRONTEND_PORT}/ || curl -f http://localhost:${BACKEND_PORT}/api/v1/health/ready || exit 1
+    CMD curl -f http://localhost:${PORT:-3000}/ || curl -f http://localhost:${BACKEND_PORT}/api/v1/health || exit 1
 
-EXPOSE 8000 3000
+EXPOSE 3000 8000
 
-# Запускаем через sh напрямую
-CMD ["sh", "-c", "if [ -f /app/start.sh ]; then /app/start.sh; else echo 'ERROR: /app/start.sh not found' && exit 1; fi"]
+# Запускаем через bash
+CMD ["bash", "-c", "/app/start.sh"]
