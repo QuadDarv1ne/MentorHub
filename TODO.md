@@ -37,6 +37,15 @@
 - [x] Badge/Button variant исправления
 - [x] useCallback/useMemo зависимости
 - [x] Set итерация (Array.from)
+- [x] LazyComponents.tsx - исправлен тип loading и поддержка именованных экспортов
+- [x] useAuth.ts - isAuthenticated теперь boolean (не функция)
+- [x] client.ts - Headers тип (Record<string, string>)
+- [x] start.sh - удалён --optimize-for-size из NODE_OPTIONS
+
+### Deploy исправления
+- [x] Render деплой работает
+- [x] health.py - async Redis клиент
+- [x] User.role тип - добавлен 'admin'
 
 ---
 
@@ -86,7 +95,7 @@ docker-compose.prod.yml:
 - [x] Nginx reverse proxy
 - [x] PostgreSQL с бэкапами
 - [x] Redis cache
-- [ ] Health checks для всех сервисов
+- [x] Health checks для всех сервисов
 - [ ] Monitoring (Prometheus + Grafana)
 - [ ] Log aggregation (ELK stack)
 ```
@@ -238,5 +247,5 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-07
+**Последнее обновление:** 2026-03-09
 **Статус:** В работе
