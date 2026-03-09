@@ -22,9 +22,16 @@ export interface Course {
   certificate?: boolean
 }
 
-export async function getCourses(): Promise<Course[]> {
+export async function getCourses(skip?: number, limit?: number): Promise<Course[]> {
   try {
-    return await apiRequest<Course[]>('/courses')
+    const params = new URLSearchParams()
+    if (skip !== undefined) params.append('skip', skip.toString())
+    if (limit !== undefined) params.append('limit', limit.toString())
+    
+    const queryString = params.toString()
+    const url = queryString ? `/courses?${queryString}` : '/courses'
+    
+    return await apiRequest<Course[]>(url)
   } catch {
     return []
   }
