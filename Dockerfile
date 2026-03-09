@@ -86,18 +86,15 @@ COPY --from=frontend-builder /app/frontend/.next/standalone ./
 COPY --from=frontend-builder /app/frontend/.next/static ./.next/static
 COPY --from=frontend-builder /app/frontend/public ./public
 
-# Копируем скрипт запуска
+# Копируем скрипт запуска в корень /app
 WORKDIR /app
-COPY --chmod=755 start.sh /app/start.sh
+COPY --chmod=755 ./start.sh ./start.sh
+RUN ls -la /app/start.sh || echo "DEBUG: start.sh not found"
 
 # Устанавливаем владельца на appuser
 RUN chown -R appuser:appgroup /app
-RUN chown appuser:appgroup /app/start.sh
 
 USER appuser
-
-# Переключаемся на tini для лучшего управления процессами
-ENTRYPOINT ["/sbin/tini", "--"]
 
 # Переменные окружения по умолчанию
 ENV BACKEND_PORT=8000 \
@@ -109,4 +106,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 EXPOSE 8000 3000
 
-CMD ["/app/start.sh"]
+# Запускаем через sh напрямую
+CMD ["sh", "-c", "if [ -f /app/start.sh ]; then /app/start.sh; else echo 'ERROR: /app/start.sh not found' && exit 1; fi"]
