@@ -15,12 +15,13 @@ interface LazyComponentOptions {
  * Поддерживает как default, так и именованные экспорты
  */
 export function createLazyComponent<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default?: T } | T>,
+  importFn: () => Promise<unknown>,
   options?: LazyComponentOptions
 ) {
   return dynamic<T>(async () => {
     const module = await importFn()
-    return module.default || (module as T)
+    const component = (module as { default?: T }).default || (module as T)
+    return component
   }, {
     loading: options?.loading,
     ssr: options?.ssr ?? true,
