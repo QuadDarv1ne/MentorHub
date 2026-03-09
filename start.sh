@@ -133,30 +133,19 @@ export PGPASSWORD="${POSTGRES_PASSWORD:-}"
 # Backend - запускаем с явным указанием переменных окружения
 cd /app/backend
 echo "🚀 Starting backend on port $BACKEND_PORT..."
-# Передаём BACKEND_PORT вместо PORT для корректной работы auto port detection
 BACKEND_PORT=$BACKEND_PORT PORT=$BACKEND_PORT uvicorn app.main:app --host 0.0.0.0 --port $BACKEND_PORT --workers 1 &
 BACKEND_PID=$!
 
-# Frontend - запускаем только если не в Render (в Render фронтенд работает отдельно)
-if [ "${RENDER:-false}" != "true" ]; then
-    cd /app/frontend
-    echo "🚀 Starting frontend on port $FRONTEND_PORT..."
-    # Next.js standalone server (server.js is in the root of standalone build)
-    PORT=$FRONTEND_PORT node server.js &
-    FRONTEND_PID=$!
+# Frontend - запускаем всегда (и в Docker, и в Render)
+cd /app/frontend
+echo "🚀 Starting frontend on port $FRONTEND_PORT..."
+PORT=$FRONTEND_PORT node server.js &
+FRONTEND_PID=$!
 
-    # Ожидание завершения
-    wait $BACKEND_PID $FRONTEND_PID
-    EXIT_CODE=$?
+# Ожидание завершения
+wait $BACKEND_PID $FRONTEND_PID
+EXIT_CODE=$?
 
-    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
-else
-    echo "ℹ️ Running in Render mode - backend only"
-    # Ожидание завершения только бэкенда
-    wait $BACKEND_PID
-    EXIT_CODE=$?
-
-    kill $BACKEND_PID 2>/dev/null || true
-fi
+kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
 
 exit $EXIT_CODE
