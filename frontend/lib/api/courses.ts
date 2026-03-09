@@ -1,31 +1,42 @@
+import { api } from './client'
+
 export interface SimilarCourse {
-  course_id: number;
-  average_rating: number;
-  total_reviews: number;
+  course_id: number
+  average_rating: number
+  total_reviews: number
 }
 
-/**
- * Заглушка для getSimilarCourses
- * TODO: реализовать логику подбора похожих курсов
- */
 export async function getSimilarCourses(courseId: number): Promise<SimilarCourse[]> {
-  // Временная заглушка - возвращаем пустой массив
-  // TODO: реализовать логику подбора похожих курсов
-  return [];
+  try {
+    const response = await api.get(`/api/v1/courses/${courseId}/similar`)
+    return response.data
+  } catch {
+    return []
+  }
 }
 
 export interface Course {
-  id: number;
-  title: string;
-  description: string;
-  progress: number;
-  certificate?: boolean;
+  id: number
+  title: string
+  description: string
+  progress: number
+  certificate?: boolean
 }
 
 export async function getMyCourses(): Promise<Course[]> {
-  return [];
+  try {
+    const response = await api.get('/api/v1/courses/my')
+    return response.data
+  } catch {
+    return []
+  }
 }
 
 export async function getCourse(id: number): Promise<Course> {
-  return { id, title: '', description: '', progress: 0 };
+  try {
+    const response = await api.get(`/api/v1/courses/${id}`)
+    return response.data
+  } catch {
+    return { id, title: '', description: '', progress: 0 }
+  }
 }
