@@ -8,7 +8,6 @@ from datetime import datetime
 import psutil
 import platform
 from sqlalchemy import text
-from redis import Redis
 
 from app.database import SessionLocal
 from app.config import settings
@@ -22,7 +21,7 @@ async def check_database() -> Dict[str, Any]:
         db.close()
         return {
             "status": "healthy",
-            "response_time_ms": 0,  # Можно добавить замер времени
+            "response_time_ms": 0,
         }
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
@@ -31,12 +30,16 @@ async def check_database() -> Dict[str, Any]:
 async def check_redis() -> Dict[str, Any]:
     """Проверка подключения к Redis"""
     try:
+        from redis.asyncio import Redis
         redis_client = Redis.from_url(settings.REDIS_URL)
-        redis_client.ping()
+        await redis_client.ping()
+        await redis_client.close()
         return {
             "status": "healthy",
             "response_time_ms": 0,
         }
+    except ImportError:
+        return {"status": "unhealthy", "error": "redis-py not installed"}
     except Exception as e:
         return {"status": "unhealthy", "error": str(e)}
 
