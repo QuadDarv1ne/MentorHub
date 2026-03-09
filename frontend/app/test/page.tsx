@@ -12,23 +12,15 @@ export default function TestPage() {
       try {
         setLoading(true);
         setError(null);
-        console.log('Fetching course details for course ID 178781 via proxy');
         const response = await fetch('/api/stepik/178781');
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        console.log('Course details fetched via proxy:', result);
         setData(result);
       } catch (err) {
-        console.error('Fetch error:', err);
-        console.error('Error details:', {
-          name: err instanceof Error ? err.name : 'Unknown',
-          message: err instanceof Error ? err.message : 'Unknown error',
-          stack: err instanceof Error ? err.stack : 'No stack trace'
-        });
         setError(err instanceof Error ? `${err.name}: ${err.message}` : 'Unknown error');
       } finally {
         setLoading(false);
