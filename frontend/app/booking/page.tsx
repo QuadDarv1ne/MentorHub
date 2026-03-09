@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Calendar, Clock, Check } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
+import { useToast } from '@/lib/hooks/useNotifications'
 
 interface TimeSlot {
   time: string
@@ -29,6 +30,7 @@ const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 const MONTHS = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
 
 export default function BookingPage() {
+  const { success } = useToast();
   const [selectedMentorId, setSelectedMentorId] = useState<number | null>(null)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
@@ -162,7 +164,7 @@ export default function BookingPage() {
 
   const handleBooking = () => {
     if (selectedMentorId && selectedDate && selectedTime) {
-      alert(`Сессия забронирована!\nМентор: ${selectedMentor?.name}\nДата: ${getDateLabel(selectedDate)}\nВремя: ${selectedTime}`)
+      success(`Сессия забронирована! Ментор: ${selectedMentor?.name}, Дата: ${getDateLabel(selectedDate)}, Время: ${selectedTime}`);
       setBookingStep(1)
       setSelectedMentorId(null)
       setSelectedDate(null)
