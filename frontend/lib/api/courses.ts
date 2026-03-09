@@ -1,4 +1,4 @@
-import { api } from './client'
+import { apiRequest } from './client'
 
 export interface SimilarCourse {
   course_id: number
@@ -8,8 +8,7 @@ export interface SimilarCourse {
 
 export async function getSimilarCourses(courseId: number): Promise<SimilarCourse[]> {
   try {
-    const response = await api.get(`/api/v1/courses/${courseId}/similar`)
-    return response.data
+    return await apiRequest(`/courses/${courseId}/similar`)
   } catch {
     return []
   }
@@ -25,8 +24,7 @@ export interface Course {
 
 export async function getMyCourses(): Promise<Course[]> {
   try {
-    const response = await api.get('/api/v1/courses/my')
-    return response.data
+    return await apiRequest<Course[]>('/courses/my')
   } catch {
     return []
   }
@@ -34,8 +32,7 @@ export async function getMyCourses(): Promise<Course[]> {
 
 export async function getCourse(id: number): Promise<Course> {
   try {
-    const response = await api.get(`/api/v1/courses/${id}`)
-    return response.data
+    return await apiRequest<Course>(`/courses/${id}`)
   } catch {
     return { id, title: '', description: '', progress: 0 }
   }

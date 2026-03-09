@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'luci
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { login } from '@/lib/api/auth'
-import { AuthErrorBoundary } from '@/components/ErrorBoundary'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { InlineLoader } from '@/components/LoadingSpinner'
 
 function LoginForm() {
@@ -123,7 +123,7 @@ function LoginForm() {
   }
 
   return (
-    <AuthErrorBoundary>
+    <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -309,14 +309,11 @@ function LoginForm() {
               <p className="text-xs text-yellow-800 mb-2">
                 <strong>Демо-режим:</strong> Используйте любой email и пароль (мин. 6 символов)
               </p>
-              <p className="text-xs text-yellow-700">
-                Например: test@example.com / password123
-              </p>
             </div>
           </div>
         </div>
       </div>
-    </AuthErrorBoundary>
+    </ErrorBoundary>
   )
 }
 
