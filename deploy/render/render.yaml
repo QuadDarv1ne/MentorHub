@@ -17,7 +17,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: /app/start.sh
-    healthCheckPath: /api/v1/health/ready
+    healthCheckPath: /api/health/ready
     envVars:
       - key: RENDER
         value: "true"
