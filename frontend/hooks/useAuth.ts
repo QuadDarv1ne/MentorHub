@@ -12,6 +12,7 @@ interface UseAuthReturn {
   logout: () => void;
   refreshUser: () => Promise<void>;
   error: string | null;
+  getUserData: () => User | null;
 }
 
 interface UseAuthOptions {
@@ -144,6 +145,10 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     await checkAuth();
   };
 
+  const getUserData = useCallback(() => {
+    return user;
+  }, [user]);
+
   return {
     user,
     loading,
@@ -152,6 +157,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     logout,
     refreshUser,
     error,
+    getUserData,
   };
 }
 
