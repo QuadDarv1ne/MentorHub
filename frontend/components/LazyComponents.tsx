@@ -3,19 +3,22 @@
  */
 
 import dynamic from 'next/dynamic'
+import type { ComponentType, ReactNode } from 'react'
+
+interface LazyComponentOptions {
+  loading?: ComponentType
+  ssr?: boolean
+}
 
 /**
  * Lazy загрузка компонентов с loading fallback
  */
-export function createLazyComponent<T extends React.ComponentType<any>>(
+export function createLazyComponent<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
-  options?: {
-    loading?: React.ComponentType
-    ssr?: boolean
-  }
+  options?: LazyComponentOptions
 ) {
-  return dynamic(importFn, {
-    loading: options?.loading,
+  return dynamic<T>(importFn, {
+    loading: options?.loading as () => ReactNode,
     ssr: options?.ssr ?? true,
   })
 }
