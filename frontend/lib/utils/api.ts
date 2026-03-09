@@ -247,7 +247,6 @@ export class WebSocketClient {
     this.ws = new WebSocket(this.url)
 
     this.ws.onopen = () => {
-      console.log('WebSocket connected')
       this.reconnectAttempts = 0
     }
 
@@ -266,7 +265,6 @@ export class WebSocketClient {
     }
 
     this.ws.onclose = () => {
-      console.log('WebSocket disconnected')
       this.reconnect(onMessage, onError)
     }
   }
@@ -274,8 +272,7 @@ export class WebSocketClient {
   private reconnect(onMessage: (data: unknown) => void, onError?: (error: Event) => void) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
-      console.log(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
-      
+
       setTimeout(() => {
         this.connect(onMessage, onError)
       }, this.reconnectDelay * this.reconnectAttempts)

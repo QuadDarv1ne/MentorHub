@@ -68,7 +68,6 @@ export default function ProfilePage() {
   const handleSave = () => {
     if (validateForm()) {
       setIsEditing(false)
-      console.log('Профиль сохранён:', formData)
     }
   }
 

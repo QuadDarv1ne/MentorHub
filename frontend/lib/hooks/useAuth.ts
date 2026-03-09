@@ -77,14 +77,9 @@ export function useAuth() {
       localStorage.setItem('access_token', response.access_token)
       localStorage.setItem('refresh_token', response.refresh_token)
 
-      // Сохраняем время истечения
       const expiresAt = Math.floor(Date.now() / 1000) + response.expires_in
       localStorage.setItem('token_expires_at', expiresAt.toString())
-
-      console.log('✅ Token автоматически обновлен')
     } catch (error) {
-      console.error('❌ Ошибка обновления токена:', error)
-      // При ошибке обновления - разлогиниваем
       logout()
     } finally {
       setIsRefreshing(false)
