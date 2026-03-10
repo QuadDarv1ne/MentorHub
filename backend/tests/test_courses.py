@@ -75,12 +75,14 @@ class TestCourseCreate:
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
 
+        # Price в копейках (integer), instructor_id = id ментора
         course_data = {
             "title": "New Python Course",
             "description": "Learn Python from scratch",
             "level": "beginner",
             "duration_hours": 20,
-            "price": 79.99,
+            "price": 7999,  # 79.99 в копейках
+            "instructor_id": mentor.id,
         }
 
         response = client.post("/api/v1/courses", json=course_data, headers=headers)
