@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nextjs'
-import type { Event, Hint } from '@sentry/types'
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
 
@@ -32,7 +31,7 @@ Sentry.init({
   release: process.env.NEXT_PUBLIC_SENTRY_RELEASE || 'unknown',
 
   // Before send hook for filtering sensitive data
-  beforeSend(event: Event, _hint: Hint | undefined) {
+  beforeSend(event) {
     // Don't send events in development
     if (process.env.NODE_ENV === 'development') {
       console.warn('[Sentry] Event captured (dev mode, not sending):', event)
