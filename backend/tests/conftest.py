@@ -53,10 +53,6 @@ def db_session():
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # Очистка перед тестом
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
     # Создание сессии
     session = TestingSessionLocal()
 
