@@ -134,12 +134,25 @@ fi
 echo ""
 echo "🚀 Starting nginx on port $NGINX_PORT..."
 
+# Проверяем что nginx.conf существует
+if [ ! -f "/etc/nginx/nginx.conf" ]; then
+    echo "   ⚠️ ERROR: nginx.conf not found!"
+    exit 1
+fi
+
 # Подготавливаем nginx конфигурацию - заменяем порт 8000 на актуальный PORT
 sed -i "s/listen 8000;/listen $NGINX_PORT;/g" /etc/nginx/nginx.conf
 sed -i "s/listen \[::\]:8000;/listen [::]:$NGINX_PORT;/g" /etc/nginx/nginx.conf
 
 echo "   Nginx configuration updated for port $NGINX_PORT"
 echo "   Nginx URL: http://$HOSTNAME:$NGINX_PORT"
+
+# Проверяем конфигурацию nginx перед запуском
+if ! nginx -t 2>&1; then
+    echo "   ⚠️ ERROR: nginx configuration test failed!"
+    cat /etc/nginx/nginx.conf
+    exit 1
+fi
 
 # Запускаем nginx
 nginx -g "daemon off;" &
@@ -197,6 +210,16 @@ echo ""
 # =====================================================
 # KEEP ALIVE
 # =====================================================
+
+# Сигнал завершения для дочерних процессов
+cleanup() {
+    echo "🛑 Stopping services..."
+    kill $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
+    wait $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
+    exit 0
+}
+
+trap cleanup SIGTERM SIGINT EXIT
 
 # Ожидание завершения процессов
 wait $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
