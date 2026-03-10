@@ -268,6 +268,13 @@ class Settings(BaseSettings):
     # ==================== PUSH NOTIFICATIONS ====================
     PUSH_NOTIFICATIONS_ENABLED: bool = True
 
+    # ==================== OAUTH ====================
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    OAUTH_REDIRECT_URI: str = "http://localhost:3000/auth/callback"
+
 
 @lru_cache()
 def get_settings() -> Settings:
