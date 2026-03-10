@@ -9,6 +9,7 @@ Features:
 - Returns proper 429 responses with retry-after headers
 """
 
+import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -127,6 +128,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_client: Redis):
         super().__init__(app)
         self.limiter = RateLimiter(redis_client)
+        self.enabled = os.getenv("RATE_LIMIT_ENABLED", "True").lower() != "false"
 
         # Rate limit configurations
         self.configs = {
@@ -166,6 +168,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return self.configs["default"]
 
     async def dispatch(self, request: Request, call_next: Callable):
+        # Skip rate limiting if disabled (e.g., in testing)
+        if not self.enabled:
+            return await call_next(request)
+
         # Skip rate limiting for health checks
         if request.url.path in ["/health", "/ready", "/api/v1/health/detailed"]:
             return await call_next(request)
