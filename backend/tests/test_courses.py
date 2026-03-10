@@ -14,9 +14,10 @@ from app.utils.security import get_password_hash
 class TestCourseRead:
     """Тесты чтения курсов"""
 
-    def test_get_course_list(self, client, authenticated_headers):
+    def test_get_course_list(self, sync_authenticated_client):
         """Тест получения списка курсов"""
-        response = client.get("/api/v1/courses", headers=authenticated_headers)
+        client, headers = sync_authenticated_client
+        response = client.get("/api/v1/courses", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -29,8 +30,9 @@ class TestCourseRead:
         # Публичный доступ может быть разрешён
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED]
 
-    def test_get_course_by_id(self, client, create_user, authenticated_headers):
+    def test_get_course_by_id(self, sync_authenticated_client, create_user):
         """Тест получения курса по ID"""
+        client, headers = sync_authenticated_client
         # Создаём ментора
         mentor = create_user(
             email="mentor@example.com",
@@ -49,7 +51,7 @@ class TestCourseRead:
         }
 
         # Получение списка (создание через API может требовать ментора)
-        response = client.get("/api/v1/courses", headers=authenticated_headers)
+        response = client.get("/api/v1/courses", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -98,8 +100,9 @@ class TestCourseCreate:
 class TestCourseUpdate:
     """Тесты обновления курсов"""
 
-    def test_update_course(self, client, create_user, authenticated_headers):
+    def test_update_course(self, sync_authenticated_client, create_user):
         """Тест обновления курса"""
+        client, headers = sync_authenticated_client
         # Создание курса и обновление может требовать дополнительных фикстур
         # Этот тест проверяет структуру
         update_data = {
@@ -108,7 +111,7 @@ class TestCourseUpdate:
         }
 
         # Попытка обновления (может вернуть 404 если курс не найден)
-        response = client.put("/api/v1/courses/999", json=update_data, headers=authenticated_headers)
+        response = client.put("/api/v1/courses/999", json=update_data, headers=headers)
 
         assert response.status_code in [
             status.HTTP_404_NOT_FOUND,
@@ -120,10 +123,11 @@ class TestCourseUpdate:
 class TestCourseDelete:
     """Тесты удаления курсов"""
 
-    def test_delete_course(self, client, authenticated_headers):
+    def test_delete_course(self, sync_authenticated_client):
         """Тест удаления курса"""
+        client, headers = sync_authenticated_client
         # Попытка удаления несуществующего курса
-        response = client.delete("/api/v1/courses/999", headers=authenticated_headers)
+        response = client.delete("/api/v1/courses/999", headers=headers)
 
         assert response.status_code in [
             status.HTTP_404_NOT_FOUND,
@@ -134,21 +138,24 @@ class TestCourseDelete:
 class TestCourseSearch:
     """Тесты поиска курсов"""
 
-    def test_search_courses(self, client, authenticated_headers):
+    def test_search_courses(self, sync_authenticated_client):
         """Тест поиска курсов"""
-        response = client.get("/api/v1/courses?search=python", headers=authenticated_headers)
+        client, headers = sync_authenticated_client
+        response = client.get("/api/v1/courses?search=python", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
 
-    def test_filter_courses_by_level(self, client, authenticated_headers):
+    def test_filter_courses_by_level(self, sync_authenticated_client):
         """Тест фильтрации курсов по уровню"""
-        response = client.get("/api/v1/courses?level=beginner", headers=authenticated_headers)
+        client, headers = sync_authenticated_client
+        response = client.get("/api/v1/courses?level=beginner", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
 
-    def test_filter_courses_by_price(self, client, authenticated_headers):
+    def test_filter_courses_by_price(self, sync_authenticated_client):
         """Тест фильтрации курсов по цене"""
-        response = client.get("/api/v1/courses?max_price=50", headers=authenticated_headers)
+        client, headers = sync_authenticated_client
+        response = client.get("/api/v1/courses?max_price=50", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -156,18 +163,20 @@ class TestCourseSearch:
 class TestCourseEnrollment:
     """Тесты записи на курсы"""
 
-    def test_enroll_course(self, client, authenticated_headers):
+    def test_enroll_course(self, sync_authenticated_client):
         """Тест записи на курс"""
+        client, headers = sync_authenticated_client
         # Попытка записи на несуществующий курс
-        response = client.post("/api/v1/courses/999/enroll", headers=authenticated_headers)
+        response = client.post("/api/v1/courses/999/enroll", headers=headers)
 
         assert response.status_code in [
             status.HTTP_404_NOT_FOUND,
             status.HTTP_400_BAD_REQUEST,
         ]
 
-    def test_get_enrolled_courses(self, client, authenticated_headers):
+    def test_get_enrolled_courses(self, sync_authenticated_client):
         """Тест получения списка записанных курсов"""
-        response = client.get("/api/v1/courses/my", headers=authenticated_headers)
+        client, headers = sync_authenticated_client
+        response = client.get("/api/v1/courses/my", headers=headers)
 
         assert response.status_code == status.HTTP_200_OK
