@@ -2,15 +2,15 @@
  * Тесты для API client с retry logic
  */
 
-import { describe, it, expect, vi, beforeEach } from '@jest/globals'
+import { describe, it, expect, beforeEach } from '@jest/globals'
 import { fetchWithRetry, ApiError, NetworkError, TimeoutError } from './client'
 
 // Mock fetch globally
-const mockFetch = vi.fn()
+const mockFetch = jest.fn()
 
 describe('API Client', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('fetchWithRetry', () => {

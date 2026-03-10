@@ -2,27 +2,27 @@
  * Тесты для useAuth hook
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAuth, useOptionalAuth, useRole, useOwnership } from './useAuth'
 
 // Mock next/navigation
-vi.mock('next/navigation', () => ({
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-    back: vi.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
   }),
 }))
 
 // Mock fetch
-const mockFetch = vi.fn()
+const mockFetch = jest.fn()
 global.fetch = mockFetch as any
 
 describe('useAuth Hook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     localStorage.clear()
   })
 
@@ -220,7 +220,7 @@ describe('useAuth Hook', () => {
 
 describe('useOptionalAuth Hook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     localStorage.clear()
   })
 
@@ -261,7 +261,7 @@ describe('useOptionalAuth Hook', () => {
 
 describe('useRole Hook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     localStorage.clear()
   })
 
@@ -322,7 +322,7 @@ describe('useRole Hook', () => {
 
 describe('useOwnership Hook', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     localStorage.clear()
   })
 

@@ -19,6 +19,7 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [setupComplete, setSetupComplete] = useState(false)
 
   const setup2FA = async () => {
     try {
@@ -44,6 +45,7 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
       setQrCode(data.qr_code)
       setSecret(data.secret)
       setBackupCodes(data.backup_codes || [])
+      setSetupComplete(true)
       setStep('verify')
     } catch (err: any) {
       setError(err.message)
@@ -161,7 +163,7 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
             )}
           </div>
 
-          {step === 'verify' && (
+          {setupComplete && (
             <>
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -220,9 +222,9 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
             </>
           )}
 
-          {step !== 'verify' && qrCode && (
+          {!setupComplete && qrCode && (
             <button
-              onClick={() => setStep('verify')}
+              onClick={() => { setSetupComplete(true); setStep('verify'); }}
               className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Продолжить
