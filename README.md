@@ -25,6 +25,7 @@
 - [Технический стек](#технический-стек)
 - [Архитектура](#архитектура)
 - [Установка и запуск](#установка-и-запуск)
+  - [Деплой в облако](#-деплой-в-облако)
 - [Структура проекта](#структура-проекта)
 - [API Документация](#api-документация)
 - [Использование](#использование)
@@ -275,6 +276,43 @@ npm run dev
 ```
 
 Frontend будет доступен на `http://localhost:3000`
+
+### 🌐 Деплой в облако
+
+#### Render (Рекомендуется)
+
+Быстрый деплой на Render:
+
+```bash
+# 1. Создайте аккаунт на https://render.com/
+# 2. Подключите ваш GitHub репозиторий
+# 3. Render автоматически использует render.yaml конфигурацию
+```
+
+**Что создаётся автоматически:**
+- ✅ Backend сервис (Python/FastAPI)
+- ✅ Frontend сервис (Next.js)
+- ✅ PostgreSQL база данных
+- ✅ Redis кеш
+
+**Важно:** После деплоя добавьте переменную `SECRET_KEY` в настройках backend сервиса!
+
+📖 **Подробная инструкция:** [docs/DEPLOYMENT/render.md](docs/DEPLOYMENT/render.md)  
+🔴 **Настройка Redis:** [docs/DEPLOYMENT/redis-render.md](docs/DEPLOYMENT/redis-render.md)  
+⚡ **Быстрый старт:** [docs/quickstart.md](docs/quickstart.md)
+
+#### Другие платформы
+
+MentorHub поддерживает деплой на:
+- 🚂 Railway
+- 🐳 Heroku
+- ▲ Vercel (Frontend)
+- 🌐 Netlify (Frontend)
+- ☁️ AWS ECS
+- 🌩️ Google Cloud Run
+- 🪐 Amvera
+
+Конфигурации для всех платформ включены в репозиторий.
 
 ### Тестирование и миграции
 

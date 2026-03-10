@@ -1,0 +1,13 @@
+# Эта папка устарела, документация перемещена в docs/
+# Пожалуйста, используйте docs/ для новой документации
+#
+# Старые файлы были перемещены:
+# - DEPLOYMENT-*.md → docs/DEPLOYMENT/
+# - API_*.md → docs/API/
+# - SECURITY*.md → docs/SECURITY/
+# - MONITORING.md → docs/MONITORING/
+# - WEBSOCKET_CHAT.md → docs/FEATURES/
+# - И другие
+
+*
+!.gitignore

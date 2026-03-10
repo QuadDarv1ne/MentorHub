@@ -63,21 +63,21 @@ class TestMentorBookingFlow:
 
     @pytest.mark.asyncio
     async def test_complete_booking_flow(
-        self, async_client: AsyncClient, authenticated_client: tuple[AsyncClient, dict]
+        self, async_authenticated_client: tuple[AsyncClient, dict]
     ):
         """Полный цикл бронирования сессии"""
 
-        client, auth_data = authenticated_client
+        client, auth_headers = async_authenticated_client
 
         # 1. Получение списка менторов
-        response = await client.get("/api/v1/mentors")
+        response = await client.get("/api/v1/mentors", headers=auth_headers)
         assert response.status_code == 200
         mentors = response.json()
         assert len(mentors) > 0
         mentor_id = mentors[0]["id"]
 
         # 2. Получение профиля ментора
-        response = await client.get(f"/api/v1/mentors/{mentor_id}")
+        response = await client.get(f"/api/v1/mentors/{mentor_id}", headers=auth_headers)
         assert response.status_code == 200
         mentor = response.json()
         assert mentor["id"] == mentor_id
@@ -90,20 +90,20 @@ class TestMentorBookingFlow:
             "topic": "Python best practices",
         }
 
-        response = await client.post("/api/v1/sessions", json=session_data)
+        response = await client.post("/api/v1/sessions", json=session_data, headers=auth_headers)
         assert response.status_code == 201
         session = response.json()
         assert session["mentor_id"] == mentor_id
         assert session["status"] == "scheduled"
 
         # 4. Получение списка своих сессий
-        response = await client.get("/api/v1/sessions/my")
+        response = await client.get("/api/v1/sessions/my", headers=auth_headers)
         assert response.status_code == 200
         sessions = response.json()
         assert any(s["id"] == session["id"] for s in sessions)
 
         # 5. Отмена сессии
-        response = await client.post(f"/api/v1/sessions/{session['id']}/cancel")
+        response = await client.post(f"/api/v1/sessions/{session['id']}/cancel", headers=auth_headers)
         assert response.status_code == 200
         cancelled_session = response.json()
         assert cancelled_session["status"] == "cancelled"
@@ -114,31 +114,31 @@ class TestCourseEnrollmentFlow:
 
     @pytest.mark.asyncio
     async def test_course_enrollment_flow(
-        self, async_client: AsyncClient, authenticated_client: tuple[AsyncClient, dict]
+        self, async_authenticated_client: tuple[AsyncClient, dict]
     ):
         """Полный цикл записи на курс"""
 
-        client, auth_data = authenticated_client
+        client, auth_headers = async_authenticated_client
 
         # 1. Просмотр каталога курсов
-        response = await client.get("/api/v1/courses")
+        response = await client.get("/api/v1/courses", headers=auth_headers)
         assert response.status_code == 200
         courses = response.json()
         assert len(courses) > 0
         course_id = courses[0]["id"]
 
         # 2. Просмотр деталей курса
-        response = await client.get(f"/api/v1/courses/{course_id}")
+        response = await client.get(f"/api/v1/courses/{course_id}", headers=auth_headers)
         assert response.status_code == 200
         course = response.json()
         assert course["id"] == course_id
 
         # 3. Запись на курс
-        response = await client.post(f"/api/v1/courses/{course_id}/enroll")
+        response = await client.post(f"/api/v1/courses/{course_id}/enroll", headers=auth_headers)
         assert response.status_code in [200, 201]
 
         # 4. Проверка списка моих курсов
-        response = await client.get("/api/v1/courses/my")
+        response = await client.get("/api/v1/courses/my", headers=auth_headers)
         assert response.status_code == 200
         my_courses = response.json()
         assert any(c["id"] == course_id for c in my_courses)
@@ -150,35 +150,34 @@ class TestMessagingFlow:
     @pytest.mark.asyncio
     async def test_send_receive_messages(
         self,
-        async_client: AsyncClient,
-        authenticated_client: tuple[AsyncClient, dict],
-        second_authenticated_client: tuple[AsyncClient, dict],
+        async_authenticated_client: tuple[AsyncClient, dict],
+        second_async_authenticated_client: tuple[AsyncClient, dict],
     ):
         """Тест отправки и получения сообщений"""
 
-        client1, user1 = authenticated_client
-        client2, user2 = second_authenticated_client
+        client1, auth_headers1 = async_authenticated_client
+        client2, auth_headers2 = second_async_authenticated_client
 
         # 1. Пользователь 1 отправляет сообщение пользователю 2
-        message_data = {"recipient_id": user2["user"]["id"], "content": "Hello! Can we schedule a session?"}
+        message_data = {"recipient_id": 999, "content": "Hello! Can we schedule a session?"}
 
-        response = await client1.post("/api/v1/messages", json=message_data)
+        response = await client1.post("/api/v1/messages", json=message_data, headers=auth_headers1)
         assert response.status_code == 201
         message = response.json()
         assert message["content"] == message_data["content"]
 
         # 2. Пользователь 2 получает сообщения
-        response = await client2.get("/api/v1/messages")
+        response = await client2.get("/api/v1/messages", headers=auth_headers2)
         assert response.status_code == 200
         messages = response.json()
         assert any(m["id"] == message["id"] for m in messages)
 
         # 3. Пользователь 2 отмечает сообщение прочитанным
-        response = await client2.put(f"/api/v1/messages/{message['id']}/read")
+        response = await client2.put(f"/api/v1/messages/{message['id']}/read", headers=auth_headers2)
         assert response.status_code == 200
 
         # 4. Получение истории переписки
-        response = await client1.get(f"/api/v1/messages/conversation/{user2['user']['id']}")
+        response = await client1.get(f"/api/v1/messages/conversation/999", headers=auth_headers1)
         assert response.status_code == 200
         conversation = response.json()
         assert len(conversation) > 0
@@ -189,16 +188,16 @@ class TestPaymentFlow:
 
     @pytest.mark.asyncio
     async def test_payment_intent_creation(
-        self, async_client: AsyncClient, authenticated_client: tuple[AsyncClient, dict]
+        self, async_authenticated_client: tuple[AsyncClient, dict]
     ):
         """Тест создания платежного намерения"""
 
-        client, auth_data = authenticated_client
+        client, auth_headers = async_authenticated_client
 
         # Создание платежного намерения
         payment_data = {"amount": 50.00, "currency": "usd", "description": "Session payment"}
 
-        response = await client.post("/api/v1/payments/create-intent", json=payment_data)
+        response = await client.post("/api/v1/payments/create-intent", json=payment_data, headers=auth_headers)
 
         # В тестовой среде может быть недоступен Stripe
         assert response.status_code in [200, 201, 503]
@@ -244,51 +243,3 @@ class TestSecurityHeaders:
         assert "X-XSS-Protection" in response.headers
 
         assert "Content-Security-Policy" in response.headers
-
-
-# Pytest fixtures
-@pytest.fixture
-async def authenticated_client(async_client: AsyncClient):
-    """Фикстура для аутентифицированного клиента"""
-
-    # Регистрация
-    user_data = {"email": "testuser1@test.com", "password": "TestPass123!", "full_name": "Test User 1"}
-
-    await async_client.post("/api/v1/auth/register", json=user_data)
-
-    # Авторизация
-    login_data = {"username": user_data["email"], "password": user_data["password"]}
-
-    response = await async_client.post("/api/v1/auth/login", data=login_data)
-    token_data = response.json()
-
-    # Создаем новый клиент с заголовком авторизации
-    client = AsyncClient(
-        app=app, base_url="http://test", headers={"Authorization": f"Bearer {token_data['access_token']}"}
-    )
-
-    yield client, token_data
-
-    await client.aclose()
-
-
-@pytest.fixture
-async def second_authenticated_client(async_client: AsyncClient):
-    """Фикстура для второго аутентифицированного клиента"""
-
-    user_data = {"email": "testuser2@test.com", "password": "TestPass123!", "full_name": "Test User 2"}
-
-    await async_client.post("/api/v1/auth/register", json=user_data)
-
-    login_data = {"username": user_data["email"], "password": user_data["password"]}
-
-    response = await async_client.post("/api/v1/auth/login", data=login_data)
-    token_data = response.json()
-
-    client = AsyncClient(
-        app=app, base_url="http://test", headers={"Authorization": f"Bearer {token_data['access_token']}"}
-    )
-
-    yield client, token_data
-
-    await client.aclose()

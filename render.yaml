@@ -1,0 +1,44 @@
+# Render Configuration
+# https://render.com/docs/yaml-spec
+
+services:
+  # Backend API Service
+  - type: web
+    name: mentorhub-backend
+    env: python
+    region: frankfurt
+    plan: starter
+    branch: main
+    healthCheckPath: /api/v1/health
+    buildCommand: ""
+    startCommand: bash /app/start.sh
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mentorhub-db
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: mentorhub-redis
+          property: connectionString
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+
+databases:
+  # PostgreSQL Database
+  - name: mentorhub-db
+    databaseName: mentorhub
+    user: mentorhub_user
+    plan: starter
+    region: frankfurt
+    ipAllowList: []
+
+  # Redis Cache
+  - name: mentorhub-redis
+    plan: starter
+    region: frankfurt
+    maxmemoryPolicy: allkeys-lru

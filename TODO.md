@@ -48,6 +48,9 @@
 ### Deploy исправления
 - [x] Render деплой работает
 - [x] health.py - async Redis клиент
+- [x] Redis production документация (DEPLOYMENT-REDIS-RENDER.md)
+- [x] Render деплой документация (DEPLOYMENT-RENDER.md)
+- [x] render.yaml конфигурация
 - [x] User.role тип - добавлен 'admin'
 
 ### Backend исправления (дополнительно)
