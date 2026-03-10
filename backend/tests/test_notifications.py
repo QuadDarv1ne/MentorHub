@@ -13,7 +13,7 @@ from app.utils.security import get_password_hash
 class TestGetNotifications:
     """Тесты получения уведомлений"""
 
-    def test_get_notifications_list(self, sync_authenticated_client, sample_user_data):
+    def test_get_notifications_list(self, sync_authenticated_client):
         """Тест получения списка всех уведомлений"""
         client, headers = sync_authenticated_client
 
@@ -26,7 +26,7 @@ class TestGetNotifications:
         response = client.get("/api/v1/notifications")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_notifications_with_filters(self, sync_authenticated_client, sample_user_data):
+    def test_get_notifications_with_filters(self, sync_authenticated_client):
         """Тест получения уведомлений с фильтрами"""
         client, headers = sync_authenticated_client
 
@@ -43,7 +43,7 @@ class TestGetNotifications:
 class TestGetUnreadCount:
     """Тесты получения количества непрочитанных уведомлений"""
 
-    def test_get_unread_count_success(self, sync_authenticated_client, sample_user_data):
+    def test_get_unread_count_success(self, sync_authenticated_client):
         """Тест получения количества непрочитанных"""
         client, headers = sync_authenticated_client
 
@@ -63,7 +63,7 @@ class TestGetUnreadCount:
 class TestMarkNotificationAsRead:
     """Тесты отметки уведомления как прочитанного"""
 
-    def test_mark_notification_read_success(self, sync_authenticated_client, sample_user_data):
+    def test_mark_notification_read_success(self, sync_authenticated_client):
         """Тест успешной отметки уведомления"""
         client, headers = sync_authenticated_client
 
@@ -80,7 +80,7 @@ class TestMarkNotificationAsRead:
 class TestMarkAllNotificationsAsRead:
     """Тесты отметки всех уведомлений как прочитанных"""
 
-    def test_mark_all_notifications_read_success(self, sync_authenticated_client, sample_user_data):
+    def test_mark_all_notifications_read_success(self, sync_authenticated_client):
         """Тест успешной отметки всех уведомлений"""
         client, headers = sync_authenticated_client
 
@@ -96,7 +96,7 @@ class TestMarkAllNotificationsAsRead:
 class TestDeleteNotification:
     """Тесты удаления уведомления"""
 
-    def test_delete_notification_success(self, sync_authenticated_client, sample_user_data):
+    def test_delete_notification_success(self, sync_authenticated_client):
         """Тест успешного удаления уведомления"""
         client, headers = sync_authenticated_client
 
@@ -113,7 +113,7 @@ class TestDeleteNotification:
 class TestClearAllNotifications:
     """Тесты очистки всех уведомлений"""
 
-    def test_clear_all_notifications_success(self, sync_authenticated_client, sample_user_data):
+    def test_clear_all_notifications_success(self, sync_authenticated_client):
         """Тест успешной очистки всех уведомлений"""
         client, headers = sync_authenticated_client
 
@@ -147,7 +147,7 @@ class TestNotificationTypes:
 class TestNotificationPagination:
     """Тесты пагинации уведомлений"""
 
-    def test_notifications_pagination(self, sync_authenticated_client, sample_user_data):
+    def test_notifications_pagination(self, sync_authenticated_client):
         """Тест пагинации уведомлений"""
         client, headers = sync_authenticated_client
 
@@ -159,7 +159,7 @@ class TestNotificationPagination:
         if isinstance(data, dict):
             assert "page" in data or "items" in data or len(data) >= 0
 
-    def test_notifications_invalid_page(self, sync_authenticated_client, sample_user_data):
+    def test_notifications_invalid_page(self, sync_authenticated_client):
         """Тест невалидной пагинации"""
         client, headers = sync_authenticated_client
 
@@ -170,7 +170,7 @@ class TestNotificationPagination:
             status.HTTP_200_OK,
         ]
 
-    def test_notifications_invalid_limit(self, sync_authenticated_client, sample_user_data):
+    def test_notifications_invalid_limit(self, sync_authenticated_client):
         """Тест невалидного limit"""
         client, headers = sync_authenticated_client
 
@@ -185,10 +185,14 @@ class TestNotificationPagination:
 class TestNotificationPermissions:
     """Тесты прав доступа к уведомлениям"""
 
-    def test_cannot_access_others_notifications(self, client, sample_user_data):
+    def test_cannot_access_others_notifications(self, client):
         """Тест что нельзя получить уведомления другого пользователя"""
         # Создаём двух пользователей
-        user1_data = sample_user_data
+        user1_data = {
+            "email": "user1@example.com",
+            "username": "user1",
+            "password": "TestPass123!",
+        }
         user2_data = {
             "email": "user2@example.com",
             "username": "user2",

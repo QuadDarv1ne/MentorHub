@@ -78,7 +78,7 @@ class TestUserUpdate:
 class TestUserDelete:
     """Тесты удаления пользователей"""
 
-    def test_delete_current_user(self, client, sample_user_data):
+    def test_delete_current_user(self, client):
         """Тест удаления текущего пользователя"""
         # Регистрация
         client.post("/api/v1/auth/register", json=sample_user_data)

@@ -207,45 +207,75 @@ def test_client_with_websocket(db_session):
 
 
 @pytest_asyncio.fixture
-async def authenticated_client(async_client, sample_user_data):
-    """Фикстура для авторизованного клиента (async)"""
+async def async_authenticated_client(async_client):
+    """Фикстура для авторизованного асинхронного клиента"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+    
     # Регистрация
-    await async_client.post("/api/v1/auth/register", json=sample_user_data)
+    await async_client.post("/api/v1/auth/register", json=user_data)
     
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
-        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+        json={"email": user_data["email"], "password": user_data["password"]},
     )
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture
-async def async_authenticated_client(async_client, sample_user_data):
-    """Фикстура для авторизованного асинхронного клиента (alias)"""
+async def authenticated_client(async_client):
+    """Фикстура для авторизованного клиента (async) - alias"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+    
     # Регистрация
-    await async_client.post("/api/v1/auth/register", json=sample_user_data)
+    await async_client.post("/api/v1/auth/register", json=user_data)
     
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
-        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+        json={"email": user_data["email"], "password": user_data["password"]},
     )
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
-def sync_authenticated_client(client, sample_user_data):
+def sync_authenticated_client(client):
     """Фикстура для синхронных тестов с авторизацией"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+    
     # Регистрация
-    client.post("/api/v1/auth/register", json=sample_user_data)
+    client.post("/api/v1/auth/register", json=user_data)
     
     # Вход
     login_response = client.post(
         "/api/v1/auth/login",
-        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+        json={"email": user_data["email"], "password": user_data["password"]},
     )
     token = login_response.json()["access_token"]
     return client, {"Authorization": f"Bearer {token}"}
@@ -254,17 +284,19 @@ def sync_authenticated_client(client, sample_user_data):
 @pytest_asyncio.fixture
 async def second_async_authenticated_client(async_client):
     """Фикстура для второго авторизованного асинхронного клиента"""
-    # Создаем второго пользователя
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
     user2_data = {
-        "email": "user2@test.com",
-        "username": "user2test",
+        "email": f"user2_{unique_id}@test.com",
+        "username": f"user2test_{unique_id}",
         "password": "SecurePass123!",
         "full_name": "User Two"
     }
-    
+
     # Регистрация
     await async_client.post("/api/v1/auth/register", json=user2_data)
-    
+
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",

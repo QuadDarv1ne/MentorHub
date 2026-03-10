@@ -13,7 +13,7 @@ from app.utils.security import get_password_hash
 class TestSendVerificationEmail:
     """Тесты отправки письма для подтверждения email"""
 
-    def test_send_verification_email_success(self, sync_authenticated_client, sample_user_data):
+    def test_send_verification_email_success(self, sync_authenticated_client):
         """Тест успешной отправки письма для подтверждения"""
         client, headers = sync_authenticated_client
 
@@ -34,7 +34,7 @@ class TestSendVerificationEmail:
 class TestVerifyEmail:
     """Тесты подтверждения email"""
 
-    def test_verify_email_success(self, client, sample_user_data):
+    def test_verify_email_success(self, client):
         """Тест подтверждения email"""
         # Сначала нужно получить токен (через send-verification)
         # Затем подтвердить
@@ -68,7 +68,7 @@ class TestVerifyEmail:
 class TestForgotPassword:
     """Тесты восстановления пароля"""
 
-    def test_forgot_password_success(self, client, sample_user_data):
+    def test_forgot_password_success(self, client):
         """Тест успешного запроса на восстановление пароля"""
         # Сначала зарегистрируем пользователя
         client.post("/api/v1/auth/register", json=sample_user_data)
@@ -110,7 +110,7 @@ class TestForgotPassword:
 class TestResetPassword:
     """Тесты сброса пароля"""
 
-    def test_reset_password_success(self, client, sample_user_data):
+    def test_reset_password_success(self, client):
         """Тест успешного сброса пароля"""
         # С невалидным токеном
         response = client.post(
@@ -122,7 +122,7 @@ class TestResetPassword:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_reset_password_weak_password(self, client, sample_user_data):
+    def test_reset_password_weak_password(self, client):
         """Тест сброса пароля на слабый пароль"""
         response = client.post(
             "/api/v1/email/reset-password",
@@ -145,7 +145,7 @@ class TestResetPassword:
 class TestEmailVerificationIntegration:
     """Интеграционные тесты верификации email"""
 
-    def test_full_verification_flow(self, client, sample_user_data):
+    def test_full_verification_flow(self, client):
         """Тест полного процесса верификации"""
         # 1. Регистрация
         register_response = client.post("/api/v1/auth/register", json=sample_user_data)

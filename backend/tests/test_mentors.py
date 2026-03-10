@@ -13,7 +13,7 @@ from app.utils.security import get_password_hash
 class TestGetMentors:
     """Тесты получения списка менторов"""
 
-    def test_get_mentors_list(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentors_list(self, sync_authenticated_client):
         """Тест получения списка всех менторов"""
         client, headers = sync_authenticated_client
 
@@ -27,7 +27,7 @@ class TestGetMentors:
         # Публичный эндпоинт - доступен без авторизации
         assert response.status_code == status.HTTP_200_OK
 
-    def test_get_mentors_with_filters(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentors_with_filters(self, sync_authenticated_client):
         """Тест получения менторов с фильтрами"""
         client, headers = sync_authenticated_client
 
@@ -43,7 +43,7 @@ class TestGetMentors:
 class TestGetMentorById:
     """Тесты получения конкретного ментора"""
 
-    def test_get_mentor_by_id(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentor_by_id(self, sync_authenticated_client):
         """Тест получения ментора по ID"""
         client, headers = sync_authenticated_client
 
@@ -51,7 +51,7 @@ class TestGetMentorById:
         response = client.get("/api/v1/mentors/999", headers=headers)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_mentor_invalid_id(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentor_invalid_id(self, sync_authenticated_client):
         """Тест получения ментора с невалидным ID"""
         client, headers = sync_authenticated_client
 
@@ -74,7 +74,7 @@ class TestBecomeMentor:
             status.HTTP_422_UNPROCESSABLE_ENTITY,
         ]
 
-    def test_become_mentor_missing_fields(self, sync_authenticated_client, sample_user_data):
+    def test_become_mentor_missing_fields(self, sync_authenticated_client):
         """Тест подачи заявки с отсутствующими полями"""
         client, headers = sync_authenticated_client
 
@@ -86,7 +86,7 @@ class TestBecomeMentor:
         response = client.post("/api/v1/mentors", json=application_data, headers=headers)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_become_mentor_experience_validation(self, sync_authenticated_client, sample_user_data):
+    def test_become_mentor_experience_validation(self, sync_authenticated_client):
         """Тест валидации опыта ментора"""
         client, headers = sync_authenticated_client
 
@@ -115,7 +115,7 @@ class TestBecomeMentor:
 class TestUpdateMentorProfile:
     """Тесты обновления профиля ментора"""
 
-    def test_update_mentor_profile(self, sync_authenticated_client, sample_user_data):
+    def test_update_mentor_profile(self, sync_authenticated_client):
         """Тест обновления профиля ментора"""
         client, headers = sync_authenticated_client
 
@@ -132,7 +132,7 @@ class TestUpdateMentorProfile:
 class TestGetMentorReviews:
     """Тесты получения отзывов ментора"""
 
-    def test_get_mentor_reviews(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentor_reviews(self, sync_authenticated_client):
         """Тест получения отзывов ментора"""
         client, headers = sync_authenticated_client
 
@@ -143,14 +143,14 @@ class TestGetMentorReviews:
 class TestMentorAvailability:
     """Тесты доступности ментора"""
 
-    def test_get_mentor_availability(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentor_availability(self, sync_authenticated_client):
         """Тест получения доступности ментора"""
         client, headers = sync_authenticated_client
 
         response = client.get("/api/v1/mentors/999/availability", headers=headers)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_set_mentor_availability(self, sync_authenticated_client, sample_user_data):
+    def test_set_mentor_availability(self, sync_authenticated_client):
         """Тест установки доступности ментора"""
         client, headers = sync_authenticated_client
 
@@ -173,7 +173,7 @@ class TestMentorAvailability:
 class TestMentorStats:
     """Тесты статистики ментора"""
 
-    def test_get_mentor_stats(self, sync_authenticated_client, sample_user_data):
+    def test_get_mentor_stats(self, sync_authenticated_client):
         """Тест получения статистики ментора"""
         client, headers = sync_authenticated_client
 
@@ -189,7 +189,7 @@ class TestMentorValidation:
         """Тест допустимых значений почасовой ставки"""
         assert rate >= 0
 
-    def test_specialization_required(self, sync_authenticated_client, sample_user_data):
+    def test_specialization_required(self, sync_authenticated_client):
         """Тест обязательности специализации"""
         client, headers = sync_authenticated_client
 

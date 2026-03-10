@@ -1,6 +1,6 @@
-docs: add environment variables guide for Render
+fix: Dockerfile и start.sh для правильного запуска frontend на Render
 
-- Complete guide for required environment variables
-- Step-by-step setup instructions
-- Troubleshooting section
-- Full list of optional variables
+- Исправлен путь копирования standalone сборки Next.js
+- Добавлена проверка server.js в нескольких локациях
+- Убран BACKEND_PORT из переменных (фиксированный 8000)
+- Улучшена обработка ошибок запуска frontend

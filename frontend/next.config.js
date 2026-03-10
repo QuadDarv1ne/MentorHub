@@ -10,12 +10,6 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
 
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
-  },
-
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -37,6 +31,9 @@ const nextConfig = {
   },
 
   experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
     optimizeCss: true,
     optimizePackageImports: ['lucide-react'],
   },

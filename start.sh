@@ -28,10 +28,10 @@ export PYTHONDONTWRITEBYTECODE=1
 # ОПРЕДЕЛЕНИЕ ПОРТОВ
 # =====================================================
 
-# Render устанавливает PORT - это порт для frontend
-# Backend использует внутренний порт BACKEND_PORT
+# Render устанавливает PORT - используем его для frontend
+# Backend использует фиксированный порт 8000
 export FRONTEND_PORT="${PORT:-3000}"
-export BACKEND_PORT="${BACKEND_PORT:-8000}"
+export BACKEND_PORT="8000"
 
 # Важно: hostname должен быть 0.0.0.0 для доступности извне
 export HOSTNAME="0.0.0.0"
@@ -106,21 +106,36 @@ fi
 echo ""
 echo "🚀 Starting frontend on port $FRONTEND_PORT..."
 
+# Проверяем наличие server.js в разных возможных локациях
 if [ -f "/app/frontend/server.js" ]; then
     cd /app/frontend
     echo "   Frontend directory: /app/frontend"
     echo "   Frontend URL: http://$HOSTNAME:$FRONTEND_PORT"
-    
+
     # Критически важно: PORT и HOSTNAME для Next.js standalone
     export PORT=$FRONTEND_PORT
     export HOSTNAME="0.0.0.0"
-    
+
+    node server.js &
+    FRONTEND_PID=$!
+    echo "   ✅ Frontend started (PID: $FRONTEND_PID)"
+elif [ -f "/app/server.js" ]; then
+    cd /app
+    echo "   Frontend directory: /app"
+    echo "   Frontend URL: http://$HOSTNAME:$FRONTEND_PORT"
+
+    export PORT=$FRONTEND_PORT
+    export HOSTNAME="0.0.0.0"
+
     node server.js &
     FRONTEND_PID=$!
     echo "   ✅ Frontend started (PID: $FRONTEND_PID)"
 else
     echo "   ⚠️ WARNING: Frontend server.js not found!"
+    echo "   Checking /app/frontend:"
     ls -la /app/frontend/ || true
+    echo "   Checking /app:"
+    ls -la /app/ || true
 fi
 
 echo ""
