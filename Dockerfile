@@ -46,13 +46,14 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ==================== STAGE 3: Production Image ====================
 FROM python:3.11-alpine
 
-# Минимальный набор пакетов
+# Минимальный набор пакетов + nginx
 RUN apk add --no-cache \
     libpq \
     nodejs \
     curl \
     tini \
-    bash
+    bash \
+    nginx
 
 # Создаём не-root пользователя для безопасности
 RUN addgroup -g 1000 appgroup && \
@@ -79,6 +80,15 @@ COPY --from=frontend-builder /app/frontend/.next/standalone ./frontend
 COPY --from=frontend-builder /app/frontend/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/frontend/public ./frontend/public
 
+# Создаём директории для логов nginx и устанавливаем права
+RUN mkdir -p /var/log/nginx /var/cache/nginx /var/run/nginx && \
+    chown -R appuser:appgroup /var/log/nginx /var/cache/nginx /var/run/nginx
+
+# Копируем nginx конфигурацию и устанавливаем права
+WORKDIR /app
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+RUN chown -R appuser:appgroup /etc/nginx
+
 # Копируем скрипт запуска и конвертируем line endings
 WORKDIR /app
 COPY start.sh ./start.sh
@@ -94,11 +104,11 @@ ENV BACKEND_PORT=8000 \
     FRONTEND_PORT=3000 \
     HOSTNAME=0.0.0.0
 
-# Health check
+# Health check - проверяем nginx который слушает на PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3000}/ || curl -f http://localhost:${BACKEND_PORT}/api/v1/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/nginx-health || curl -f http://localhost:${PORT:-8000}/api/v1/health || exit 1
 
-EXPOSE 3000 8000
+EXPOSE 8000
 
 # Запускаем через bash
 CMD ["bash", "-c", "/app/start.sh"]

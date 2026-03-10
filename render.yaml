@@ -1,15 +1,16 @@
 # Render Configuration
 # https://render.com/docs/yaml-spec
+# Nginx reverse proxy: Frontend (3000) + Backend (8000) → PORT
 
 services:
-  # Backend API Service
+  # Backend API Service with Nginx Proxy
   - type: web
     name: mentorhub-backend
     env: python
     region: frankfurt
     plan: starter
     branch: main
-    healthCheckPath: /api/v1/health
+    healthCheckPath: /nginx-health
     buildCommand: ""
     startCommand: bash /app/start.sh
     envVars:
@@ -27,6 +28,16 @@ services:
           property: connectionString
       - key: NEXT_PUBLIC_API_URL
         sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SENTRY_DSN
+        sync: false
+      - key: AGORA_APP_ID
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
 
 databases:
   # PostgreSQL Database
@@ -37,8 +48,9 @@ databases:
     region: frankfurt
     ipAllowList: []
 
-  # Redis Cache
+  # Redis Cache (Optional - can be removed if using external Redis)
   - name: mentorhub-redis
     plan: starter
     region: frankfurt
-    # maxmemoryPolicy настраивается вручную в Render Dashboard
+    # Note: Redis on Render requires manual setup in Dashboard
+    # Alternative: Use Upstash (free) - see deploy/render/REDIS-SETUP.md

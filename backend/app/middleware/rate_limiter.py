@@ -72,7 +72,7 @@ class RateLimiter:
 
             except Exception as e:
                 # Log Redis error and fallback to memory store
-                logger.warning(f"Redis rate limit failed, using memory fallback: {e}")
+                logger.debug(f"Redis rate limit failed, using memory fallback: {e}")
                 self.redis = None  # Disable Redis, use memory
 
         # Fallback to memory store

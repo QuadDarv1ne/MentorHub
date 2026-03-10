@@ -23,6 +23,7 @@ class CacheService:
     def __init__(self):
         self.redis_client = None
         self.memory_cache: dict = {}
+        self._redis_connected = False
 
         # Try to connect to Redis if available
         if REDIS_AVAILABLE:
@@ -32,11 +33,24 @@ class CacheService:
                 redis_url = getattr(settings, "REDIS_URL", None)
 
                 if redis_url:
+                    # Проверяем, что URL не содержит localhost или docker hostname
+                    if any(host in redis_url for host in ["localhost", "127.0.0.1", "redis:"]):
+                        # В cloud environment эти hostname не будут работать
+                        import os
+                        if not any(os.environ.get(key) for key in ["RENDER", "RAILWAY", "FLY", "KUBERNETES_SERVICE_HOST"]):
+                            logger.debug(f"Redis URL uses local hostname: {redis_url}")
+                    
                     self.redis_client = redis.from_url(redis_url, decode_responses=True)
                     self.redis_client.ping()
+                    self._redis_connected = True
                     logger.info("✅ Redis cache connected")
+                else:
+                    logger.debug("REDIS_URL not configured, using memory cache")
             except Exception as e:
-                logger.warning(f"⚠️ Redis not available, using memory cache: {e}")
+                # Логируем только на уровне DEBUG, чтобы не спамить в production
+                logger.debug(f"Redis connection failed: {e}")
+                logger.info("ℹ️ Using memory cache (Redis not available)")
+                self.redis_client = None
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""

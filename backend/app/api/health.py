@@ -29,9 +29,9 @@ redis_client = None
 try:
     if REDIS_AVAILABLE and settings.REDIS_URL and settings.REDIS_URL.strip():
         redis_client = redis.Redis.from_url(settings.REDIS_URL)
-        logger.info("✅ Redis client initialized for health checks")
+        logger.debug("✅ Redis client initialized for health checks")
 except Exception as e:
-    logger.warning(f"⚠️ Redis client initialization failed: {e}")
+    logger.debug(f"Redis client not available for health checks: {e}")
     redis_client = None
 
 def get_system_metrics() -> Dict[str, Any]:
