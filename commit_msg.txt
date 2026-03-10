@@ -1,0 +1,6 @@
+docs: add environment variables guide for Render
+
+- Complete guide for required environment variables
+- Step-by-step setup instructions
+- Troubleshooting section
+- Full list of optional variables
