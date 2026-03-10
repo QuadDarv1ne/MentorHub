@@ -1,0 +1,4 @@
+refactor: remove documentation, keep only code changes
+
+- Remove monitoring/grafana/configuration.md
+- Keep only code: indexes, query optimization, alerts
