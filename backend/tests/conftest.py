@@ -185,3 +185,32 @@ def authenticated_headers(client, sample_user_data):
 
     token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def test_client_with_websocket(db_session):
+    """Фикстура для тестирования WebSocket с переопределением get_db"""
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_client(client, sample_user_data):
+    """Фикстура для авторизованного клиента"""
+    client.post("/api/v1/auth/register", json=sample_user_data)
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+    )
+    token = login_response.json()["access_token"]
+    return client, {"Authorization": f"Bearer {token}"}

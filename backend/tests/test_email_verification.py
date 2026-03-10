@@ -10,18 +10,6 @@ from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
 
 
-@pytest.fixture
-def authenticated_client(client, sample_user_data):
-    """Фикстура для авторизованного клиента"""
-    client.post("/api/v1/auth/register", json=sample_user_data)
-    login_response = client.post(
-        "/api/v1/auth/login",
-        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
-    )
-    token = login_response.json()["access_token"]
-    return client, {"Authorization": f"Bearer {token}"}
-
-
 class TestSendVerificationEmail:
     """Тесты отправки письма для подтверждения email"""
 
