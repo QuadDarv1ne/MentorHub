@@ -1,0 +1,331 @@
+# Prometheus Alert Rules for MentorHub
+# Save as: monitoring/prometheus/alert-rules.yml
+
+groups:
+  - name: mentorhub_availability
+    interval: 30s
+    rules:
+      # Service Availability
+      - alert: BackendServiceDown
+        expr: up{job="mentorhub-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 MentorHub Backend is DOWN"
+          description: "Backend service {{ $labels.instance }} has been down for more than 1 minute"
+          runbook_url: "https://github.com/QuadDarv1ne/MentorHub/blob/main/docs/RUNBOOK.md#backend-down"
+
+      - alert: FrontendServiceDown
+        expr: up{job="mentorhub-frontend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: frontend
+        annotations:
+          summary: "🔴 MentorHub Frontend is DOWN"
+          description: "Frontend service {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: DatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "🔴 PostgreSQL Database is DOWN"
+          description: "Database {{ $labels.job }} is not responding"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: cache
+        annotations:
+          summary: "🔴 Redis Cache is DOWN"
+          description: "Redis {{ $labels.instance }} is not responding"
+
+  - name: mentorhub_performance
+    interval: 30s
+    rules:
+      # Response Time
+      - alert: HighResponseTime_P95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High Response Time (p95)"
+          description: "95th percentile response time is {{ $value | humanizeDuration }} (threshold: 1s)"
+
+      - alert: HighResponseTime_P99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Critical Response Time (p99)"
+          description: "99th percentile response time is {{ $value | humanizeDuration }} (threshold: 2s)"
+
+      # Error Rate
+      - alert: HighErrorRate_5xx
+        expr: sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High 5xx Error Rate"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      - alert: CriticalErrorRate_5xx
+        expr: sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Critical 5xx Error Rate"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+  - name: mentorhub_database
+    interval: 30s
+    rules:
+      # Connection Pool
+      - alert: DatabaseConnectionPoolHigh
+        expr: db_pool_connections / db_pool_size > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "⚠️ Database Connection Pool High Usage"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+      - alert: DatabaseConnectionPoolCritical
+        expr: db_pool_connections / db_pool_size > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "🔴 Database Connection Pool Critical"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+      # Query Performance
+      - alert: SlowDatabaseQueries
+        expr: rate(pg_stat_activity_count{state=\"active\"}[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "⚠️ High Number of Active Database Queries"
+          description: "{{ $value }} active queries detected"
+
+      - alert: DatabaseDeadlocks
+        expr: rate(pg_stat_database_deadlocks[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "⚠️ Database Deadlocks Detected"
+          description: "{{ $value }} deadlocks detected in the last 5 minutes"
+
+      # Replication (if using replicas)
+      - alert: ReplicationLag
+        expr: pg_replication_lag > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "⚠️ Database Replication Lag"
+          description: "Replication lag is {{ $value | humanizeDuration }} (threshold: 30s)"
+
+  - name: mentorhub_cache
+    interval: 30s
+    rules:
+      # Cache Performance
+      - alert: LowCacheHitRate
+        expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ Low Cache Hit Rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          team: cache
+        annotations:
+          summary: "⚠️ Redis Memory Usage High"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+      - alert: RedisMemoryCritical
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          team: cache
+        annotations:
+          summary: "🔴 Redis Memory Usage Critical"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+  - name: mentorhub_resources
+    interval: 30s
+    rules:
+      # Memory
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 1500
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High Memory Usage"
+          description: "Memory usage is {{ $value | humanize }} MB (threshold: 1500 MB)"
+
+      - alert: CriticalMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 1800
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Critical Memory Usage"
+          description: "Memory usage is {{ $value | humanize }} MB (threshold: 1800 MB)"
+
+      # CPU
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High CPU Usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+      # Disk
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 20
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "⚠️ Low Disk Space"
+          description: "Disk space is {{ $value | humanizePercentage }} available (threshold: 20%)"
+
+  - name: mentorhub_business
+    interval: 1m
+    rules:
+      # User Activity
+      - alert: LowUserRegistrations
+        expr: sum(increase(user_registration_total[1h])) < 5
+        for: 1h
+        labels:
+          severity: info
+          team: product
+        annotations:
+          summary: "ℹ️ Low User Registration Rate"
+          description: "Only {{ $value }} new users in the last hour"
+
+      - alert: DropInActiveUsers
+        expr: sum(rate(user_login_total[1h])) < 10
+        for: 2h
+        labels:
+          severity: warning
+          team: product
+        annotations:
+          summary: "⚠️ Drop in Active Users"
+          description: "Active users dropped to {{ $value }} in the last hour"
+
+      # Payments
+      - alert: PaymentFailures
+        expr: sum(increase(payment_failed_total[1h])) > 10
+        for: 1h
+        labels:
+          severity: critical
+          team: payments
+        annotations:
+          summary: "🔴 High Payment Failure Rate"
+          description: "{{ $value }} payment failures in the last hour"
+
+      - alert: NoPayments
+        expr: sum(increase(payment_success_total[1h])) == 0
+        for: 2h
+        labels:
+          severity: info
+          team: payments
+        annotations:
+          summary: "ℹ️ No Successful Payments"
+          description: "No successful payments in the last 2 hours"
+
+      # Sessions
+      - alert: LowSessionBookings
+        expr: sum(increase(session_created_total[1d])) < 20
+        for: 1d
+        labels:
+          severity: info
+          team: product
+        annotations:
+          summary: "ℹ️ Low Session Booking Rate"
+          description: "Only {{ $value }} sessions booked in the last 24 hours"
+
+  - name: mentorhub_celery
+    interval: 30s
+    rules:
+      # Queue Health
+      - alert: CeleryQueueBacklog
+        expr: celery_queue_length > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ Celery Queue Backlog"
+          description: "Queue length is {{ $value }} tasks (threshold: 100)"
+
+      - alert: CeleryQueueCritical
+        expr: celery_queue_length > 500
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Celery Queue Critical"
+          description: "Queue length is {{ $value }} tasks (threshold: 500)"
+
+      # Task Failures
+      - alert: CeleryTaskFailures
+        expr: rate(celery_task_failed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "⚠️ High Celery Task Failure Rate"
+          description: "{{ $value | humanize }} task failures per second"
+
+      # Worker Health
+      - alert: CeleryWorkerDown
+        expr: celery_worker_online == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "🔴 Celery Worker is DOWN"
+          description: "Celery worker {{ $labels.worker }} is not responding"
