@@ -264,11 +264,11 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-10 20:30
-**Статус:** CI/CD настроен, тесты работают, Render деплой готов, документация полная
-**Следующий приоритет:** Исправить 3 failing теста, достичь 80% coverage
+**Последнее обновление:** 2026-03-10 21:00
+**Статус:** CI/CD настроен, тесты работают, Render деплой готов, Nginx reverse proxy работает
+**Следующий приоритет:** Проверить деплой на Render, достичь 80% coverage
 
-### Сессия 2026-03-10 (CI/CD + Render + Documentation)
+### Сессия 2026-03-10 (CI/CD + Render + Documentation + Nginx)
 **CI/CD настроено:**
 - ✅ .github/workflows/backend-tests.yml - автотесты с coverage
 - ✅ .github/workflows/frontend-tests.yml - тесты + type check + build
@@ -281,12 +281,28 @@ docs/:
 - ✅ Dockerfile - standalone сборка Next.js
 - ✅ docs/DEPLOYMENT/ENVIRONMENT-VARIABLES.md - мануал
 
+**Nginx reverse proxy (2026-03-10 20:45):**
+- ✅ nginx/nginx.conf - reverse proxy конфигурация
+- ✅ start.sh - запуск nginx + backend + frontend
+- ✅ Dockerfile - добавлен nginx
+- ✅ render.yaml - health check через /nginx-health
+- ✅ Один сервис вместо двух ($7/месяц экономия)
+- ✅ Frontend доступен на /
+- ✅ Backend API доступен на /api/*
+- ✅ Graceful shutdown (SIGTERM/SIGINT trap)
+- ✅ Config validation (nginx -t перед запуском)
+
 **Документация:**
 - ✅ docs/CI-CD.md - полное описание workflows
 - ✅ docs/DEPLOYMENT/render.md - инструкция по деплою
 - ✅ docs/DEPLOYMENT/redis-render.md - настройка Redis
 - ✅ docs/API/openapi.md - OpenAPI/Swagger документация
 - ✅ docs/ARCHITECTURE.md - Architecture diagrams (Mermaid)
+
+**Backend исправления:**
+- ✅ Redis warning logging reduced (DEBUG вместо WARNING)
+- ✅ Health check logging reduced (DEBUG вместо WARNING)
+- ✅ Rate limiter logging reduced (DEBUG вместо WARNING)
 
 **Тесты:**
 - ✅ Auth тесты - 11/11 проходят
@@ -309,9 +325,11 @@ docs/:
 - ✅ Database - PostgreSQL подключён
 - ✅ Health checks - /api/v1/health отвечает
 - ✅ CI/CD - тесты запускаются при push
+- ✅ Nginx reverse proxy - frontend + backend на одном порту
 
 **План на следующую сессию:**
 1. Исправить 3 failing теста (формат ответов)
 2. Добавить тесты для непокрытых модулей
 3. Проверить CI/CD на GitHub Actions
 4. Достичь 80% coverage
+5. Проверить Render деплой с nginx
