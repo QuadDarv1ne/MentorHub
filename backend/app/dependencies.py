@@ -80,7 +80,14 @@ def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
     token = credentials.credentials
 
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            audience="mentorhub",
+            issuer="mentorhub-api",
+            options={"require": ["aud", "iss", "exp"]},
+        )
 
         # sub может быть строкой или числом, преобразуем в int
         sub_value = payload.get("sub")
