@@ -397,7 +397,6 @@ generated/
 htmlcov/
 .pytest_cache/
 .tox/
-pytest.ini
 .hypothesis/
 
 # ==================== CI/CD ====================
