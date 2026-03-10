@@ -5,8 +5,10 @@
 import dynamic from 'next/dynamic'
 import type { ComponentType } from 'react'
 
+import type { DynamicOptionsLoadingProps } from 'next/dynamic'
+
 interface LazyComponentOptions {
-  loading?: () => React.ReactNode
+  loading?: (props: DynamicOptionsLoadingProps) => React.ReactNode
   ssr?: boolean
 }
 
