@@ -5,30 +5,7 @@ import { Search, Filter, Star, Users, Clock, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { getCourses } from '@/lib/api/courses'
-
-interface Course {
-  id: number
-  title: string
-  description: string | null
-  category: string | null
-  difficulty: string | null
-  duration_hours: number
-  price: number
-  is_active: boolean
-  rating: number
-  total_reviews: number
-  thumbnail_url: string | null
-  instructor_id: number
-  created_at: string
-  updated_at: string
-  instructor?: {
-    id: number
-    user_id: number
-    full_name?: string
-    specialization?: string
-  } | null
-}
+import { getCourses, type Course } from '@/lib/api/courses'
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])

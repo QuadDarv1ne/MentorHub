@@ -24,7 +24,7 @@ interface DashboardStats {
   total_reviews: number
 }
 
-interface Course {
+interface DashboardCourse {
   id: number
   name: string
   progress: number
@@ -60,7 +60,7 @@ export default function DashboardPage() {
   const [sessionsError, setSessionsError] = useState<string | null>(null)
   const [achievementsError, setAchievementsError] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
-  const [coursesData, setCoursesData] = useState<Course[]>([])
+  const [coursesData, setCoursesData] = useState<DashboardCourse[]>([])
   const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const { isAuthenticated, getUserData } = useAuth()
