@@ -80,9 +80,9 @@ COPY --from=frontend-builder /app/frontend/.next/standalone ./frontend
 COPY --from=frontend-builder /app/frontend/.next/static ./frontend/.next/static
 COPY --from=frontend-builder /app/frontend/public ./frontend/public
 
-# Создаём директории для логов nginx и устанавливаем права
-RUN mkdir -p /var/log/nginx /var/cache/nginx /var/run/nginx && \
-    chown -R appuser:appgroup /var/log/nginx /var/cache/nginx /var/run/nginx
+# Создаём все необходимые директории для nginx с правильными правами
+RUN mkdir -p /var/log/nginx /var/cache/nginx /var/run/nginx /var/lib/nginx/tmp/client_body /var/lib/nginx/tmp/proxy /var/lib/nginx/tmp/fastcgi /var/lib/nginx/tmp/uwsgi /var/lib/nginx/tmp/scgi && \
+    chown -R appuser:appgroup /var/log/nginx /var/cache/nginx /var/run/nginx /var/lib/nginx
 
 # Копируем nginx конфигурацию и устанавливаем права
 WORKDIR /app
