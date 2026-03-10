@@ -59,6 +59,9 @@ def db_session():
 
     try:
         yield session
+        session.commit()
+    except Exception:
+        session.rollback()
     finally:
         session.close()
 
