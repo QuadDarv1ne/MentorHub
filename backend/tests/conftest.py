@@ -174,32 +174,6 @@ def create_user(db_session):
 
 
 @pytest.fixture
-def authenticated_headers(client):
-    """Фикстура для получения авторизационных заголовков"""
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-    
-    user_data = {
-        "email": f"test_{unique_id}@test.com",
-        "username": f"testuser_{unique_id}",
-        "password": "SecurePass123!",
-        "full_name": "Test User"
-    }
-    
-    # Регистрация
-    client.post("/api/v1/auth/register", json=user_data)
-
-    # Вход
-    login_response = client.post(
-        "/api/v1/auth/login",
-        json={"email": user_data["email"], "password": user_data["password"]},
-    )
-
-    token = login_response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
 def test_client_with_websocket(db_session):
     """Фикстура для тестирования WebSocket с переопределением get_db"""
     def override_get_db():
@@ -218,20 +192,20 @@ def test_client_with_websocket(db_session):
 
 @pytest_asyncio.fixture
 async def async_authenticated_client(async_client):
-    """Фикстура для авторизованного асинхронного клиента"""
+    """Фикстура для авторизованного асинхронного клиента - возвращает кортеж (client, headers)"""
     import uuid
     unique_id = str(uuid.uuid4())[:8]
-    
+
     user_data = {
         "email": f"test_{unique_id}@test.com",
         "username": f"testuser_{unique_id}",
         "password": "SecurePass123!",
         "full_name": "Test User"
     }
-    
+
     # Регистрация
     await async_client.post("/api/v1/auth/register", json=user_data)
-    
+
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
@@ -243,20 +217,20 @@ async def async_authenticated_client(async_client):
 
 @pytest_asyncio.fixture
 async def authenticated_client(async_client):
-    """Фикстура для авторизованного клиента (async) - alias"""
+    """Фикстура для авторизованного клиента (async) - возвращает кортеж (client, headers)"""
     import uuid
     unique_id = str(uuid.uuid4())[:8]
-    
+
     user_data = {
         "email": f"test_{unique_id}@test.com",
         "username": f"testuser_{unique_id}",
         "password": "SecurePass123!",
         "full_name": "Test User"
     }
-    
+
     # Регистрация
     await async_client.post("/api/v1/auth/register", json=user_data)
-    
+
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
@@ -268,20 +242,20 @@ async def authenticated_client(async_client):
 
 @pytest.fixture
 def sync_authenticated_client(client):
-    """Фикстура для синхронных тестов с авторизацией"""
+    """Фикстура для синхронных тестов с авторизацией - возвращает кортеж (client, headers)"""
     import uuid
     unique_id = str(uuid.uuid4())[:8]
-    
+
     user_data = {
         "email": f"test_{unique_id}@test.com",
         "username": f"testuser_{unique_id}",
         "password": "SecurePass123!",
         "full_name": "Test User"
     }
-    
+
     # Регистрация
     client.post("/api/v1/auth/register", json=user_data)
-    
+
     # Вход
     login_response = client.post(
         "/api/v1/auth/login",
@@ -291,12 +265,62 @@ def sync_authenticated_client(client):
     return client, {"Authorization": f"Bearer {token}"}
 
 
-@pytest_asyncio.fixture
-async def second_async_authenticated_client(async_client):
-    """Фикстура для второго авторизованного асинхронного клиента"""
+@pytest.fixture
+def authenticated_headers(client):
+    """Фикстура только для заголовков авторизации"""
     import uuid
     unique_id = str(uuid.uuid4())[:8]
-    
+
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+
+    # Регистрация
+    client.post("/api/v1/auth/register", json=user_data)
+
+    # Вход
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": user_data["email"], "password": user_data["password"]},
+    )
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def authenticated_headers(client):
+    """Фикстура только для заголовков авторизации"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+
+    # Регистрация
+    client.post("/api/v1/auth/register", json=user_data)
+
+    # Вход
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": user_data["email"], "password": user_data["password"]},
+    )
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def second_async_authenticated_client(async_client):
+    """Фикстура для второго авторизованного асинхронного клиента - возвращает кортеж (client, headers)"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+
     user2_data = {
         "email": f"user2_{unique_id}@test.com",
         "username": f"user2test_{unique_id}",
