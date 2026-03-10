@@ -12,6 +12,7 @@ Features:
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Callable, Dict
 import logging
 
 from fastapi import Request, HTTPException, status
