@@ -41,4 +41,4 @@ databases:
   - name: mentorhub-redis
     plan: starter
     region: frankfurt
-    maxmemoryPolicy: allkeys-lru
+    # maxmemoryPolicy настраивается вручную в Render Dashboard
