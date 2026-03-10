@@ -38,6 +38,7 @@
     "swr": "^2.3.0",
     "tailwind-merge": "^2.6.0",
     "typescript": "^5.7.2",
+    "qrcode.react": "^4.1.0",
     "zod": "^3.24.1",
     "zustand": "^5.0.2"
   },

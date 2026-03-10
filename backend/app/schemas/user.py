@@ -61,3 +61,37 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
+
+
+class OAuthCallback(BaseModel):
+    """Схема для OAuth callback"""
+
+    code: str
+    state: Optional[str] = None
+
+
+class OAuthProvider(BaseModel):
+    """Провайдер OAuth"""
+
+    provider: str  # "google" или "github"
+
+
+class TwoFactorSetup(BaseModel):
+    """Схема для настройки 2FA"""
+
+    enabled: bool = True
+
+
+class TwoFactorVerify(BaseModel):
+    """Схема для верификации 2FA кода"""
+
+    code: str = Field(min_length=6, max_length=6)
+
+
+class TwoFactorResponse(BaseModel):
+    """Ответ с данными 2FA"""
+
+    enabled: bool
+    qr_code: Optional[str] = None  # Base64 QR code
+    secret: Optional[str] = None  # TOTP secret (только при настройке)
+    backup_codes: Optional[list[str]] = None  # Backup codes (только при настройке)
