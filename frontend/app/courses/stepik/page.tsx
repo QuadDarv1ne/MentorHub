@@ -96,7 +96,7 @@ export default function StepikCoursesPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [filters]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const applyFilters = useCallback(() => {
     setLoading(true);
@@ -144,7 +144,7 @@ export default function StepikCoursesPage() {
       setCourses(filtered);
       setLoading(false);
     }, 300);
-  }, [filters, allCourses]);
+  }, [filters]);
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

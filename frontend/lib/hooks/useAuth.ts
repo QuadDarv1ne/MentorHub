@@ -84,7 +84,7 @@ export function useAuth() {
     } finally {
       setIsRefreshing(false)
     }
-  }, [isRefreshing])
+  }, [logout, isRefreshing])
 
   /**
    * Периодическая проверка токена
@@ -162,7 +162,7 @@ export function useAuth() {
     localStorage.setItem('csrf_token', csrfToken)
   }
 
-  const logout = () => {
+  const logout = useCallback(() => {
     if (typeof window === 'undefined') return;
     // Очищаем все данные
     localStorage.removeItem('access_token')
@@ -174,7 +174,7 @@ export function useAuth() {
 
     // Перенаправляем на главную
     router.push('/')
-  }
+  }, [router])
 
   const getUserData = () => {
     if (typeof window === 'undefined') return null;
