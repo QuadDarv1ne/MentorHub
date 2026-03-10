@@ -134,11 +134,9 @@ fi
 echo ""
 echo "🚀 Starting nginx on port $NGINX_PORT..."
 
-# Подготавливаем nginx конфигурацию с правильной PORT переменной
-# Заменяем ${PORT} на實際ский порт в nginx.conf
-export PORT=$NGINX_PORT
-envsubst '${PORT}' < /etc/nginx/nginx.conf > /tmp/nginx.conf.tmp
-mv /tmp/nginx.conf.tmp /etc/nginx/nginx.conf
+# Подготавливаем nginx конфигурацию - заменяем порт 8000 на актуальный PORT
+sed -i "s/listen 8000;/listen $NGINX_PORT;/g" /etc/nginx/nginx.conf
+sed -i "s/listen \[::\]:8000;/listen [::]:$NGINX_PORT;/g" /etc/nginx/nginx.conf
 
 echo "   Nginx configuration updated for port $NGINX_PORT"
 echo "   Nginx URL: http://$HOSTNAME:$NGINX_PORT"
