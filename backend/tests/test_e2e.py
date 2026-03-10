@@ -6,6 +6,7 @@ End-to-End Tests
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
 from app.main import app
 from app.models import User, Mentor, Session as MentorSession
@@ -35,16 +36,16 @@ class TestUserRegistrationFlow:
         # 2. Авторизация
         login_data = {"email": registration_data["email"], "password": registration_data["password"]}
 
-        response = await async_client.post("/api/v1/auth/login", data=login_data)
-        assert response.status_code == 200
+        response = await async_client.post("/api/v1/auth/login", json=login_data)
+        assert response.status_code == status.HTTP_200_OK
         token_data = response.json()
         assert "access_token" in token_data
         assert token_data["token_type"] == "bearer"
 
         # 3. Получение профиля
         headers = {"Authorization": f"Bearer {token_data['access_token']}"}
-        response = await async_client.get("/api/v1/auth/me", headers=headers)
-        assert response.status_code == 200
+        response = await async_client.get("/api/v1/users/me", headers=headers)
+        assert response.status_code == status.HTTP_200_OK
         profile = response.json()
         assert profile["email"] == registration_data["email"]
 
