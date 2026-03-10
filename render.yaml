@@ -43,4 +43,3 @@ databases:
   - name: mentorhub-redis
     plan: starter
     region: frankfurt
-    maxmemoryPolicy: allkeys-lru
