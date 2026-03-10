@@ -66,16 +66,16 @@ class TestHTTPErrorHandling:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.asyncio
-    async def test_409_conflict(self, async_client: AsyncClient, authenticated_client: tuple):
+    async def test_409_conflict(self, async_client: AsyncClient, async_authenticated_client: tuple):
         """Тест обработки 409 конфликта"""
-        client, headers = authenticated_client
-        
+        client, headers = async_authenticated_client
+
         # Пытаемся создать прогресс дважды для одного курса
         progress_data = {"course_id": 1, "progress_percent": 50}
-        
+
         res1 = await client.post("/api/v1/progress", json=progress_data, headers=headers)
         res2 = await client.post("/api/v1/progress", json=progress_data, headers=headers)
-        
+
         # Второй запрос должен вернуть конфликт или успех (если обновляет)
         assert res2.status_code in [
             status.HTTP_201_CREATED,

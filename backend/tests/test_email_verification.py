@@ -13,9 +13,9 @@ from app.utils.security import get_password_hash
 class TestSendVerificationEmail:
     """Тесты отправки письма для подтверждения email"""
 
-    def test_send_verification_email_success(self, authenticated_client, sample_user_data):
+    def test_send_verification_email_success(self, sync_authenticated_client, sample_user_data):
         """Тест успешной отправки письма для подтверждения"""
-        client, headers = authenticated_client
+        client, headers = sync_authenticated_client
 
         response = client.post("/api/v1/email/send-verification", headers=headers)
         # Может быть 200 если отправлено или 500 если SMTP не настроен
