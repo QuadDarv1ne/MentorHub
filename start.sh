@@ -184,6 +184,8 @@ elif curl -s http://localhost:$NGINX_PORT/api/v1/health > /dev/null 2>&1; then
     echo "   ✅ Nginx proxy working (API accessible)"
 else
     echo "   ⚠️ Nginx not responding on port $NGINX_PORT"
+    echo "   Checking nginx error log:"
+    cat /var/log/nginx/error.log 2>/dev/null || echo "   No error log available"
 fi
 
 echo ""
