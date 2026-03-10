@@ -4,7 +4,6 @@ API endpoints для мониторинга и метрик
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from typing import Dict, Any, Optional
 
 from app.models.user import User
 from app.dependencies import get_current_user

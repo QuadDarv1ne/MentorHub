@@ -6,7 +6,7 @@ API для управления push-уведомлениями через Fireb
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -63,17 +63,17 @@ async def register_device_token(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="FCM not configured"
         )
-    
+
     try:
         # Регистрируем токен
-        device_token = await fcm_service.register_device_token(
+        await fcm_service.register_device_token(
             user_id=current_user.id,
             token=request.token,
             platform=request.platform.lower(),
             device_name=request.device_name,
             db=db
         )
-        
+
         logger.info(f"Device token registered for user {current_user.id}")
 
         return {"success": True, "message": "Device token registered successfully"}

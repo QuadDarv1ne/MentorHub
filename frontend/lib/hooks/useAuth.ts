@@ -79,7 +79,7 @@ export function useAuth() {
 
       const expiresAt = Math.floor(Date.now() / 1000) + response.expires_in
       localStorage.setItem('token_expires_at', expiresAt.toString())
-    } catch (error) {
+    } catch {
       logout()
     } finally {
       setIsRefreshing(false)

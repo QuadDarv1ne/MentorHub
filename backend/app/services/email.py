@@ -3,7 +3,6 @@ Email service for sending notifications
 """
 
 import logging
-from typing import List, Optional
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib

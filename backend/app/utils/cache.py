@@ -8,7 +8,6 @@ import logging
 import hashlib
 from typing import Any, Optional, Callable
 from functools import wraps
-from datetime import timedelta
 
 try:
     from redis.asyncio import Redis

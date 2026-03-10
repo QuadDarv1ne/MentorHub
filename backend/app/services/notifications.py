@@ -3,8 +3,6 @@ Notification service for various notification channels
 """
 
 import logging
-from typing import Optional, Dict, Any
-from datetime import datetime
 
 from app.services.email import email_service
 

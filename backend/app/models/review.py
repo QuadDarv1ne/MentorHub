@@ -2,7 +2,7 @@
 Модель отзыва о курсе
 """
 
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin

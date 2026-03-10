@@ -5,7 +5,6 @@
 
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
 import enum
 
 from app.models.base import BaseModel

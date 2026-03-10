@@ -5,7 +5,6 @@
 
 from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 from app.models.base import BaseModel, TimestampMixin
 

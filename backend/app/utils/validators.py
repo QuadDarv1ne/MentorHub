@@ -4,7 +4,6 @@
 
 import re
 import logging
-from typing import Optional
 from fastapi import HTTPException, status
 
 logger = logging.getLogger(__name__)

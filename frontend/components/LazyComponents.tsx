@@ -3,10 +3,10 @@
  */
 
 import dynamic from 'next/dynamic'
-import type { ComponentType, ReactElement, ReactNode } from 'react'
+import type { ComponentType } from 'react'
 
 interface LazyComponentOptions {
-  loading?: () => ReactNode
+  loading?: () => React.ReactNode
   ssr?: boolean
 }
 
@@ -23,7 +23,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
     const component = (module as { default?: T }).default || (module as T)
     return component
   }, {
-    loading: options?.loading as (() => ReactNode) | undefined,
+    loading: options?.loading,
     ssr: options?.ssr ?? true,
   })
 }

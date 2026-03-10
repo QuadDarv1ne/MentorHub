@@ -6,7 +6,6 @@ WITH GRACEFUL SHUTDOWN SUPPORT
 
 import logging
 import signal
-import sys
 import asyncio
 import socket
 import os
@@ -18,8 +17,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, Response
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 try:
     import sentry_sdk

@@ -4,8 +4,6 @@ WebSocket endpoints для real-time коммуникации
 """
 
 import logging
-import json
-from datetime import datetime
 from typing import Dict, Set
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, status
 from sqlalchemy.orm import Session
@@ -254,7 +252,7 @@ async def websocket_chat_endpoint(
             manager.disconnect(websocket, user.id)
         try:
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-        except:
+        except Exception:
             pass
 
 

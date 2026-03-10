@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
 from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe_string
 from app.services.cache import cached
+from app.utils.cache import invalidate_cache
 
 router = APIRouter()
 

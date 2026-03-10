@@ -58,16 +58,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         
         # Получаем request ID из middleware
         request_id = request.state.request_id if hasattr(request.state, 'request_id') else 'N/A'
-        
+
         # Засекаем время
         start_time = time.time()
-        
+
         # Собираем информацию о запросе
         client_ip = request.client.host if request.client else 'unknown'
         method = request.method
         path = request.url.path
-        query_params = dict(request.query_params)
-        
+
         # Headers (без sensitive данных)
         headers = {
             key: value for key, value in request.headers.items()

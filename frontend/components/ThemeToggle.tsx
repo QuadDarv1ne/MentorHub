@@ -5,7 +5,7 @@ import { useTheme } from './ThemeProvider'
 import { Moon, Sun, Monitor } from 'lucide-react'
 
 export default function ThemeToggle() {
-  const { theme, setTheme, actualTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   return (
     <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">

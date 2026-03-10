@@ -92,9 +92,6 @@ async def detailed_health_check(
 
     # Проверка базы данных с детальной информацией
     try:
-        # Базовая проверка
-        result = db.execute(text("SELECT 1")).fetchone()
-
         # Получение информации о соединениях
         connections_info = db.execute(text("""
             SELECT count(*) as active_connections

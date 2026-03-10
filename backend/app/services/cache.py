@@ -5,7 +5,6 @@ Cache service using in-memory cache or Redis
 import logging
 from typing import Any, Optional
 import json
-from datetime import timedelta
 from functools import wraps
 
 logger = logging.getLogger(__name__)

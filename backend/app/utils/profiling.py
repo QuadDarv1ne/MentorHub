@@ -5,7 +5,6 @@ Database profiling и EXPLAIN ANALYZE утилита
 
 from sqlalchemy import text, event
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import Pool
 import logging
 import time
 from typing import List, Dict, Any

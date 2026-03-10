@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const [coursesData, setCoursesData] = useState<DashboardCourse[]>([])
   const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
-  const { isAuthenticated, getUserData } = useAuth()
+  const { getUserData } = useAuth()
   const user = getUserData()
 
   useEffect(() => {

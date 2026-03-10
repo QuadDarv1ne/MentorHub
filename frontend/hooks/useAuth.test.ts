@@ -2,7 +2,7 @@
  * Тесты для useAuth hook
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from '@jest/globals'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAuth, useOptionalAuth, useRole, useOwnership } from './useAuth'
 
@@ -145,6 +145,9 @@ describe('useAuth Hook', () => {
       username: 'testuser',
       role: 'student' as const,
       full_name: 'Test User',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     }
 
     await act(async () => {

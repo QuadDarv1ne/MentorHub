@@ -211,7 +211,7 @@ export default function BlogPostPage({ params }: Props) {
           text: post.excerpt,
           url: window.location.href,
         })
-      } catch (err) {
+      } catch {
         // Sharing failed silently
       }
     } else {

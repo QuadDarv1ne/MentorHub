@@ -6,7 +6,7 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 import logging
 from collections import defaultdict
 from typing import Generator, Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

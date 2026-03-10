@@ -3,9 +3,8 @@
 Модель для записи на сессии менторства
 """
 
-from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
 import enum
 
 from app.models.base import BaseModel
@@ -45,7 +44,6 @@ class Session(BaseModel):
     )
 
     # Связи
-    from sqlalchemy.orm import relationship
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
     mentor = relationship("Mentor", back_populates="sessions")
 

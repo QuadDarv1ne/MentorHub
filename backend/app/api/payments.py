@@ -17,7 +17,6 @@ from app.models.session import Session as DBSession
 from app.schemas.payment import PaymentResponse, PaymentCreate, PaymentUpdate
 from app.services.stripe_service import stripe_service
 from app.services.sbp_service import sbp_service
-from app.utils.security import decode_access_token
 from app.utils.sanitization import sanitize_string, is_safe_string
 
 router = APIRouter()

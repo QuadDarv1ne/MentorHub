@@ -7,8 +7,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
-from app.schemas.user import UserResponse
-
 
 class MessageBase(BaseModel):
     """Базовая схема сообщения"""

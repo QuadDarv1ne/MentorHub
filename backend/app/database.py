@@ -4,7 +4,9 @@ SQLAlchemy setup and session management
 """
 
 import logging
+from contextlib import contextmanager
 from sqlalchemy import create_engine, event, Engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool, QueuePool
 
@@ -109,8 +111,6 @@ logger.info("✅ SessionLocal factory created")
 
 # ==================== BASE MODEL ====================
 
-from sqlalchemy.ext.declarative import declarative_base
-
 Base = declarative_base()
 
 logger.info("✅ SQLAlchemy Base created")
@@ -151,11 +151,11 @@ class Database:
     def check_connection() -> bool:
         """Check if database connection is working"""
         try:
-            from sqlalchemy import text, bindparam
+            from sqlalchemy import text
 
             session = SessionLocal()
             # Используем параметризованный запрос вместо text("SELECT 1")
-            result = session.execute(text("SELECT :value"), {"value": 1})
+            session.execute(text("SELECT :value"), {"value": 1})
             session.close()
             logger.info("✅ Database connection successful")
             return True
@@ -203,9 +203,6 @@ def close_db():
 
 
 # ==================== CONTEXT MANAGERS ====================
-
-from contextlib import contextmanager
-
 
 @contextmanager
 def get_db_context():

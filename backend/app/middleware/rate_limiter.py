@@ -9,7 +9,6 @@ Features:
 - Returns proper 429 responses with retry-after headers
 """
 
-from typing import Callable, Dict, Any
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta

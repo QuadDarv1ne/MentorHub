@@ -3,7 +3,7 @@
 Модель учетной записи и аутентификации пользователя
 """
 
-from sqlalchemy import Column, String, Boolean, Enum as SQLEnum
+from sqlalchemy import Column, String, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 import enum
 
@@ -34,7 +34,6 @@ class User(BaseModel, TimestampMixin):
     is_verified = Column(Boolean, default=False, nullable=False)
 
     # Связи
-    from sqlalchemy.orm import relationship
     mentor_profile = relationship("Mentor", back_populates="user", uselist=False)
     sessions_as_student = relationship("Session", foreign_keys="Session.student_id", back_populates="student")
     enrollments = relationship("CourseEnrollment", back_populates="user")
