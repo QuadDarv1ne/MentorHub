@@ -264,24 +264,52 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-09 22:45
-**Статус:** P0 задачи выполнены (Redis, Image optimization, Cache, Similar Courses)
-**Следующий приоритет:** Тесты coverage 80%+
+**Последнее обновление:** 2026-03-10 20:00
+**Статус:** CI/CD настроен, тесты работают, Render деплой готов
+**Следующий приоритет:** Исправить 3 failing теста, достичь 80% coverage
 
-### Сессия 2026-03-09 (20 коммитов)
-**Исправления сборки:**
-- ErrorBoundary экспорт (AuthErrorBoundary, DashboardErrorBoundary, EnhancedAppError → ErrorBoundary)
-- courses.ts apiRequest импорт
-- getCourses параметры (skip, limit)
+### Сессия 2026-03-10 (CI/CD + Render)
+**CI/CD настроено:**
+- ✅ .github/workflows/backend-tests.yml - автотесты с coverage
+- ✅ .github/workflows/frontend-tests.yml - тесты + type check + build
+- ✅ Интеграция с Codecov
+- ✅ Артефакты и отчёты
 
-**Оптимизация:**
-- 250+ строк кода удалено (unused imports, debug logs)
-- console.log cleanup (12 файлов)
-- alert() → useToast (3 компонента)
+**Render деплой:**
+- ✅ render.yaml - Blueprint конфигурация
+- ✅ start.sh - исправлен запуск frontend/backend
+- ✅ Dockerfile - standalone сборка Next.js
+- ✅ docs/DEPLOYMENT/ENVIRONMENT-VARIABLES.md - мануал
 
-**Фичи:**
-- getSimilarCourses API + backend endpoint
-- @cached декораторы восстановлены
+**Документация:**
+- ✅ docs/CI-CD.md - полное описание workflows
+- ✅ docs/DEPLOYMENT/render.md - инструкция по деплою
+- ✅ docs/DEPLOYMENT/redis-render.md - настройка Redis
+
+**Тесты:**
+- ✅ Auth тесты - 11/11 проходят
+- ✅ Courses тесты - 11/11 проходят
+- ✅ Health & Cache - 20/20 проходят
+- ⚠️ Errors тесты - 16/19 проходят (3 failing, формат ответов)
+- 📊 Общее покрытие: ~75% (цель: 80%)
 
 **Синхронизация:**
 - dev ↔ main ✅
+- GitHub Actions готовы к работе
+
+**Известные проблемы:**
+1. ⚠️ 3 теста failing (test_errors.py) - формат ответов API (detail vs message)
+2. ⚠️ Redis не подключён на Render - нужно добавить REDIS_URL в Environment
+3. ⚠️ Frontend на Render показывает "Application loading" - требуется пересборка
+
+**Что работает:**
+- ✅ Backend API - все endpoints доступны
+- ✅ Database - PostgreSQL подключён
+- ✅ Health checks - /api/v1/health отвечает
+- ✅ CI/CD - тесты запускаются при push
+
+**План на следующую сессию:**
+1. Исправить 3 failing теста (формат ответов)
+2. Добавить тесты для непокрытых модулей
+3. Проверить CI/CD на GitHub Actions
+4. Достичь 80% coverage

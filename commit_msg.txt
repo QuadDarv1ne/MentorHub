@@ -1,7 +1,0 @@
-docs: добавить CI/CD workflows и документацию
-
-- backend-tests.yml - автотесты backend с coverage
-- frontend-tests.yml - автотесты frontend с coverage
-- CI/CD документация в docs/CI-CD.md
-- Интеграция с Codecov для отчётов
-- Артефакты и отчёты о тестах
