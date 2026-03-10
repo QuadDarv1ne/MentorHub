@@ -5,7 +5,7 @@
 import logging
 import traceback
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -32,7 +32,7 @@ class ErrorResponse:
         self.detail = detail
         self.error_code = error_code
         self.path = path
-        self.timestamp = timestamp or datetime.utcnow().isoformat()
+        self.timestamp = timestamp or datetime.now(timezone.utc).isoformat()
 
     def to_dict(self) -> dict:
         """Преобразование в словарь для JSON ответа"""

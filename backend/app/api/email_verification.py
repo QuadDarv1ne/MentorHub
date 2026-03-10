@@ -4,7 +4,7 @@ Email verification endpoints
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import secrets
@@ -66,7 +66,7 @@ async def send_verification_email(
     token = secrets.token_urlsafe(32)
     verification_tokens[token] = {
         "email": user.email,
-        "expires_at": datetime.utcnow() + timedelta(hours=24)
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
     }
     
     # Отправляем email
@@ -99,7 +99,7 @@ async def verify_email(
         )
     
     # Проверяем срок действия
-    if datetime.utcnow() > token_data["expires_at"]:
+    if datetime.now(timezone.utc) > token_data["expires_at"]:
         del verification_tokens[request.token]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -145,7 +145,7 @@ async def forgot_password(
     token = secrets.token_urlsafe(32)
     reset_tokens[token] = {
         "email": user.email,
-        "expires_at": datetime.utcnow() + timedelta(hours=1)
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=1)
     }
     
     # Отправляем email
@@ -178,7 +178,7 @@ async def reset_password(
         )
     
     # Проверяем срок действия
-    if datetime.utcnow() > token_data["expires_at"]:
+    if datetime.now(timezone.utc) > token_data["expires_at"]:
         del reset_tokens[request.token]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

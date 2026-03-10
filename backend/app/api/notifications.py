@@ -5,7 +5,7 @@ CRUD операции для уведомлений
 
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
@@ -147,7 +147,7 @@ async def mark_notification_as_read(
     
     if not notification.is_read:
         notification.is_read = True
-        notification.read_at = int(datetime.utcnow().timestamp())
+        notification.read_at = int(datetime.now(timezone.utc).timestamp())
         db.commit()
         db.refresh(notification)
     
@@ -165,7 +165,7 @@ async def mark_all_as_read(
         Notification.is_read == False
     ).update({
         "is_read": True,
-        "read_at": int(datetime.utcnow().timestamp())
+        "read_at": int(datetime.now(timezone.utc).timestamp())
     })
     
     db.commit()

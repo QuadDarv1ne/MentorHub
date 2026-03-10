@@ -10,7 +10,7 @@ from typing import Callable
 import re
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 import json
 from urllib.parse import unquote_plus
@@ -140,7 +140,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
     def _check_rate_limit(self, client_ip: str) -> bool:
         """Проверка rate limit"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         window_start = now - timedelta(seconds=self.rate_limit_window)
 
         # Очистка старых записей

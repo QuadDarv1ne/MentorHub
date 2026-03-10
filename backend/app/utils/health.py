@@ -4,7 +4,7 @@ Provides detailed system health monitoring
 """
 
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import psutil
 import platform
 from sqlalchemy import text
@@ -77,7 +77,7 @@ async def get_full_health_check() -> Dict[str, Any]:
 
     return {
         "status": overall_status,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "services": {

@@ -6,7 +6,7 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 import logging
 from collections import defaultdict
 from typing import Generator, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -418,7 +418,7 @@ class RateLimiter:
 
     def is_allowed(self, client_id: str) -> bool:
         """Check if client is allowed to make request"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         cutoff = now - timedelta(seconds=self.period)
 
         # Remove old requests

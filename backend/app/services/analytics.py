@@ -4,7 +4,7 @@ Analytics Service
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 from sqlalchemy import func, desc, and_
 from sqlalchemy.orm import Session
@@ -105,7 +105,7 @@ class AnalyticsService:
             List[Dict] с датами и количеством новых пользователей
         """
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = datetime.now(timezone.utc) - timedelta(days=days)
             
             # Группируем по дням
             growth_data = self.db.query(
@@ -140,7 +140,7 @@ class AnalyticsService:
             Dict с метриками сессий
         """
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = datetime.now(timezone.utc) - timedelta(days=days)
             start_timestamp = int(start_date.timestamp())
 
             # Сессии за период
@@ -268,7 +268,7 @@ class AnalyticsService:
             Dict с финансовыми метриками
         """
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = datetime.now(timezone.utc) - timedelta(days=days)
             start_timestamp = int(start_date.timestamp())
 
             # Платежи за период
