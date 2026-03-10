@@ -6,7 +6,7 @@ import time
 import psutil
 import logging
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 from contextlib import asynccontextmanager
 
@@ -25,7 +25,7 @@ class PerformanceMonitor:
         self.endpoint_calls = defaultdict(int)
         self.status_code_counts = defaultdict(lambda: defaultdict(int))
         self.slow_requests = defaultdict(list)  # Для отслеживания медленных запросов
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         self.alert_thresholds = {
             "error_rate": 5.0,  # 5% ошибок
             "response_time": 2.0,  # 2 секунды
@@ -46,7 +46,7 @@ class PerformanceMonitor:
         if duration > 1.0:  # Более 1 секунды
             self.slow_requests[endpoint].append({
                 "duration": duration,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "status_code": status_code
             })
             # Ограничение размера массива медленных запросов
@@ -92,10 +92,10 @@ class PerformanceMonitor:
         # Проверка алертов
         alerts = self._check_alerts(cpu_percent, memory.percent, error_rate, avg_response_times)
 
-        uptime = (datetime.utcnow() - self.start_time).total_seconds()
+        uptime = (datetime.now(timezone.utc) - self.start_time).total_seconds()
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "uptime_seconds": uptime,
             "system": {
                 "cpu_percent": cpu_percent,
@@ -142,7 +142,7 @@ class PerformanceMonitor:
         self.endpoint_calls.clear()
         self.status_code_counts.clear()
         self.slow_requests.clear()
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         logger.info("📊 Metrics reset")
 
     def _check_alerts(self, cpu_percent: float, memory_percent: float, error_rate: float, avg_response_times: dict) -> list:

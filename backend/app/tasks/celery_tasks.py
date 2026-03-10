@@ -4,7 +4,7 @@ Background tasks using Celery
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from celery import Celery
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -123,7 +123,7 @@ def cleanup_expired_tokens():
     from app.api.email_verification import verification_tokens, reset_tokens
     
     try:
-        current_time = datetime.utcnow()
+        current_time = datetime.now(timezone.utc)
         
         # Очистка verification tokens
         expired_verification = [
@@ -167,7 +167,7 @@ def generate_daily_stats():
     
     db = SessionLocal()
     try:
-        yesterday = datetime.utcnow() - timedelta(days=1)
+        yesterday = datetime.now(timezone.utc) - timedelta(days=1)
         
         # Подсчет новых пользователей
         new_users = db.query(User).filter(
@@ -214,11 +214,11 @@ def send_session_reminders():
     db = SessionLocal()
     try:
         # Ищем сессии, которые начнутся через 1 час
-        one_hour_later = datetime.utcnow() + timedelta(hours=1)
+        one_hour_later = datetime.now(timezone.utc) + timedelta(hours=1)
         upcoming_sessions = db.query(Session).filter(
             Session.status == SessionStatus.SCHEDULED,
             Session.scheduled_at <= one_hour_later,
-            Session.scheduled_at > datetime.utcnow()
+            Session.scheduled_at > datetime.now(timezone.utc)
         ).all()
         
         sent_count = 0

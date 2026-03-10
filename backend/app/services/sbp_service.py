@@ -6,7 +6,7 @@
 import logging
 from typing import Dict, Optional
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from app.config import settings
@@ -131,7 +131,7 @@ class SBPService:
 
         if not self.enabled:
             # Mock режим
-            mock_qr_id = f"sbp_qr_mock_{order_id}_{datetime.utcnow().timestamp()}"
+            mock_qr_id = f"sbp_qr_mock_{order_id}_{datetime.now(timezone.utc).timestamp()}"
             logger.warning(f"MOCK MODE: SBP QR code created - {mock_qr_id}")
 
             return {
@@ -140,7 +140,7 @@ class SBPService:
                 "qr_image": f"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "amount": float(amount),
                 "status": "pending",
-                "expires_at": (datetime.utcnow() + timedelta(minutes=ttl_minutes)).isoformat(),
+                "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)).isoformat(),
                 "order_id": order_id,
             }
 
@@ -191,9 +191,9 @@ class SBPService:
                 "qr_id": qr_id,
                 "status": "completed",
                 "amount": 5000,  # 50 рублей
-                "transaction_id": f"sbp_txn_mock_{datetime.utcnow().timestamp()}",
+                "transaction_id": f"sbp_txn_mock_{datetime.now(timezone.utc).timestamp()}",
                 "bank_name": "Сбербанк",
-                "completed_at": datetime.utcnow().isoformat(),
+                "completed_at": datetime.now(timezone.utc).isoformat(),
             }
 
         # Реальный запрос к СБП API
@@ -229,7 +229,7 @@ class SBPService:
 
         if not self.enabled:
             # Mock режим
-            mock_refund_id = f"sbp_refund_mock_{datetime.utcnow().timestamp()}"
+            mock_refund_id = f"sbp_refund_mock_{datetime.now(timezone.utc).timestamp()}"
             logger.warning(f"MOCK MODE: SBP refund created - {mock_refund_id}")
 
             return {
@@ -238,7 +238,7 @@ class SBPService:
                 "status": "completed",
                 "amount": float(amount) if amount else 5000,
                 "reason": reason,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
 
         # Реальный запрос к СБП API
