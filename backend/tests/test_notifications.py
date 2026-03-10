@@ -30,8 +30,8 @@ class TestGetNotifications:
         """Тест получения уведомлений с фильтрами"""
         client, headers = authenticated_client
 
-        # Фильтр по типу
-        response = client.get("/api/v1/notifications?type=session", headers=headers)
+        # Фильтр по типу (правильное значение из NotificationType enum)
+        response = client.get("/api/v1/notifications?type=new_message", headers=headers)
         assert response.status_code == status.HTTP_200_OK
 
         # Фильтр по непрочитанным
