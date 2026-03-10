@@ -45,17 +45,20 @@ else:
         )
     else:
         # PostgreSQL/other database configuration
+        # Optimized for Render Starter plan (2GB RAM, 1 CPU)
         engine = create_engine(
             settings.DATABASE_URL,
             poolclass=QueuePool,
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_pre_ping=True,
-            pool_recycle=3600,  # Recycle connections after 1 hour
+            pool_recycle=settings.DB_POOL_RECYCLE,
+            pool_timeout=settings.DB_POOL_TIMEOUT,
             echo=settings.DB_ECHO,
             connect_args={
                 "connect_timeout": 10,
                 "application_name": "mentorhub",
+                "options": "-c statement_timeout=30000",  # 30s query timeout
             },
         )
     logger.info(
