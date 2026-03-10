@@ -50,15 +50,29 @@ export function useAuth() {
    */
   const shouldRefreshToken = useCallback(() => {
     if (typeof window === 'undefined') return false;
-    const expiresAt = localStorage.getItem('token_expires_at')
+   const expiresAt = localStorage.getItem('token_expires_at')
     if (!expiresAt) return false
 
-    const expirationTime = parseInt(expiresAt, 10)
-    const currentTime = Math.floor(Date.now() / 1000)
+   const expirationTime = parseInt(expiresAt, 10)
+   const currentTime= Math.floor(Date.now() / 1000)
 
     // Обновляем если осталось меньше 5 минут до истечения
-    return expirationTime - currentTime <= REFRESH_THRESHOLD
+   return expirationTime - currentTime <= REFRESH_THRESHOLD
   }, [])
+
+  const logout = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    // Очищаем все данные
+   localStorage.removeItem('access_token')
+   localStorage.removeItem('refresh_token')
+   localStorage.removeItem('user_data')
+   localStorage.removeItem('user_name')
+   localStorage.removeItem('token_expires_at')
+   localStorage.removeItem('csrf_token')
+
+    // Перенаправляем на главную
+   router.push('/')
+  }, [router])
 
   /**
    * Автоматическое обновление токена
@@ -66,23 +80,23 @@ export function useAuth() {
   const autoRefreshToken = useCallback(async () => {
     if (typeof window === 'undefined' || isRefreshing) return
 
-    const refreshTokenValue = localStorage.getItem('refresh_token')
+   const refreshTokenValue = localStorage.getItem('refresh_token')
     if (!refreshTokenValue) return
 
     try {
-      setIsRefreshing(true)
-      const response = await refreshToken(refreshTokenValue)
+     setIsRefreshing(true)
+     const response = await refreshToken(refreshTokenValue)
 
       // Обновляем токены
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('refresh_token', response.refresh_token)
+     localStorage.setItem('access_token', response.access_token)
+     localStorage.setItem('refresh_token', response.refresh_token)
 
-      const expiresAt = Math.floor(Date.now() / 1000) + response.expires_in
-      localStorage.setItem('token_expires_at', expiresAt.toString())
+     const expiresAt = Math.floor(Date.now() / 1000) + response.expires_in
+     localStorage.setItem('token_expires_at', expiresAt.toString())
     } catch {
-      logout()
+     logout()
     } finally {
-      setIsRefreshing(false)
+     setIsRefreshing(false)
     }
   }, [logout, isRefreshing])
 
@@ -161,20 +175,6 @@ export function useAuth() {
     const csrfToken = generateCSRFToken()
     localStorage.setItem('csrf_token', csrfToken)
   }
-
-  const logout = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    // Очищаем все данные
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user_data')
-    localStorage.removeItem('user_name')
-    localStorage.removeItem('token_expires_at')
-    localStorage.removeItem('csrf_token')
-
-    // Перенаправляем на главную
-    router.push('/')
-  }, [router])
 
   const getUserData = () => {
     if (typeof window === 'undefined') return null;
