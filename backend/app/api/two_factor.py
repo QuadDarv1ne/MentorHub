@@ -11,10 +11,9 @@ import qrcode
 import base64
 from io import BytesIO
 
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.schemas.user import TwoFactorSetup, TwoFactorVerify, TwoFactorResponse
-from app.utils.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/2fa", tags=["2FA"])
