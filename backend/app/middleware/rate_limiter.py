@@ -12,7 +12,6 @@ Features:
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from collections.abc import Callable
 from typing import Callable, Dict, List
 import logging
 
