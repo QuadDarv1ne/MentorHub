@@ -5,6 +5,7 @@
 
 import re
 import html
+from typing import Union
 
 
 def sanitize_string(text: str, max_length: int = 1000) -> str:
