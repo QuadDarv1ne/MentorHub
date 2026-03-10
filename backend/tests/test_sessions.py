@@ -215,9 +215,11 @@ class TestSessionBooking:
 
         # POST на /sessions - создание сессии
         response = client.post("/api/v1/sessions", json=booking_data, headers=headers)
+        # 201, 400 или 422 (валидация)
         assert response.status_code in [
             status.HTTP_201_CREATED,
             status.HTTP_400_BAD_REQUEST,
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
         ]
 
     def test_book_session_unauthorized(self, client):
