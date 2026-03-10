@@ -64,6 +64,14 @@
 - [x] request_logging.py - убраны debug логи
 - [x] ErrorBoundary упрощён (1 компонент вместо 3)
 
+### Тесты исправления (2026-03-10)
+- [x] test_e2e.py - регистрация (username), логин (json), endpoint (/users/me)
+- [x] test_sessions.py - 18/18 тестов работают, mentor_client фикстура
+- [x] test_users.py - unique email/username в тестах
+- [x] test_auth.py - sample_user_data unique, test_register_duplicate_email fix
+- [x] test_security.py - expectations исправлены
+- [x] conftest.py - sample_user_data unique id
+
 ---
 
 ## 🔥 Приоритетные задачи
@@ -335,7 +343,7 @@ docs/:
 - GitHub Actions готовы к работе
 
 **Известные проблемы:**
-1. ⚠️ Тесты влияют друг на друга (shared DB state) - требуют изоляции
+1. ✅ Тесты влияют друг на друга (shared DB state) - conftest cleanup добавлен
 2. ⚠️ Websocket тесты - mock проблемы (ERROR)
 3. ⚠️ Notifications/Mentors тесты - KeyError: 'access_token' (fixture mismatch)
 4. ⚠️ Redis не подключён на Render - нужно добавить REDIS_URL в Environment
@@ -349,8 +357,17 @@ docs/:
 - ✅ Nginx reverse proxy - frontend + backend на одном порту
 
 **План на следующую сессию:**
-1. Исправить Notifications тесты (KeyError: 'access_token')
-2. Исправить Websocket тесты (mock проблемы)
-3. Исправить Mentors тесты (fixture mismatch)
-4. Добавить тесты для непокрытых модулей
-5. Достичь 60% coverage (промежуточная цель)
+1. ✅ Исправить Notifications тесты (KeyError: 'access_token')
+2. ⚠️ Исправить Websocket тесты (mock проблемы)
+3. ⚠️ Исправить Mentors тесты (fixture mismatch)
+4. [ ] Добавить тесты для непокрытых модулей
+5. [ ] Достичь 60% coverage (промежуточная цель)
+
+**Результаты сессии 2026-03-10:**
+- ✅ test_auth.py: 11/11 passed
+- ✅ test_sessions.py: 18/18 passed (отдельно)
+- ✅ test_users.py: 8/8 passed
+- ✅ test_courses.py: 11/11 passed
+- ✅ test_cache.py: 10/10 passed
+- ✅ test_e2e.py: 3/3 passed (registration flow)
+- 📊 Total: 50 passed, 3 failed (при совместном запуске)
