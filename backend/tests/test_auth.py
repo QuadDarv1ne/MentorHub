@@ -23,20 +23,29 @@ class TestRegistration:
         assert data["username"] == sample_user_data["username"]
         assert "password" not in data
 
-    def test_register_duplicate_email(self, client, db_session, sample_user_data):
+    def test_register_duplicate_email(self, client, db_session):
         """Тест регистрации с дублирующимся email"""
+        # Фиксированные данные для теста дублирования
+        email = "duplicate@example.com"
+        password = "TestPass123!"
+        
         # Создание существующего пользователя
         existing_user = User(
-            email=sample_user_data["email"],
+            email=email,
             username="existinguser",
-            hashed_password=get_password_hash(sample_user_data["password"]),
+            hashed_password=get_password_hash(password),
             role=UserRole.STUDENT,
         )
         db_session.add(existing_user)
         db_session.commit()
 
         # Попытка регистрации с тем же email
-        response = client.post("/api/v1/auth/register", json=sample_user_data)
+        response = client.post("/api/v1/auth/register", json={
+            "email": email,
+            "username": "newuser",
+            "password": password,
+            "full_name": "New User",
+        })
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
