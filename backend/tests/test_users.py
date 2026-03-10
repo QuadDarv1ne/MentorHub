@@ -153,9 +153,11 @@ class TestUserRoles:
 
     def test_create_admin_user(self, client):
         """Тест создания пользователя с ролью админа"""
+        import uuid
+        unique_id = str(uuid.uuid4())[:8]
         admin_data = {
-            "email": "admin@example.com",
-            "username": "adminuser",
+            "email": f"admin_{unique_id}@example.com",
+            "username": f"adminuser_{unique_id}",
             "password": "AdminPass123!",
             "role": "admin",
         }
@@ -167,10 +169,12 @@ class TestUserRoles:
 
     def test_mentor_profile_access(self, client, create_user):
         """Тест доступа к профилю ментора"""
+        import uuid
+        unique_id = str(uuid.uuid4())[:8]
         # Создаём ментора
         mentor = create_user(
-            email="mentor@example.com",
-            username="mentoruser",
+            email=f"mentor_{unique_id}@example.com",
+            username=f"mentoruser_{unique_id}",
             password="MentorPass123!",
             role="mentor",
         )
