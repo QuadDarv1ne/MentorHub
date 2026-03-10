@@ -53,9 +53,7 @@ def db_session():
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # Создание таблиц
-    Base.metadata.create_all(bind=engine)
-
+    # Таблицы уже созданы в setup_test_database
     # Создание сессии
     session = TestingSessionLocal()
 
@@ -63,7 +61,6 @@ def db_session():
         yield session
     finally:
         session.close()
-        Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
@@ -263,31 +260,6 @@ def sync_authenticated_client(client):
     )
     token = login_response.json()["access_token"]
     return client, {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def authenticated_headers(client):
-    """Фикстура только для заголовков авторизации"""
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-
-    user_data = {
-        "email": f"test_{unique_id}@test.com",
-        "username": f"testuser_{unique_id}",
-        "password": "SecurePass123!",
-        "full_name": "Test User"
-    }
-
-    # Регистрация
-    client.post("/api/v1/auth/register", json=user_data)
-
-    # Вход
-    login_response = client.post(
-        "/api/v1/auth/login",
-        json={"email": user_data["email"], "password": user_data["password"]},
-    )
-    token = login_response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture

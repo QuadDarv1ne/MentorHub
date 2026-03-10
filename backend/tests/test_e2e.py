@@ -19,7 +19,12 @@ class TestUserRegistrationFlow:
         """Полный цикл регистрации нового пользователя"""
 
         # 1. Регистрация
-        registration_data = {"email": "newuser@test.com", "password": "SecurePass123!", "full_name": "Test User"}
+        registration_data = {
+            "email": "newuser@test.com",
+            "username": "newuser",
+            "password": "SecurePass123!",
+            "full_name": "Test User",
+        }
 
         response = await async_client.post("/api/v1/auth/register", json=registration_data)
         assert response.status_code == 201
@@ -28,7 +33,7 @@ class TestUserRegistrationFlow:
         assert "id" in user_data
 
         # 2. Авторизация
-        login_data = {"username": registration_data["email"], "password": registration_data["password"]}
+        login_data = {"email": registration_data["email"], "password": registration_data["password"]}
 
         response = await async_client.post("/api/v1/auth/login", data=login_data)
         assert response.status_code == 200
@@ -47,7 +52,12 @@ class TestUserRegistrationFlow:
     async def test_duplicate_registration(self, async_client: AsyncClient):
         """Тест на дублирование email"""
 
-        user_data = {"email": "duplicate@test.com", "password": "Pass123!", "full_name": "Duplicate Test"}
+        user_data = {
+            "email": "duplicate@test.com",
+            "username": "duplicate",
+            "password": "Pass123!",
+            "full_name": "Duplicate Test",
+        }
 
         # Первая регистрация - успешна
         response1 = await async_client.post("/api/v1/auth/register", json=user_data)
