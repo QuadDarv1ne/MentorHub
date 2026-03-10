@@ -107,9 +107,11 @@ async def async_client(db_session):
 @pytest.fixture
 def sample_user_data():
     """Примерные данные пользователя для тестирования"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
     return {
-        "email": "test@example.com",
-        "username": "testuser",
+        "email": f"test_{unique_id}@example.com",
+        "username": f"testuser_{unique_id}",
         "password": "TestPass123!",
         "full_name": "Test User",
     }
