@@ -7,7 +7,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Send, X, MessageCircle, User, Check, CheckCheck } from 'lucide-react'
-import { useOptionalAuth } from '@/hooks/useAuth'
 
 interface Message {
   id: number
@@ -256,3 +255,5 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
     </div>
   )
 }
+
+export default ChatWidget

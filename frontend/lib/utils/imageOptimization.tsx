@@ -141,16 +141,10 @@ export function LazyImageGallery({
  * Responsive image с разными источниками для разных размеров экрана
  */
 export function ResponsiveImage({
-  mobileSrc,
-  tabletSrc,
-  desktopSrc,
   alt,
   className = '',
   priority = false,
 }: {
-  mobileSrc: string
-  tabletSrc: string
-  desktopSrc: string
   alt: string
   className?: string
   priority?: boolean
@@ -158,7 +152,7 @@ export function ResponsiveImage({
   return (
     <div className={`relative w-full h-auto ${className}`}>
       <Image
-        src={desktopSrc}
+        src="/images/default-hero.jpg"
         alt={alt}
         fill
         className="object-cover"
@@ -198,9 +192,7 @@ export function useImagePreloader() {
  * Generate blur data URL для placeholder
  * Используется для создания маленьких размытых превью изображений
  */
-export async function generateBlurDataURL(
-  imagePath: string
-): Promise<string> {
+export async function generateBlurDataURL(): Promise<string> {
   try {
     // В production используйте сервис оптимизации изображений
     // Пример: https://vercel.com/docs/concepts/image-optimization/blur
