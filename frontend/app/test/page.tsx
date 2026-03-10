@@ -2,8 +2,18 @@
 
 import { useState, useEffect } from 'react';
 
+interface Course {
+  id: number;
+  title: string;
+  [key: string]: unknown;
+}
+
+interface StepikResponse {
+  courses: Course[];
+}
+
 export default function TestPage() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [data, setData] = useState<StepikResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +29,7 @@ export default function TestPage() {
         }
 
         const result = await response.json();
-        setData(result);
+        setData(result as StepikResponse);
       } catch (err) {
         setError(err instanceof Error ? `${err.name}: ${err.message}` : 'Unknown error');
       } finally {
@@ -37,7 +47,7 @@ export default function TestPage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Test Page</h1>
-      <h2 className="text-xl mb-2">Course Title: {data?.courses?.[0]?.title || 'No title'}</h2>
+      <h2 className="text-xl mb-2">Course Title: {data.courses?.[0]?.title || 'No title'}</h2>
       <div className="bg-gray-100 p-4 rounded">
         <pre className="text-sm overflow-auto">{JSON.stringify(data, null, 2)}</pre>
       </div>
