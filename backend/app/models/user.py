@@ -3,7 +3,7 @@
 Модель учетной записи и аутентификации пользователя
 """
 
-from sqlalchemy import Column, String, Enum as SQLEnum
+from sqlalchemy import Column, String, Boolean, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 import enum
 

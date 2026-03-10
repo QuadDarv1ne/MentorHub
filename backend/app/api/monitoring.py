@@ -3,9 +3,10 @@ API endpoints для мониторинга и метрик
 """
 
 import logging
+from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.dependencies import get_current_user
 from app.utils.monitoring import performance_monitor
 from app.utils.cache import get_cache_stats, reset_cache_stats
@@ -20,7 +21,7 @@ async def get_metrics(current_user: User = Depends(get_current_user)):
     Получение метрик производительности
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can access metrics")
 
     try:
@@ -37,7 +38,7 @@ async def reset_metrics(current_user: User = Depends(get_current_user)):
     Сброс метрик производительности
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can reset metrics")
 
     try:
@@ -54,7 +55,7 @@ async def get_alerts(current_user: User = Depends(get_current_user)):
     Получение текущих алертов
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can access alerts")
 
     try:
@@ -74,7 +75,7 @@ async def update_alert_thresholds(
     Обновление пороговых значений для алертов
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can update alert thresholds")
 
     try:
@@ -91,7 +92,7 @@ async def get_cache_statistics(current_user: User = Depends(get_current_user)):
     Получение статистики кеша
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can access cache stats")
 
     try:
@@ -108,7 +109,7 @@ async def reset_cache_statistics(current_user: User = Depends(get_current_user))
     Сброс статистики кеша
     Доступно только администраторам
     """
-    if not current_user.is_admin:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can reset cache stats")
 
     try:

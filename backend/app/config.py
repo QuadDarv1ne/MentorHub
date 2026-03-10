@@ -4,7 +4,7 @@ Handles all environment variables and app settings
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, PrivateAttr
 from typing import Optional, List
 from functools import lru_cache
 import os
