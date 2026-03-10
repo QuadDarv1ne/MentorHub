@@ -79,8 +79,12 @@ class Settings(BaseSettings):
     # Priority: DATABASE_URL env var > cloud default > local default
     DATABASE_URL: str = os.environ.get("DATABASE_URL") or f"postgresql://mentorhub_user:password@{_default_db_host}/mentorhub"
     DB_ECHO: bool = False
-    DB_POOL_SIZE: int = 20
-    DB_MAX_OVERFLOW: int = 40
+    # Optimized pool settings for production
+    # Render Starter: 2GB RAM, 1 CPU
+    DB_POOL_SIZE: int = int(os.environ.get("DB_POOL_SIZE", "10"))  # Reduced from 20
+    DB_MAX_OVERFLOW: int = int(os.environ.get("DB_MAX_OVERFLOW", "20"))  # Reduced from 40
+    DB_POOL_RECYCLE: int = 1800  # Recycle connections after 30 minutes
+    DB_POOL_TIMEOUT: int = 30  # Timeout waiting for connection from pool
 
     # ==================== REDIS ====================
     REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:6379/0")
