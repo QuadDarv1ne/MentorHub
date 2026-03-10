@@ -6,12 +6,14 @@
 import os
 
 # MUST be set BEFORE any other imports
-os.environ.setdefault("ENVIRONMENT", "testing")
-os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
-os.environ.setdefault("DEBUG", "False")
-os.environ.setdefault("RATE_LIMIT_ENABLED", "False")
-os.environ.setdefault("RATE_LIMIT_REQUESTS", "10000")
-os.environ.setdefault("CORS_ORIGINS", '["http://localhost:3000"]')
+os.environ["ENVIRONMENT"] = "testing"
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+os.environ["DEBUG"] = "False"
+os.environ["RATE_LIMIT_ENABLED"] = "False"
+os.environ["RATE_LIMIT_REQUESTS"] = "10000"
+os.environ["RATE_LIMIT_PERIOD"] = "3600"
+os.environ["CORS_ORIGINS"] = '["http://localhost:3000"]'
+os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
 
 # Import and clear settings cache BEFORE importing app
 import importlib
