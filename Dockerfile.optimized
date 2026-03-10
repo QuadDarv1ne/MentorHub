@@ -10,7 +10,7 @@ WORKDIR /app/frontend
 
 # Кэширование зависимостей
 COPY frontend/package*.json ./
-RUN npm ci --legacy-peer-deps --only=production
+RUN npm install --legacy-peer-deps --only=production
 
 COPY frontend/ ./
 
