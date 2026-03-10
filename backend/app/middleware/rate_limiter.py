@@ -12,7 +12,8 @@ Features:
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Callable, Dict
+from collections.abc import Callable
+from typing import Callable, Dict, List
 import logging
 
 from fastapi import Request, HTTPException, status
@@ -22,7 +23,6 @@ from redis.asyncio import Redis
 from app.config import settings
 
 logger = logging.getLogger(__name__)
-
 
 class RateLimiter:
     """Rate limiter with Redis backend and automatic memory fallback"""
