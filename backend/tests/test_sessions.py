@@ -4,6 +4,7 @@
 """
 
 import pytest
+import uuid
 from fastapi import status
 from datetime import datetime, timedelta
 
@@ -14,9 +15,10 @@ from app.utils.security import get_password_hash
 @pytest.fixture
 def mentor_client(client):
     """Фикстура для клиента с ментором"""
+    unique_id = str(uuid.uuid4())[:8]
     mentor_data = {
-        "email": "mentor@test.com",
-        "username": "mentortest",
+        "email": f"mentor_{unique_id}@test.com",
+        "username": f"mentortest_{unique_id}",
         "password": "MentorPass123!",
         "role": "mentor",
     }
@@ -32,9 +34,10 @@ def mentor_client(client):
 @pytest.fixture
 def student_client(client):
     """Фикстура для клиента со студентом"""
+    unique_id = str(uuid.uuid4())[:8]
     student_data = {
-        "email": "student@test.com",
-        "username": "studenttest",
+        "email": f"student_{unique_id}@test.com",
+        "username": f"studenttest_{unique_id}",
         "password": "StudentPass123!",
     }
     client.post("/api/v1/auth/register", json=student_data)

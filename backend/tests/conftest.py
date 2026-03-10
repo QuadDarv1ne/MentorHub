@@ -174,15 +174,25 @@ def create_user(db_session):
 
 
 @pytest.fixture
-def authenticated_headers(client, sample_user_data):
+def authenticated_headers(client):
     """Фикстура для получения авторизационных заголовков"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
+    user_data = {
+        "email": f"test_{unique_id}@test.com",
+        "username": f"testuser_{unique_id}",
+        "password": "SecurePass123!",
+        "full_name": "Test User"
+    }
+    
     # Регистрация
-    client.post("/api/v1/auth/register", json=sample_user_data)
+    client.post("/api/v1/auth/register", json=user_data)
 
     # Вход
     login_response = client.post(
         "/api/v1/auth/login",
-        json={"email": sample_user_data["email"], "password": sample_user_data["password"]},
+        json={"email": user_data["email"], "password": user_data["password"]},
     )
 
     token = login_response.json()["access_token"]

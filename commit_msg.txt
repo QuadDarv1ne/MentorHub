@@ -1,6 +1,7 @@
-fix: Dockerfile и start.sh для правильного запуска frontend на Render
+docs: добавить CI/CD workflows и документацию
 
-- Исправлен путь копирования standalone сборки Next.js
-- Добавлена проверка server.js в нескольких локациях
-- Убран BACKEND_PORT из переменных (фиксированный 8000)
-- Улучшена обработка ошибок запуска frontend
+- backend-tests.yml - автотесты backend с coverage
+- frontend-tests.yml - автотесты frontend с coverage
+- CI/CD документация в docs/CI-CD.md
+- Интеграция с Codecov для отчётов
+- Артефакты и отчёты о тестах
