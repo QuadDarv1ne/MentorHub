@@ -36,6 +36,8 @@ export interface Course {
   instructor_id: number
   created_at: string
   updated_at: string
+  progress?: number
+  certificate?: boolean
   instructor?: Instructor | null
 }
 
