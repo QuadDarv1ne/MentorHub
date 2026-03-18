@@ -402,7 +402,7 @@ docs/:
 
 **Последнее обновление:** 2026-03-18
 **Статус:** ✅ 290/299 тестов passed (97%), coverage ~75-80%, archive/ удалена, dev → main синхронизировано
-**Следующий приоритет:** Database оптимизация (индексы, N+1), Security hardening (rate limiting, CORS, security headers)
+**Следующий приоритет:** P0 - Security hardening (rate limiting, CORS, security headers), Database оптимизация (индексы, N+1)
 
 ---
 
@@ -415,10 +415,11 @@ docs/:
 - **Синхронизация:** dev → main ✅
 
 ### Активные задачи 🔄
-- [x] Database оптимизация (индексы, N+1 problem, connection pooling)
-- [x] Security hardening (rate limiting, CORS, security headers)
-- [ ] Performance monitoring (Lighthouse, API response time)
-- [ ] SonarQube интеграция для code quality
+- [ ] Database оптимизация (индексы, N+1 problem, connection pooling) **P0**
+- [ ] Security hardening (rate limiting, CORS, security headers) **P0**
+- [ ] Monitoring: Alert rules + Alertmanager **P0**
+- [ ] Frontend компонентные тесты **P1**
+- [ ] Performance monitoring (Lighthouse, API response time) **P1**
 
 ### Выполнено ✅
 - [x] Stepik интеграция - реальное API вместо захардкоженных данных
@@ -426,10 +427,64 @@ docs/:
 - [x] dev → main синхронизация
 
 ### Планы 📋
-- [ ] CI/CD улучшения (staging environment, automated testing before deploy)
-- [ ] Documentation updates (API reference, troubleshooting)
-- [ ] Frontend компонентные тесты
-- [ ] Интеграционные тесты для критических сценариев
+- [ ] CI/CD улучшения (staging environment, automated testing before deploy) **P1**
+- [ ] Documentation updates (API reference, troubleshooting) **P1**
+- [ ] Интеграционные тесты для критических сценариев **P1**
+- [ ] SonarQube интеграция для code quality **P2**
+
+---
+
+## 🔥 Приоритеты на следующую сессию
+
+### P0 - Критичные (production-ready)
+1. **Security hardening**
+   - [ ] Rate limiting для API endpoints
+   - [ ] CORS настройка для production
+   - [ ] Security headers (CSP, HSTS, X-Frame-Options)
+   - [ ] Input validation (zod/pydantic)
+
+2. **Database оптимизация**
+   - [ ] Индексы для частых запросов (users.email, courses.id, sessions.user_id)
+   - [ ] N+1 problem - оптимизация запросов (joinedload, selectinload)
+   - [ ] Database migrations tests (Alembic)
+
+3. **Monitoring**
+   - [ ] Alert rules для Prometheus (CPU >80%, Memory >90%, Error rate >1%)
+   - [ ] Alertmanager интеграция (email/telegram уведомления)
+   - [ ] Sentry performance monitoring настройка
+
+### P1 - Важные (качество)
+4. **Frontend тесты**
+   - [ ] Компонентные тесты (React Testing Library)
+   - [ ] Интеграционные тесты для критических сценариев
+   - [ ] E2E тесты (Playwright/Cypress)
+
+5. **CI/CD улучшения**
+   - [ ] Staging environment для тестирования
+   - [ ] Automated testing перед деплоем
+   - [ ] Rollback механизм
+   - [ ] Slack/Telegram уведомления о деплое
+
+6. **Performance**
+   - [ ] Lighthouse score >90
+   - [ ] Code splitting для больших страниц
+   - [ ] Bundle size optimization
+
+### P2 - Долгосрочные (фичи)
+7. **Feature requests**
+   - [ ] WebSocket chat (полная реализация)
+   - [ ] Video calls (Agora integration)
+   - [ ] Payment processing (Stripe)
+   - [ ] Email notifications (Celery tasks)
+   - [ ] Admin dashboard
+   - [ ] Analytics dashboard
+
+8. **Quality of Life**
+   - [ ] Dark mode
+   - [ ] PWA support (offline mode, service workers)
+   - [ ] Push notifications
+   - [ ] Social login (Google, GitHub)
+   - [ ] Two-factor authentication (частично есть)
 
 ### Сессия 2026-03-18 (Stepik Интеграция + Docker Compose Fix) ✅
 **Исправления:**
