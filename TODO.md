@@ -206,11 +206,11 @@ Sentry integration:
 
 ## 📋 Среднесрочные задачи
 
-### 6. Database оптимизация ✅ ЧАСТИЧНО
+### 6. Database оптимизация
 ```
 - [ ] Индексы для частых запросов
 - [ ] Connection pooling (pgbouncer)
-- [x] Query optimization (N+1 problem) ✅ payments.py, achievements.py, notifications.py
+- [ ] Query optimization (N+1 problem)
 - [ ] Database migrations tests (Alembic)
 ```
 
@@ -412,26 +412,4 @@ docs/:
 1. [ ] Запустить полный прогон тестов (pytest --cov=app)
 2. [ ] Проверить coverage по модулям
 3. [ ] Database оптимизация (индексы, N+1 problem)
-4. [ ] Security hardening (rate limiting, CORS, security headers)
-
-### Сессия 2026-03-18 (Database Optimization) ✅
-**Оптимизация запросов БД (N+1 problem fixes):**
-- ✅ payments.py - joinedload(student, mentor, session)
-- ✅ achievements.py - joinedload(user)
-- ✅ notifications.py - joinedload(user)
-- ✅ query_optimization.py - cleanup debug print()
-
-**Изменения:**
-- Уменьшено количество запросов к БД в payment endpoints
-- Уменьшено количество запросов к БД в achievement endpoints
-- Уменьшено количество запросов к БД в notification endpoints
-- Удалён отладочный код из utility module
-
-**Синхронизация:**
-- dev → main ✅
-
-**План на следующую сессию:**
-1. [ ] Индексы для частых запросов
-2. [ ] Connection pooling (pgbouncer)
-3. [ ] Database migrations tests (Alembic)
 4. [ ] Security hardening (rate limiting, CORS, security headers)
