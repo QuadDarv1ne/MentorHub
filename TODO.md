@@ -8,7 +8,19 @@
 - [x] RTL поддержка для иврита
 - [x] LocaleSwitcher компонент
 - [x] Переводы (800+ строк)
-- [ ] [locale] роутинг для полной поддержки
+- [x] [locale] роутинг для полной поддержки ✅
+
+### Stepik Курсы - Проверка ✅
+- [x] frontend/app/courses/stepik/page.tsx - список курсов
+- [x] frontend/app/courses/stepik/[id]/page.tsx - детальная страница
+- [x] frontend/app/courses/stepik/[id]/page.client.tsx - клиентская часть
+- [x] frontend/app/api/stepik/[id]/route.ts - API proxy
+- [x] frontend/lib/api/stepik.ts - Stepik API client
+- [x] frontend/components/StepikCourseCard.tsx - карточка курса
+- [x] next.config.js - remotePatterns для cdn.stepik.net
+- [x] backend/app/api/reviews.py - /courses/{id}/reviews/aggregate endpoint
+- [x] backend/app/api/courses.py - CRUD курсы
+- [x] Тесты: test_courses.py - 11 тестов
 
 ### Деплой конфигурация
 - [x] Heroku (Procfile, app.json)
