@@ -38,6 +38,14 @@ from app.utils.security import get_password_hash
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 
+# Reset settings cache after setting environment variables
+import app.config as config_module
+if hasattr(config_module.get_settings, 'cache_clear'):
+    config_module.get_settings.cache_clear()
+# Reload settings with new environment
+importlib.reload(config_module)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
     """Setup test database once per session"""
