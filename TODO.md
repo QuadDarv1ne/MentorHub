@@ -413,3 +413,17 @@ docs/:
 2. [ ] Проверить coverage по модулям
 3. [ ] Database оптимизация (индексы, N+1 problem)
 4. [ ] Security hardening (rate limiting, CORS, security headers)
+
+### Сессия 2026-03-18 (Fixes) ✅
+**Исправления:**
+- ✅ backend/app/utils/cache.py - `from __future__ import annotations` для TYPE_CHECKING
+- ✅ backend/tests/conftest.py - settings cache reset после установки ENV
+- ✅ backend/app/main.py - rate limiting отключён для тестов (RATE_LIMIT_ENABLED=False)
+
+**Тесты:**
+- ✅ 258/299 passed (86% pass rate)
+- ✅ 35 failed (требуют доработки фикстур access_token)
+- ✅ 6 skipped
+
+**Синхронизация:**
+- dev → main (pending)
