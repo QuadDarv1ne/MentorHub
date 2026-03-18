@@ -421,8 +421,21 @@ docs/:
 - ✅ backend/app/main.py - rate limiting отключён для тестов (RATE_LIMIT_ENABLED=False)
 
 **Тесты:**
-- ✅ 258/299 passed (86% pass rate)
+- ✅ 258/299 passed (86.3% pass rate)
 - ✅ 35 failed (требуют доработки фикстур access_token)
+- ✅ 6 skipped
+
+**Синхронизация:**
+- dev → main ✅
+
+### Сессия 2026-03-18 (Test Fixtures) ✅
+**Исправления:**
+- ✅ conftest.py - фикстуры авторизации: проверка status_code in [200, 201], проверка access_token в response
+- ✅ Улучшена надёжность: sync_authenticated_client, async_authenticated_client, authenticated_headers, second_async_authenticated_client
+
+**Тесты:**
+- ✅ 258/299 passed (86.3%)
+- ⚠️ 35 failed (остаточные проблемы с отдельными тестами)
 - ✅ 6 skipped
 
 **Синхронизация:**
