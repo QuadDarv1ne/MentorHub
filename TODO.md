@@ -439,4 +439,17 @@ docs/:
 - ✅ 6 skipped
 
 **Синхронизация:**
+- dev → main ✅
+
+### Сессия 2026-03-18 (User Model + Backups Tests) ✅
+**Исправления:**
+- ✅ backend/app/models/user.py - добавлены свойства `is_admin`, `is_mentor`
+- ✅ backend/tests/test_backups.py - исправлено использование `admin.password` → `admin_password` переменная
+
+**Тесты:**
+- ✅ 267/299 passed (89.3%)
+- ⚠️ 26 failed (остаточные проблемы: progress, push_notifications, reviews, stats, users)
+- ✅ 6 skipped
+
+**Синхронизация:**
 - dev → main (pending)
