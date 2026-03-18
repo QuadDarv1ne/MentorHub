@@ -49,6 +49,7 @@ class User(BaseModel, TimestampMixin):
     progress_records = relationship("Progress", back_populates="user")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     device_tokens = relationship("DeviceToken", back_populates="user", cascade="all, delete-orphan")
+    payments = relationship("Payment", foreign_keys="Payment.student_id", back_populates="student")
 
     @property
     def is_admin(self) -> bool:

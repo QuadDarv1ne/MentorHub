@@ -44,9 +44,9 @@ class Payment(BaseModel):
     )
 
     # Связи
-    # student = relationship("User", foreign_keys=[student_id])
-    # mentor = relationship("Mentor", foreign_keys=[mentor_id])
-    # session = relationship("Session")
+    student = relationship("User", foreign_keys=[student_id], back_populates="payments")
+    mentor = relationship("Mentor", foreign_keys=[mentor_id], back_populates="payments")
+    session = relationship("Session", back_populates="payments")
 
     def __repr__(self):
         return f"<Payment(id={self.id}, student_id={self.student_id}, amount={self.amount}, status={self.status})>"

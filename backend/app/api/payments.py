@@ -33,8 +33,12 @@ async def get_payments(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    # Получаем платежи без joinedload т.к. связи закомментированы в модели
-    payments = db.query(DBPayment).offset(skip).limit(limit).all()
+    # Используем joinedload для избежания N+1 проблемы
+    payments = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).offset(skip).limit(limit).all()
     return payments
 
 
