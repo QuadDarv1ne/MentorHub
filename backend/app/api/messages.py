@@ -26,10 +26,8 @@ async def get_messages(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    messages = db.query(DBMessage).options(
-        joinedload(DBMessage.sender),
-        joinedload(DBMessage.recipient)
-    ).offset(skip).limit(limit).all()
+    # Получаем сообщения без joinedload т.к. связи закомментированы в модели
+    messages = db.query(DBMessage).offset(skip).limit(limit).all()
     return messages
 
 
