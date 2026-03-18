@@ -344,6 +344,8 @@ logger.info("✅ Performance monitoring middleware added")
 # Advanced Security Middleware
 app.add_middleware(
     SecurityMiddleware,
+    rate_limit_requests=settings.RATE_LIMIT_REQUESTS if settings.RATE_LIMIT_ENABLED else 999999,
+    rate_limit_window=settings.RATE_LIMIT_PERIOD if settings.RATE_LIMIT_ENABLED else 3600,
     max_body_size=10 * 1024 * 1024,  # 10MB
 )
 logger.info("✅ Advanced Security middleware added")
