@@ -2,6 +2,16 @@
 
 ## ✅ Выполнено
 
+### Session-Payment Связи ✅
+- [x] backend/app/models/session.py - связь `payments = relationship("Payment", back_populates="session")`
+- [x] backend/app/models/payment.py - раскомментированы связи `student`, `mentor`, `session`
+- [x] backend/app/models/mentor.py - связь `payments = relationship("Payment", back_populates="mentor")`
+- [x] backend/app/models/user.py - связь `payments = relationship("Payment", back_populates="student")`
+- [x] backend/app/api/sessions.py - `selectinload` для `payments` в `get_my_sessions` (N+1 fix)
+- [x] backend/app/api/payments.py - `joinedload` для `student`, `mentor`, `session` (N+1 fix)
+- [x] backend/app/schemas/session.py - поле `payments: Optional[List[PaymentResponse]]` в `SessionResponse`
+- [x] Тесты: 30/30 passed (test_sessions.py + test_payments.py)
+
 ### i18n (Интернационализация)
 - [x] next-intl библиотека
 - [x] 4 языка: ru, en, zh, he
@@ -349,6 +359,7 @@ docs/:
 9. ~~Coverage ~45-60% (цель: 80%)~~ ✅ Достигнуто ~75-80%
 10. ~~Не покрыты: messages, two_factor, push_notifications, backups~~ ✅ Исправлено
 11. ~~9 тестов skipped из-за state issues в полном прогоне~~ ✅ Задокументировано, skip в тестах
+12. ~~Session-Payment связи не настроены~~ ✅ Исправлено (N+1 fix)
 
 ### Технические долги
 1. ~~Удалить закомментированный код~~ ✅ console.log удалены
@@ -357,6 +368,7 @@ docs/:
 4. ~~Удалить archive/ директорию~~ ✅ Исправлено
 5. ~~Добавить типизацию для всех API endpoints~~ ✅ Исправлено
 6. ~~Обновить Dockerfile.production (использовать основной Dockerfile)~~ ✅ Исправлено
+7. ~~Session-Payment связи~~ ✅ Все связи настроены (N+1 fix)
 
 ### Идеи для улучшений
 1. [ ] Добавить GraphQL API
@@ -397,11 +409,16 @@ docs/:
 28. ~~User model is_admin/is_mentor~~ ✅ добавлены свойства
 29. ~~payments.py joinedload~~ ✅ убран для закомментированных связей
 30. ~~290/299 тестов passed~~ ✅ 97% pass rate, 9 skipped (state issues)
+31. ~~Session-Payment связи~~ ✅ добавлены (session.py, payment.py, mentor.py, user.py)
+32. ~~get_my_sessions N+1 problem~~ ✅ selectinload для payments
+33. ~~get_payments N+1 problem~~ ✅ joinedload для student, mentor, session
+34. ~~SessionResponse схема~~ ✅ добавлено поле payments
+35. ~~monitoring.py IndentationError~~ ✅ исправлен
 
 ---
 
-**Последнее обновление:** 2026-03-18 (Сессия 5)
-**Статус:** ✅ Все P0 задачи выполнены, P1 Frontend тесты выполнены
+**Последнее обновление:** 2026-03-18 (Сессия 6 - Session-Payment Связи)
+**Статус:** ✅ Все P0 задачи выполнены, P1 Frontend тесты выполнены, Session-Payment связи настроены
 **Следующий приоритет:** P1 - Performance monitoring, CI/CD улучшения, Интеграционные тесты
 
 ---
@@ -411,8 +428,18 @@ docs/:
 ### Выполненные задачи ✅
 - **Тесты:** 290/299 passed (97% pass rate), 9 skipped (state issues в полном прогоне)
 - **Coverage:** ~75-80% (цель 80%+ достигнута)
-- **Технические долги:** 6/6 исправлено
-- **Синхронизация:** dev → main ✅
+- **Технические долги:** 7/7 исправлено
+- **Синхронизация:** dev → main ✅, Session-Payment связи ✅
+
+### Session-Payment Связи ✅
+- [x] Модель Session - связь payments
+- [x] Модель Payment - связи student, mentor, session
+- [x] Модель Mentor - связь payments
+- [x] Модель User - связь payments
+- [x] API sessions.py - selectinload для payments (N+1 fix)
+- [x] API payments.py - joinedload для student, mentor, session (N+1 fix)
+- [x] Схема SessionResponse - поле payments
+- [x] Тесты: 30/30 passed
 
 ### Активные задачи 🔄
 - [x] Database оптимизация (индексы, N+1 problem, connection pooling) **P0** ✅
@@ -682,4 +709,23 @@ docs/:
 - ✅ 9 skipped (state issues в полном прогоне)
 
 **Синхронизация:**
-- dev → main (pending)
+- dev → main ✅
+
+### Сессия 2026-03-18 (Session-Payment Связи) ✅
+**Исправления:**
+- ✅ backend/app/models/session.py - добавлена связь `payments = relationship("Payment", back_populates="session")`
+- ✅ backend/app/models/payment.py - раскомментированы связи `student`, `mentor`, `session` с `back_populates`
+- ✅ backend/app/models/mentor.py - добавлена связь `payments = relationship("Payment", back_populates="mentor")`
+- ✅ backend/app/models/user.py - добавлена связь `payments = relationship("Payment", back_populates="student")`
+- ✅ backend/app/api/sessions.py - добавлен `selectinload` для `payments` в `get_my_sessions` (N+1 fix)
+- ✅ backend/app/api/payments.py - добавлен `joinedload` для `student`, `mentor`, `session` (N+1 fix)
+- ✅ backend/app/schemas/session.py - добавлено поле `payments: Optional[List[PaymentResponse]]` в `SessionResponse`
+- ✅ backend/app/utils/monitoring.py - исправлен `IndentationError` (удалены дублирующиеся строки)
+
+**Тесты:**
+- ✅ 30/30 passed (test_sessions.py + test_payments.py)
+- ✅ Все связи Session ↔ Payment полностью настроены
+
+**Синхронизация:**
+- dev → origin/dev ✅
+- main → origin/main ✅
