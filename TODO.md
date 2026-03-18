@@ -492,4 +492,16 @@ docs/:
 - ✅ 6 skipped
 
 **Синхронизация:**
+- dev → main ✅
+
+### Сессия 2026-03-18 (Errors Tests) ✅
+**Исправления:**
+- ✅ backend/tests/test_errors.py - исправлены тесты формата ответа об ошибке (`message`/`detail`)
+
+**Тесты:**
+- ✅ 278/299 passed (93.0%)
+- ⚠️ 15 failed (остаточные проблемы: messages, push_notifications, reviews, users - state issues)
+- ✅ 6 skipped
+
+**Синхронизация:**
 - dev → main (pending)
