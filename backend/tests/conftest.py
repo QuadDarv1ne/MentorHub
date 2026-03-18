@@ -212,14 +212,17 @@ async def async_authenticated_client(async_client):
         "full_name": "Test User"
     }
 
-    # Регистрация
-    await async_client.post("/api/v1/auth/register", json=user_data)
+    # Регистрация (201 Created)
+    register_response = await async_client.post("/api/v1/auth/register", json=user_data)
+    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
 
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
         json={"email": user_data["email"], "password": user_data["password"]},
     )
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
 
@@ -237,14 +240,17 @@ async def authenticated_client(async_client):
         "full_name": "Test User"
     }
 
-    # Регистрация
-    await async_client.post("/api/v1/auth/register", json=user_data)
+    # Регистрация (201 Created)
+    register_response = await async_client.post("/api/v1/auth/register", json=user_data)
+    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
 
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
         json={"email": user_data["email"], "password": user_data["password"]},
     )
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
 
@@ -262,14 +268,17 @@ def sync_authenticated_client(client):
         "full_name": "Test User"
     }
 
-    # Регистрация
-    client.post("/api/v1/auth/register", json=user_data)
+    # Регистрация (201 Created)
+    register_response = client.post("/api/v1/auth/register", json=user_data)
+    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
 
     # Вход
     login_response = client.post(
         "/api/v1/auth/login",
         json={"email": user_data["email"], "password": user_data["password"]},
     )
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return client, {"Authorization": f"Bearer {token}"}
 
@@ -287,14 +296,17 @@ def authenticated_headers(client):
         "full_name": "Test User"
     }
 
-    # Регистрация
-    client.post("/api/v1/auth/register", json=user_data)
+    # Регистрация (201 Created)
+    register_response = client.post("/api/v1/auth/register", json=user_data)
+    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
 
     # Вход
     login_response = client.post(
         "/api/v1/auth/login",
         json={"email": user_data["email"], "password": user_data["password"]},
     )
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -312,13 +324,16 @@ async def second_async_authenticated_client(async_client):
         "full_name": "User Two"
     }
 
-    # Регистрация
-    await async_client.post("/api/v1/auth/register", json=user2_data)
+    # Регистрация (201 Created)
+    register_response = await async_client.post("/api/v1/auth/register", json=user2_data)
+    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
 
     # Вход
     login_response = await async_client.post(
         "/api/v1/auth/login",
         json={"email": user2_data["email"], "password": user2_data["password"]},
     )
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
