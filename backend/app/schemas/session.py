@@ -5,11 +5,12 @@ Pydantic схемы для операций с сессиями менторст
 
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 from app.schemas.user import UserResponse
 from app.schemas.mentor import MentorResponse
+from app.schemas.payment import PaymentResponse
 
 
 class SessionStatus(str, Enum):
@@ -62,5 +63,6 @@ class SessionResponse(SessionBase):
     # Relations
     student: Optional[UserResponse] = None
     mentor: Optional[MentorResponse] = None
+    payments: Optional[List[PaymentResponse]] = None
 
     model_config = ConfigDict(from_attributes=True)

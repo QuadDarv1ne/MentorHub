@@ -47,6 +47,7 @@ class Session(BaseModel):
     # Связи
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
     mentor = relationship("Mentor", back_populates="sessions")
+    payments = relationship("Payment", back_populates="session")
 
     def __repr__(self):
         return f"<Session(id={self.id}, student_id={self.student_id}, mentor_id={self.mentor_id}, scheduled_at={self.scheduled_at})>"

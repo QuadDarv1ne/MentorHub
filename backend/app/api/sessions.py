@@ -5,7 +5,7 @@ API для работы с сессиями менторства
 
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.session import Session as DBSession
@@ -47,14 +47,18 @@ async def get_my_sessions(
     query = db.query(DBSession).filter(
         (DBSession.student_id == current_user.id) | (DBSession.mentor_id == current_user.id)
     )
-    
-    # Join with mentor and student tables to get related data
-    query = query.options(joinedload(DBSession.mentor)).options(joinedload(DBSession.student))
-    
+
+    # Join with mentor, student and payments to avoid N+1 problem
+    query = query.options(
+        joinedload(DBSession.mentor),
+        joinedload(DBSession.student),
+        selectinload(DBSession.payments)
+    )
+
     # Filter by status if provided
     if status:
         query = query.filter(DBSession.status == status)
-    
+
     sessions = query.order_by(DBSession.scheduled_at.desc()).all()
     return sessions
 

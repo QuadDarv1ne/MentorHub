@@ -72,16 +72,19 @@ class PerformanceMonitor:
 
         # Средние времена ответа
         avg_response_times = {}
+        p95_response_times = {}
         for endpoint, times in self.request_times.items():
             if times:
+                sorted_times = sorted(times)
                 avg_response_times[endpoint] = {
                     "avg": sum(times) / len(times),
                     "min": min(times),
                     "max": max(times),
-                    "count": len(times),
-                    "error_count": self.error_counts.get(endpoint, 0),
-                    "status_codes": dict(self.status_code_counts.get(endpoint, {}))
+                    "count": len(times)
                 }
+                # P95 response time
+                p95_index = int(len(sorted_times) * 0.95)
+                p95_response_times[endpoint] = sorted_times[min(p95_index, len(sorted_times) - 1)]
 
         # Топ медленных endpoints
         slow_endpoints = sorted(avg_response_times.items(), key=lambda x: x[1]["avg"], reverse=True)[:10]
