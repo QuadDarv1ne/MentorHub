@@ -280,7 +280,7 @@ docs/:
 
 ### 11. Feature requests
 ```
-- [ ] WebSocket chat (полная реализация)
+- [x] WebSocket chat (полная реализация) ✅
 - [ ] Video calls (Agora integration)
 - [ ] Payment processing (Stripe)
 - [ ] Email notifications (Celery tasks)
@@ -474,7 +474,7 @@ docs/:
 
 ### P2 - Долгосрочные (фичи)
 7. **Feature requests**
-   - [ ] WebSocket chat (полная реализация)
+   - [x] WebSocket chat (полная реализация) ✅
    - [ ] Video calls (Agora integration)
    - [ ] Payment processing (Stripe)
    - [ ] Email notifications (Celery tasks)
@@ -682,4 +682,276 @@ docs/:
 - ✅ 9 skipped (state issues в полном прогоне)
 
 **Синхронизация:**
-- dev → main (pending)
+- dev → main ✅
+
+---
+
+## 💬 WebSocket Chat - Реализовано ✅
+
+### Backend
+- [x] `/ws/chat` WebSocket endpoint с JWT аутентификацией
+- [x] ConnectionManager для управления соединениями
+- [x] Отправка/получение сообщений в реальном времени
+- [x] Индикатор печати (typing indicator)
+- [x] Отметка о прочтении (read receipts)
+- [x] Ping/Pong keep-alive
+- [x] Список онлайн пользователей
+- [x] Модель Message в БД
+- [x] HTTP API для истории сообщений:
+  - [x] `GET /api/messages/conversations` - список диалогов
+  - [x] `GET /api/messages/history/{user_id}` - история переписки
+  - [x] `GET /api/messages/` - все сообщения (admin)
+  - [x] `POST /api/messages/` - создать сообщение
+  - [x] `PUT /api/messages/{id}` - обновить сообщение
+  - [x] `DELETE /api/messages/{id}` - удалить сообщение
+- [x] Тесты (test_websocket_chat.py, test_messages.py)
+
+### Frontend
+- [x] ChatWidget компонент (чат в правом нижнем углу)
+- [x] ChatButton компонент (плавающая кнопка)
+- [x] ChatList компонент (список диалогов)
+- [x] useChat React hook (WebSocket + HTTP API)
+- [x] Авто-реконнект с экспоненциальной задержкой
+- [x] Индикатор подключения (connecting/connected/disconnected)
+- [x] Индикатор печати (typing indicator)
+- [x] Статус прочтения (check marks)
+- [x] Toast уведомления о новых сообщениях
+- [x] Интеграция в страницу менторов
+- [x] API routes для проксирования запросов
+
+### Интеграция
+- [x] Страница `/mentors` - кнопка "Написать" ментору
+- [x] ToastProvider добавлен в layout
+- [x] Notification system для новых сообщений
+
+### Документация
+- [x] API документация (см. ниже)
+- [x] Примеры использования в компонентах
+
+---
+
+## 📚 WebSocket Chat API Documentation
+
+### WebSocket Endpoint
+
+**URL:** `ws://localhost:8000/ws/chat`
+
+**Аутентификация:**
+Первое сообщение должно содержать токен:
+```json
+{
+  "type": "auth",
+  "token": "your_jwt_token"
+}
+```
+
+**Формат сообщений (client → server):**
+
+1. Текстовое сообщение:
+```json
+{
+  "type": "message",
+  "recipient_id": 123,
+  "content": "Hello!"
+}
+```
+
+2. Индикатор печати:
+```json
+{
+  "type": "typing",
+  "recipient_id": 123
+}
+```
+
+3. Отметка о прочтении:
+```json
+{
+  "type": "read",
+  "message_id": 456
+}
+```
+
+4. Ping (keep-alive):
+```json
+{
+  "type": "ping"
+}
+```
+
+**Формат сообщений (server → client):**
+
+1. Подтверждение подключения:
+```json
+{
+  "type": "connected",
+  "user_id": 1,
+  "username": "john_doe",
+  "online_users": [1, 2, 3]
+}
+```
+
+2. Новое сообщение:
+```json
+{
+  "type": "message",
+  "id": 456,
+  "sender_id": 1,
+  "sender_username": "john_doe",
+  "sender_avatar": "https://...",
+  "recipient_id": 2,
+  "content": "Hello!",
+  "timestamp": "2026-03-18T12:00:00"
+}
+```
+
+3. Индикатор печати:
+```json
+{
+  "type": "typing",
+  "user_id": 1,
+  "username": "john_doe"
+}
+```
+
+4. Прочитано:
+```json
+{
+  "type": "read",
+  "message_id": 456,
+  "reader_id": 2
+}
+```
+
+5. Pong (ответ на ping):
+```json
+{
+  "type": "pong"
+}
+```
+
+### HTTP Endpoints
+
+**GET /api/messages/conversations**
+Получить список всех диалогов с последними сообщениями
+
+Headers: `Authorization: Bearer <token>`
+
+Response:
+```json
+[
+  {
+    "user_id": 2,
+    "username": "jane_doe",
+    "avatar_url": "https://...",
+    "last_message": "Hello!",
+    "last_message_time": "2026-03-18T12:00:00",
+    "unread_count": 1,
+    "is_from_me": false
+  }
+]
+```
+
+**GET /api/messages/history/{other_user_id}?limit=50&before=2026-03-18T12:00:00**
+Получить историю переписки с пользователем
+
+Headers: `Authorization: Bearer <token>`
+
+Query parameters:
+- `limit` (optional): количество сообщений (1-100, по умолчанию 50)
+- `before` (optional): дата для пагинации (получить сообщения старше)
+
+Response:
+```json
+{
+  "messages": [
+    {
+      "id": 456,
+      "sender_id": 1,
+      "recipient_id": 2,
+      "content": "Hello!",
+      "is_read": true,
+      "created_at": "2026-03-18T12:00:00",
+      "updated_at": "2026-03-18T12:00:00"
+    }
+  ],
+  "other_user": {
+    "id": 2,
+    "username": "jane_doe",
+    "avatar_url": "https://..."
+  },
+  "has_more": false
+}
+```
+
+---
+
+## 🔧 Примеры использования
+
+### React Hook (useChat)
+
+```typescript
+import useChat from '@/hooks/useChat'
+
+function MyComponent() {
+  const {
+    messages,
+    conversations,
+    newMessage,
+    setNewMessage,
+    sendMessage,
+    connectionStatus,
+    isTyping
+  } = useChat({
+    recipientId: 123,
+    autoReconnect: true,
+    enableNotifications: true
+  })
+
+  return (
+    <div>
+      {messages.map(msg => (
+        <div key={msg.id}>{msg.content}</div>
+      ))}
+      <input
+        value={newMessage}
+        onChange={e => setNewMessage(e.target.value)}
+      />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  )
+}
+```
+
+### ChatButton Component
+
+```typescript
+import { ChatButton } from '@/components/ChatButton'
+
+function MentorCard({ mentor }) {
+  return (
+    <div>
+      <h3>{mentor.name}</h3>
+      <ChatButton
+        recipientId={mentor.id}
+        recipientName={mentor.name}
+      />
+    </div>
+  )
+}
+```
+
+### ChatList Component
+
+```typescript
+import { ChatList } from '@/components/ChatList'
+
+function MessagesPage() {
+  return (
+    <div>
+      <h1>Сообщения</h1>
+      <ChatList />
+    </div>
+  )
+}
+```

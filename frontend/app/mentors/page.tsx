@@ -6,7 +6,8 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
-import { Star, MapPin, Clock, DollarSign, ArrowRight, Search } from 'lucide-react'
+import { Star, MapPin, Clock, DollarSign, ArrowRight, Search, MessageCircle } from 'lucide-react'
+import { ChatButton } from '@/components/ChatButton'
 
 interface Mentor {
   id: number
@@ -115,6 +116,7 @@ export default function MentorsPage() {
   const [filterSpecialty, setFilterSpecialty] = useState('all')
   const [filterRating, setFilterRating] = useState('all')
   const [sortBy, setSortBy] = useState('rating')
+  const [chatWithMentorId, setChatWithMentorId] = useState<number | null>(null)
 
   const specialties = ['all', ...Array.from(new Set(mentors.map(m => m.specialty)))]
   const ratings = [
@@ -267,10 +269,16 @@ export default function MentorsPage() {
               <p className="text-xs text-gray-500 mb-4">{mentor.availability}</p>
 
               {/* Actions */}
-              <Button variant="secondary" fullWidth>
-                <ArrowRight className="h-4 w-4 mr-2" />
-                Забронировать сессию
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" fullWidth onClick={() => setChatWithMentorId(mentor.id)}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Написать
+                </Button>
+                <Button variant="primary" fullWidth>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Забронировать
+                </Button>
+              </div>
             </Card>
           ))}
         </div>
@@ -322,6 +330,14 @@ export default function MentorsPage() {
           </div>
         </div>
       </Card>
+
+      {/* Chat Widget */}
+      {chatWithMentorId && (
+        <ChatButton
+          recipientId={chatWithMentorId}
+          recipientName={mentors.find(m => m.id === chatWithMentorId)?.name || 'Ментор'}
+        />
+      )}
     </main>
   )
 }
