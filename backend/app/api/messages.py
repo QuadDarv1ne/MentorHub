@@ -3,30 +3,147 @@
 API для работы с сообщениями между пользователями
 """
 
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
+from datetime import datetime
 
-from app.dependencies import get_db, rate_limit_dependency
+from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.message import Message as DBMessage
 from app.models.user import User
-from app.schemas.message import MessageCreate, MessageUpdate, MessageResponse
+from app.schemas.message import MessageCreate, MessageUpdate, MessageResponse, MessageListResponse, ConversationResponse
 from app.utils.sanitization import sanitize_text_field, is_safe_string
 
 router = APIRouter()
+
+
+@router.get("/conversations", response_model=List[ConversationResponse])
+async def get_conversations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
+):
+    """Получить список всех диалогов текущего пользователя с последними сообщениями"""
+    # Получаем все диалоги где пользователь участвует
+    messages_query = db.query(
+        DBMessage.sender_id,
+        DBMessage.recipient_id,
+        DBMessage.content,
+        DBMessage.created_at,
+        DBMessage.is_read
+    ).filter(
+        or_(
+            DBMessage.sender_id == current_user.id,
+            DBMessage.recipient_id == current_user.id
+        )
+    ).order_by(DBMessage.created_at.desc())
+
+    # Группируем по собеседникам
+    conversations = {}
+    for msg in messages_query.all():
+        other_user_id = msg.recipient_id if msg.sender_id == current_user.id else msg.sender_id
+        if other_user_id not in conversations:
+            conversations[other_user_id] = {
+                "user_id": other_user_id,
+                "last_message": msg.content,
+                "last_message_time": msg.created_at,
+                "unread_count": 0,
+                "is_from_me": msg.sender_id == current_user.id
+            }
+        # Считаем непрочитанные
+        if msg.sender_id != current_user.id and not msg.is_read:
+            conversations[other_user_id]["unread_count"] += 1
+
+    # Получаем данные пользователей
+    user_ids = list(conversations.keys())
+    users = db.query(User.id, User.username, User.avatar_url).filter(User.id.in_(user_ids)).all()
+    users_dict = {u.id: {"username": u.username, "avatar_url": u.avatar_url} for u in users}
+
+    # Формируем результат
+    result = []
+    for user_id, conv_data in conversations.items():
+        user_info = users_dict.get(user_id, {"username": f"User_{user_id}", "avatar_url": None})
+        result.append({
+            "user_id": user_id,
+            "username": user_info["username"],
+            "avatar_url": user_info["avatar_url"],
+            "last_message": conv_data["last_message"],
+            "last_message_time": conv_data["last_message_time"],
+            "unread_count": conv_data["unread_count"],
+            "is_from_me": conv_data["is_from_me"]
+        })
+
+    # Сортируем по времени последнего сообщения
+    result.sort(key=lambda x: x["last_message_time"], reverse=True)
+    return result
+
+
+@router.get("/history/{other_user_id}", response_model=MessageListResponse)
+async def get_message_history(
+    other_user_id: int,
+    limit: int = Query(default=50, ge=1, le=100),
+    before: Optional[datetime] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
+):
+    """Получить историю переписки с конкретным пользователем"""
+    # Проверяем существование собеседника
+    other_user = db.query(User).filter(User.id == other_user_id).first()
+    if not other_user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+
+    # Строим запрос
+    query = db.query(DBMessage).filter(
+        or_(
+            and_(DBMessage.sender_id == current_user.id, DBMessage.recipient_id == other_user_id),
+            and_(DBMessage.sender_id == other_user_id, DBMessage.recipient_id == current_user.id)
+        )
+    )
+
+    # Пагинация по времени
+    if before:
+        query = query.filter(DBMessage.created_at < before)
+
+    # Получаем сообщения (последние сначала)
+    messages = query.order_by(DBMessage.created_at.desc()).limit(limit).all()
+    
+    # Переворачиваем чтобы были в хронологическом порядке
+    messages.reverse()
+
+    # Помечаем сообщения как прочитанные
+    unread_messages = db.query(DBMessage).filter(
+        DBMessage.sender_id == other_user_id,
+        DBMessage.recipient_id == current_user.id,
+        DBMessage.is_read == False
+    ).all()
+    
+    for msg in unread_messages:
+        msg.is_read = True
+    db.commit()
+
+    return {
+        "messages": messages,
+        "other_user": {
+            "id": other_user.id,
+            "username": other_user.username,
+            "avatar_url": other_user.avatar_url
+        },
+        "has_more": len(messages) == limit
+    }
 
 
 @router.get("/", response_model=List[MessageResponse])
 async def get_messages(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
-    """Получить список сообщений"""
+    """Получить список сообщений (admin only)"""
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
         limit = 100
 
-    # Получаем сообщения без joinedload т.к. связи закомментированы в модели
     messages = db.query(DBMessage).offset(skip).limit(limit).all()
     return messages
 

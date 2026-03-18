@@ -6,6 +6,7 @@ import Footer from '@/components/Footer'
 import { NotificationProvider } from '@/components/NotificationProvider'
 import { GlobalLoadingProvider } from '@/components/GlobalLoadingProvider'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { ToastProvider } from '@/components/ui/ToastContext'
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
 
@@ -44,14 +45,16 @@ export default function RootLayout({
           <SkipLinks />
           <RouteAnnouncer />
           <GlobalLoadingProvider>
-            <NotificationProvider>
-              <Header />
-              <main id="main-content" tabIndex={-1} className="focus:outline-none">
-                {children}
-              </main>
-              <Footer />
-              <ServiceWorkerProvider />
-            </NotificationProvider>
+            <ToastProvider>
+              <NotificationProvider>
+                <Header />
+                <main id="main-content" tabIndex={-1} className="focus:outline-none">
+                  {children}
+                </main>
+                <Footer />
+                <ServiceWorkerProvider />
+              </NotificationProvider>
+            </ToastProvider>
           </GlobalLoadingProvider>
         </ThemeProvider>
       </body>
