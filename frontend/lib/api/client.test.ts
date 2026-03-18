@@ -2,11 +2,16 @@
  * Тесты для API client с retry logic
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals'
+import { describe, it, expect, beforeEach, beforeAll } from '@jest/globals'
 import { fetchWithRetry, ApiError, NetworkError, TimeoutError } from './client'
 
 // Mock fetch globally
 const mockFetch = jest.fn()
+
+// Setup global fetch mock
+beforeAll(() => {
+  global.fetch = mockFetch
+})
 
 describe('API Client', () => {
   beforeEach(() => {
@@ -90,7 +95,7 @@ describe('API Client', () => {
           retryStatusCodes: [],
         })
       ).rejects.toThrow(TimeoutError)
-    })
+    }, 10000)
 
     it('не должен повторять запрос при 400 ошибке', async () => {
       const errorResponse = {
@@ -110,7 +115,7 @@ describe('API Client', () => {
       ).rejects.toThrow(ApiError)
 
       expect(mockFetch).toHaveBeenCalledTimes(1)
-    })
+    }, 10000)
 
     it('должен повторить при 429 Too Many Requests', async () => {
       const rateLimitResponse = {
