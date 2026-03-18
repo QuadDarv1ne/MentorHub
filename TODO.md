@@ -415,10 +415,15 @@ docs/:
 - **Синхронизация:** dev → main ✅
 
 ### Активные задачи 🔄
-- [ ] Database оптимизация (индексы, N+1 problem, connection pooling)
-- [ ] Security hardening (rate limiting, CORS, security headers)
+- [x] Database оптимизация (индексы, N+1 problem, connection pooling)
+- [x] Security hardening (rate limiting, CORS, security headers)
 - [ ] Performance monitoring (Lighthouse, API response time)
 - [ ] SonarQube интеграция для code quality
+
+### Выполнено ✅
+- [x] Stepik интеграция - реальное API вместо захардкоженных данных
+- [x] docker-compose.prod.yml - исправлены ссылки на Dockerfile
+- [x] dev → main синхронизация
 
 ### Планы 📋
 - [ ] CI/CD улучшения (staging environment, automated testing before deploy)
@@ -426,7 +431,7 @@ docs/:
 - [ ] Frontend компонентные тесты
 - [ ] Интеграционные тесты для критических сценариев
 
-### Сессия 2026-03-18 (Stepik Интеграция) ✅
+### Сессия 2026-03-18 (Stepik Интеграция + Docker Compose Fix) ✅
 **Исправления:**
 - ✅ frontend/app/courses/stepik/page.tsx - заменены захардкоженные данные на реальное Stepik API
 - ✅ frontend/app/courses/stepik/[id]/page.tsx - улучшена оптимизация изображений (sizes, quality, priority)
@@ -435,13 +440,12 @@ docs/:
 - ✅ Уровень сложности - автоопределение (beginner/intermediate/advanced)
 - ✅ Фильтры и сортировка - работают с реальными данными
 - ✅ Обработка ошибок - UI для ошибок загрузки
+- ✅ docker-compose.prod.yml - исправлены ссылки на Dockerfile (backend, celery_worker, celery_beat)
+- ✅ Удалены несуществующие target: production
 
-**Проверка перед деплоем:**
-- [ ] Протестировать загрузку курсов локально
-- [ ] Проверить работу фильтров и сортировки
-- [ ] Проверить детальную страницу курса
-- [ ] Проверить отзывы и рейтинг
-- [ ] Проверить оптимизацию изображений
+**Синхронизация:**
+- [x] dev → main ✅
+- [x] main → dev ✅
 
 **Статус:** ✅ Готово к деплою
 
