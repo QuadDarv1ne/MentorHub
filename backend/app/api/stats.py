@@ -28,10 +28,10 @@ async def get_platform_stats(db: Session = Depends(get_db)):
         return cached
 
     # Calculate stats
-    from app.models.user import User
+    from app.models.user import User, UserRole
 
     total_users = db.query(func.count(User.id)).scalar() or 0
-    total_mentors = db.query(func.count(User.id)).filter(User.is_mentor.is_(True)).scalar() or 0
+    total_mentors = db.query(func.count(User.id)).filter(User.role == UserRole.MENTOR).scalar() or 0
 
     stats = {
         "total_users": total_users,
