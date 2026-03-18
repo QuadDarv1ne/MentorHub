@@ -4,6 +4,7 @@
 
 import pytest
 from fastapi import status
+from fastapi.testclient import TestClient as StarletteTestClient
 
 from app.models.user import User, UserRole
 from app.models.message import Message
@@ -54,17 +55,26 @@ def authenticated_users(db_session):
 
 
 @pytest.fixture
-def websocket_client():
+def websocket_client(db_session):
     """Фикстура для WebSocket тестирования"""
-    # Создаем новый клиент для WebSocket тестов
-    # Важно: не переопределяем get_db, т.к. WebSocket использует ту же БД
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    from app.dependencies import get_db
+    from app.main import app
+    app.dependency_overrides[get_db] = override_get_db
+
     client = StarletteTestClient(
-        "app.main:app",
+        app,
         base_url="http://testserver",
         raise_server_exceptions=False,
     )
     yield client
     client.close()
+    app.dependency_overrides.clear()
 
 
 class TestWebSocketChat:
