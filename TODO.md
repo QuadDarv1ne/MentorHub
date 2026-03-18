@@ -104,7 +104,14 @@
 - [x] test_stats.py - 8 тестов добавлено ✅
 - [x] test_analytics.py - 8 тестов добавлено ✅
 - [x] test_achievements.py - 7 тестов добавлено ✅
+<<<<<<< HEAD
 - [ ] Достичь 80% coverage (текущее: ~50-65%)
+>>>>>>> dev
+=======
+- [x] test_messages.py - 13 тестов добавлено ✅
+- [x] test_two_factor.py - 11 тестов добавлено ✅
+- [x] test_push_notifications.py - 10 тестов добавлено ✅
+- [ ] Достичь 80% coverage (текущее: ~60-70%)
 >>>>>>> dev
 
 ### Monitoring и Infrastructure
@@ -345,11 +352,16 @@ docs/:
 7. ~~Notifications тесты - KeyError~~ ✅ Исправлено
 8. ~~Errors тесты - формат ответов~~ ✅ Исправлено
 <<<<<<< HEAD
+<<<<<<< HEAD
 9. ⚠️ Coverage ~45-60% (цель: 80%)
 >>>>>>> dev
 =======
 9. ⚠️ Coverage ~50-65% (цель: 80%)
 10. ⚠️ Не покрыты: messages, two_factor, push_notifications, backups
+>>>>>>> dev
+=======
+9. ⚠️ Coverage ~60-70% (цель: 80%)
+10. ⚠️ Не покрыты: backups
 >>>>>>> dev
 
 ### Технические долги
@@ -384,12 +396,15 @@ docs/:
 13. ~~test_stats.py~~ ✅ 8 тестов добавлено
 14. ~~test_analytics.py~~ ✅ 8 тестов добавлено
 15. ~~test_achievements.py~~ ✅ 7 тестов добавлено
+16. ~~test_messages.py~~ ✅ 13 тестов добавлено
+17. ~~test_two_factor.py~~ ✅ 11 тестов добавлено
+18. ~~test_push_notifications.py~~ ✅ 10 тестов добавлено
 
 ---
 
 **Последнее обновление:** 2026-03-18
-**Статус:** +33 теста (payments, stats, analytics, achievements), coverage ~50-65%
-**Следующий приоритет:** Достичь 80% coverage, покрыть messages, two_factor, push_notifications
+**Статус:** +67 тестов (payments, stats, analytics, achievements, messages, two_factor, push_notifications), coverage ~60-70%
+**Следующий приоритет:** Достичь 80% coverage, покрыть backups
 
 ### Сессия 2026-03-18 (Тесты исправления)
 **Исправленные тесты:**
@@ -402,12 +417,15 @@ docs/:
 - ✅ test_stats.py - 8 тестов для Stats API
 - ✅ test_analytics.py - 8 тестов для Analytics API
 - ✅ test_achievements.py - 7 тестов для Achievements API
+- ✅ test_messages.py - 13 тестов для Messages API
+- ✅ test_two_factor.py - 11 тестов для Two-Factor Auth API
+- ✅ test_push_notifications.py - 10 тестов для Push Notifications API
 
 **Изменения:**
 - Все тесты используют sync_authenticated_client и client фикстуры
 - Удалены async тесты (требовали asyncio setup)
 - Упрощены тесты до 148 строк (test_errors.py), 64 строк (test_notifications.py)
-- Добавлено 33 новых теста
+- Добавлено 67 новых тестов
 
 **Синхронизация:**
 - dev → main ✅
@@ -416,5 +434,5 @@ docs/:
 **План на следующую сессию:**
 1. [ ] Запустить полный прогон тестов (pytest --cov=app)
 2. [ ] Проверить coverage по модулям
-3. [ ] Добавить тесты для messages, two_factor, push_notifications
+3. [ ] Добавить тесты для backups
 4. [ ] Достичь 80% coverage
