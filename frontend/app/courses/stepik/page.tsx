@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import StepikCourseCard from '@/components/StepikCourseCard';
 import { Search, BarChart3, Users, Award, DollarSign, X } from 'lucide-react';
+import { getCourses, type StepikCourse } from '@/lib/api/stepik';
 
 interface Course {
   id: string;
@@ -12,6 +13,10 @@ interface Course {
   studentsCount: number;
   rating: number;
   category: string;
+  imageUrl?: string;
+  duration?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  tags?: string[];
 }
 
 interface Filters {
@@ -21,72 +26,61 @@ interface Filters {
   price: string;
 }
 
-const allCourses: Course[] = [
-  {
-    id: '210134',
-    title: 'Java полное руководство',
-    description: 'Полный курс по языку программирования Java с нуля до профессионального уровня. Изучите основы, ООП, коллекции, многопоточность и многое другое.',
-    stepikUrl: 'https://stepik.org/a/210134',
-    price: 0,
-    studentsCount: 150,
-    rating: 4.8,
-    category: 'Java'
-  },
-  {
-    id: '178781',
-    title: 'Python разработка с нуля',
-    description: 'Практический курс по Python: от основ до создания реальных проектов. Включает работу с базами данных, веб-разработку и автоматизацию.',
-    stepikUrl: 'https://stepik.org/a/178781',
-    price: 0,
-    studentsCount: 200,
-    rating: 4.9,
-    category: 'Python'
-  },
-  {
-    id: '212445',
-    title: 'Android разработка для начинающих',
-    description: 'Создавайте мобильные приложения для Android. Курс охватывает основы разработки, работу с UI компонентами, базами данных и API.',
-    stepikUrl: 'https://stepik.org/a/212445',
-    price: 0,
-    studentsCount: 120,
-    rating: 4.7,
-    category: 'Android'
-  },
-  {
-    id: '252727',
-    title: 'DevOps практики и инструменты',
-    description: 'Изучите основные практики и инструменты DevOps: Docker, Kubernetes, CI/CD, мониторинг и автоматизацию.',
-    stepikUrl: 'https://stepik.org/a/252727',
-    price: 0,
-    studentsCount: 80,
-    rating: 4.6,
-    category: 'DevOps'
-  },
-  {
-    id: '252698',
-    title: 'Базы данных и SQL',
-    description: 'Комплексный курс по работе с базами данных: проектирование, SQL, оптимизация запросов, работа с PostgreSQL.',
-    stepikUrl: 'https://stepik.org/a/252698',
-    price: 0,
-    studentsCount: 170,
-    rating: 4.8,
-    category: 'Базы данных'
-  },
-  {
-    id: '238534',
-    title: 'Frontend разработка',
-    description: 'Современная frontend разработка: HTML, CSS, JavaScript, React. Создание адаптивных и интерактивных веб-приложений.',
-    stepikUrl: 'https://stepik.org/a/238534',
-    price: 0,
-    studentsCount: 190,
-    rating: 4.9,
-    category: 'Frontend'
+// Преобразование данных Stepik API в формат компонента
+function mapStepikCourse(course: StepikCourse): Course {
+  // Определяем категорию на основе языка или названия
+  const categoryMap: Record<string, string> = {
+    'python': 'Python',
+    'java': 'Java',
+    'android': 'Android',
+    'web': 'Web Development',
+    'frontend': 'Frontend',
+    'backend': 'Backend',
+    'devops': 'DevOps',
+    'database': 'Базы данных',
+    'sql': 'Базы данных',
+  };
+
+  const titleLower = course.title.toLowerCase();
+  const languageLower = course.language?.toLowerCase() || '';
+  
+  let category = 'Другое';
+  for (const [key, value] of Object.entries(categoryMap)) {
+    if (titleLower.includes(key) || languageLower.includes(key)) {
+      category = value;
+      break;
+    }
   }
-];
+
+  // Определяем уровень сложности
+  let level: 'beginner' | 'intermediate' | 'advanced' = 'beginner';
+  if (titleLower.includes('продвинут') || titleLower.includes('advanced')) {
+    level = 'advanced';
+  } else if (titleLower.includes('средн') || titleLower.includes('intermediate')) {
+    level = 'intermediate';
+  }
+
+  return {
+    id: String(course.id),
+    title: course.title,
+    description: course.summary || course.description || '',
+    stepikUrl: `https://stepik.org/course/${course.id}`,
+    price: course.price || 0,
+    studentsCount: course.learners_count || 0,
+    rating: course.rating || course.review_summary?.average || 0,
+    category,
+    imageUrl: course.cover || undefined,
+    duration: course.duration ? `${course.duration} ч.` : undefined,
+    level,
+    tags: [],
+  };
+}
 
 export default function StepikCoursesPage() {
-  const [courses, setCourses] = useState<Course[]>(allCourses);
-  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>({
     search: '',
     category: '',
@@ -94,9 +88,27 @@ export default function StepikCoursesPage() {
     price: ''
   });
 
+  // Загрузка курсов из Stepik API
   useEffect(() => {
-    applyFilters();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const loadCourses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await getCourses(1);
+        const stepikCourses = response.courses || [];
+        const mappedCourses = stepikCourses.map(mapStepikCourse);
+        setAllCourses(mappedCourses);
+        setCourses(mappedCourses);
+      } catch (err) {
+        console.error('Ошибка при загрузке курсов:', err);
+        setError('Не удалось загрузить курсы. Попробуйте позже.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourses();
+  }, []);
 
   const applyFilters = useCallback(() => {
     setLoading(true);
@@ -140,15 +152,20 @@ export default function StepikCoursesPage() {
         break;
     }
 
-    setTimeout(() => {
-      setCourses(filtered);
-      setLoading(false);
-    }, 300);
-  }, [filters]);
+    setCourses(filtered);
+    setLoading(false);
+  }, [allCourses, filters]);
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
+
+  // Применяем фильтры при их изменении
+  useEffect(() => {
+    if (allCourses.length > 0) {
+      applyFilters();
+    }
+  }, [filters, allCourses, applyFilters]);
 
   const clearFilters = () => {
     setFilters({
@@ -161,10 +178,13 @@ export default function StepikCoursesPage() {
 
   const hasActiveFilters = filters.search || filters.category || filters.price || filters.sort !== 'popular';
 
+  // Динамическая статистика на основе загруженных курсов
   const stats = {
     totalCourses: allCourses.length,
-    totalStudents: allCourses.reduce((sum, course) => sum + course.studentsCount, 0),
-    averageRating: (allCourses.reduce((sum, course) => sum + course.rating, 0) / allCourses.length).toFixed(1),
+    totalStudents: allCourses.reduce((sum, course) => sum + (course.studentsCount || 0), 0),
+    averageRating: allCourses.length > 0 
+      ? (allCourses.reduce((sum, course) => sum + (course.rating || 0), 0) / allCourses.length).toFixed(1)
+      : '0.0',
     freeCourses: allCourses.filter(course => course.price === 0).length
   };
 
@@ -353,7 +373,19 @@ export default function StepikCoursesPage() {
 
         {/* Course List */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading ? (
+          {error ? (
+            <div className="text-center py-12 bg-white rounded-lg shadow-md">
+              <Search className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">{error}</h3>
+              <p className="mt-1 text-sm text-gray-500">Проверьте подключение к интернету или попробуйте позже</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Обновить страницу
+              </button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">

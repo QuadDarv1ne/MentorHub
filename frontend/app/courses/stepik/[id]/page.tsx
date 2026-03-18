@@ -91,7 +91,10 @@ export default async function CourseDetail({ params }: { params: { id: string } 
                     src={courseData.cover}
                     alt={courseData.title}
                     fill
-                    style={{ objectFit: 'cover' }}
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority
+                    quality={80}
                   />
                 </div>
               )}
