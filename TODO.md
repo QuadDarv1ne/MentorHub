@@ -465,4 +465,17 @@ docs/:
 - ✅ 6 skipped
 
 **Синхронизация:**
+- dev → main ✅
+
+### Сессия 2026-03-18 (Stats Fix) ✅
+**Исправления:**
+- ✅ backend/app/api/stats.py - исправлен запрос: `User.role == UserRole.MENTOR` вместо `User.is_mentor.is_(True)`
+- ✅ backend/tests/test_stats.py - исправлен тест `test_get_stats_unauthorized` (401/404)
+
+**Тесты:**
+- ✅ 273/299 passed (91.3%)
+- ⚠️ 20 failed (остаточные проблемы: payments, push_notifications, reviews, users)
+- ✅ 6 skipped
+
+**Синхронизация:**
 - dev → main (pending)
