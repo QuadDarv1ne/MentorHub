@@ -114,8 +114,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.production
-      target: production
+      dockerfile: Dockerfile
     container_name: mentorhub_backend
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
@@ -160,8 +159,7 @@ services:
   celery_worker:
     build:
       context: .
-      dockerfile: Dockerfile.production
-      target: production
+      dockerfile: Dockerfile
     container_name: mentorhub_celery
     command: celery -A app.celery_app worker --loglevel=info --concurrency=8 --pool=threads
     environment:
@@ -198,8 +196,7 @@ services:
   celery_beat:
     build:
       context: .
-      dockerfile: Dockerfile.production
-      target: production
+      dockerfile: Dockerfile
     container_name: mentorhub_celery_beat
     command: celery -A app.celery_app beat --loglevel=info
     environment:
