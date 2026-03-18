@@ -15,16 +15,17 @@ class TestBackupsInfo:
         client, headers = sync_authenticated_client
 
         # Создаём админа
+        admin_password = "AdminPass123!"
         admin = create_user(
             email="admin_backup@example.com",
             username="admin_backup",
-            password="AdminPass123!",
+            password=admin_password,
             role="admin",
         )
 
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"email": admin.email, "password": admin.password},
+            json={"email": admin.email, "password": admin_password},
         )
         token = login_response.json().get("access_token")
         if not token:
@@ -60,16 +61,17 @@ class TestCreateBackup:
         client, headers = sync_authenticated_client
 
         # Создаём админа
+        admin_password = "AdminPass123!"
         admin = create_user(
             email="admin_backup2@example.com",
             username="admin_backup2",
-            password="AdminPass123!",
+            password=admin_password,
             role="admin",
         )
 
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"email": admin.email, "password": admin.password},
+            json={"email": admin.email, "password": admin_password},
         )
         token = login_response.json().get("access_token")
         if not token:
@@ -105,16 +107,17 @@ class TestCleanupBackups:
         client, headers = sync_authenticated_client
 
         # Создаём админа
+        admin_password = "AdminPass123!"
         admin = create_user(
             email="admin_backup3@example.com",
             username="admin_backup3",
-            password="AdminPass123!",
+            password=admin_password,
             role="admin",
         )
 
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"email": admin.email, "password": admin.password},
+            json={"email": admin.email, "password": admin_password},
         )
         token = login_response.json().get("access_token")
         if not token:
@@ -153,16 +156,17 @@ class TestVerifyBackup:
         client, headers = sync_authenticated_client
 
         # Создаём админа
+        admin_password = "AdminPass123!"
         admin = create_user(
             email="admin_backup4@example.com",
             username="admin_backup4",
-            password="AdminPass123!",
+            password=admin_password,
             role="admin",
         )
 
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"email": admin.email, "password": admin.password},
+            json={"email": admin.email, "password": admin_password},
         )
         token = login_response.json().get("access_token")
         if not token:
