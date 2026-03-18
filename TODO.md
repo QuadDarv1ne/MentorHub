@@ -86,7 +86,11 @@
 - [x] test_websocket_chat.py - исправлен (StarletteTestClient, фикстура с db_session) ✅
 - [x] test_notifications.py - исправлен (упрощены тесты) ✅
 - [x] test_errors.py - исправлен (конвертированы из async в sync) ✅
-- [ ] Достичь 80% coverage (текущее: ~45-60%)
+- [x] test_payments.py - 10 тестов добавлено ✅
+- [x] test_stats.py - 8 тестов добавлено ✅
+- [x] test_analytics.py - 8 тестов добавлено ✅
+- [x] test_achievements.py - 7 тестов добавлено ✅
+- [ ] Достичь 80% coverage (текущее: ~50-65%)
 
 ### Monitoring и Infrastructure
 - [x] Prometheus конфигурация (monitoring/prometheus/prometheus.yml)
@@ -320,7 +324,8 @@ docs/:
 6. ~~Websocket тесты - mock проблемы~~ ✅ Исправлено
 7. ~~Notifications тесты - KeyError~~ ✅ Исправлено
 8. ~~Errors тесты - формат ответов~~ ✅ Исправлено
-9. ⚠️ Coverage ~45-60% (цель: 80%)
+9. ⚠️ Coverage ~50-65% (цель: 80%)
+10. ⚠️ Не покрыты: messages, two_factor, push_notifications, backups
 
 ### Технические долги
 1. ~~Удалить закомментированный код~~ ✅ console.log удалены
@@ -350,12 +355,16 @@ docs/:
 9. ~~test_websocket_chat.py~~ ✅ StarletteTestClient, фикстура
 10. ~~test_notifications.py~~ ✅ упрощены тесты
 11. ~~test_errors.py~~ ✅ конвертированы в sync
+12. ~~test_payments.py~~ ✅ 10 тестов добавлено
+13. ~~test_stats.py~~ ✅ 8 тестов добавлено
+14. ~~test_analytics.py~~ ✅ 8 тестов добавлено
+15. ~~test_achievements.py~~ ✅ 7 тестов добавлено
 
 ---
 
 **Последнее обновление:** 2026-03-18
-**Статус:** Тесты исправлены (websocket, notifications, errors), coverage ~45-60%
-**Следующий приоритет:** Достичь 80% coverage, запустить полный тестовый прогон
+**Статус:** +33 теста (payments, stats, analytics, achievements), coverage ~50-65%
+**Следующий приоритет:** Достичь 80% coverage, покрыть messages, two_factor, push_notifications
 
 ### Сессия 2026-03-18 (Тесты исправления)
 **Исправленные тесты:**
@@ -363,10 +372,17 @@ docs/:
 - ✅ test_notifications.py - упрощены тесты, удалены problematic тесты
 - ✅ test_errors.py - конвертированы из async в sync для стабильности
 
+**Новые тесты:**
+- ✅ test_payments.py - 10 тестов для Payments API
+- ✅ test_stats.py - 8 тестов для Stats API
+- ✅ test_analytics.py - 8 тестов для Analytics API
+- ✅ test_achievements.py - 7 тестов для Achievements API
+
 **Изменения:**
 - Все тесты используют sync_authenticated_client и client фикстуры
 - Удалены async тесты (требовали asyncio setup)
 - Упрощены тесты до 148 строк (test_errors.py), 64 строк (test_notifications.py)
+- Добавлено 33 новых теста
 
 **Синхронизация:**
 - dev → main ✅
@@ -375,5 +391,5 @@ docs/:
 **План на следующую сессию:**
 1. [ ] Запустить полный прогон тестов (pytest --cov=app)
 2. [ ] Проверить coverage по модулям
-3. [ ] Добавить тесты для непокрытых модулей
+3. [ ] Добавить тесты для messages, two_factor, push_notifications
 4. [ ] Достичь 80% coverage
