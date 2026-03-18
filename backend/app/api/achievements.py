@@ -5,7 +5,7 @@ API для работы с достижениями пользователей
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.models.achievement import Achievement
@@ -28,9 +28,9 @@ async def get_my_achievements(
 
 @router.get("/", response_model=List[AchievementRead])
 async def get_achievements(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db), 
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список всех достижений"""
@@ -40,18 +40,22 @@ async def get_achievements(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    achievements = db.query(Achievement).offset(skip).limit(limit).all()
+    achievements = db.query(Achievement).options(
+        joinedload(Achievement.user)
+    ).offset(skip).limit(limit).all()
     return achievements
 
 
 @router.get("/{achievement_id}", response_model=AchievementRead)
 async def get_achievement(
-    achievement_id: int, 
-    db: Session = Depends(get_db), 
+    achievement_id: int,
+    db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить информацию о достижении по ID"""
-    achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
+    achievement = db.query(Achievement).options(
+        joinedload(Achievement.user)
+    ).filter(Achievement.id == achievement_id).first()
     if not achievement:
         raise HTTPException(status_code=404, detail="Достижение не найдено")
     return achievement

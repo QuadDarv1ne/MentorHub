@@ -6,7 +6,7 @@ API для работы с платежами через Stripe
 from decimal import Decimal
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
@@ -33,7 +33,12 @@ async def get_payments(
     if limit <= 0 or limit > 100:
         limit = 100
 
-    payments = db.query(DBPayment).offset(skip).limit(limit).all()
+    # Используем joinedload для загрузки связанных данных (избегаем N+1)
+    payments = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).offset(skip).limit(limit).all()
     return payments
 
 
@@ -42,7 +47,12 @@ async def get_payment(
     payment_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить информацию о платеже по ID"""
-    payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    # Используем joinedload для загрузки связанных данных (избегаем N+1)
+    payment = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).filter(DBPayment.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Платеж не найден")
     return payment

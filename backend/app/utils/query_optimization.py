@@ -15,7 +15,7 @@ def get_users_with_mentors_bad(db):
     users = db.query(User).all()
     for user in users:
         # N additional queries!
-        print(user.mentor_profile.specialization)
+        _ = user.mentor_profile.specialization
     return users
 
 
@@ -26,7 +26,7 @@ def get_users_with_mentors_good(db):
         joinedload(User.mentor_profile)
     ).all()
     for user in users:
-        print(user.mentor_profile.specialization)
+        _ = user.mentor_profile.specialization
     return users
 
 
@@ -220,16 +220,17 @@ def analyze_query_performance(db, query_func, *args, **kwargs):
     @event.listens_for(db.bind, "before_cursor_execute")
     def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         queries_executed.append(statement)
-    
+
     start_time = time.time()
     result = query_func(db, *args, **kwargs)
     end_time = time.time()
-    
-    print(f"⏱️  Execution time: {end_time - start_time:.4f}s")
-    print(f"📊 Queries executed: {len(queries_executed)}")
-    for i, query in enumerate(queries_executed, 1):
-        print(f"   {i}. {query[:100]}...")
-    
+
+    # Debug output (commented out for production)
+    # print(f"⏱️  Execution time: {end_time - start_time:.4f}s")
+    # print(f"📊 Queries executed: {len(queries_executed)}")
+    # for i, query in enumerate(queries_executed, 1):
+    #     print(f"   {i}. {query[:100]}...")
+
     return result, queries_executed, end_time - start_time
 
 

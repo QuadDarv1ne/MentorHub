@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
 
 from app.dependencies import get_db, get_current_user
@@ -85,10 +85,12 @@ async def get_notifications(
         Notification.user_id == current_user.id,
         Notification.is_read == False
     ).count()
-    
-    # Сортировка и пагинация
+
+    # Сортировка и пагинация с joinedload для оптимизации
     total = query.count()
-    notifications = query.order_by(desc(Notification.created_at)).offset(skip).limit(limit).all()
+    notifications = query.options(
+        joinedload(Notification.user)
+    ).order_by(desc(Notification.created_at)).offset(skip).limit(limit).all()
     
     # Преобразование
     notification_responses = []
