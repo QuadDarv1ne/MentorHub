@@ -1,0 +1,176 @@
+# GitHub Actions Notifications Workflow
+# Slack/Telegram уведомления о деплое и тестах
+
+name: Notifications
+
+on:
+  workflow_call:
+    inputs:
+      status:
+        description: 'Status of the workflow (success/failure)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment name'
+        required: true
+        type: string
+      deploy_url:
+        description: 'Deployment URL'
+        required: false
+        type: string
+      message:
+        description: 'Additional message'
+        required: false
+        type: string
+        default: ''
+
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+jobs:
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ inputs.status == 'success' && 'Success' || 'Failed' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ inputs.message != '' && inputs.message || 'No additional message' }}"
+                  }
+                }
+              ]
+            }
+        if: ${{ inputs.deploy_url != '' }}
+        with:
+          payload: |
+            {
+              "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ inputs.status == 'success' && 'Success' || 'Failed' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ inputs.message != '' && inputs.message || 'No additional message' }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Deployment"
+                      },
+                      "url": "${{ inputs.deploy_url }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Commit"
+                      },
+                      "url": "${{ github.event.head_commit.url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+  notify-telegram:
+    name: Notify Telegram
+    runs-on: ubuntu-latest
+    if: ${{ env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != '' }}
+
+    steps:
+      - name: Send Telegram notification
+        run: |
+          MESSAGE="${{ inputs.status == 'success' && '✅' || '❌' }} *${{ inputs.environment }} Deployment*
+
+          *Status:* ${{ inputs.status == 'success' && 'Success' || 'Failed' }}
+          *Commit:* \`${{ github.sha }}\`
+          *Branch:* ${{ github.ref_name }}
+          *Author:* ${{ github.actor }}
+
+          ${{ inputs.message != '' && inputs.message || 'No additional message' }}"
+
+          curl -X POST "https://api.telegram.org/bot${{ env.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ env.TELEGRAM_CHAT_ID }}\",
+              \"text\": \"$MESSAGE\",
+              \"parse_mode\": \"Markdown\"
+            }"
