@@ -110,6 +110,42 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  # PgBouncer Connection Pooler
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    container_name: mentorhub_pgbouncer
+    environment:
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_USER: ${POSTGRES_USER:-mentorhub}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRESQL_DATABASE: ${POSTGRES_DB:-mentorhub}
+      PGBOUNCER_DATABASE: ${POSTGRES_DB:-mentorhub}
+      PGBOUNCER_PORT: 6432
+      PGBOUNCER_BIND_ADDRESS: 0.0.0.0
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 1000
+      PGBOUNCER_DEFAULT_POOL_SIZE: 50
+      PGBOUNCER_MIN_POOL_SIZE: 10
+      PGBOUNCER_RESERVE_POOL_SIZE: 25
+      PGBOUNCER_IGNORE_STARTUP_PARAMETERS: extra_float_digits
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mentorhub_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 6432 -U ${POSTGRES_USER:-mentorhub}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
   # Backend API
   backend:
     build:
@@ -117,7 +153,7 @@ services:
       dockerfile: Dockerfile
     container_name: mentorhub_backend
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
@@ -135,6 +171,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      pgbouncer:
         condition: service_healthy
     networks:
       - mentorhub_network
@@ -163,7 +201,7 @@ services:
     container_name: mentorhub_celery
     command: celery -A app.celery_app worker --loglevel=info --concurrency=8 --pool=threads
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
@@ -173,6 +211,8 @@ services:
       - postgres
         condition: service_healthy
       - redis
+        condition: service_healthy
+      - pgbouncer:
         condition: service_healthy
     networks:
       - mentorhub_network
@@ -200,7 +240,7 @@ services:
     container_name: mentorhub_celery_beat
     command: celery -A app.celery_app beat --loglevel=info
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-mentorhub}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=production
@@ -210,6 +250,8 @@ services:
       - postgres
         condition: service_healthy
       - redis
+        condition: service_healthy
+      - pgbouncer:
         condition: service_healthy
     networks:
       - mentorhub_network

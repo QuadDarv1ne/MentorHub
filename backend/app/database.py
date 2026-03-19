@@ -44,10 +44,17 @@ else:
             },
         )
     else:
-        # PostgreSQL/other database configuration
+        # PostgreSQL configuration with pgbouncer support
         # Optimized for Render Starter plan (2GB RAM, 1 CPU)
+        
+        # Check if pgbouncer is configured (via environment variable)
+        pgbouncer_url = settings.REDIS_URL.replace("redis://", "postgresql://").replace(":6379", ":6432") if hasattr(settings, 'PGBOUNCER_ENABLED') and settings.PGBOUNCER_ENABLED else None
+        
+        # Use pgbouncer if available, otherwise direct connection
+        db_url = pgbouncer_url if pgbouncer_url else settings.DATABASE_URL
+        
         engine = create_engine(
-            settings.DATABASE_URL,
+            db_url,
             poolclass=QueuePool,
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
@@ -61,10 +68,10 @@ else:
                 "options": "-c statement_timeout=30000",  # 30s query timeout
             },
         )
-    logger.info(
-        f"🗄️ Production database engine created "
-        f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW})"
-    )
+        logger.info(
+            f"🗄️ Production database engine created "
+            f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW}, pgbouncer={pgbouncer_url is not None})"
+        )
 
 
 # ==================== CONNECTION POOL LISTENERS ====================
