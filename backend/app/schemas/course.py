@@ -27,7 +27,6 @@ class CourseBase(BaseModel):
 
 class CourseCreate(CourseBase):
     """Схема для создания курса"""
-    pass
 
 
 class CourseUpdate(BaseModel):
@@ -74,7 +73,6 @@ class LessonBase(BaseModel):
 
 class LessonCreate(LessonBase):
     """Схема для создания урока"""
-    pass
 
 
 class LessonUpdate(BaseModel):
@@ -111,7 +109,6 @@ class CourseEnrollmentBase(BaseModel):
 
 class CourseEnrollmentCreate(CourseEnrollmentBase):
     """Схема для создания записи на курс"""
-    pass
 
 
 class CourseEnrollmentUpdate(BaseModel):
