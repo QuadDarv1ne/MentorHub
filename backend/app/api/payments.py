@@ -27,7 +27,6 @@ async def get_payments(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список платежей"""
-    # Проверка на корректность параметров пагинации
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
