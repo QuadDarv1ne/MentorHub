@@ -6,6 +6,7 @@ import { ChevronLeft, Calendar, User, Share2, MessageCircle, Heart } from 'lucid
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useToast } from '@/lib/hooks/useNotifications'
 
 interface BlogPost {
   slug: string
@@ -196,6 +197,7 @@ export default function BlogPostPage({ params }: Props) {
   const [liked, setLiked] = useState(false)
   const [comment, setComment] = useState('')
   const router = useRouter()
+  const { success } = useToast()
   const post = posts[params.slug]
 
   if (!post) {
@@ -216,14 +218,14 @@ export default function BlogPostPage({ params }: Props) {
       }
     } else {
       navigator.clipboard.writeText(window.location.href)
-      alert('Ссылка скопирована в буфер обмена!')
+      success('Ссылка скопирована в буфер обмена!')
     }
   }
 
   const handleCommentSubmit = () => {
     if (comment.trim()) {
       setComment('')
-      alert('Комментарий отправлен!')
+      success('Комментарий отправлен!')
     }
   }
 

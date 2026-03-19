@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/lib/hooks/useNotifications'
 
 const sessions = [
   {
@@ -86,6 +87,7 @@ export default function SessionsPage() {
   const [selectedSession, setSelectedSession] = useState<typeof sessions[0] | null>(null)
   const [rating, setRating] = useState(5)
   const [feedback, setFeedback] = useState('')
+  const { success } = useToast()
 
   // Проверка авторизации
   useEffect(() => {
@@ -112,12 +114,14 @@ export default function SessionsPage() {
   const completedSessions = sessions.filter(s => s.status === 'completed')
 
   const handleSubmitRating = () => {
-    alert(`Спасибо за рейтинг ${rating}⭐! Ваш отзыв: ${feedback}`)
+    success(`Спасибо за рейтинг ${rating}⭐! Ваш отзыв отправлен`)
+    setRating(5)
+    setFeedback('')
     setShowRatingModal(false)
   }
 
   const handleCancelSession = (id: number) => {
-    alert(`Сессия #${id} отменена`)
+    success(`Сессия #${id} отменена`)
   }
 
   const SessionCard = ({ session, isUpcoming }: { session: typeof sessions[0]; isUpcoming: boolean }) => (
