@@ -65,11 +65,11 @@ export default function Header() {
               <>
                 <Link
                   href="/messages"
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative group"
                   title="Сообщения"
                   aria-label="Сообщения"
                 >
-                  <MessageSquare className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <MessageSquare className="w-6 h-6 text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
                 </Link>
                 <NotificationCenter />
                 <Link

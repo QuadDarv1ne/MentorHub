@@ -27,6 +27,7 @@ class Mentor(BaseModel, TimestampMixin):
     user = relationship("User", back_populates="mentor_profile")
     sessions = relationship("Session", back_populates="mentor")
     courses = relationship("Course", back_populates="instructor")
+    payments = relationship("Payment", back_populates="mentor")
 
     def __repr__(self):
         return f"<Mentor(id={self.id}, user_id={self.user_id}, specialization={self.specialization})>"

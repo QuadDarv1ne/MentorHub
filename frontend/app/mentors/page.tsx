@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { Star, MapPin, Clock, DollarSign, ArrowRight, Search, MessageCircle } from 'lucide-react'
 import { ChatButton } from '@/components/ChatButton'
+import Link from 'next/link'
 
 interface Mentor {
   id: number
@@ -212,12 +213,17 @@ export default function MentorsPage() {
       {sorted.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sorted.map((mentor) => (
-            <Card key={mentor.id} padding="md" hover>
-              <div className="text-center mb-4">
-                <div className="text-5xl mb-3">{mentor.photo}</div>
-                <h3 className="text-lg font-bold text-gray-900">{mentor.name}</h3>
+            <Card key={mentor.id} padding="md" hover className="flex flex-col">
+              {/* Avatar & Name - Link to Profile */}
+              <Link href={`/mentors/${mentor.id}`} className="text-center mb-4 group">
+                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
+                  {mentor.photo}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                  {mentor.name}
+                </h3>
                 <p className="text-sm text-indigo-600 font-semibold">{mentor.specialty}</p>
-              </div>
+              </Link>
 
               {/* Rating */}
               <div className="flex items-center justify-center gap-2 mb-4">
@@ -269,15 +275,17 @@ export default function MentorsPage() {
               <p className="text-xs text-gray-500 mb-4">{mentor.availability}</p>
 
               {/* Actions */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-auto">
                 <Button variant="secondary" fullWidth onClick={() => setChatWithMentorId(mentor.id)}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Написать
                 </Button>
-                <Button variant="primary" fullWidth>
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Забронировать
-                </Button>
+                <Link href={`/mentors/${mentor.id}`} className="flex-1">
+                  <Button variant="primary" fullWidth>
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Профиль
+                  </Button>
+                </Link>
               </div>
             </Card>
           ))}

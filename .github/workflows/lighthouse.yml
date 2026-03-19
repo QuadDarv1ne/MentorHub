@@ -1,0 +1,62 @@
+name: Lighthouse Performance Check
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Install Lighthouse
+        run: npm install -g lighthouse @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI
+        working-directory: ./frontend
+        run: |
+          # Start server in background
+          npm run build && npm run start &
+          sleep 10
+          
+          # Run Lighthouse audit
+          lhci autorun \
+            --upload.target=temporary-public-storage \
+            --collect.staticDistDir=.next \
+            --collect.url=http://localhost:3000 \
+            --collect.url=http://localhost:3000/courses \
+            --collect.url=http://localhost:3000/courses/stepik \
+            --assertions.performance.minScore=90 \
+            --assertions.accessibility.minScore=90 \
+            --assertions.best-practices.minScore=90 \
+            --assertions.seo.minScore=90
+        continue-on-error: true
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: ./frontend/.lighthouseci/
+        if: always()
