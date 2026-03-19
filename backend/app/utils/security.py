@@ -1,6 +1,6 @@
 """
 Утилиты безопасности
-Включает: хеширование паролей, валидацию, защиту от brute-force, токены
+Хеширование паролей, валидация, защита от brute-force, токены
 """
 
 import bcrypt
@@ -35,37 +35,22 @@ def decode_access_token(token: str) -> Dict:
         raise ValueError("Invalid token")
 
 
-# ===== Базовые функции хеширования =====
-
-
 def get_password_hash(password: str) -> str:
     """Хеширование пароля с использованием bcrypt"""
-    # Конвертируем в bytes и обрезаем до 72 байт, если нужно
-    password_bytes = password.encode("utf-8")
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    # Генерируем соль и хешируем пароль
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password_bytes, salt)
-    # Возвращаем как строку (b'...' формат)
-    return hashed.decode("utf-8")
+    password_bytes = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Проверка пароля по его хешу"""
     try:
-        password_bytes = plain_password.encode("utf-8")
-        # Обрезаем до 72 байт, если нужно
-        if len(password_bytes) > 72:
-            password_bytes = password_bytes[:72]
-        hashed_bytes = hashed_password.encode("utf-8")
-        return bcrypt.checkpw(password_bytes, hashed_bytes)
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8")[:72],
+            hashed_password.encode("utf-8")
+        )
     except Exception as e:
         logger.error(f"Password verification error: {e}")
         return False
-
-
-# ===== Валидация паролей =====
 
 
 class PasswordValidator:
@@ -73,29 +58,12 @@ class PasswordValidator:
 
     MIN_LENGTH = 8
     MAX_LENGTH = 128
-
-    COMMON_PASSWORDS = [
-        "password",
-        "123456",
-        "12345678",
-        "qwerty",
-        "abc123",
-        "monkey",
-        "1234567",
-        "letmein",
-        "trustno1",
-        "dragon",
-        "baseball",
-        "iloveyou",
-        "master",
-        "sunshine",
-        "ashley",
-        "bailey",
-        "passw0rd",
-        "shadow",
-        "123123",
-        "654321",
-    ]
+    COMMON_PASSWORDS = {
+        "password", "123456", "12345678", "qwerty", "abc123", "monkey",
+        "1234567", "letmein", "trustno1", "dragon", "baseball", "iloveyou",
+        "master", "sunshine", "ashley", "bailey", "passw0rd", "shadow",
+        "123123", "654321",
+    }
 
     @classmethod
     def validate_password(cls, password: str) -> Dict[str, any]:
@@ -127,8 +95,7 @@ class PasswordValidator:
             result["errors"].append("Используйте заглавные/строчные буквы, цифры, спецсимволы")
             result["is_valid"] = False
 
-        strength = min(len(password) * 4, 40) + complexity_score * 15
-        strength += min(len(set(password)) * 2, 20)
+        strength = min(len(password) * 4, 40) + complexity_score * 15 + min(len(set(password)) * 2, 20)
         result["strength"] = min(strength, 100)
 
         if result["strength"] < 40:
@@ -147,9 +114,6 @@ class PasswordValidator:
         """Генерация надёжного пароля"""
         alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
         return "".join(secrets.choice(alphabet) for _ in range(length))
-
-
-# ===== Защита от brute-force =====
 
 
 class BruteForceProtection:
@@ -177,20 +141,17 @@ class BruteForceProtection:
         """Проверка блокировки"""
         if identifier not in self.lockouts:
             return False
-
         now = datetime.now(timezone.utc)
         if now < self.lockouts[identifier]:
             return True
-        else:
-            del self.lockouts[identifier]
-            self.login_attempts[identifier] = []
-            return False
+        del self.lockouts[identifier]
+        self.login_attempts[identifier] = []
+        return False
 
     def get_lockout_time_remaining(self, identifier: str) -> Optional[int]:
         """Оставшееся время блокировки в секундах"""
         if identifier not in self.lockouts:
             return None
-
         now = datetime.now(timezone.utc)
         if now < self.lockouts[identifier]:
             return int((self.lockouts[identifier] - now).total_seconds())
@@ -198,21 +159,15 @@ class BruteForceProtection:
 
     def reset_attempts(self, identifier: str):
         """Сброс попыток"""
-        if identifier in self.login_attempts:
-            del self.login_attempts[identifier]
-        if identifier in self.lockouts:
-            del self.lockouts[identifier]
+        self.login_attempts.pop(identifier, None)
+        self.lockouts.pop(identifier, None)
 
     def _cleanup_old_attempts(self, identifier: str, now: datetime):
         """Очистка старых попыток"""
-        cutoff_time = now - timedelta(seconds=self.lockout_duration)
-        if identifier in self.login_attempts:
-            self.login_attempts[identifier] = [
-                attempt for attempt in self.login_attempts[identifier] if attempt > cutoff_time
-            ]
-
-
-# ===== Токены и сессии =====
+        cutoff = now - timedelta(seconds=self.lockout_duration)
+        self.login_attempts[identifier] = [
+            attempt for attempt in self.login_attempts[identifier] if attempt > cutoff
+        ]
 
 
 class SecureTokenManager:
@@ -234,7 +189,7 @@ class SecureTokenManager:
 class CSRFProtection:
     """Защита от CSRF атак"""
 
-    _tokens = {}
+    _tokens: Dict[str, tuple] = {}
 
     @classmethod
     def generate_token(cls, user_id: int) -> str:
@@ -247,19 +202,15 @@ class CSRFProtection:
     def validate_token(cls, token: str, user_id: int) -> bool:
         if token not in cls._tokens:
             return False
-
         stored_user_id, expires_at = cls._tokens[token]
-
         if datetime.now(timezone.utc) > expires_at:
             del cls._tokens[token]
             return False
-
         return stored_user_id == user_id
 
     @classmethod
     def remove_token(cls, token: str):
-        if token in cls._tokens:
-            del cls._tokens[token]
+        cls._tokens.pop(token, None)
 
 
 # Singleton экземпляры
