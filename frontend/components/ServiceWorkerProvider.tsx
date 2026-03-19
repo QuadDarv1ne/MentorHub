@@ -8,40 +8,33 @@ export default function ServiceWorkerProvider() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
 
   useEffect(() => {
-    // Проверяем поддержку Service Worker
     if ('serviceWorker' in navigator) {
       setIsSupported(true)
 
-      // Регистрируем Service Worker
       window.addEventListener('load', async () => {
         try {
           const reg = await navigator.serviceWorker.register('/sw.js', {
             scope: '/',
           })
           setRegistration(reg)
-          console.log('[PWA] Service Worker зарегистрирован:', reg)
 
-          // Проверяем обновления
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // Доступно обновление
                   setUpdateAvailable(true)
-                  console.log('[PWA] Доступно обновление')
                 }
               })
             }
           })
         } catch (error) {
-          console.error('[PWA] Ошибка регистрации Service Worker:', error)
+          // Service Worker registration failed
         }
       })
     }
   }, [])
 
-  // Функция обновления
   const updateServiceWorker = async () => {
     if (registration?.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' })
@@ -49,11 +42,9 @@ export default function ServiceWorkerProvider() {
     }
   }
 
-  // Запрос разрешения на уведомления
   const requestNotificationPermission = async () => {
     if ('Notification' in window) {
       const permission = await Notification.requestPermission()
-      console.log('[PWA] Разрешение на уведомления:', permission)
       return permission === 'granted'
     }
     return false
