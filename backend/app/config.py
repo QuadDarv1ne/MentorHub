@@ -43,15 +43,14 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
     def validate_secret_key(cls, v):
-        """Валидация SECRET_KEY - не允许 использовать значения по умолчанию"""
+        """Валидация SECRET_KEY - запрещено использовать значения по умолчанию"""
         if not v or v == "your-secret-key-change-in-production":
             # В production это критическая ошибка, в development - предупреждение
             if os.environ.get("ENVIRONMENT") == "production":
                 raise ValueError("SECRET_KEY must be set in production! Use a strong random key.")
             # Для development генерируем временный ключ
             import secrets
-            logger_warning = logging.getLogger("config")
-            logger_warning.warning("⚠️ SECRET_KEY not set, using temporary key. Set SECRET_KEY env var!")
+            logging.getLogger("config").warning("⚠️ SECRET_KEY not set, using temporary key. Set SECRET_KEY env var!")
             return secrets.token_urlsafe(32)
         # Проверка на слабые ключи
         if len(v) < 32:

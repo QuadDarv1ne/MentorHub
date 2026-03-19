@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 import jwt
+import logging
 
 from app.config import settings
 from app.dependencies import get_db, rate_limit_dependency
@@ -15,6 +16,8 @@ from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
 from app.utils.security import verify_password, get_password_hash, brute_force_protection, password_validator
 from app.utils.sanitization import sanitize_email, sanitize_username, sanitize_string, is_safe_string
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 security = HTTPBearer()
