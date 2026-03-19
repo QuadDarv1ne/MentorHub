@@ -192,7 +192,8 @@ class FCMService:
                     try:
                         error_detail = response.json()
                         error_msg += f" - {error_detail}"
-                    except Exception:
+                    except Exception as parse_error:
+                        logger.debug(f"Failed to parse FCM error response: {parse_error}")
                         error_msg += f" - {response.text}"
                     return {"success": False, "error": error_msg}
                     

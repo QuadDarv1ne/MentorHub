@@ -420,9 +420,9 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                             status_code=status.HTTP_403_FORBIDDEN,
                             detail="CSRF токен отсутствует"
                         )
-                except Exception:
+                except Exception as e:
                     # Если не можем прочитать тело, все равно требуем CSRF
-                    logger.warning("CSRF token missing for state-changing request")
+                    logger.warning(f"CSRF check failed: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail="CSRF токен отсутствует"
