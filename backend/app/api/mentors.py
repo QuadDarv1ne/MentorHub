@@ -3,6 +3,7 @@
 API для работы с профилями менторов
 """
 
+import asyncio
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -124,12 +125,11 @@ async def update_mentor(
 
     db.commit()
     db.refresh(db_mentor)
-    
+
     # Инвалидируем кеш обновленного ментора
-    import asyncio
     asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
     asyncio.create_task(invalidate_cache("mentors_list:*"))
-    
+
     return db_mentor
 
 
@@ -144,9 +144,8 @@ async def delete_mentor(
 
     db.delete(db_mentor)
     db.commit()
-    
+
     # Инвалидируем кеш удаленного ментора
-    import asyncio
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))
     asyncio.create_task(invalidate_cache("mentors_list:*"))
     return None

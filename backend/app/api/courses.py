@@ -3,6 +3,7 @@
 API для работы с курсами
 """
 
+import asyncio
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -196,18 +197,17 @@ async def update_course(
     
     db.commit()
     db.refresh(db_course)
-    
+
     # Инвалидируем кеш обновленного курса
-    import asyncio
     asyncio.create_task(invalidate_cache(f"course_detail:{db_course.id}"))
     asyncio.create_task(invalidate_cache("courses_list:*"))
-    
+
     return db_course
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_course(
-    course_id: int, 
+    course_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency)
@@ -216,20 +216,19 @@ async def delete_course(
     db_course = db.query(Course).filter(Course.id == course_id).first()
     if not db_course:
         raise HTTPException(status_code=404, detail="Курс не найден")
-    
+
     # Check if user is the course instructor
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     if not mentor or mentor.id != db_course.instructor_id:
         raise HTTPException(status_code=403, detail="Вы не являетесь инструктором этого курса")
-    
+
     db.delete(db_course)
     db.commit()
-    
+
     # Инвалидируем кеш удаленного курса
-    import asyncio
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
     asyncio.create_task(invalidate_cache("courses_list:*"))
-    
+
     return None
 
 

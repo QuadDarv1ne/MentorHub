@@ -5,6 +5,7 @@ import { Search, Send, Clock, CheckCircle, AlertCircle, MessageSquare, ChevronDo
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import { useToast } from '@/lib/hooks/useNotifications'
 
 const faqs = [
   {
@@ -89,6 +90,7 @@ export default function SupportPage() {
   const [showTicketForm, setShowTicketForm] = useState(false)
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
+  const { success } = useToast()
 
   const categories = ['Все', ...Array.from(new Set(faqs.map(f => f.category)))]
 
@@ -101,7 +103,8 @@ export default function SupportPage() {
 
   const handleSubmitTicket = () => {
     if (subject && message) {
-      alert(`Тикет создан! Номер: TKT-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`)
+      const ticketNumber = `TKT-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+      success(`Тикет создан! Номер: ${ticketNumber}`)
       setSubject('')
       setMessage('')
       setShowTicketForm(false)
