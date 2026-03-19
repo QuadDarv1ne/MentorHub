@@ -3,7 +3,6 @@
 Обработка регистрации, входа, выхода и обновления токенов
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import HTTPBearer
@@ -17,7 +16,6 @@ from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
 from app.utils.security import verify_password, get_password_hash, brute_force_protection, password_validator
 from app.utils.sanitization import sanitize_email, sanitize_username, sanitize_string, is_safe_string
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 security = HTTPBearer()
 
@@ -131,20 +129,14 @@ async def login(
     user = db.query(User).filter(User.email == sanitized_email).first()
 
     if not user:
-        logger.info(f"User not found for email: {sanitized_email}")
         brute_force_protection.record_failed_attempt(sanitized_email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный email или пароль",
         )
 
-    logger.info(f"User found: {user.email}")
-    logger.info(f"Stored hashed password: {user.hashed_password}")
-    logger.info(f"Provided password: {credentials.password}")
-
     # Verify password
     password_valid = verify_password(credentials.password, user.hashed_password)
-    logger.info(f"Password verification result: {password_valid}")
 
     if not password_valid:
         brute_force_protection.record_failed_attempt(sanitized_email)
@@ -188,13 +180,11 @@ async def login(
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
-        httponly=True,  # Защита от XSS
-        secure=settings.ENVIRONMENT == "production",  # HTTPS only в production
-        samesite="strict",  # Защита от CSRF
-        max_age=7 * 24 * 60 * 60  # 7 дней
+        httponly=True,
+        secure=settings.ENVIRONMENT == "production",
+        samesite="strict",
+        max_age=7 * 24 * 60 * 60
     )
-
-    logger.info(f"Пользователь вошел в систему: {user.email}")
 
     return TokenResponse(
         access_token=access_token,

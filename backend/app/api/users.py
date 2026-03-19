@@ -3,17 +3,14 @@
 Обработка операций с профилем пользователя
 """
 
-import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
 from app.services.cache import cached
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -65,8 +62,6 @@ async def update_current_user_profile(
     db.commit()
     db.refresh(current_user)
 
-    logger.info(f"Профиль пользователя обновлен: {current_user.email}")
-
     return current_user
 
 
@@ -74,15 +69,12 @@ async def update_current_user_profile(
 @cached(ttl=600, key_prefix="user_detail")
 async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить пользователя по ID"""
-    # Проверка на корректность ID
     if user_id <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Некорректный ID пользователя",
         )
 
-    # Оптимизация N+1: загружаем связанные данные
-    from sqlalchemy.orm import joinedload
     user = db.query(User).options(
         joinedload(User.mentor_profile),
         joinedload(User.sessions_as_student),
