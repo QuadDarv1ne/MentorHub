@@ -96,6 +96,13 @@ async def register(
     db.commit()
     db.refresh(new_user)
 
+    # Отправка приветственного email
+    try:
+        from app.tasks.celery_tasks import send_welcome_email_task
+        send_welcome_email_task.delay(new_user.email, new_user.username)
+    except Exception as e:
+        logger.error(f"Failed to send welcome email: {e}")
+
     logger.info(f"Новый пользователь зарегистрирован: {new_user.email}")
 
     return new_user

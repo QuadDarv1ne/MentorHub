@@ -202,6 +202,57 @@ def generate_daily_stats():
         db.close()
 
 
+@celery_app.task(name="send_welcome_email_task")
+def send_welcome_email_task(email: str, username: str):
+    """
+    Асинхронная отправка приветственного письма
+
+    Args:
+        email: Email получателя
+        username: Имя пользователя
+    """
+    try:
+        success = email_service.send_welcome_email(email, username)
+        if success:
+            logger.info(f"✅ Welcome email sent to {email}")
+        else:
+            logger.error(f"❌ Failed to send welcome email to {email}")
+        return success
+    except Exception as e:
+        logger.error(f"❌ Error sending welcome email: {e}")
+        raise
+
+
+@celery_app.task(name="send_achievement_email_task")
+def send_achievement_email_task(
+    email: str,
+    username: str,
+    achievement_name: str,
+    achievement_description: str
+):
+    """
+    Асинхронная отправка уведомления о достижении
+
+    Args:
+        email: Email получателя
+        username: Имя пользователя
+        achievement_name: Название достижения
+        achievement_description: Описание достижения
+    """
+    try:
+        success = email_service.send_achievement_unlocked(
+            email, username, achievement_name, achievement_description
+        )
+        if success:
+            logger.info(f"✅ Achievement email sent to {email}")
+        else:
+            logger.error(f"❌ Failed to send achievement email to {email}")
+        return success
+    except Exception as e:
+        logger.error(f"❌ Error sending achievement email: {e}")
+        raise
+
+
 @celery_app.task(name="send_session_reminders")
 def send_session_reminders():
     """
@@ -210,7 +261,7 @@ def send_session_reminders():
     """
     from app.models.session import Session, SessionStatus
     from app.models.user import User
-    
+
     db = SessionLocal()
     try:
         # Ищем сессии, которые начнутся через 1 час
@@ -220,14 +271,14 @@ def send_session_reminders():
             Session.scheduled_at <= one_hour_later,
             Session.scheduled_at > datetime.now(timezone.utc)
         ).all()
-        
+
         sent_count = 0
         for session in upcoming_sessions:
             student = db.query(User).filter(User.id == session.student_id).first()
             mentor = db.query(User).filter(
                 User.mentor_profile.has(id=session.mentor_id)
             ).first()
-            
+
             if student and mentor:
                 session_link = f"{settings.FRONTEND_URL}/sessions/{session.id}"
                 send_session_reminder_task.delay(
@@ -238,10 +289,10 @@ def send_session_reminders():
                     session_link=session_link
                 )
                 sent_count += 1
-        
+
         logger.info(f"✅ Sent {sent_count} session reminders")
         return {"reminders_sent": sent_count}
-        
+
     except Exception as e:
         logger.error(f"❌ Error sending session reminders: {e}")
         raise

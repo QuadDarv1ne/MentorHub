@@ -278,6 +278,166 @@ class EmailService:
             html_content=html_content
         )
 
+    def send_welcome_email(self, to_email: str, username: str) -> bool:
+        """Приветственное письмо после регистрации"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #10B981; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .button {{
+                    display: inline-block;
+                    padding: 12px 30px;
+                    background: #10B981;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>👋 Добро пожаловать в MentorHub!</h1>
+                </div>
+                <div class="content">
+                    <h2>Привет, {username}!</h2>
+                    <p>Спасибо за регистрацию на платформе MentorHub.</p>
+                    <p>Теперь вы можете:</p>
+                    <ul>
+                        <li>Найти опытного ментора для обучения</li>
+                        <li>Записаться на индивидуальную сессию</li>
+                        <li>Пройти курсы и получить сертификаты</li>
+                    </ul>
+                    <div style="text-align: center;">
+                        <a href="{settings.FRONTEND_URL}/mentors" class="button">Найти ментора</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(
+            to_email=to_email,
+            subject="Добро пожаловать в MentorHub!",
+            html_content=html_content
+        )
+
+    def send_session_reminder(
+        self,
+        to_email: str,
+        username: str,
+        mentor_name: str,
+        session_date: str,
+        session_link: str
+    ) -> bool:
+        """Напоминание о сессии за 24 часа"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #F59E0B; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .info-box {{
+                    background: white;
+                    border-left: 4px solid #F59E0B;
+                    padding: 15px;
+                    margin: 20px 0;
+                }}
+                .button {{
+                    display: inline-block;
+                    padding: 12px 30px;
+                    background: #F59E0B;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>⏰ Напоминание о сессии</h1>
+                </div>
+                <div class="content">
+                    <h2>Привет, {username}!</h2>
+                    <p>Ваша сессия состоится завтра:</p>
+                    <div class="info-box">
+                        <p><strong>Ментор:</strong> {mentor_name}</p>
+                        <p><strong>Дата:</strong> {session_date}</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <a href="{session_link}" class="button">Присоединиться</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(
+            to_email=to_email,
+            subject=f"Напоминание: сессия завтра с {mentor_name}",
+            html_content=html_content
+        )
+
+    def send_achievement_unlocked(
+        self,
+        to_email: str,
+        username: str,
+        achievement_name: str,
+        achievement_description: str
+    ) -> bool:
+        """Уведомление о полученном достижении"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #8B5CF6; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .badge {{
+                    background: #8B5CF6;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    display: inline-block;
+                    margin: 20px 0;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🏆 Новое достижение!</h1>
+                </div>
+                <div class="content">
+                    <h2>Поздравляем, {username}!</h2>
+                    <p>Вы получили новое достижение:</p>
+                    <div class="badge">{achievement_name}</div>
+                    <p>{achievement_description}</p>
+                    <p>Продолжайте в том же духе!</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(
+            to_email=to_email,
+            subject=f"Достижение разблокировано: {achievement_name}",
+            html_content=html_content
+        )
+
 
 # Singleton instance
 email_service = EmailService()

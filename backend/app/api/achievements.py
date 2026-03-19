@@ -3,6 +3,7 @@
 API для работы с достижениями пользователей
 """
 
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -12,6 +13,7 @@ from app.models.achievement import Achievement
 from app.models.user import User
 from app.schemas.achievement import AchievementCreate, AchievementRead, AchievementUpdate
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -77,6 +79,19 @@ async def create_achievement(
     db.add(db_achievement)
     db.commit()
     db.refresh(db_achievement)
+
+    # Отправка email уведомления о достижении
+    try:
+        from app.tasks.celery_tasks import send_achievement_email_task
+        send_achievement_email_task.delay(
+            email=current_user.email,
+            username=current_user.username,
+            achievement_name=achievement.title,
+            achievement_description=achievement.description
+        )
+    except Exception as e:
+        logger.error(f"Failed to send achievement email: {e}")
+
     return db_achievement
 
 
