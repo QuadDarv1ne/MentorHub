@@ -440,8 +440,8 @@ docs/:
 ---
 
 **Последнее обновление:** 2026-03-19 (Сессия 11 - Frontend Test Fixes)
-**Статус:** ✅ Все P0 задачи выполнены, 290/311 тестов backend passed (100% pass rate), 47/60 frontend passed
-**Следующий приоритет:** P1 - Интеграционные тесты (state isolation fix), Auto-deploy из main, Connection pooling
+**Статус:** ✅ Все P0 задачи выполнены. Backend: 290/311 passed (100%), Frontend: 47/60 passed (78%)
+**Следующий приоритет:** P1 - Интеграционные тесты, Connection pooling, Lighthouse score
 
 ---
 
@@ -453,6 +453,18 @@ docs/:
 - **Coverage:** ~75-80% (цель 80%+ достигнута)
 - **Технические долги:** 11/11 исправлено
 - **Синхронизация:** dev → main ✅, Session-Payment связи ✅, Logger fixes ✅, Database indexes ✅, CI/CD notifications ✅, Response caching ✅, Frontend tests ✅
+
+### P0 Завершено ✅
+- [x] Security hardening (6/6 пунктов)
+- [x] Database оптимизация (индексы + N+1 fix)
+- [x] Monitoring (Prometheus + Grafana + Alert rules)
+- [x] Response caching (5 endpoints с @cached)
+- [x] CI/CD (staging + rollback + notifications)
+
+### P1 В процессе 🔄
+- [ ] Интеграционные тесты (state isolation fix)
+- [ ] Connection pooling (pgbouncer)
+- [ ] Lighthouse score >90
 
 ### Session-Payment Связи ✅
 - [x] Модель Session - связь payments
