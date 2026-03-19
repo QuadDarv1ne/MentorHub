@@ -17,61 +17,70 @@ logger = logging.getLogger(__name__)
 
 # ==================== DATABASE ENGINE SETUP ====================
 
-# Create engine based on environment
-if settings.ENVIRONMENT == "testing":
-    # Use NullPool for testing (no connection pooling)
-    engine = create_engine(
+
+def _create_engine_for_testing():
+    """Create engine for testing environment with NullPool"""
+    return create_engine(
         settings.DATABASE_URL,
         poolclass=NullPool,
         echo=settings.DB_ECHO,
-        connect_args={"check_same_thread": False},  # For SQLite in tests
+        connect_args={"check_same_thread": False},
     )
+
+
+def _create_engine_for_sqlite():
+    """Create engine for SQLite with QueuePool"""
+    return create_engine(
+        settings.DATABASE_URL,
+        poolclass=QueuePool,
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_pre_ping=True,
+        echo=settings.DB_ECHO,
+        connect_args={"check_same_thread": False},
+    )
+
+
+def _create_engine_for_postgresql():
+    """Create engine for PostgreSQL with pgbouncer support"""
+    pgbouncer_url = (
+        settings.REDIS_URL.replace("redis://", "postgresql://").replace(":6379", ":6432")
+        if getattr(settings, "PGBOUNCER_ENABLED", False)
+        else None
+    )
+    db_url = pgbouncer_url if pgbouncer_url else settings.DATABASE_URL
+
+    return create_engine(
+        db_url,
+        poolclass=QueuePool,
+        pool_size=settings.DB_POOL_SIZE,
+        max_overflow=settings.DB_MAX_OVERFLOW,
+        pool_pre_ping=True,
+        pool_recycle=settings.DB_POOL_RECYCLE,
+        pool_timeout=settings.DB_POOL_TIMEOUT,
+        echo=settings.DB_ECHO,
+        connect_args={
+            "connect_timeout": 10,
+            "application_name": "mentorhub",
+            "options": "-c statement_timeout=30000",
+        },
+    )
+
+
+# Create engine based on environment
+if settings.ENVIRONMENT == "testing":
+    engine = _create_engine_for_testing()
     logger.info("🧪 Testing database engine created")
+elif "sqlite" in settings.DATABASE_URL.lower():
+    engine = _create_engine_for_sqlite()
+    logger.info("📱 SQLite database engine created")
 else:
-    # Use QueuePool for production/development
-    # Handle different database types
-    if "sqlite" in settings.DATABASE_URL.lower():
-        # SQLite-specific configuration
-        engine = create_engine(
-            settings.DATABASE_URL,
-            poolclass=QueuePool,
-            pool_size=settings.DB_POOL_SIZE,
-            max_overflow=settings.DB_MAX_OVERFLOW,
-            pool_pre_ping=True,
-            echo=settings.DB_ECHO,
-            connect_args={
-                "check_same_thread": False,
-            },
-        )
-    else:
-        # PostgreSQL configuration with pgbouncer support
-        # Optimized for Render Starter plan (2GB RAM, 1 CPU)
-        
-        # Check if pgbouncer is configured (via environment variable)
-        pgbouncer_url = settings.REDIS_URL.replace("redis://", "postgresql://").replace(":6379", ":6432") if hasattr(settings, 'PGBOUNCER_ENABLED') and settings.PGBOUNCER_ENABLED else None
-        
-        # Use pgbouncer if available, otherwise direct connection
-        db_url = pgbouncer_url if pgbouncer_url else settings.DATABASE_URL
-        
-        engine = create_engine(
-            db_url,
-            poolclass=QueuePool,
-            pool_size=settings.DB_POOL_SIZE,
-            max_overflow=settings.DB_MAX_OVERFLOW,
-            pool_pre_ping=True,
-            pool_recycle=settings.DB_POOL_RECYCLE,
-            pool_timeout=settings.DB_POOL_TIMEOUT,
-            echo=settings.DB_ECHO,
-            connect_args={
-                "connect_timeout": 10,
-                "application_name": "mentorhub",
-                "options": "-c statement_timeout=30000",  # 30s query timeout
-            },
-        )
-        logger.info(
-            f"🗄️ Production database engine created "
-            f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW}, pgbouncer={pgbouncer_url is not None})"
-        )
+    engine = _create_engine_for_postgresql()
+    pgbouncer_enabled = getattr(settings, "PGBOUNCER_ENABLED", False)
+    logger.info(
+        f"🗄️ Production database engine created "
+        f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW}, pgbouncer={pgbouncer_enabled})"
+    )
 
 
 # ==================== CONNECTION POOL LISTENERS ====================
@@ -160,18 +169,20 @@ class Database:
     @staticmethod
     def check_connection() -> bool:
         """Check if database connection is working"""
-        try:
-            from sqlalchemy import text
+        from sqlalchemy import text
 
+        session = None
+        try:
             session = SessionLocal()
-            # Используем параметризованный запрос вместо text("SELECT 1")
             session.execute(text("SELECT :value"), {"value": 1})
-            session.close()
             logger.info("✅ Database connection successful")
             return True
         except Exception as e:
             logger.error(f"❌ Database connection failed: {e}")
             return False
+        finally:
+            if session:
+                session.close()
 
     @staticmethod
     def get_connection_info() -> dict:
@@ -250,7 +261,6 @@ def transactional():
     try:
         yield db
         db.commit()
-        logger.debug("✅ Transaction committed")
     except Exception as e:
         db.rollback()
         logger.error(f"❌ Transaction rolled back: {e}")
