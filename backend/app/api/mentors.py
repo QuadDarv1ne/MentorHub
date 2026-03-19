@@ -25,7 +25,6 @@ async def get_mentors(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список менторов"""
-    # Проверка на корректность параметров пагинации
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
@@ -40,7 +39,6 @@ async def get_mentors(
 @cached(ttl=900, key_prefix="mentor_detail")
 async def get_mentor(mentor_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
     """Получить информацию о менторе по ID"""
-    # Проверка на корректность ID
     if mentor_id <= 0:
         raise HTTPException(status_code=400, detail="Некорректный ID ментора")
 

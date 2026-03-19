@@ -34,7 +34,6 @@ async def get_achievements(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список всех достижений"""
-    # Проверка на корректность параметров пагинации
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:

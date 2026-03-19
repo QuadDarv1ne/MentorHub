@@ -22,7 +22,6 @@ async def get_sessions(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список сессий"""
-    # Проверка на корректность параметров пагинации
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
