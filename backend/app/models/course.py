@@ -3,7 +3,7 @@
 Модель для хранения информации о курсах
 """
 
-from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float
+from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float, Index
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
@@ -16,12 +16,12 @@ class Course(BaseModel, TimestampMixin):
 
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    category = Column(String(100), nullable=True)
+    category = Column(String(100), nullable=True, index=True)
     difficulty = Column(String(50), nullable=True)  # beginner, intermediate, advanced
     duration_hours = Column(Integer, default=0, nullable=False)
     price = Column(Integer, default=0, nullable=False)  # в центах/копейках
-    is_active = Column(Boolean, default=True, nullable=False)
-    rating = Column(Float, default=0.0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False, index=True)
+    rating = Column(Float, default=0.0, nullable=False, index=True)
     total_reviews = Column(Integer, default=0, nullable=False)
     thumbnail_url = Column(String(512), nullable=True)
     instructor_id = Column(Integer, ForeignKey("mentors.id"), index=True, nullable=False)
@@ -31,6 +31,12 @@ class Course(BaseModel, TimestampMixin):
     enrollments = relationship("CourseEnrollment", back_populates="course")
     lessons = relationship("Lesson", back_populates="course")
     progress_records = relationship("Progress", back_populates="course")
+
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_course_category_active', 'category', 'is_active'),
+        Index('idx_course_instructor_active', 'instructor_id', 'is_active'),
+    )
 
     def __repr__(self):
         return f"<Course(id={self.id}, title={self.title}, instructor_id={self.instructor_id})>"
@@ -54,6 +60,11 @@ class Lesson(BaseModel, TimestampMixin):
     course = relationship("Course", back_populates="lessons")
     progress_records = relationship("Progress", back_populates="lesson")
 
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_lesson_course_order', 'course_id', 'order'),
+    )
+
     def __repr__(self):
         return f"<Lesson(id={self.id}, course_id={self.course_id}, title={self.title})>"
 
@@ -66,12 +77,18 @@ class CourseEnrollment(BaseModel, TimestampMixin):
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id"), index=True, nullable=False)
     progress_percent = Column(Integer, default=0, nullable=False)
-    completed = Column(Boolean, default=False, nullable=False)
+    completed = Column(Boolean, default=False, nullable=False, index=True)
     completed_at = Column(DateTime, nullable=True)
 
     # Связи
     user = relationship("User", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
+
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_enrollment_user_completed', 'user_id', 'completed'),
+        Index('idx_enrollment_course_completed', 'course_id', 'completed'),
+    )
 
     def __repr__(self):
         return f"<CourseEnrollment(id={self.id}, user_id={self.user_id}, course_id={self.course_id})>"

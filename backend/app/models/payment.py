@@ -3,7 +3,7 @@
 Модель для отслеживания платежей за сессии
 """
 
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Enum, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
@@ -47,6 +47,13 @@ class Payment(BaseModel):
     student = relationship("User", foreign_keys=[student_id], back_populates="payments")
     mentor = relationship("Mentor", foreign_keys=[mentor_id], back_populates="payments")
     session = relationship("Session", back_populates="payments")
+
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_payment_status_created', 'status', 'created_at'),
+        Index('idx_payment_student_status', 'student_id', 'status'),
+        Index('idx_payment_mentor_status', 'mentor_id', 'status'),
+    )
 
     def __repr__(self):
         return f"<Payment(id={self.id}, student_id={self.student_id}, amount={self.amount}, status={self.status})>"

@@ -3,7 +3,7 @@
 Модель учетной записи и аутентификации пользователя
 """
 
-from sqlalchemy import Column, String, Boolean, Enum as SQLEnum
+from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, Index
 from sqlalchemy.orm import relationship
 import enum
 
@@ -26,18 +26,18 @@ class User(BaseModel, TimestampMixin):
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=True)  # Может быть None для OAuth пользователей
-    
+
     # OAuth поля
     oauth_provider = Column(String(50), nullable=True)  # "google", "github"
     oauth_id = Column(String(255), nullable=True)  # ID от OAuth провайдера
-    
+
     full_name = Column(String(255), nullable=True)
     avatar_url = Column(String(512), nullable=True)
 
     role = Column(SQLEnum(UserRole), default=UserRole.STUDENT, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=True, nullable=False)  # OAuth пользователи верифицированы
-    
+
     # 2FA поля
     two_factor_enabled = Column(Boolean, default=False, nullable=True)
     two_factor_secret = Column(String(255), nullable=True)  # Зашифрованный TOTP секрет
@@ -50,6 +50,12 @@ class User(BaseModel, TimestampMixin):
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     device_tokens = relationship("DeviceToken", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", foreign_keys="Payment.student_id", back_populates="student")
+
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_user_role_active', 'role', 'is_active'),
+        Index('idx_user_email_active', 'email', 'is_active'),
+    )
 
     @property
     def is_admin(self) -> bool:

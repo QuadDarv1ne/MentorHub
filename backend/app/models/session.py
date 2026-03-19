@@ -3,7 +3,7 @@
 Модель для записи на сессии менторства
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Enum, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
@@ -48,6 +48,13 @@ class Session(BaseModel):
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
     mentor = relationship("Mentor", back_populates="sessions")
     payments = relationship("Payment", back_populates="session")
+
+    # Составные индексы для оптимизации запросов
+    __table_args__ = (
+        Index('idx_session_status_scheduled', 'status', 'scheduled_at'),
+        Index('idx_session_student_status', 'student_id', 'status'),
+        Index('idx_session_mentor_status', 'mentor_id', 'status'),
+    )
 
     def __repr__(self):
         return f"<Session(id={self.id}, student_id={self.student_id}, mentor_id={self.mentor_id}, scheduled_at={self.scheduled_at})>"
