@@ -3,7 +3,6 @@ Notification API endpoints
 CRUD операции для уведомлений
 """
 
-import logging
 import json
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -16,7 +15,6 @@ from app.models.user import User
 from app.models.notification import Notification, NotificationType
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -259,7 +257,5 @@ async def create_notification(
     db.add(notification)
     db.commit()
     db.refresh(notification)
-    
-    logger.info(f"📬 Notification created: {type.value} for user {user_id}")
-    
+
     return notification
