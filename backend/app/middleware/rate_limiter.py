@@ -106,7 +106,8 @@ class RateLimiter:
 
             return max(0, max_requests - request_count)
 
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Rate limiter Redis error, using memory fallback: {e}")
             current_time = datetime.now()
             window_start = current_time - timedelta(seconds=window_seconds)
 

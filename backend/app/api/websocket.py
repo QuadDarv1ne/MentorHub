@@ -245,15 +245,15 @@ async def websocket_chat_endpoint(
         if user:
             manager.disconnect(websocket, user.id)
             logger.info(f"User {user.id} disconnected normally")
-    
+
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         if user:
             manager.disconnect(websocket, user.id)
         try:
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-        except Exception:
-            pass
+        except Exception as close_error:
+            logger.debug(f"Failed to close websocket: {close_error}")
 
 
 @router.get("/ws/online-users")

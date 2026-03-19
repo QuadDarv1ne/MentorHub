@@ -172,8 +172,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             try:
                 from app.utils.prometheus import record_security_incident
                 record_security_incident("sql_injection", request.url.path)
-            except Exception:
-                pass  # Не критично, если не можем записать метрику
+            except Exception as e:
+                logger.debug(f"Failed to record security metric: {e}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка SQL-инъекции")
 
         # XSS в URL
@@ -183,8 +183,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             try:
                 from app.utils.prometheus import record_security_incident
                 record_security_incident("xss", request.url.path)
-            except Exception:
-                pass  # Не критично, если не можем записать метрику
+            except Exception as e:
+                logger.debug(f"Failed to record security metric: {e}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка XSS-атаки")
 
         # Path Traversal
@@ -194,8 +194,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             try:
                 from app.utils.prometheus import record_security_incident
                 record_security_incident("path_traversal", request.url.path)
-            except Exception:
-                pass  # Не критично, если не можем записать метрику
+            except Exception as e:
+                logger.debug(f"Failed to record security metric: {e}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка path traversal")
 
         # Проверка тела запроса (только для POST/PUT/PATCH)
@@ -219,8 +219,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     try:
                         from app.utils.prometheus import record_security_incident
                         record_security_incident("sql_injection", request.url.path)
-                    except Exception:
-                        pass  # Не критично, если не можем записать метрику
+                    except Exception as e:
+                        logger.debug(f"Failed to record security metric: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка SQL-инъекции в теле запроса"
                     )
@@ -231,8 +231,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     try:
                         from app.utils.prometheus import record_security_incident
                         record_security_incident("xss", request.url.path)
-                    except Exception:
-                        pass  # Не критично, если не можем записать метрику
+                    except Exception as e:
+                        logger.debug(f"Failed to record security metric: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка XSS-атаки в теле запроса"
                     )
@@ -243,14 +243,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     try:
                         from app.utils.prometheus import record_security_incident
                         record_security_incident("command_injection", request.url.path)
-                    except Exception:
-                        pass  # Не критично, если не можем записать метрику
+                    except Exception as e:
+                        logger.debug(f"Failed to record security metric: {e}")
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST, detail="Обнаружена попытка command injection"
                     )
 
             except UnicodeDecodeError:
-                pass  # Пропускаем бинарные данные
+                logger.debug("UnicodeDecodeError in request body, skipping binary data")
 
         # Проверка заголовков
         self._check_headers(request)
@@ -363,8 +363,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             try:
                 from app.utils.prometheus import record_security_incident
                 record_security_incident("malicious_user_agent", request.url.path)
-            except Exception:
-                pass  # Не критично, если не можем записать метрику
+            except Exception as e:
+                logger.debug(f"Failed to record security metric: {e}")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Обнаружен вредоносный User-Agent")
 
         # Проверка Referer на фишинг
