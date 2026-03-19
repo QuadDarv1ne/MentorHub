@@ -11,19 +11,21 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.services.analytics import AnalyticsService
+from app.utils.cache import cached
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/analytics/platform")
+@cached(ttl=300, key_prefix="platform_analytics")
 async def get_platform_analytics(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Общая статистика платформы (только для админов)
-    
+
     Returns:
         Ключевые метрики платформы
     """
@@ -40,6 +42,7 @@ async def get_platform_analytics(
 
 
 @router.get("/analytics/user-growth")
+@cached(ttl=600, key_prefix="user_growth")
 async def get_user_growth(
     days: int = Query(30, ge=1, le=365),
     current_user: User = Depends(get_current_user),
@@ -47,7 +50,7 @@ async def get_user_growth(
 ):
     """
     График роста пользователей
-    
+
     Query params:
         - days: Количество дней для анализа (1-365)
     """
