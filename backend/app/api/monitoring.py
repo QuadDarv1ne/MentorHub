@@ -2,6 +2,7 @@
 API endpoints для мониторинга и метрик
 """
 
+import logging
 from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 
@@ -10,6 +11,7 @@ from app.dependencies import get_current_user
 from app.utils.monitoring import performance_monitor
 from app.utils.cache import get_cache_stats, reset_cache_stats
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -25,7 +27,8 @@ async def get_metrics(current_user: User = Depends(get_current_user)):
     try:
         metrics = performance_monitor.get_metrics()
         return metrics
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to get metrics: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить метрики")
 
 
@@ -41,7 +44,8 @@ async def reset_metrics(current_user: User = Depends(get_current_user)):
     try:
         performance_monitor.reset_metrics()
         return {"message": "Метрики успешно сброшены"}
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to reset metrics: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить метрики")
 
 
@@ -57,7 +61,8 @@ async def get_alerts(current_user: User = Depends(get_current_user)):
     try:
         metrics = performance_monitor.get_metrics()
         return {"alerts": metrics.get("alerts", [])}
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to get alerts: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить алерты")
 
 
@@ -76,7 +81,8 @@ async def update_alert_thresholds(
     try:
         performance_monitor.set_alert_thresholds(thresholds)
         return {"message": "Пороговые значения успешно обновлены"}
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to update alert thresholds: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось обновить пороговые значения")
 
 
@@ -92,7 +98,8 @@ async def get_cache_statistics(current_user: User = Depends(get_current_user)):
     try:
         stats = get_cache_stats()
         return {"cache_stats": stats}
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to get cache stats: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить статистику кеша")
 
 
@@ -108,7 +115,8 @@ async def reset_cache_statistics(current_user: User = Depends(get_current_user))
     try:
         reset_cache_stats()
         return {"message": "Статистика кеша успешно сброшена"}
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to reset cache stats: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить статистику кеша")
 
 
@@ -147,5 +155,6 @@ async def detailed_health_check():
 
         return {"status": "healthy" if status_ok else "degraded", "issues": issues, "metrics": metrics}
 
-    except Exception:
+    except Exception as e:
+        logger.error(f"Detailed health check failed: {e}")
         return {"status": "error", "issues": ["Detailed health check failed"], "metrics": {}}

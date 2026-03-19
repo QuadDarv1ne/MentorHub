@@ -3,6 +3,7 @@ Statistics API endpoint
 Provides platform statistics and analytics
 """
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
@@ -13,6 +14,7 @@ from app.dependencies import get_current_user
 from app.services.cache import cache_service
 from app.utils.cache import cached
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -49,8 +51,8 @@ async def get_platform_stats(db: Session = Depends(get_db)):
 
         total_sessions = db.query(func.count(MentoringSession.id)).scalar() or 0
         stats["total_sessions"] = total_sessions
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Could not load session stats: {e}")
 
     # Cache for 5 minutes
     cache_service.set(cache_key, stats, ttl=300)
@@ -92,8 +94,8 @@ async def get_user_stats(current_user: User = Depends(get_current_user), db: Ses
                 "total_sessions": total_sessions,
                 "completed_sessions": completed_sessions,
             }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Could not load mentor stats: {e}")
 
     return stats
 
@@ -133,8 +135,8 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
         stats["total_courses"] = total_courses
         stats["completed"] = completed
         stats["in_progress"] = total_courses - completed
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Could not load progress stats: {e}")
 
     # Try to get session stats
     try:
@@ -167,7 +169,7 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
         stats["total_sessions"] = total_sessions
         stats["upcoming_sessions"] = upcoming
         stats["completed_sessions"] = completed_sessions
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Could not load session stats: {e}")
 
     return stats
