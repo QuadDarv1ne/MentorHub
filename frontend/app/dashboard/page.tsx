@@ -108,7 +108,6 @@ export default function DashboardPage() {
           setCoursesError(null)
         })
         .catch(err => {
-          console.error('Failed to fetch courses:', err)
           setCoursesError('Не удалось загрузить курсы. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setCoursesData([
@@ -161,7 +160,6 @@ export default function DashboardPage() {
           setSessionsError(null);
         })
         .catch(err => {
-          console.error('Failed to fetch sessions:', err)
           setSessionsError('Не удалось загрузить сессии. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setUpcomingSessions([
@@ -180,7 +178,6 @@ export default function DashboardPage() {
           setAchievementsError(null)
         })
         .catch(err => {
-          console.error('Failed to fetch achievements:', err)
           setAchievementsError('Не удалось загрузить достижения. Пожалуйста, попробуйте позже.')
           // Fallback to mock data
           setAchievements([

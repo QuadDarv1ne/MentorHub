@@ -14,7 +14,7 @@ export default function GlobalError({
   return (
     <ErrorBoundary
       onError={() => {
-        console.error('Global error:', error)
+        // Error is automatically tracked by Sentry
       }}
     >
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center px-4">

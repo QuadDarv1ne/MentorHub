@@ -43,7 +43,6 @@ export default async function CourseDetail({ params }: { params: { id: string } 
     const data = await getCourseDetails(Number(params.id));
     courseData = data as CourseDetails;
   } catch (err) {
-    console.error("Ошибка при загрузке курса:", err);
     error = err instanceof Error ? err.message : "Произошла ошибка при загрузке курса";
   }
 
