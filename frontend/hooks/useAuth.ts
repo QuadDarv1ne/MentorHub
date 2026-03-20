@@ -234,7 +234,7 @@ export function useRole(requiredRoles: string[]): {
 /**
  * Hook для проверки владения ресурсом
  */
-export function useOwnership(resourceOwnerId: number | undefined): {
+export function useOwnership(resourceOwnerId: number | string | undefined): {
   isOwner: boolean;
   isAdmin: boolean;
   canEdit: boolean;
@@ -242,7 +242,10 @@ export function useOwnership(resourceOwnerId: number | undefined): {
 } {
   const { user, loading } = useOptionalAuth();
 
-  const isOwner = user ? user.id === resourceOwnerId : false;
+  // Сравнение как строки для универсальности
+  const isOwner = user && resourceOwnerId !== undefined 
+    ? String(user.id) === String(resourceOwnerId) 
+    : false;
   const isAdmin = user ? user.role === 'admin' : false;
   const canEdit = isOwner || isAdmin;
 
