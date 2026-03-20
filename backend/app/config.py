@@ -72,18 +72,22 @@ class Settings(BaseSettings):
     _is_cloud = _is_docker or _is_render or _is_railway or _is_fly
 
     # Cloud providers set DATABASE_URL directly - always use it if available
-    _default_db_host = "postgres" if _is_cloud and not _is_render else "localhost"
+    _default_db_host = "pgbouncer" if _is_docker else ("postgres" if _is_cloud and not _is_render else "localhost")
     _default_redis_host = "redis" if _is_cloud else "localhost"
 
     # Priority: DATABASE_URL env var > cloud default > local default
+    # In Docker production, use PgBouncer by default for connection pooling
     DATABASE_URL: str = os.environ.get("DATABASE_URL") or f"postgresql://mentorhub_user:password@{_default_db_host}/mentorhub"
     DB_ECHO: bool = False
-    # Optimized pool settings for production
+    # Optimized pool settings for production with PgBouncer
+    # PgBouncer handles connection pooling, so we use smaller pool sizes
     # Render Starter: 2GB RAM, 1 CPU
-    DB_POOL_SIZE: int = int(os.environ.get("DB_POOL_SIZE", "10"))  # Reduced from 20
-    DB_MAX_OVERFLOW: int = int(os.environ.get("DB_MAX_OVERFLOW", "20"))  # Reduced from 40
+    DB_POOL_SIZE: int = int(os.environ.get("DB_POOL_SIZE", "5"))  # Reduced for PgBouncer (transaction pooling)
+    DB_MAX_OVERFLOW: int = int(os.environ.get("DB_MAX_OVERFLOW", "10"))  # Reduced for PgBouncer
     DB_POOL_RECYCLE: int = 1800  # Recycle connections after 30 minutes
     DB_POOL_TIMEOUT: int = 30  # Timeout waiting for connection from pool
+    # PgBouncer-specific settings
+    DB_CONNECT_TIMEOUT: int = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
 
     # ==================== REDIS ====================
     REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:6379/0")

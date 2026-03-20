@@ -132,6 +132,52 @@ groups:
       summary: "Redis low cache hit rate"
       description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 80%)"
 
+  # PgBouncer Alerts
+  - alert: PgBouncerDown
+    expr: up{job="pgbouncer"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "PgBouncer is down"
+      description: "PgBouncer instance {{ $labels.instance }} is not responding"
+
+  - alert: PgBouncerHighClientUsage
+    expr: pgbouncer_stats_cl_waiting / pgbouncer_stats_max_client_conn > 0.8
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PgBouncer high client connection usage"
+      description: "Client connection usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+  - alert: PgBouncerHighServerUsage
+    expr: pgbouncer_stats_sv_active / pgbouncer_stats_max_server_conn > 0.9
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PgBouncer high server connection usage"
+      description: "Server connection usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+  - alert: PgBouncerHighWaitingClients
+    expr: pgbouncer_stats_cl_waiting > 50
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PgBouncer high waiting clients"
+      description: "Waiting clients: {{ $value }} (threshold: 50)"
+
+  - alert: PgBouncerHighAvgXactTime
+    expr: pgbouncer_stats_avg_xact_time > 1000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "PgBouncer high average transaction time"
+      description: "Average transaction time is {{ $value }}ms (threshold: 1000ms)"
+
   # Application Alerts
   - alert: HighAuthFailureRate
     expr: rate(mentorhub_auth_failures_total[5m]) > 10
