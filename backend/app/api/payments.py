@@ -46,7 +46,12 @@ async def get_payment(
     payment_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить информацию о платеже по ID"""
-    payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    # Используем joinedload для избежания N+1 проблемы
+    payment = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).filter(DBPayment.id == payment_id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Платеж не найден")
     return payment
@@ -298,8 +303,14 @@ async def get_payment_history(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db), skip: int = 0, limit: int = 20
 ):
     """Получить историю платежей текущего пользователя"""
+    # Используем joinedload для избежания N+1 проблемы
     payments = (
         db.query(DBPayment)
+        .options(
+            joinedload(DBPayment.student),
+            joinedload(DBPayment.mentor),
+            joinedload(DBPayment.session)
+        )
         .filter(DBPayment.student_id == current_user.id)
         .order_by(DBPayment.created_at.desc())
         .offset(skip)
