@@ -85,11 +85,21 @@ def run_migrations_online() -> None:
     и связать соединение с контекстом.
 
     """
-    # Используем SQLite in-memory для генерации миграций без подключения к PostgreSQL
-    connectable = create_engine("sqlite:///:memory:", echo=False)
+    # Создаем Engine из URL базы данных
+    connectable = create_engine(
+        config.get_main_option("sqlalchemy.url"),
+        poolclass=pool.NullPool,  # Не используем пул для миграций
+        echo=settings.DEBUG,  # Логирование SQL только в debug режиме
+    )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=True,  # Включаем batch mode для SQLite
+            compare_type=True,  # Сравниваем типы колонок
+            compare_server_default=True,  # Сравниваем значения по умолчанию
+        )
 
         with context.begin_transaction():
             context.run_migrations()

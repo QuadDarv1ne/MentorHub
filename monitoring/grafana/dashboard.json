@@ -470,6 +470,170 @@
             "legendFormat": "Pool Size"
           }
         ]
+      },
+      {
+        "id": 21,
+        "type": "stat",
+        "title": "PgBouncer Status",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 60
+        },
+        "targets": [
+          {
+            "expr": "up{job=\"pgbouncer\"}",
+            "legendFormat": "PgBouncer"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "0": {"color": "red", "text": "DOWN"},
+                  "1": {"color": "green", "text": "UP"}
+                },
+                "type": "value"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": 22,
+        "type": "gauge",
+        "title": "PgBouncer Client Usage",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 60
+        },
+        "targets": [
+          {
+            "expr": "pgbouncer_stats_cl_waiting / pgbouncer_stats_max_client_conn * 100",
+            "legendFormat": "Client Usage %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "red", "value": 80}
+              ]
+            },
+            "max": 100,
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 23,
+        "type": "gauge",
+        "title": "PgBouncer Server Usage",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 60
+        },
+        "targets": [
+          {
+            "expr": "pgbouncer_stats_sv_active / pgbouncer_stats_max_server_conn * 100",
+            "legendFormat": "Server Usage %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            },
+            "max": 100,
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 24,
+        "type": "stat",
+        "title": "Waiting Clients",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 60
+        },
+        "targets": [
+          {
+            "expr": "pgbouncer_stats_cl_waiting",
+            "legendFormat": "Waiting"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 50}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 25,
+        "type": "timeseries",
+        "title": "PgBouncer Performance",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 64
+        },
+        "targets": [
+          {
+            "expr": "pgbouncer_stats_avg_xact_time",
+            "legendFormat": "Avg Transaction Time (ms)"
+          },
+          {
+            "expr": "rate(pgbouncer_stats_total_xact_count[5m])",
+            "legendFormat": "Transactions/sec"
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "type": "timeseries",
+        "title": "PgBouncer Connections",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 64
+        },
+        "targets": [
+          {
+            "expr": "pgbouncer_stats_cl_active",
+            "legendFormat": "Active Clients"
+          },
+          {
+            "expr": "pgbouncer_stats_cl_waiting",
+            "legendFormat": "Waiting Clients"
+          },
+          {
+            "expr": "pgbouncer_stats_sv_active",
+            "legendFormat": "Active Servers"
+          }
+        ]
       }
     ],
     "templating": {
