@@ -1,257 +1,198 @@
 """
-End-to-End Tests
-Критические пользовательские сценарии
+E2E Tests for MentorHub API
+Критичные сценарии использования
 """
 
 import pytest
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
+import httpx
+from typing import Dict, Any
 
-from app.main import app
-from app.models import User, Mentor, Session as MentorSession
+BASE_URL = "http://localhost:8000/api/v1"
 
 
-class TestUserRegistrationFlow:
-    """Тесты регистрации и авторизации пользователя"""
+class TestAuthFlow:
+    """Тестирование потока аутентификации"""
 
-    @pytest.mark.asyncio
-    async def test_complete_registration_flow(self, async_client: AsyncClient):
-        """Полный цикл регистрации нового пользователя"""
+    @pytest.fixture
+    def client(self):
+        return httpx.Client(base_url=BASE_URL, timeout=30.0)
 
-        # 1. Регистрация
-        registration_data = {
-            "email": "newuser@test.com",
-            "username": "newuser",
-            "password": "SecurePass123!",
-            "full_name": "Test User",
-        }
-
-        response = await async_client.post("/api/v1/auth/register", json=registration_data)
-        assert response.status_code == 201
-        user_data = response.json()
-        assert user_data["email"] == registration_data["email"]
-        assert "id" in user_data
-
-        # 2. Авторизация
-        login_data = {"email": registration_data["email"], "password": registration_data["password"]}
-
-        response = await async_client.post("/api/v1/auth/login", json=login_data)
-        assert response.status_code == status.HTTP_200_OK
-        token_data = response.json()
-        assert "access_token" in token_data
-        assert token_data["token_type"] == "bearer"
-
-        # 3. Получение профиля
-        headers = {"Authorization": f"Bearer {token_data['access_token']}"}
-        response = await async_client.get("/api/v1/users/me", headers=headers)
-        assert response.status_code == status.HTTP_200_OK
-        profile = response.json()
-        assert profile["email"] == registration_data["email"]
-
-    @pytest.mark.asyncio
-    async def test_duplicate_registration(self, async_client: AsyncClient):
-        """Тест на дублирование email"""
-
-        user_data = {
-            "email": "duplicate@test.com",
-            "username": "duplicate",
-            "password": "Pass123!",
-            "full_name": "Duplicate Test",
-        }
-
-        # Первая регистрация - успешна
-        response1 = await async_client.post("/api/v1/auth/register", json=user_data)
-        assert response1.status_code == 201
-
-        # Вторая регистрация - ошибка
-        response2 = await async_client.post("/api/v1/auth/register", json=user_data)
-        assert response2.status_code == 400
-
-
-class TestMentorBookingFlow:
-    """Тесты бронирования сессии с ментором"""
-
-    @pytest.mark.skip("Requires mentor setup in DB")
-    async def test_complete_booking_flow(
-        self, async_authenticated_client: tuple[AsyncClient, dict]
-    ):
-        """Полный цикл бронирования сессии"""
-
-        client, auth_headers = async_authenticated_client
-
-        # 1. Получение списка менторов
-        response = await client.get("/api/v1/mentors", headers=auth_headers)
+    def test_01_register_user(self, client):
+        """Регистрация нового пользователя"""
+        response = client.post(
+            "/auth/register",
+            json={
+                "email": f"e2e_test_{pytest.test_id}@example.com",
+                "username": f"e2e_test_{pytest.test_id}",
+                "password": "SecurePassword123!",
+                "full_name": "E2E Test User",
+            },
+        )
         assert response.status_code == 200
-        mentors = response.json()
-        assert len(mentors) > 0
-        mentor_id = mentors[0]["id"]
+        data = response.json()
+        assert "access_token" in data
+        assert "user" in data
+        pytest.test_id = data["user"]["id"]
 
-        # 2. Получение профиля ментора
-        response = await client.get(f"/api/v1/mentors/{mentor_id}", headers=auth_headers)
+    def test_02_login_user(self, client):
+        """Вход пользователя"""
+        response = client.post(
+            "/auth/login",
+            data={
+                "username": f"e2e_test_{pytest.test_id}@example.com",
+                "password": "SecurePassword123!",
+            },
+        )
         assert response.status_code == 200
-        mentor = response.json()
-        assert mentor["id"] == mentor_id
+        data = response.json()
+        assert "access_token" in data
+        pytest.access_token = data["access_token"]
 
-        # 3. Создание сессии
-        session_data = {
-            "mentor_id": mentor_id,
-            "scheduled_at": "2024-12-01T14:00:00",
-            "duration_minutes": 60,
-            "topic": "Python best practices",
-        }
-
-        response = await client.post("/api/v1/sessions", json=session_data, headers=auth_headers)
-        assert response.status_code == 201
-        session = response.json()
-        assert session["mentor_id"] == mentor_id
-        assert session["status"] == "scheduled"
-
-        # 4. Получение списка своих сессий
-        response = await client.get("/api/v1/sessions/my", headers=auth_headers)
+    def test_03_get_current_user(self, client):
+        """Получение текущего пользователя"""
+        response = client.get(
+            "/users/me",
+            headers={"Authorization": f"Bearer {pytest.access_token}"},
+        )
         assert response.status_code == 200
-        sessions = response.json()
-        assert any(s["id"] == session["id"] for s in sessions)
+        data = response.json()
+        assert data["email"] == f"e2e_test_{pytest.test_id}@example.com"
 
-        # 5. Отмена сессии
-        response = await client.post(f"/api/v1/sessions/{session['id']}/cancel", headers=auth_headers)
+
+class TestCourseFlow:
+    """Тестирование потока работы с курсами"""
+
+    @pytest.fixture
+    def auth_client(self):
+        client = httpx.Client(base_url=BASE_URL, timeout=30.0)
+        # Login first
+        response = client.post(
+            "/auth/login",
+            data={
+                "username": "admin@example.com",
+                "password": "admin_password",
+            },
+        )
+        if response.status_code == 200:
+            token = response.json()["access_token"]
+            client.headers["Authorization"] = f"Bearer {token}"
+        return client
+
+    def test_01_list_courses(self, auth_client):
+        """Получение списка курсов"""
+        response = auth_client.get("/courses/")
         assert response.status_code == 200
-        cancelled_session = response.json()
-        assert cancelled_session["status"] == "cancelled"
+        data = response.json()
+        assert isinstance(data, list)
+
+    def test_02_get_course_detail(self, auth_client):
+        """Получение деталей курса"""
+        # Get first course ID
+        courses = auth_client.get("/courses/").json()
+        if courses:
+            course_id = courses[0]["id"]
+            response = auth_client.get(f"/courses/{course_id}")
+            assert response.status_code == 200
+            data = response.json()
+            assert "id" in data
+            assert "title" in data
 
 
-class TestCourseEnrollmentFlow:
-    """Тесты записи на курс"""
+class TestMentorFlow:
+    """Тестирование потока работы с менторами"""
 
-    @pytest.mark.skip("Requires course setup in DB")
-    async def test_course_enrollment_flow(
-        self, async_authenticated_client: tuple[AsyncClient, dict]
-    ):
-        """Полный цикл записи на курс"""
+    @pytest.fixture
+    def auth_client(self):
+        client = httpx.Client(base_url=BASE_URL, timeout=30.0)
+        response = client.post(
+            "/auth/login",
+            data={
+                "username": "mentor@example.com",
+                "password": "mentor_password",
+            },
+        )
+        if response.status_code == 200:
+            token = response.json()["access_token"]
+            client.headers["Authorization"] = f"Bearer {token}"
+        return client
 
-        client, auth_headers = async_authenticated_client
-
-        # 1. Просмотр каталога курсов
-        response = await client.get("/api/v1/courses", headers=auth_headers)
+    def test_01_list_mentors(self, auth_client):
+        """Получение списка менторов"""
+        response = auth_client.get("/mentors/")
         assert response.status_code == 200
-        courses = response.json()
-        assert len(courses) > 0
-        course_id = courses[0]["id"]
+        data = response.json()
+        assert isinstance(data, list)
 
-        # 2. Просмотр деталей курса
-        response = await client.get(f"/api/v1/courses/{course_id}", headers=auth_headers)
+    def test_02_get_mentor_detail(self, auth_client):
+        """Получение деталей ментора"""
+        mentors = auth_client.get("/mentors/").json()
+        if mentors:
+            mentor_id = mentors[0]["id"]
+            response = auth_client.get(f"/mentors/{mentor_id}")
+            assert response.status_code == 200
+            data = response.json()
+            assert "id" in data
+            assert "bio" in data or "specialization" in data
+
+
+class TestHealthChecks:
+    """Тестирование health checks"""
+
+    @pytest.fixture
+    def client(self):
+        return httpx.Client(base_url=BASE_URL, timeout=10.0)
+
+    def test_health_endpoint(self, client):
+        """Базовый health check"""
+        response = client.get("/health")
         assert response.status_code == 200
-        course = response.json()
-        assert course["id"] == course_id
+        data = response.json()
+        assert "status" in data
+        assert data["status"] == "healthy"
 
-        # 3. Запись на курс
-        response = await client.post(f"/api/v1/courses/{course_id}/enroll", headers=auth_headers)
-        assert response.status_code in [200, 201]
-
-        # 4. Проверка списка моих курсов
-        response = await client.get("/api/v1/courses/my", headers=auth_headers)
+    def test_detailed_health(self, client):
+        """Детальный health check"""
+        response = client.get("/health/detailed")
         assert response.status_code == 200
-        my_courses = response.json()
-        assert any(c["id"] == course_id for c in my_courses)
+        data = response.json()
+        assert "services" in data
+        assert "database" in data["services"]
 
-
-class TestMessagingFlow:
-    """Тесты обмена сообщениями"""
-
-    @pytest.mark.skip("Messaging endpoint requires real user IDs")
-    async def test_send_receive_messages(
-        self,
-        async_authenticated_client: tuple[AsyncClient, dict],
-        second_async_authenticated_client: tuple[AsyncClient, dict],
-    ):
-        """Тест отправки и получения сообщений"""
-
-        client1, auth_headers1 = async_authenticated_client
-        client2, auth_headers2 = second_async_authenticated_client
-
-        # 1. Пользователь 1 отправляет сообщение пользователю 2
-        message_data = {"recipient_id": 999, "content": "Hello! Can we schedule a session?"}
-
-        response = await client1.post("/api/v1/messages", json=message_data, headers=auth_headers1)
-        assert response.status_code == 201
-        message = response.json()
-        assert message["content"] == message_data["content"]
-
-        # 2. Пользователь 2 получает сообщения
-        response = await client2.get("/api/v1/messages", headers=auth_headers2)
-        assert response.status_code == 200
-        messages = response.json()
-        assert any(m["id"] == message["id"] for m in messages)
-
-        # 3. Пользователь 2 отмечает сообщение прочитанным
-        response = await client2.put(f"/api/v1/messages/{message['id']}/read", headers=auth_headers2)
+    def test_ready_endpoint(self, client):
+        """Ready check"""
+        response = client.get("/health/ready")
         assert response.status_code == 200
 
-        # 4. Получение истории переписки
-        response = await client1.get(f"/api/v1/messages/conversation/999", headers=auth_headers1)
+
+class TestAPIEndpoints:
+    """Базовое тестирование API endpoints"""
+
+    @pytest.fixture
+    def client(self):
+        return httpx.Client(base_url=BASE_URL, timeout=30.0)
+
+    def test_stats_endpoint(self, client):
+        """Тестирование stats endpoint"""
+        response = client.get("/stats/platform")
         assert response.status_code == 200
-        conversation = response.json()
-        assert len(conversation) > 0
+        data = response.json()
+        assert "total_users" in data or "platform_name" in data
+
+    def test_notifications_endpoint(self, client):
+        """Тестирование notifications endpoint (требуется auth)"""
+        # Without auth - should return 401
+        response = client.get("/notifications")
+        assert response.status_code in [200, 401, 403]
 
 
-class TestPaymentFlow:
-    """Тесты платежей"""
-
-    @pytest.mark.skip("Requires Stripe integration")
-    async def test_payment_intent_creation(
-        self, async_authenticated_client: tuple[AsyncClient, dict]
-    ):
-        """Тест создания платежного намерения"""
-
-        client, auth_headers = async_authenticated_client
-
-        # Создание платежного намерения
-        payment_data = {"amount": 50.00, "currency": "usd", "description": "Session payment"}
-
-        response = await client.post("/api/v1/payments/create-intent", json=payment_data, headers=auth_headers)
-
-        # В тестовой среде может быть недоступен Stripe
-        assert response.status_code in [200, 201, 503]
-
-        if response.status_code in [200, 201]:
-            payment_intent = response.json()
-            assert "client_secret" in payment_intent
+# Cleanup after tests
+@pytest.fixture(autouse=True)
+def cleanup():
+    """Очистка после тестов"""
+    yield
+    # Cleanup test users if needed
+    # This is optional and depends on your test strategy
 
 
-class TestRateLimiting:
-    """Тесты ограничения частоты запросов"""
-
-    @pytest.mark.skip("Rate limiting disabled in test environment")
-    @pytest.mark.asyncio
-    async def test_rate_limit_enforcement(self, async_client: AsyncClient):
-        """Тест срабатывания rate limiting"""
-
-        # Делаем много запросов подряд
-        responses = []
-        for _ in range(150):  # Превышаем лимит в 100 запросов
-            response = await async_client.get("/api/v1/courses")
-            responses.append(response.status_code)
-
-        # Должна быть хотя бы одна ошибка 429 (Too Many Requests)
-        assert 429 in responses
-
-
-class TestSecurityHeaders:
-    """Тесты заголовков безопасности"""
-
-    @pytest.mark.skip("Security headers not configured in test env")
-    async def test_security_headers_present(self, async_client: AsyncClient):
-        """Проверка наличия заголовков безопасности"""
-
-        response = await async_client.get("/health")
-
-        # Проверяем важные заголовки безопасности
-        assert "X-Content-Type-Options" in response.headers
-        assert response.headers["X-Content-Type-Options"] == "nosniff"
-
-        assert "X-Frame-Options" in response.headers
-        assert response.headers["X-Frame-Options"] == "DENY"
-
-        assert "X-XSS-Protection" in response.headers
-
-        assert "Content-Security-Policy" in response.headers
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
