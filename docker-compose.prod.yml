@@ -192,6 +192,13 @@ services:
           cpus: '1'
           memory: 1G
       replicas: 3
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
 
   # Celery Worker
   celery_worker:
@@ -231,6 +238,13 @@ services:
         reservations:
           cpus: '1'
           memory: 512M
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
 
   # Celery Beat (Scheduler)
   celery_beat:
