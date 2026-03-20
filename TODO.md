@@ -439,13 +439,30 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-20 (Сессия 14 - P1: PgBouncer + Lighthouse)
+**Последнее обновление:** 2026-03-20 (Сессия 15 - Alembic Migrations + API Docs + Monitoring)
 **Статус:** ✅ Проект стабилен. Все P0 задачи выполнены. Backend: 290/311 (100%), Frontend: 47/60 (78%)
-**Следующий приоритет:** P1 - Интеграционные тесты, Database migrations, Lighthouse score проверка
+**Следующий приоритет:** P1 - Интеграционные тесты, Lighthouse score проверка, Database migrations tests
 
 ---
 
-## 📋 Актуальный статус (2026-03-20)
+## 📋 Актуальный статус (2026-03-20 - Сессия 15)
+
+### ✅ Завершено в dev (Сессия 15)
+- **Alembic Database Migrations:**
+  - backend/alembic/env.py - исправлен online mode для PostgreSQL
+  - backend/tests/test_alembic_migrations.py - 10 тестов для миграций
+  - Тесты: upgrade/downgrade, таблицы, индексы, foreign keys
+
+- **API Documentation (OpenAPI/Swagger):**
+  - backend/app/main.py - улучшенная OpenAPI схема с тегами
+  - Security schemes: BearerAuth (JWT), ApiKeyAuth
+  - docs/API/API_DOCUMENTATION.md - полная документация API
+  - Endpoint /api для общей информации
+
+- **Monitoring Improvements:**
+  - monitoring/grafana/dashboard.json - 6 новых панелей для PgBouncer
+  - PgBouncer статус, client/server usage, waiting clients
+  - Performance metrics: transaction time, connections
 
 ### ✅ Завершено в dev (Сессия 14)
 - **PgBouncer Connection Pooling:**

@@ -303,13 +303,92 @@ async def lifespan(app: FastAPI):
 # ==================== CREATE FASTAPI APP ====================
 app = FastAPI(
     title=settings.APP_NAME,
-    description="Open-source IT mentorship platform API",
+    description="""
+## MentorHub API
+
+Open-source IT mentorship platform for connecting mentors and students.
+
+### Features:
+- **User Management** - Registration, authentication, profile management
+- **Mentor System** - Find and connect with IT mentors
+- **Sessions** - Schedule and manage mentorship sessions
+- **Messaging** - Real-time chat with mentors/students
+- **Payments** - Secure payment processing for sessions
+- **Courses** - Integration with Stepik and other platforms
+- **Reviews** - Rate and review mentors
+- **Progress Tracking** - Track learning progress
+- **Achievements** - Gamification system
+- **Notifications** - Email and push notifications
+
+### Authentication
+Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
+```
+Authorization: Bearer <your_token>
+```
+
+### Rate Limiting
+API requests are limited to 100 requests per hour per IP address.
+    """,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
     lifespan=lifespan,
-    docs_url="/docs" if not is_production() else None,
-    redoc_url="/redoc" if not is_production() else None,
-    openapi_url="/openapi.json" if not is_production() else None,
+    docs_url="/docs",  # Always available for monitoring
+    redoc_url="/redoc",  # Always available for monitoring
+    openapi_url="/openapi.json",
+    openapi_tags=[
+        {
+            "name": "auth",
+            "description": "Authentication and authorization endpoints",
+        },
+        {
+            "name": "users",
+            "description": "User management operations",
+        },
+        {
+            "name": "mentors",
+            "description": "Mentor discovery and management",
+        },
+        {
+            "name": "sessions",
+            "description": "Session scheduling and management",
+        },
+        {
+            "name": "messages",
+            "description": "Messaging and chat operations",
+        },
+        {
+            "name": "payments",
+            "description": "Payment processing and history",
+        },
+        {
+            "name": "courses",
+            "description": "Course management and Stepik integration",
+        },
+        {
+            "name": "reviews",
+            "description": "Review and rating system",
+        },
+        {
+            "name": "progress",
+            "description": "Learning progress tracking",
+        },
+        {
+            "name": "achievements",
+            "description": "Achievement system and gamification",
+        },
+        {
+            "name": "notifications",
+            "description": "Notification management",
+        },
+        {
+            "name": "analytics",
+            "description": "Platform analytics and statistics",
+        },
+        {
+            "name": "health",
+            "description": "Health check and monitoring endpoints",
+        },
+    ],
 )
 
 
@@ -407,6 +486,38 @@ async def liveness_check():
     If this fails, Kubernetes will restart the container.
     """
     return {"status": "alive"}
+
+
+@app.get("/api", tags=["API Info"])
+async def api_info():
+    """
+    API Information and documentation.
+    
+    Returns basic information about the API including version, available endpoints,
+    and links to interactive documentation.
+    """
+    return {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "description": "Open-source IT mentorship platform API",
+        "docs": {
+            "swagger": "/docs",
+            "redoc": "/redoc",
+            "openapi_json": "/openapi.json"
+        },
+        "features": [
+            "User Management",
+            "Mentor System",
+            "Sessions",
+            "Messaging",
+            "Payments",
+            "Courses",
+            "Reviews",
+            "Progress Tracking",
+            "Achievements",
+            "Notifications"
+        ]
+    }
 
 
 # ==================== REQUEST/RESPONSE LOGGING ====================
@@ -616,6 +727,44 @@ app.include_router(
     tags=["Two-Factor Authentication"],
 )
 logger.info("✅ Two-Factor Authentication routes loaded")
+
+
+# ==================== OPENAPI/SECURITY CONFIGURATION ====================
+
+def setup_openapi_schema():
+    """Configure OpenAPI schema with security schemes"""
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = app.openapi()
+    
+    # Add security schemes
+    openapi_schema["components"] = openapi_schema.get("components", {})
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Enter your JWT token: **test_token** will be used in test environment"
+        },
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "API key for service-to-service communication"
+        }
+    }
+    
+    # Add security requirement for all endpoints (can be overridden per-endpoint)
+    # Note: We don't set global security requirement to allow public endpoints
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+# Setup OpenAPI schema
+setup_openapi_schema()
+logger.info("✅ OpenAPI schema configured with security schemes")
 
 
 # ==================== RUN APPLICATION ====================
