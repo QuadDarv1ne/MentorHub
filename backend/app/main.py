@@ -51,6 +51,7 @@ from app.api import (
     analytics,
     push_notifications,
     two_factor,
+    export,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -727,6 +728,14 @@ app.include_router(
     tags=["Two-Factor Authentication"],
 )
 logger.info("✅ Two-Factor Authentication routes loaded")
+
+# Data Export routes (GDPR compliance)
+app.include_router(
+    export.router,
+    prefix=f"{api_prefix}",
+    tags=["Data Export"],
+)
+logger.info("✅ Data Export routes loaded")
 
 
 # ==================== OPENAPI/SECURITY CONFIGURATION ====================
