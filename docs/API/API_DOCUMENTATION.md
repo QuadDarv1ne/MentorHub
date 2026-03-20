@@ -217,6 +217,33 @@ Authorization: Bearer <refresh_token>
 | GET | `/metrics` | Prometheus metrics |
 | GET | `/api` | API information |
 
+### Data Export (GDPR)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/export/data?format=json\|csv` | Export all user data |
+| GET | `/api/export/data/summary` | Get data summary statistics |
+
+**Export Data Response (JSON):**
+```json
+{
+  "export_date": "2026-03-20T12:00:00Z",
+  "user": {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "role": "student"
+  },
+  "sessions": [...],
+  "payments": [...],
+  "reviews": [...],
+  "progress": [...],
+  "achievements": [...],
+  "messages": [...],
+  "enrollments": [...]
+}
+```
+
 ## Error Responses
 
 ### Standard Error Format
