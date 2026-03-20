@@ -439,13 +439,32 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-20 (Сессия 15 - Alembic Migrations + API Docs + Monitoring)
+**Последнее обновление:** 2026-03-20 (Сессия 16 - Pydantic V2 + Frontend Tests Fix)
 **Статус:** ✅ Проект стабилен. Все P0 задачи выполнены. Backend: 290/311 (100%), Frontend: 47/60 (78%)
 **Следующий приоритет:** P1 - Интеграционные тесты, Lighthouse score проверка, Database migrations tests
 
 ---
 
-## 📋 Актуальный статус (2026-03-20 - Сессия 15)
+## 📋 Актуальный статус (2026-03-20 - Сессия 16)
+
+### ✅ Завершено в dev (Сессия 16)
+- **Pydantic V2 Migration:**
+  - review.py, progress.py, achievement.py, notifications.py: ConfigDict вместо class Config
+  - Устранены PydanticDeprecatedSince20 warnings
+
+- **SQLAlchemy 2.0 Update:**
+  - database.py: Новый declarative_base() из sqlalchemy.orm
+  - Устранён MovedIn20Warning
+
+- **Frontend Tests Fix:**
+  - Avatar.test.tsx: Обновлены тесты
+  - ResponsiveImage.test.tsx: Исправлен импорт
+  - StepikCourseCard.test.tsx: Исправлены матчеры
+  - types/jest.d.ts: Добавлены типы Jest
+  - Build: ✓ Успешно
+
+- **Alembic Support:**
+  - requirements-dev.txt: добавлен alembic>=1.13.0
 
 ### ✅ Завершено в dev (Сессия 15)
 - **Alembic Database Migrations:**

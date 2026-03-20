@@ -225,12 +225,6 @@ def analyze_query_performance(db, query_func, *args, **kwargs):
     result = query_func(db, *args, **kwargs)
     end_time = time.time()
 
-    # Debug output (commented out for production)
-    # print(f"⏱️  Execution time: {end_time - start_time:.4f}s")
-    # print(f"📊 Queries executed: {len(queries_executed)}")
-    # for i, query in enumerate(queries_executed, 1):
-    #     print(f"   {i}. {query[:100]}...")
-
     return result, queries_executed, end_time - start_time
 
 
