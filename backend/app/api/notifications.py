@@ -13,7 +13,7 @@ from sqlalchemy import desc
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.notification import Notification, NotificationType
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
 
@@ -30,6 +30,8 @@ class NotificationCreate(BaseModel):
 
 class NotificationResponse(BaseModel):
     """Ответ с уведомлением"""
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     type: str
     title: str
@@ -39,9 +41,6 @@ class NotificationResponse(BaseModel):
     is_read: bool
     read_at: Optional[int] = None
     created_at: int
-    
-    class Config:
-        from_attributes = True
 
 
 class NotificationListResponse(BaseModel):

@@ -8,6 +8,9 @@ pytest-cov>=4.1.0
 coverage>=7.0.0
 pytest-httpx>=0.30.0
 
+# Database Migrations
+alembic>=1.13.0
+
 # Code Quality
 black>=24.0.0
 flake8>=7.0.0
