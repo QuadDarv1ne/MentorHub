@@ -3,7 +3,7 @@ Pydantic схемы для прогресса пользователей
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, conint
+from pydantic import BaseModel, Field, conint, ConfigDict
 from typing import Optional
 
 
@@ -15,6 +15,8 @@ class ProgressCreate(BaseModel):
 
 
 class ProgressRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     user_id: int
     course_id: int
@@ -23,9 +25,6 @@ class ProgressRead(BaseModel):
     completed: bool
     created_at: datetime
     updated_at: Optional[datetime]
-
-    class Config:
-        from_attributes = True
 
 
 class ProgressAggregate(BaseModel):
