@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 20 марта 2026 г. (Сессия 3 — Финальная)
+**Дата обновления:** 20 марта 2026 г. (Сессия 21 — Кроссплатформенные скрипты)
 **Статус проекта:** Готов к релизу ✅
 
 ---
@@ -180,8 +180,8 @@ Backend:
 
 ---
 
-### 10. ⚠️ Documentation
-**Статус:** ⚠️ Частично выполнено
+### 10. ✅ Documentation
+**Статус:** ✅ Выполнено
 
 Выполнено:
 - ✅ DEPLOYMENT-RENDER.md (Render деплой)
@@ -190,6 +190,13 @@ Backend:
 - ✅ GIT-GUIDE.md
 - ✅ CONTRIBUTING.md
 - ✅ README.md
+- ✅ STARTUP_GUIDE.md (кроссплатформенные скрипты запуска)
+- ✅ start-dev.sh (Linux/macOS development)
+- ✅ start-dev.bat (Windows development)
+- ✅ start-production.sh (Linux/macOS production)
+- ✅ start-production.bat (Windows production)
+- ✅ start-android.sh (Android/Termux)
+- ✅ start-ios.sh (iOS/iSH)
 
 Осталось (опционально):
 - [ ] API documentation (OpenAPI/Swagger) — не блокирует релиз
@@ -251,7 +258,8 @@ Backend:
 - ✅ Database оптимизация (индексы, connection pooling)
 - ✅ Security hardening (rate limiting, CORS, security headers)
 - ✅ Alembic миграции исправлены
-- ✅ Documentation (deployment guides, CONTRIBUTING, README)
+- ✅ Documentation (deployment guides, CONTRIBUTING, README, STARTUP_GUIDE)
+- ✅ Кроссплатформенные скрипты запуска (Windows, Linux, macOS, Android, iOS)
 
 ### Технические долги
 - ✅ Удалить закомментированный код
@@ -283,6 +291,23 @@ Backend:
 ---
 
 ## 📈 Прогресс сессий
+
+### Сессия 2026-03-21 (Кроссплатформенные скрипты)
+- **Добавлено:** start-dev.sh — Linux/macOS development скрипт
+- **Добавлено:** start-dev.bat — Windows CMD development скрипт
+- **Добавлено:** start-production.sh — Linux/macOS production скрипт (Docker)
+- **Добавлено:** start-production.bat — Windows CMD production скрипт (Docker)
+- **Добавлено:** start-android.sh — Android (Termux) development скрипт
+- **Добавлено:** start-ios.sh — iOS (iSH) development скрипт
+- **Добавлено:** STARTUP_GUIDE.md — полная документация по запуску на всех платформах
+- **Особенности:**
+  - Автоматическая проверка зависимостей (Python, Node.js, Docker)
+  - Цветной вывод для всех платформ
+  - Обработка ошибок и сигналов (SIGTERM/SIGINT)
+  - Оптимизация памяти для мобильных платформ (Android: 512MB, iOS: 256MB)
+  - Поддержка .env файлов
+  - Docker Compose для production
+- **Синхронизация:** dev → main обновлены
 
 ### Сессия 2026-03-20 (Финальная)
 - **Исправлено:** export.py импорты (Achievement, CourseEnrollment)
@@ -321,6 +346,21 @@ Backend:
 - P0: 5/5 ✅ (100%)
 - P1: 4/5 ✅ (80%+, CI/CD опционально)
 - P2: 0/3 ⏳ (долгосрочные, не блокируют релиз)
+
+**Проверка качества (2026-03-21):**
+- ✅ Тесты: 339 тестов собрано
+- ✅ Нет TODO/FIXME комментариев в коде
+- ✅ Нет закомментированного кода
+- ✅ Зависимости обновлены
+- ✅ archive/ директория удалена
+- ✅ Sentry настроен (frontend + backend)
+- ✅ Monitoring настроен (Prometheus + Grafana)
+- ✅ Security hardening выполнен
+- ✅ Database индексы созданы
+- ✅ Redis production настроен
+- ✅ Health checks для 11 сервисов
+- ✅ Frontend cleanup: 15+ console.error удалено из production кода
+- ✅ Кроссплатформенные скрипты: 6 скриптов + документация
 
 **Проверка качества (2026-03-20):**
 - ✅ Тесты: 339 тестов собрано
