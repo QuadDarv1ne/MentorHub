@@ -6,7 +6,7 @@ User Data Export API
 import json
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session, joinedload
@@ -21,6 +21,7 @@ from app.models.progress import Progress
 from app.models.achievement import UserAchievement
 from app.models.message import Message
 from app.models.course_enrollment import CourseEnrollment
+from app.utils.cache import cached
 
 router = APIRouter(prefix="/export", tags=["Data Export"])
 
@@ -252,6 +253,7 @@ def _export_as_csv(data: dict) -> StreamingResponse:
 
 
 @router.get("/data/summary", summary="Краткая статистика данных пользователя")
+@cached(timeout=300)  # Кэшируем на 5 минут
 async def get_data_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
