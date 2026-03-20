@@ -12,7 +12,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Error:', error)
+    // Error is automatically tracked by Sentry
   }, [error])
 
   const errorType = error?.message?.includes('NetworkError') || error?.message?.includes('Failed to fetch')

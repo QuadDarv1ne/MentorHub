@@ -18,9 +18,9 @@ from app.models.session import Session as SessionModel
 from app.models.payment import Payment
 from app.models.review import Review
 from app.models.progress import Progress
-from app.models.achievement import UserAchievement
+from app.models.achievement import Achievement
 from app.models.message import Message
-from app.models.course_enrollment import CourseEnrollment
+from app.models.course import Course, CourseEnrollment
 from app.utils.cache import cached
 
 router = APIRouter(prefix="/export", tags=["Data Export"])
@@ -145,7 +145,7 @@ async def export_user_data(
         })
     
     # Достижения
-    achievements_query = select(UserAchievement).where(UserAchievement.user_id == current_user.id)
+    achievements_query = select(Achievement).where(Achievement.user_id == current_user.id)
     achievements = db.execute(achievements_query).scalars().all()
     
     for achievement in achievements:
@@ -253,7 +253,7 @@ def _export_as_csv(data: dict) -> StreamingResponse:
 
 
 @router.get("/data/summary", summary="Краткая статистика данных пользователя")
-@cached(timeout=300)  # Кэшируем на 5 минут
+@cached(ttl=300)  # Кэшируем на 5 минут
 async def get_data_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -286,7 +286,7 @@ async def get_data_summary(
     ).scalars().count()
     
     achievements_count = db.execute(
-        select(UserAchievement).where(UserAchievement.user_id == current_user.id)
+        select(Achievement).where(Achievement.user_id == current_user.id)
     ).scalars().count()
     
     messages_count = db.execute(

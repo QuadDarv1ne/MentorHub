@@ -1,7 +1,7 @@
 """create reviews table
 
 Revision ID: 4a3b2c1d5e6f
-Revises: 2927c32a42be
+Revises: 001
 Create Date: 2025-11-02 14:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "4a3b2c1d5e6f"
-down_revision = "2927c32a42be"
+down_revision = "001"
 branch_labels = None
 depends_on = None
 

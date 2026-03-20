@@ -24,7 +24,6 @@ export default function CoursesPage() {
         setCourses(data)
         setLoading(false)
       } catch (err) {
-        console.error('Failed to fetch courses:', err)
         setError('Не удалось загрузить курсы. Пожалуйста, попробуйте позже.')
         setLoading(false)
       }

@@ -2,11 +2,13 @@
 Tests for Data Export API
 """
 
+import os
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.database import get_db
 from app.models.user import User, UserRole
+from app.utils.security import get_password_hash
 import json
 
 client = TestClient(app)
@@ -15,10 +17,14 @@ client = TestClient(app)
 @pytest.fixture
 def test_user(db_session):
     """Create test user"""
+    # Clean up any existing test users first
+    db_session.query(User).filter(User.username.like("export_test_user%")).delete()
+    db_session.commit()
+    
     user = User(
-        username="export_test_user",
-        email="export_test@example.com",
-        password_hash="hashed_password",
+        username=f"export_test_user_{os.urandom(4).hex()}",
+        email=f"export_test_{os.urandom(4).hex()}@example.com",
+        hashed_password=get_password_hash("password"),
         role=UserRole.STUDENT,
         is_active=True,
     )
@@ -34,7 +40,7 @@ def auth_headers(test_user):
     # Get token
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "export_test_user", "password": "password"}
+        json={"username": test_user.username, "password": "password"}
     )
     # For testing, we'll use a mock approach
     return {"Authorization": "Bearer test_token"}
@@ -146,14 +152,14 @@ class TestDataExportAPI:
         """Test that users can only export their own data"""
         # Create second user
         user2 = User(
-            username="export_test_user2",
-            email="export_test2@example.com",
-            password_hash="hashed_password",
+            username=f"export_test_user2_{os.urandom(4).hex()}",
+            email=f"export_test2_{os.urandom(4).hex()}@example.com",
+            hashed_password=get_password_hash("password"),
             role=UserRole.STUDENT,
         )
         db_session.add(user2)
         db_session.commit()
-        
+
         # First user should not be able to export user2's data
         # Would need proper authentication setup
         pass

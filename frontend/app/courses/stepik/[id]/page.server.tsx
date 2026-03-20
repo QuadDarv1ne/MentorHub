@@ -22,7 +22,6 @@ async function getCourseData(id: string) {
       error: null,
     };
   } catch (error) {
-    console.error("Ошибка при загрузке курса:", error);
     return {
       course: null,
       error: error instanceof Error ? error.message : "Произошла ошибка при загрузке курса",

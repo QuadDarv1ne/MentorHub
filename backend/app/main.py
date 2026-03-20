@@ -279,7 +279,7 @@ async def lifespan(app: FastAPI):
     # Close Redis connection if it exists
     if redis_client:
         try:
-            await redis_client.close()
+            await redis_client.aclose()
             logger.info("✅ Redis connection closed")
         except Exception as e:
             logger.error(f"❌ Error closing Redis connection: {e}")

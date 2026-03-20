@@ -100,7 +100,6 @@ export default function StepikCoursesPage() {
         setAllCourses(mappedCourses);
         setCourses(mappedCourses);
       } catch (err) {
-        console.error('Ошибка при загрузке курсов:', err);
         setError('Не удалось загрузить курсы. Попробуйте позже.');
       } finally {
         setLoading(false);

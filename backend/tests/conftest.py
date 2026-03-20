@@ -66,10 +66,10 @@ def db_session():
 
     try:
         yield session
-        session.commit()
     except Exception:
         session.rollback()
     finally:
+        session.rollback()  # Rollback instead of commit to preserve data for cleanup
         session.close()
 
 
