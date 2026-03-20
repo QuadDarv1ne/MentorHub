@@ -42,29 +42,52 @@ def _create_engine_for_sqlite():
 
 
 def _create_engine_for_postgresql():
-    """Create engine for PostgreSQL with pgbouncer support"""
-    pgbouncer_url = (
-        settings.REDIS_URL.replace("redis://", "postgresql://").replace(":6379", ":6432")
-        if getattr(settings, "PGBOUNCER_ENABLED", False)
-        else None
-    )
-    db_url = pgbouncer_url if pgbouncer_url else settings.DATABASE_URL
-
-    return create_engine(
-        db_url,
-        poolclass=QueuePool,
-        pool_size=settings.DB_POOL_SIZE,
-        max_overflow=settings.DB_MAX_OVERFLOW,
-        pool_pre_ping=True,
-        pool_recycle=settings.DB_POOL_RECYCLE,
-        pool_timeout=settings.DB_POOL_TIMEOUT,
-        echo=settings.DB_ECHO,
-        connect_args={
-            "connect_timeout": 10,
-            "application_name": "mentorhub",
-            "options": "-c statement_timeout=30000",
-        },
-    )
+    """Create engine for PostgreSQL with PgBouncer connection pooling support"""
+    # PgBouncer is used in Docker production environment
+    # The DATABASE_URL should already point to pgbouncer:6432 in production
+    db_url = settings.DATABASE_URL
+    
+    # Detect if using PgBouncer based on host or port
+    is_pgbouncer = "pgbouncer" in db_url.lower() or ":6432" in db_url
+    
+    if is_pgbouncer:
+        # PgBouncer transaction pooling mode - use smaller pool
+        # PgBouncer handles connection multiplexing
+        logger.info("🔄 PgBouncer detected - using optimized pool settings")
+        return create_engine(
+            db_url,
+            poolclass=QueuePool,
+            pool_size=settings.DB_POOL_SIZE,  # 5 in production with PgBouncer
+            max_overflow=settings.DB_MAX_OVERFLOW,  # 10 in production with PgBouncer
+            pool_pre_ping=True,  # Health check before using connection
+            pool_recycle=settings.DB_POOL_RECYCLE,  # 30 minutes
+            pool_timeout=settings.DB_POOL_TIMEOUT,  # 30 seconds
+            echo=settings.DB_ECHO,
+            connect_args={
+                "connect_timeout": settings.DB_CONNECT_TIMEOUT,
+                "application_name": "mentorhub",
+                "options": "-c statement_timeout=30000",  # 30s statement timeout
+            },
+        )
+    else:
+        # Direct PostgreSQL connection (development/testing)
+        # Use larger pool since no connection multiplexer
+        logger.info("📡 Direct PostgreSQL connection - using standard pool settings")
+        return create_engine(
+            db_url,
+            poolclass=QueuePool,
+            pool_size=20,  # Larger pool for direct connections
+            max_overflow=40,
+            pool_pre_ping=True,
+            pool_recycle=settings.DB_POOL_RECYCLE,
+            pool_timeout=settings.DB_POOL_TIMEOUT,
+            echo=settings.DB_ECHO,
+            connect_args={
+                "connect_timeout": 10,
+                "application_name": "mentorhub",
+                "options": "-c statement_timeout=30000",
+            },
+        )
 
 
 # Create engine based on environment

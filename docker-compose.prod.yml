@@ -380,6 +380,32 @@ services:
     networks:
       - mentorhub_network
 
+  # PgBouncer Exporter
+  pgbouncer_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: mentorhub_pgbouncer_exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}?sslmode=disable
+      - PG_EXPORTER_AUTO_DISCOVER_DATABASES=true
+      - PG_EXPORTER_INCLUDE_SYSTEM_DATABASES=false
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+    networks:
+      - mentorhub_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
 networks:
   mentorhub_network:
     driver: bridge

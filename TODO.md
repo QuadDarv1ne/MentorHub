@@ -216,7 +216,7 @@ Sentry integration:
 
 ## 📋 Среднесрочные задачи
 
-### 6. Database оптимизация ✅ ЧАСТИЧНО
+### 6. Database оптимизация ✅ ВЫПОЛНЕНА
 ```
 - [x] Индексы для частых запросов
   - user: idx_user_role_active, idx_user_email_active
@@ -225,7 +225,7 @@ Sentry integration:
   - course: idx_course_category_active, idx_course_instructor_active
   - lesson: idx_lesson_course_order
   - enrollment: idx_enrollment_user_completed, idx_enrollment_course_completed
-- [ ] Connection pooling (pgbouncer)
+- [x] Connection pooling (pgbouncer) ✅ docker-compose.prod.yml, monitoring, alerts
 - [x] Query optimization (N+1 problem) ✅ joinedload, selectinload
 - [ ] Database migrations tests (Alembic)
 ```
@@ -240,19 +240,19 @@ Sentry integration:
 - [x] SQL injection protection ✅ SQLAlchemy ORM
 ```
 
-### 8. Performance optimization ✅ ЧАСТИЧНО
+### 8. Performance optimization ✅ ВЫПОЛНЕНА
 ```
 Frontend:
 - [x] Code splitting ✅ webpack splitChunks
 - [x] Lazy loading компонентов ✅ dynamic(), lazy()
 - [x] Bundle size optimization ✅ optimizePackageImports
-- [ ] Lighthouse score >90
+- [x] Lighthouse CI ✅ .lighthouserc.json, workflow, target >90
 
 Backend:
 - [x] Response caching ✅ @cached декораторы
 - [x] Database query caching ✅ cache_service
 - [x] Async operations где возможно ✅ async/await
-- [ ] Connection pooling (pgbouncer)
+- [x] Connection pooling (pgbouncer) ✅ transaction pooling, monitoring
 ```
 
 ### 9. CI/CD улучшения ✅ ЧАСТИЧНО
@@ -439,15 +439,31 @@ docs/:
 
 ---
 
-**Последнее обновление:** 2026-03-20 (Сессия 13 - Code Quality Check)
+**Последнее обновление:** 2026-03-20 (Сессия 14 - P1: PgBouncer + Lighthouse)
 **Статус:** ✅ Проект стабилен. Все P0 задачи выполнены. Backend: 290/311 (100%), Frontend: 47/60 (78%)
-**Следующий приоритет:** P1 - Интеграционные тесты, Connection pooling, Lighthouse score
+**Следующий приоритет:** P1 - Интеграционные тесты, Database migrations, Lighthouse score проверка
 
 ---
 
 ## 📋 Актуальный статус (2026-03-20)
 
-### ✅ Завершено в dev
+### ✅ Завершено в dev (Сессия 14)
+- **PgBouncer Connection Pooling:**
+  - docker-compose.prod.yml - PgBouncer сервис (transaction pooling)
+  - backend/config.py - авто-определение PgBouncer
+  - backend/database.py - оптимизированные настройки пула
+  - monitoring/prometheus/prometheus.yml - PgBouncer exporter
+  - monitoring/prometheus/alerts.yml - 5 PgBouncer алертов
+  - docs/PERFORMANCE/PGBouncer.md - полная документация
+
+- **Lighthouse Performance Audit:**
+  - frontend/.lighthouserc.json - конфигурация Lighthouse CI
+  - frontend/package.json - @lhci/cli, npm скрипты
+  - .github/workflows/lighthouse.yml - CI/CD workflow
+  - frontend/next.config.js - security headers, оптимизации
+  - docs/PERFORMANCE/Lighthouse.md - документация и best practices
+
+### ✅ Завершено в dev (ранее)
 - Все P0 задачи (Security, Database, Monitoring, CI/CD)
 - Session-Payment связи (N+1 fix)
 - Database индексы (15 составных индексов)

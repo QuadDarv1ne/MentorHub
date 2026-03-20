@@ -1,0 +1,44 @@
+{
+  "mentorhub_backup_20260319_094918.db": {
+    "timestamp": "2026-03-19T09:49:18.042999",
+    "size_mb": 0.328125,
+    "hash": "98e81e371938c2c1194d637b106dbbb5",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_095219.db": {
+    "timestamp": "2026-03-19T09:52:19.641708",
+    "size_mb": 0.328125,
+    "hash": "24d485ed78218ccb1f02abf0e9e6a5aa",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_100119.db": {
+    "timestamp": "2026-03-19T10:01:19.385697",
+    "size_mb": 0.328125,
+    "hash": "42ec05369a6b215b750f7c7be94e4d0c",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_101526.db": {
+    "timestamp": "2026-03-19T10:15:26.613382",
+    "size_mb": 0.40625,
+    "hash": "ad23c89a48a5af92276d2b94b094595d",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_102650.db": {
+    "timestamp": "2026-03-19T10:26:50.334588",
+    "size_mb": 0.40625,
+    "hash": "01a3de81261208b3b459edf89d5eeddc",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_104310.db": {
+    "timestamp": "2026-03-19T10:43:10.654930",
+    "size_mb": 0.40625,
+    "hash": "ee038a33b297fb8722e5d0c281de5ea7",
+    "type": "full"
+  },
+  "mentorhub_backup_20260319_104938.db": {
+    "timestamp": "2026-03-19T10:49:38.556637",
+    "size_mb": 0.40625,
+    "hash": "138685e21fa4189fe5a50f39a4525c1b",
+    "type": "full"
+  }
+}
