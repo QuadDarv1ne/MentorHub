@@ -168,15 +168,16 @@ Backend:
 
 ---
 
-### 9. ⏳ CI/CD улучшения
-**Статус:** ⏳ Не начато
+### 9. ✅ CI/CD улучшения
+**Статус:** ✅ Выполнено
 
 Требуется:
-- [ ] Staging environment
-- [ ] Automated testing before deploy
-- [ ] Rollback механизм
-- [ ] Slack/Telegram уведомления
-- [ ] Auto-deploy из main
+- ✅ Staging environment (deploy-staging.yml workflow)
+- ✅ Automated testing before deploy (backend-tests.yml, frontend-tests.yml)
+- ✅ Rollback механизм (rollback.yml workflow)
+- ✅ Slack/Telegram уведомления (telegram_alerter.py, notifications.yml)
+- ✅ Auto-deploy из main (ci-cd.yml, deploy-production.yml)
+- ✅ 12 GitHub Actions workflows
 
 ---
 
@@ -260,6 +261,7 @@ Backend:
 - ✅ Alembic миграции исправлены
 - ✅ Documentation (deployment guides, CONTRIBUTING, README, STARTUP_GUIDE)
 - ✅ Кроссплатформенные скрипты запуска (Windows, Linux, macOS, Android, iOS)
+- ✅ CI/CD улучшения (12 workflows, staging, rollback, уведомления)
 
 ### Технические долги
 - ✅ Удалить закомментированный код
@@ -286,7 +288,7 @@ Backend:
 | Sentry | ✅ Готов | Frontend + Backend error tracking |
 | Documentation | ✅ Готов | 10+ guides, STARTUP_GUIDE |
 | Code Quality Tools | ✅ Готов | black, isort, pytest, mypy |
-| CI/CD | ✅ Готов | GitHub Actions (11 workflows) |
+| CI/CD | ✅ Готов | GitHub Actions (12 workflows: backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications) |
 | Error Handling | ✅ Готов | Централизованная обработка |
 | Logging | ✅ Готов | Детальное логирование |
 | Health Checks | ✅ Готов | /health, /health/detailed, /ready, /live |
@@ -302,9 +304,10 @@ Backend:
   - ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде (только в тексте заданий — ToDo компонент)
   - ✅ Нет закомментированного кода (только документационные комментарии)
   - ✅ 12 Alembic миграций (001_initial → z999_merge_all_heads)
-  - ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*)
+  - ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications)
   - ✅ README.md — 760 строк документации
   - ✅ 387 logger.error/warning/info для детального логирования
+  - ✅ CI/CD: staging, rollback, telegram уведомления настроены
 - **Синхронизация:** dev → main актуальны
 - **Статус:** PRODUCTION READY ✅
 
@@ -422,9 +425,9 @@ Backend:
 - ✅ Code Quality Tools: black, isort, pytest, mypy настроены
 - ✅ Alembic миграции: 12 файлов, все объединены
 - ✅ .gitignore настроен (Python, Node.js, QWEN, env)
-- ✅ Структура проекта: 46 файлов в корне
+- ✅ Структура проекта: 52 файлов в корне
 - ✅ Синхронизация: dev → main актуальны
-- ✅ CI/CD: 12 workflows GitHub Actions
+- ✅ CI/CD: 12 workflows GitHub Actions (staging, rollback, telegram notifications)
 - ✅ Error Handling: централизованная обработка
 - ✅ Logging: 387 logger.error/warning/info
 - ✅ Health Checks: 5 endpoints
