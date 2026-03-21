@@ -102,6 +102,7 @@
 - ✅ test_export.py — password_hash → hashed_password
 - ✅ test_export.py — Уникальные username/email для тестов
 - ✅ test_export.py — 19 тестов проходят
+- ✅ test_export.py — 9 pass заменены на pytest.skip с причинами
 
 ### Frontend cleanup (2026-03-20)
 - ✅ Удалён console.error из API routes (conversations, history)
@@ -298,6 +299,14 @@ Backend:
 ---
 
 ## 📈 Прогресс сессий
+
+### Сессия 2026-03-21 (Улучшение тестов)
+- **Улучшение качества тестов:**
+  - ✅ 9 pass в test_export.py заменены на pytest.skip с причинами
+  - ✅ Добавлены понятные сообщения о причинах пропуска тестов
+  - ✅ Тесты теперь явно указывают что требуется для реализации
+- **Синхронизация:** dev → main актуальны
+- **Статус:** PRODUCTION READY ✅
 
 ### Сессия 2026-03-21 (Финальная проверка и синхронизация)
 - **Проверка качества кода:**
