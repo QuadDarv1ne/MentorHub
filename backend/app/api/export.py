@@ -1,6 +1,6 @@
 """
 User Data Export API
-Экспорт данных пользователя в формате JSON/CSV (GDPR compliance)
+Экспорт данных пользователя в формате JSON/CSV/PDF/Excel (GDPR compliance)
 """
 
 import json
@@ -8,7 +8,7 @@ import csv
 import io
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
 
@@ -26,6 +26,26 @@ from app.utils.cache import cached
 router = APIRouter(prefix="/export", tags=["Data Export"])
 
 
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, letter
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
+
+
 @router.get("/data", summary="Экспорт всех данных пользователя")
 async def export_user_data(
     format: str = "json",
@@ -33,8 +53,8 @@ async def export_user_data(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Экспорт всех данных пользователя в формате JSON или CSV.
-    
+    Экспорт всех данных пользователя в формате JSON, CSV, PDF или Excel.
+
     Включает:
     - Профиль пользователя
     - История сессий
@@ -44,7 +64,7 @@ async def export_user_data(
     - Достижения
     - Сообщения
     - Записки на курсы
-    
+
     GDPR compliance: пользователь может запросить копию своих данных.
     """
     
@@ -188,8 +208,14 @@ async def export_user_data(
         })
     
     # Возвращаем данные в нужном формате
-    if format.lower() == "csv":
+    format_lower = format.lower()
+    
+    if format_lower == "csv":
         return _export_as_csv(user_data)
+    elif format_lower == "pdf":
+        return _export_as_pdf(user_data)
+    elif format_lower == "excel" or format_lower == "xlsx":
+        return _export_as_excel(user_data)
     else:
         return JSONResponse(
             content=user_data,
@@ -313,7 +339,241 @@ async def get_data_summary(
             "course_enrollments": enrollments_count,
         },
         "total_records": (
-            sessions_count + payments_count + reviews_count + 
+            sessions_count + payments_count + reviews_count +
             progress_count + achievements_count + messages_count + enrollments_count
         )
     }
+
+
+def _export_as_pdf(data: dict) -> Response:
+    """Экспорт данных в PDF формат"""
+    if not REPORTLAB_AVAILABLE:
+        raise HTTPException(status_code=503, detail="PDF export not available (reportlab not installed)")
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#1a365d'),
+        spaceAfter=12,
+        alignment=TA_CENTER
+    )
+    
+    story = []
+    
+    # Заголовок
+    story.append(Paragraph("MentorHub Data Export", title_style))
+    story.append(Spacer(1, 0.2*inch))
+    
+    # Информация о пользователе
+    user_info = [
+        ["Username", data["user"]["username"]],
+        ["Email", data["user"]["email"]],
+        ["Full Name", data["user"]["full_name"] or "N/A"],
+        ["Role", data["user"]["role"]],
+        ["Export Date", data["export_date"]]
+    ]
+    
+    user_table = Table(user_info, colWidths=[2*inch, 4*inch])
+    user_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4a90d9')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f7ff')])
+    ]))
+    story.append(user_table)
+    story.append(Spacer(1, 0.3*inch))
+    
+    # Статистика
+    stats_data = [
+        ["Category", "Count"],
+        ["Sessions", len(data["sessions"])],
+        ["Payments", len(data["payments"])],
+        ["Reviews", len(data["reviews"])],
+        ["Progress Records", len(data["progress"])],
+        ["Achievements", len(data["achievements"])],
+        ["Messages", len(data["messages"])],
+        ["Course Enrollments", len(data["enrollments"])]
+    ]
+    
+    stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
+    stats_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4a90d9')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f7ff')])
+    ]))
+    story.append(stats_table)
+    
+    doc.build(story)
+    buffer.seek(0)
+    
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="mentorhub_export_{data["user"]["username"]}_{datetime.utcnow().strftime("%Y%m%d")}.pdf"'
+        }
+    )
+
+
+def _export_as_excel(data: dict) -> Response:
+    """Экспорт данных в Excel формат"""
+    if not OPENPYXL_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Excel export not available (openpyxl not installed)")
+    
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    
+    wb = Workbook()
+    
+    # Стили
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="4A90D9", end_color="4A90D9", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    
+    thin_border = Border(
+        left_side=Side(style='thin'),
+        right_side=Side(style='thin'),
+        top_side=Side(style='thin'),
+        bottom_side=Side(style='thin')
+    )
+    
+    # Sheet 1: User Profile
+    ws_user = wb.active
+    ws_user.title = "User Profile"
+    
+    user_data = [
+        ["Field", "Value"],
+        ["Username", data["user"]["username"]],
+        ["Email", data["user"]["email"]],
+        ["Full Name", data["user"]["full_name"] or "N/A"],
+        ["Role", data["user"]["role"]],
+        ["Is Active", str(data["user"]["is_active"])],
+        ["Is Verified", str(data["user"]["is_verified"])],
+        ["Export Date", data["export_date"]]
+    ]
+    
+    for row_idx, row in enumerate(user_data, 1):
+        for col_idx, value in enumerate(row, 1):
+            cell = ws_user.cell(row=row_idx, column=col_idx, value=value)
+            if row_idx == 1:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+                cell.border = thin_border
+            else:
+                cell.border = thin_border
+    
+    # Настройка ширины колонок
+    ws_user.column_dimensions['A'].width = 20
+    ws_user.column_dimensions['B'].width = 40
+    
+    # Sheet 2: Sessions
+    ws_sessions = wb.create_sheet(title="Sessions")
+    sessions_data = [["ID", "Student ID", "Mentor ID", "Scheduled At", "Duration", "Status"]]
+    for session in data["sessions"]:
+        sessions_data.append([
+            session["id"],
+            session["student_id"],
+            session["mentor_id"],
+            session["scheduled_at"],
+            session["duration_minutes"],
+            session["status"]
+        ])
+    
+    _write_excel_sheet(ws_sessions, sessions_data)
+    
+    # Sheet 3: Payments
+    ws_payments = wb.create_sheet(title="Payments")
+    payments_data = [["ID", "Student ID", "Mentor ID", "Amount", "Currency", "Status", "Created At"]]
+    for payment in data["payments"]:
+        payments_data.append([
+            payment["id"],
+            payment["student_id"],
+            payment["mentor_id"],
+            payment["amount"],
+            payment["currency"],
+            payment["status"],
+            payment["created_at"]
+        ])
+    
+    _write_excel_sheet(ws_payments, payments_data)
+    
+    # Sheet 4: Statistics
+    ws_stats = wb.create_sheet(title="Statistics")
+    stats_data = [
+        ["Category", "Count"],
+        ["Sessions", len(data["sessions"])],
+        ["Payments", len(data["payments"])],
+        ["Reviews", len(data["reviews"])],
+        ["Progress Records", len(data["progress"])],
+        ["Achievements", len(data["achievements"])],
+        ["Messages", len(data["messages"])],
+        ["Course Enrollments", len(data["enrollments"])],
+        ["Total", sum([
+            len(data["sessions"]),
+            len(data["payments"]),
+            len(data["reviews"]),
+            len(data["progress"]),
+            len(data["achievements"]),
+            len(data["messages"]),
+            len(data["enrollments"])
+        ])]
+    ]
+    
+    _write_excel_sheet(ws_stats, stats_data)
+    
+    # Сохраняем
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="mentorhub_export_{data["user"]["username"]}_{datetime.utcnow().strftime("%Y%m%d")}.xlsx"'
+        }
+    )
+
+
+def _write_excel_sheet(ws, data):
+    """Вспомогательная функция для записи Excel листа"""
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
+    
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="4A90D9", end_color="4A90D9", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    
+    thin_border = Border(
+        left_side=Side(style='thin'),
+        right_side=Side(style='thin'),
+        top_side=Side(style='thin'),
+        bottom_side=Side(style='thin')
+    )
+    
+    for row_idx, row in enumerate(data, 1):
+        for col_idx, value in enumerate(row, 1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            if row_idx == 1:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+                cell.border = thin_border
+            else:
+                cell.border = thin_border
+        
+        # Настройка ширины колонок
+        for col_idx in range(1, len(data[0]) + 1):
+            ws.column_dimensions[get_column_letter(col_idx)].width = 15

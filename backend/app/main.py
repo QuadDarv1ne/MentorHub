@@ -52,6 +52,9 @@ from app.api import (
     push_notifications,
     two_factor,
     export,
+    chat_rooms,
+    video_calls,
+    calendar,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -736,6 +739,30 @@ app.include_router(
     tags=["Data Export"],
 )
 logger.info("✅ Data Export routes loaded")
+
+# Chat Rooms routes
+app.include_router(
+    chat_rooms.router,
+    prefix=f"{api_prefix}",
+    tags=["Chat Rooms"],
+)
+logger.info("✅ Chat Rooms routes loaded")
+
+# Video Calls routes
+app.include_router(
+    video_calls.router,
+    prefix=f"{api_prefix}",
+    tags=["Video Calls"],
+)
+logger.info("✅ Video Calls routes loaded")
+
+# Calendar Integration routes
+app.include_router(
+    calendar.router,
+    prefix=f"{api_prefix}",
+    tags=["Calendar Integration"],
+)
+logger.info("✅ Calendar Integration routes loaded")
 
 
 # ==================== OPENAPI/SECURITY CONFIGURATION ====================

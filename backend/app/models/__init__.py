@@ -15,6 +15,9 @@ from app.models.achievement import Achievement
 from app.models.course import Course, Lesson, CourseEnrollment
 from app.models.device_token import DeviceToken
 from app.models.notification import Notification
+from app.models.chat_room import ChatRoom, ChatMessage
+from app.models.video_call import VideoCall, CallType, CallStatus
+from app.models.calendar import CalendarSync, CalendarEvent, CalendarProvider
 
 # Импортируйте все модели здесь для автогенерации Alembic
 
@@ -37,4 +40,12 @@ __all__ = [
     "CourseEnrollment",
     "DeviceToken",
     "Notification",
+    "ChatRoom",
+    "ChatMessage",
+    "VideoCall",
+    "CallType",
+    "CallStatus",
+    "CalendarSync",
+    "CalendarEvent",
+    "CalendarProvider",
 ]

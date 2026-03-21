@@ -1,6 +1,6 @@
 """
 Notification API endpoints
-CRUD операции для уведомлений
+CRUD операции для уведомлений + real-time уведомления
 """
 
 import json
@@ -16,6 +16,14 @@ from app.models.notification import Notification, NotificationType
 from pydantic import BaseModel, ConfigDict
 
 router = APIRouter()
+
+
+# Import WebSocket manager for real-time notifications
+try:
+    from app.api.websocket import manager
+    WEBSOCKET_AVAILABLE = True
+except ImportError:
+    WEBSOCKET_AVAILABLE = False
 
 
 class NotificationCreate(BaseModel):
@@ -230,7 +238,7 @@ async def create_notification(
 ) -> Notification:
     """
     Создать уведомление для пользователя
-    
+
     Args:
         db: Database session
         user_id: ID пользователя
@@ -239,7 +247,7 @@ async def create_notification(
         message: Текст уведомления
         data: Дополнительные данные (dict)
         link: Ссылка на связанный объект
-    
+
     Returns:
         Созданное уведомление
     """
@@ -252,9 +260,20 @@ async def create_notification(
         link=link,
         is_read=False
     )
-    
+
     db.add(notification)
     db.commit()
     db.refresh(notification)
+    
+    # Отправляем real-time уведомление если пользователь онлайн
+    if WEBSOCKET_AVAILABLE and manager.is_user_online(user_id):
+        await manager.send_notification(user_id, {
+            "notification_type": type.value,
+            "title": title,
+            "message": message,
+            "link": link,
+            "data": data,
+            "created_at": int(notification.created_at.timestamp()) if hasattr(notification, 'created_at') else int(datetime.now(timezone.utc).timestamp())
+        })
 
     return notification
