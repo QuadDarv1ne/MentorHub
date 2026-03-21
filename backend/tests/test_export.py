@@ -20,7 +20,7 @@ def test_user(db_session):
     # Clean up any existing test users first
     db_session.query(User).filter(User.username.like("export_test_user%")).delete()
     db_session.commit()
-    
+
     user = User(
         username=f"export_test_user_{os.urandom(4).hex()}",
         email=f"export_test_{os.urandom(4).hex()}@example.com",
@@ -79,52 +79,60 @@ class TestDataExportAPI:
         # Should return 401/403 without auth
         assert response.status_code in [401, 403]
 
+    @pytest.mark.skip(reason="Requires authentication mocking for export endpoint")
     def test_export_includes_user_data(self, db_session, test_user):
         """Test that export includes user profile data"""
         # Would need proper authentication
-        # This is a placeholder for the actual test
-        pass
+        pytest.skip("Requires authentication mocking for export endpoint")
 
+    @pytest.mark.skip(reason="Requires session data setup and auth mocking")
     def test_export_includes_sessions(self, db_session, test_user):
         """Test that export includes user sessions"""
         # Would need proper authentication and session data
-        pass
+        pytest.skip("Requires session data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires payment data setup and auth mocking")
     def test_export_includes_payments(self, db_session, test_user):
         """Test that export includes user payments"""
         # Would need proper authentication and payment data
-        pass
+        pytest.skip("Requires payment data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires review data setup and auth mocking")
     def test_export_includes_reviews(self, db_session, test_user):
         """Test that export includes user reviews"""
         # Would need proper authentication and review data
-        pass
+        pytest.skip("Requires review data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires progress data setup and auth mocking")
     def test_export_includes_progress(self, db_session, test_user):
         """Test that export includes user progress"""
         # Would need proper authentication and progress data
-        pass
+        pytest.skip("Requires progress data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires achievement data setup and auth mocking")
     def test_export_includes_achievements(self, db_session, test_user):
         """Test that export includes user achievements"""
         # Would need proper authentication and achievement data
-        pass
+        pytest.skip("Requires achievement data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires message data setup and auth mocking")
     def test_export_includes_messages(self, db_session, test_user):
         """Test that export includes user messages"""
         # Would need proper authentication and message data
-        pass
+        pytest.skip("Requires message data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires enrollment data setup and auth mocking")
     def test_export_includes_enrollments(self, db_session, test_user):
         """Test that export includes course enrollments"""
         # Would need proper authentication and enrollment data
-        pass
+        pytest.skip("Requires enrollment data setup and auth mocking")
 
+    @pytest.mark.skip(reason="Requires authentication mocking for filename validation")
     def test_export_data_filename_format(self, db_session, test_user):
         """Test that export filename follows correct format"""
         # Would need proper authentication
         # Filename should be: mentorhub_data_export_{user_id}_{date}.json
-        pass
+        pytest.skip("Requires authentication mocking for filename validation")
 
     def test_export_csv_content_type(self, db_session, test_user):
         """Test that CSV export has correct content type"""
@@ -138,16 +146,19 @@ class TestDataExportAPI:
         # Should be application/json when authenticated
         assert response.status_code != 404
 
+    @pytest.mark.skip(reason="Requires 150+ messages setup")
     def test_export_data_limit_messages(self, db_session, test_user):
         """Test that messages are limited to 100 in export"""
         # Would need to create 150+ messages and verify only 100 are exported
-        pass
+        pytest.skip("Requires 150+ messages setup")
 
+    @pytest.mark.skip(reason="Requires authentication mocking for summary endpoint")
     def test_export_summary_total_records(self, db_session, test_user):
         """Test that summary returns correct total records count"""
         # Would need proper authentication
-        pass
+        pytest.skip("Requires authentication mocking for summary endpoint")
 
+    @pytest.mark.skip(reason="Requires multi-user authentication setup")
     def test_export_user_data_privacy(self, db_session, test_user):
         """Test that users can only export their own data"""
         # Create second user
@@ -162,4 +173,4 @@ class TestDataExportAPI:
 
         # First user should not be able to export user2's data
         # Would need proper authentication setup
-        pass
+        pytest.skip("Requires multi-user authentication setup")
