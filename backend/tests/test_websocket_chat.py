@@ -61,7 +61,7 @@ def websocket_client(db_session):
         try:
             yield db_session
         finally:
-            pass
+            db_session.rollback()
 
     from app.dependencies import get_db
     from app.main import app

@@ -49,7 +49,7 @@ def client(db_session):
         try:
             yield db_session
         finally:
-            pass
+            db_session.rollback()
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
