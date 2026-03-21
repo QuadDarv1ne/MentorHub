@@ -4,7 +4,7 @@ Chat rooms API endpoints
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc
 from datetime import datetime, timezone
