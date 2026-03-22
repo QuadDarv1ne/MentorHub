@@ -244,6 +244,178 @@ class StripeService:
             logger.error("Invalid webhook signature")
             return None
 
+    def create_subscription(
+        self,
+        customer_id: str,
+        price_id: str,
+        trial_period_days: int = 14,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Создать подписку
+
+        Args:
+            customer_id: ID клиента в Stripe
+            price_id: ID тарифа в Stripe
+            trial_period_days: Дней пробного периода
+            metadata: Дополнительные данные
+
+        Returns:
+            Dict с информацией о подписке
+        """
+        if not self.enabled:
+            return {
+                "mock": True,
+                "id": "sub_mock_123",
+                "status": "trialing",
+                "current_period_end": None,
+            }
+
+        try:
+            subscription = stripe.Subscription.create(
+                customer=customer_id,
+                items=[{"price": price_id}],
+                trial_period_days=trial_period_days,
+                metadata=metadata or {},
+                automatic_tax={"enabled": True},
+            )
+
+            return {
+                "id": subscription.id,
+                "status": subscription.status,
+                "current_period_start": subscription.current_period_start,
+                "current_period_end": subscription.current_period_end,
+                "trial_end": subscription.trial_end,
+                "cancel_at_period_end": subscription.cancel_at_period_end,
+            }
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe subscription error: {e}")
+            return {"error": str(e), "type": e.__class__.__name__}
+
+    def cancel_subscription(self, subscription_id: str, at_period_end: bool = True) -> Dict[str, Any]:
+        """
+        Отменить подписку
+
+        Args:
+            subscription_id: ID подписки
+            at_period_end: Отменить в конце периода (True) или немедленно (False)
+
+        Returns:
+            Dict с информацией об отмене
+        """
+        if not self.enabled:
+            return {"mock": True, "status": "cancelled"}
+
+        try:
+            if at_period_end:
+                subscription = stripe.Subscription.modify(
+                    subscription_id,
+                    cancel_at_period_end=True
+                )
+                return {
+                    "id": subscription.id,
+                    "status": subscription.status,
+                    "cancel_at_period_end": True,
+                    "current_period_end": subscription.current_period_end,
+                }
+            else:
+                subscription = stripe.Subscription.cancel(subscription_id)
+                return {
+                    "id": subscription.id,
+                    "status": subscription.status,
+                    "cancelled_at": subscription.ended_at,
+                }
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe cancel error: {e}")
+            return {"error": str(e), "type": e.__class__.__name__}
+
+    def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
+        """
+        Получить информацию о подписке
+
+        Args:
+            subscription_id: ID подписки
+
+        Returns:
+            Dict с информацией о подписке
+        """
+        if not self.enabled:
+            return {"mock": True, "id": subscription_id, "status": "active"}
+
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+
+            return {
+                "id": subscription.id,
+                "status": subscription.status,
+                "current_period_start": subscription.current_period_start,
+                "current_period_end": subscription.current_period_end,
+                "cancel_at_period_end": subscription.cancel_at_period_end,
+                "items": [{"price": item.price.id} for item in subscription.items.data],
+            }
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe retrieve error: {e}")
+            return {"error": str(e), "type": e.__class__.__name__}
+
+    def create_checkout_session(
+        self,
+        customer_id: str,
+        price_id: str,
+        success_url: str,
+        cancel_url: str,
+        mode: str = "subscription",
+        trial_period_days: int = 14
+    ) -> Dict[str, Any]:
+        """
+        Создать сессию Checkout для оплаты
+
+        Args:
+            customer_id: ID клиента
+            price_id: ID тарифа
+            success_url: URL успешной оплаты
+            cancel_url: URL отмены
+            mode: Режим (subscription или payment)
+            trial_period_days: Дней пробного периода
+
+        Returns:
+            Dict с URL Checkout сессии
+        """
+        if not self.enabled:
+            return {
+                "mock": True,
+                "url": "https://checkout.stripe.com/mock",
+                "id": "checkout_mock_123",
+            }
+
+        try:
+            session = stripe.checkout.Session.create(
+                customer=customer_id,
+                mode=mode,
+                payment_method_types=["card"],
+                line_items=[{
+                    "price": price_id,
+                    "quantity": 1,
+                }],
+                success_url=success_url,
+                cancel_url=cancel_url,
+                subscription_data={
+                    "trial_period_days": trial_period_days,
+                } if mode == "subscription" else None,
+            )
+
+            return {
+                "id": session.id,
+                "url": session.url,
+                "status": session.status,
+            }
+
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe checkout error: {e}")
+            return {"error": str(e), "type": e.__class__.__name__}
+
 
 # Singleton instance
 stripe_service = StripeService()
