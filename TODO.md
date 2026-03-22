@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 39 — Dashboard + Search)
+**Дата обновления:** 22 марта 2026 г. (Сессия 40 — Notifications + Profile + Settings)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `cbe341e` — feat: Dashboard + Search улучшения
+- ✅ Последний коммит: `2873a5f` — feat: Notifications + Profile + Settings
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 39)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 40)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -36,6 +36,7 @@
 | **Новые компоненты (Сессия 35)** | **3 файла** | ✅ VideoCall, ExportData, calls/page |
 | **Новые компоненты (Сессия 36)** | **3 файла** | ✅ AnalyticsDashboard, ConversionFunnels, useAnalytics |
 | **Новые компоненты (Сессия 39)** | **2 файла** | ✅ RealTimeDashboard, AdvancedSearch |
+| **Новые компоненты (Сессия 40)** | **1 файл** | ✅ NotificationsPanel |
 | **Новые middleware (Сессия 38)** | **1 файл** | ✅ rate_limit_advanced.py |
 | **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
 | **Новые API routes (Сессия 36)** | **2 файла** | ✅ /api/analytics, /api/analytics/track |
@@ -748,7 +749,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 39 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 40 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -756,7 +757,7 @@ Backend:
 
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
-- P1: 15/15 ✅ (100%)
+- P1: 18/18 ✅ (100%)
 - P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
@@ -780,27 +781,36 @@ Backend:
 - Файлов в корне: 52 файла
 
 **Последние коммиты:**
+- `2873a5f` — feat: Notifications + Profile + Settings
+- `33351d6` — docs: обновлён TODO.md (Сессия 39)
 - `cbe341e` — feat: Dashboard + Search улучшения
-- `cf7dfcd` — docs: обновлён TODO.md (Сессия 38)
-- `48df75e` — feat: Performance + Security улучшения
 
 ---
 
-## 🎯 Выполнено (Сессия 39)
+## 🎯 Выполнено (Сессия 40)
 
-**Real-time Dashboard:**
-- ✅ RealTimeDashboard компонент — 6 stat cards с real-time обновлением
-- ✅ Live mode — автообновление каждые 5 секунд
-- ✅ Recent Activity — лента событий в реальном времени
-- ✅ Quick Actions — быстрые переходы (Analytics, Funnels, Export, Settings)
-- ✅ Страница /dashboard
+**Notifications:**
+- ✅ NotificationsPanel — real-time WebSocket уведомления
+- ✅ Unread count badge — счётчик непрочитанных
+- ✅ WebSocket reconnection — автопереподключение при обрыве
+- ✅ Mark as read / Mark all as read
+- ✅ Time ago форматирование
+- ✅ Toast уведомления при новых событиях
 
-**Advanced Search:**
-- ✅ AdvancedSearch компонент — поиск с дебаунсом (300ms)
-- ✅ Фильтры — type (mentor/course/session/user), price range, rating, sort
-- ✅ Сортировка — relevance, rating, price, newest
-- ✅ Search results — карточки с rating и price
-- ✅ Страница /search
+**Profile Page:**
+- ✅ Profile page — улучшенная страница профиля
+- ✅ Edit mode — редактирование имени, bio, skills
+- ✅ Stats cards — total sessions, completed, rating, success rate
+- ✅ Online status indicator
+- ✅ Quick actions — сессии, сообщения, настройки
+
+**Settings Page:**
+- ✅ Settings page — страница настроек с tabs
+- ✅ General — язык, часовой пояс
+- ✅ Privacy — видимость профиля, online status, last seen
+- ✅ Security — 2FA toggle, sessions limit
+- ✅ Notifications — email, push уведомления
+- ✅ Toggle компонент для переключателей
 
 ---
 
@@ -808,16 +818,14 @@ Backend:
 
 **Рекомендуемый приоритет:**
 
-1. **Tests: Backend + Frontend** (1-2 сессии)
+1. **Messaging: Улучшение чата** (1 сессия)
+   - Group messaging
+   - File attachments
+   - Message reactions
+
+2. **Tests: Backend + Frontend** (1-2 сессии)
    - Backend тесты: 31 → 40 файлов
    - Frontend тесты: 12 → 20 файлов
-   - Integration tests
-   - E2E tests
-
-2. **Documentation: API обновление** (1 сессия)
-   - OpenAPI/Swagger обновление
-   - Примеры использования
-   - Rate limiting документация
 
 3. **Mobile App** (долгосрочное)
    - React Native приложение
