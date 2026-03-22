@@ -342,55 +342,95 @@ API requests are limited to 100 requests per hour per IP address.
     openapi_tags=[
         {
             "name": "auth",
-            "description": "Authentication and authorization endpoints",
+            "description": "Authentication and authorization - JWT tokens, refresh tokens, 2FA",
         },
         {
             "name": "users",
-            "description": "User management operations",
+            "description": "User management - profile CRUD, avatar upload, username changes",
         },
         {
             "name": "mentors",
-            "description": "Mentor discovery and management",
+            "description": "Mentor discovery and management - find mentors, specialization, hourly rates",
         },
         {
             "name": "sessions",
-            "description": "Session scheduling and management",
+            "description": "Session scheduling - book, cancel, complete mentoring sessions",
         },
         {
             "name": "messages",
-            "description": "Messaging and chat operations",
+            "description": "Messaging and chat - direct messages, read receipts",
+        },
+        {
+            "name": "chat_rooms",
+            "description": "Group chat rooms - multi-user conversations",
+        },
+        {
+            "name": "video_calls",
+            "description": "Video calls - Agora integration for video mentoring",
+        },
+        {
+            "name": "calendar",
+            "description": "Calendar integration - Google Calendar, Outlook sync",
         },
         {
             "name": "payments",
-            "description": "Payment processing and history",
+            "description": "Payment processing - Stripe, SBP, payment history",
         },
         {
             "name": "courses",
-            "description": "Course management and Stepik integration",
+            "description": "Course management - CRUD, lessons, enrollments, Stepik integration",
         },
         {
             "name": "reviews",
-            "description": "Review and rating system",
+            "description": "Review system - course ratings, aggregate statistics",
         },
         {
             "name": "progress",
-            "description": "Learning progress tracking",
+            "description": "Progress tracking - learning milestones, completion tracking",
         },
         {
             "name": "achievements",
-            "description": "Achievement system and gamification",
+            "description": "Achievement system - gamification, badges, user achievements",
         },
         {
             "name": "notifications",
-            "description": "Notification management",
+            "description": "Notifications - push notifications, email, in-app alerts",
         },
         {
             "name": "analytics",
-            "description": "Platform analytics and statistics",
+            "description": "Platform analytics - user growth, session stats, course metrics",
+        },
+        {
+            "name": "stats",
+            "description": "Statistics - platform stats, user statistics",
         },
         {
             "name": "health",
-            "description": "Health check and monitoring endpoints",
+            "description": "Health checks - /health, /ready, /live, database status",
+        },
+        {
+            "name": "monitoring",
+            "description": "Monitoring - Prometheus metrics, performance monitoring",
+        },
+        {
+            "name": "backups",
+            "description": "Database backups - automated backups, restore operations",
+        },
+        {
+            "name": "email_verification",
+            "description": "Email verification - verify email, resend verification",
+        },
+        {
+            "name": "two_factor",
+            "description": "Two-factor authentication - 2FA setup, backup codes",
+        },
+        {
+            "name": "export",
+            "description": "Data export - GDPR compliance, PDF/Excel export",
+        },
+        {
+            "name": "push_notifications",
+            "description": "Push notifications - FCM integration, device registration",
         },
     ],
 )
