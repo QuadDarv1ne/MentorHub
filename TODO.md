@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 35 — PWA + Video Calls + Export)
+**Дата обновления:** 22 марта 2026 г. (Сессия 37 — Актуализация)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `e909fa3` — feat: PWA + Video Calls + Export data
+- ✅ Последний коммит: `d3a711c` — docs: обновлён TODO.md (Сессия 36)
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 35)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 37)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -34,7 +34,9 @@
 | Скрипты запуска | 11 файлов | ✅ (.sh, .bat) |
 | Файлов в корне | 52 файла | ✅ |
 | **Новые компоненты (Сессия 35)** | **3 файла** | ✅ VideoCall, ExportData, calls/page |
+| **Новые компоненты (Сессия 36)** | **3 файла** | ✅ AnalyticsDashboard, ConversionFunnels, useAnalytics |
 | **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
+| **Новые API routes (Сессия 36)** | **2 файла** | ✅ /api/analytics, /api/analytics/track |
 
 ### Зависимости (актуальные)
 **Backend (109 строк):**
@@ -58,6 +60,8 @@
 - ✅ "todo" — в тексте задания (ToDo компонент в tasks/[id]/page.tsx)
 - ✅ "call" — Video Calls компонент (calls/page.tsx, VideoCall.tsx)
 - ✅ "export" — Export данных компонент (ExportData.tsx)
+- ✅ "analytics" — Analytics Dashboard (AnalyticsDashboard.tsx, useAnalytics.ts)
+- ✅ "funnel" — Conversion Funnels (ConversionFunnels.tsx)
 
 **Вывод:** Код чистый, нет TODO/FIXME/XXX/HACK комментариев в production коде.
 
