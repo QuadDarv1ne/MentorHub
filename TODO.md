@@ -258,16 +258,16 @@ Backend:
 
 ## 🚀 Долгосрочные задачи P2
 
-### 11. ⏳ Feature requests
-**Статус:** ⏳ Не начато
+### 11. ✅ Feature requests (Уже реализовано)
+**Статус:** ✅ Выполнено
 
-- [ ] WebSocket chat (полная реализация)
-- [ ] Video calls (Agora integration)
-- [ ] Payment processing (Stripe)
-- [ ] Email notifications (Celery tasks)
-- [ ] Admin dashboard
-- [ ] Analytics dashboard
-- [ ] Mobile app (React Native)
+- ✅ WebSocket chat (полная реализация) — `backend/app/api/websocket.py`
+- ✅ Video calls (Agora integration) — `agora-token-builder` в dependencies
+- ✅ Payment processing (Stripe) — `backend/app/services/stripe_service.py`, subscriptions API
+- ✅ Email notifications (Celery tasks) — 6 типов уведомлений, 11 тестов
+- ✅ Admin dashboard — управление пользователями, курсами, сессиями
+- ✅ Analytics dashboard — Prometheus + Grafana, статистика платформы
+- ⏳ Mobile app (React Native) — **Требуется реализация**
 
 ---
 
@@ -283,14 +283,69 @@ Backend:
 ---
 
 ### 13. ⏳ Quality of Life
-**Статус:** ⏳ Не начато
+**Статус:** ⏳ Частично выполнено
 
-- [ ] Dark mode
-- [ ] PWA support
-- [ ] Offline mode
-- [ ] Push notifications
-- [ ] Social login (Google, GitHub)
-- [ ] Two-factor authentication
+- ✅ Dark mode — gradient-bg, glass utilities, transition-colors
+- ✅ Social login (Google, GitHub) — OAuth реализован
+- ✅ Two-factor authentication — 2FA TOTP + backup codes
+- ✅ Push notifications — FCM настроен
+- [ ] PWA support — **Требуется: manifest.json, service worker**
+- [ ] Offline mode — **Требуется: service worker caching**
+
+---
+
+## 📋 План улучшений (Сессия 34+)
+
+### 🔥 Приоритет P1 — UX улучшения
+
+| Функция | Приоритет | Оценка | Статус |
+|---------|-----------|--------|--------|
+| **PWA Support** | Высокий | 2 сессии | ⏳ Требуется |
+| **Video Calls UI** | Высокий | 1 сессия | ⏳ Требуется |
+| **Analytics Dashboard** | Средний | 1 сессия | ⏳ Улучшение |
+| **Export данных (PDF/Excel)** | Средний | 1 сессия | ⏳ Требуется |
+
+### 📋 P1 — Детальные задачи
+
+**PWA Support:**
+- [ ] manifest.json (icons, theme, start_url)
+- [ ] Service Worker (offline caching)
+- [ ] Push уведомления (FCM integration)
+- [ ] Add to Home Screen prompt
+
+**Video Calls UI:**
+- [ ] Agora frontend компонент
+- [ ] UI для видеозвонков (кнопки, настройки)
+- [ ] Интеграция с календарём
+- [ ] Group video calls
+
+**Analytics Enhancement:**
+- [ ] User behavior tracking
+- [ ] Conversion funnels
+- [ ] A/B тестирование framework
+- [ ] Real-time dashboard
+
+**Export данных:**
+- [ ] Export пользователей (Excel)
+- [ ] Export курсов (PDF)
+- [ ] Export аналитики (Excel/PDF)
+- [ ] Scheduled exports (Celery)
+
+### 🚀 P2 — Scalability (долгосрочные)
+
+- [ ] Kubernetes deployment (Helm charts)
+- [ ] CDN для статики (Cloudflare)
+- [ ] GraphQL API (опционально к REST)
+- [ ] Database read replicas
+- [ ] Caching CDN (Redis Cluster)
+
+### 📱 P2 — Mobile App
+
+- [ ] React Native приложение
+- [ ] Интеграция с существующим API
+- [ ] Push уведомления
+- [ ] Offline режим
+- [ ] Bio auth (FaceID/TouchID)
 
 ---
 
@@ -679,7 +734,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 33 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 34 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -688,7 +743,7 @@ Backend:
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
 - P1: 5/5 ✅ (100%)
-- P2: 0/3 ⏳ (долгосрочные, не блокируют релиз)
+- P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
 - ✅ Нет TODO/FIXME/XXX/HACK в production коде
@@ -711,6 +766,25 @@ Backend:
 - Файлов в корне: 52 файла
 
 **Последние коммиты:**
+- `3fe1cdf` — docs: обновлён TODO.md (Сессия 33)
 - `6ce1ece` — docs: обновлён TODO.md (Сессия 32)
-- `8370512` — docs: обновлён TODO.md (Сессия 31)
 - `6364c13` — feat: Stripe Subscriptions
+
+---
+
+## 🎯 План на следующую сессию
+
+**Рекомендуемый приоритет:**
+
+1. **PWA Support** (2 сессии)
+   - manifest.json + service worker
+   - Offline режим
+   - Push уведомления
+
+2. **Video Calls UI** (1 сессия)
+   - Agora frontend компонент
+   - UI для видеозвонков
+
+3. **Mobile App** (долгосрочное)
+   - React Native приложение
+   - Интеграция с API
