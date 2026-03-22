@@ -300,6 +300,111 @@ def send_session_reminders():
         db.close()
 
 
+@celery_app.task(name="send_new_message_notification_task")
+def send_new_message_notification_task(
+    to_email: str,
+    username: str,
+    sender_name: str,
+    message_preview: str
+):
+    """
+    Асинхронная отправка уведомления о новом сообщении
+
+    Args:
+        to_email: Email получателя
+        username: Имя получателя
+        sender_name: Имя отправителя
+        message_preview: Превью сообщения
+    """
+    try:
+        success = email_service.send_new_message_notification(
+            to_email=to_email,
+            username=username,
+            sender_name=sender_name,
+            message_preview=message_preview
+        )
+        if success:
+            logger.info(f"✅ New message notification sent to {to_email}")
+        else:
+            logger.warning(f"⚠️ Failed to send new message notification to {to_email}")
+        return success
+    except Exception as e:
+        logger.error(f"❌ Error sending new message notification: {e}")
+        raise
+
+
+@celery_app.task(name="send_course_enrollment_notification_task")
+def send_course_enrollment_notification_task(
+    to_email: str,
+    username: str,
+    course_name: str,
+    instructor_name: str
+):
+    """
+    Асинхронная отправка уведомления о записи на курс
+
+    Args:
+        to_email: Email получателя
+        username: Имя получателя
+        course_name: Название курса
+        instructor_name: Имя инструктора
+    """
+    try:
+        success = email_service.send_course_enrollment_notification(
+            to_email=to_email,
+            username=username,
+            course_name=course_name,
+            instructor_name=instructor_name
+        )
+        if success:
+            logger.info(f"✅ Course enrollment notification sent to {to_email}")
+        else:
+            logger.warning(f"⚠️ Failed to send course enrollment notification to {to_email}")
+        return success
+    except Exception as e:
+        logger.error(f"❌ Error sending course enrollment notification: {e}")
+        raise
+
+
+@celery_app.task(name="send_payment_confirmation_task")
+def send_payment_confirmation_task(
+    to_email: str,
+    username: str,
+    amount: float,
+    currency: str,
+    transaction_id: str,
+    service_name: str
+):
+    """
+    Асинхронная отправка подтверждения платежа
+
+    Args:
+        to_email: Email получателя
+        username: Имя получателя
+        amount: Сумма платежа
+        currency: Валюта
+        transaction_id: ID транзакции
+        service_name: Название услуги
+    """
+    try:
+        success = email_service.send_payment_confirmation(
+            to_email=to_email,
+            username=username,
+            amount=amount,
+            currency=currency,
+            transaction_id=transaction_id,
+            service_name=service_name
+        )
+        if success:
+            logger.info(f"✅ Payment confirmation sent to {to_email}")
+        else:
+            logger.warning(f"⚠️ Failed to send payment confirmation to {to_email}")
+        return success
+    except Exception as e:
+        logger.error(f"❌ Error sending payment confirmation: {e}")
+        raise
+
+
 # Периодические задачи (Celery Beat)
 celery_app.conf.beat_schedule = {
     "cleanup-expired-tokens-daily": {

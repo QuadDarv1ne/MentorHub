@@ -274,6 +274,129 @@ class EmailService:
         """
         return self.send_email(to_email=to_email, subject=f"Напоминание: сессия завтра с {mentor_name}", html_content=html_content)
 
+    def send_new_message_notification(
+        self,
+        to_email: str,
+        username: str,
+        sender_name: str,
+        message_preview: str
+    ) -> bool:
+        """Уведомление о новом сообщении"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #10B981; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .message-box {{ background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #10B981; margin: 20px 0; }}
+                .button {{ display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header"><h1>💬 Новое сообщение</h1></div>
+                <div class="content">
+                    <h2>Привет, {username}!</h2>
+                    <p>Вам пришло новое сообщение от <strong>{sender_name}</strong>:</p>
+                    <div class="message-box">
+                        <p style="color: #6b7280; font-style: italic;">"{message_preview}..."</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <a href="{settings.FRONTEND_URL}/messages" class="button">Открыть сообщения</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(to_email=to_email, subject=f"Новое сообщение от {sender_name}", html_content=html_content)
+
+    def send_course_enrollment_notification(
+        self,
+        to_email: str,
+        username: str,
+        course_name: str,
+        instructor_name: str
+    ) -> bool:
+        """Уведомление о записи на курс"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #3B82F6; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .course-info {{ background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .button {{ display: inline-block; padding: 12px 30px; background: #3B82F6; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header"><h1>📚 Запись на курс</h1></div>
+                <div class="content">
+                    <h2>Привет, {username}!</h2>
+                    <p>Вы успешно записались на курс:</p>
+                    <div class="course-info">
+                        <h3 style="margin-top: 0;">{course_name}</h3>
+                        <p><strong>Инструктор:</strong> {instructor_name}</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <a href="{settings.FRONTEND_URL}/learning" class="button">Начать обучение</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(to_email=to_email, subject=f"Запись на курс: {course_name}", html_content=html_content)
+
+    def send_payment_confirmation(
+        self,
+        to_email: str,
+        username: str,
+        amount: float,
+        currency: str,
+        transaction_id: str,
+        service_name: str
+    ) -> bool:
+        """Подтверждение платежа"""
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: #8B5CF6; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 30px; background: #f9fafb; }}
+                .payment-info {{ background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .success {{ color: #10B981; font-size: 24px; text-align: center; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header"><h1>✅ Платёж подтверждён</h1></div>
+                <div class="content">
+                    <h2>Спасибо за оплату, {username}!</h2>
+                    <div class="success">✓</div>
+                    <div class="payment-info">
+                        <p><strong>Сумма:</strong> {amount} {currency}</p>
+                        <p><strong>Услуга:</strong> {service_name}</p>
+                        <p><strong>ID транзакции:</strong> {transaction_id}</p>
+                    </div>
+                    <p>Чек был сохранён в вашем профиле.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        return self.send_email(to_email=to_email, subject=f"Подтверждение платежа {amount} {currency}", html_content=html_content)
+
     def send_achievement_unlocked(
         self,
         to_email: str,
