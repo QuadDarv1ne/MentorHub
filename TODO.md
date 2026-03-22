@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 32 — Финальная проверка качества)
+**Дата обновления:** 22 марта 2026 г. (Сессия 33 — Проверка актуальности)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `8370512` — TODO.md update (Session 31)
+- ✅ Последний коммит: `6ce1ece` — TODO.md update (Session 32)
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 33)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -28,21 +28,31 @@
 | GitHub Actions | 12 workflows | ✅ |
 | Python файлов (app) | 90 файлов | ✅ |
 | Консольные логи | 30 console.* в hooks/utils | ✅ (только отладка/ошибки) |
-| TODO/FIXME в коде | 0 в production | ✅ (только в текстах заданий) |
+| TODO/FIXME в коде | 0 | ✅ (найдено только "ToDo" в тексте задания) |
+| Закомментированный код | 0 | ✅ (только docstrings) |
+| MD документация | 11 файлов | ✅ |
+| Скрипты запуска | 11 файлов | ✅ (.sh, .bat) |
+| Файлов в корне | 52 файла | ✅ |
 
-### Найденные console.* (допустимые)
-- ✅ `console.warn` — Sentry dev mode (2 файла: sentry.*.config.ts)
-- ✅ `console.error` — WebSocket errors, API errors, ErrorBoundary (8 файлов: hooks, utils, components)
-- ✅ `console.error` — Performance hooks, notifications, forms (6 файлов: hooks)
-- ✅ `console.warn` — Auth token expired warnings (useAuth.ts)
+### Зависимости (актуальные)
+**Backend (109 строк):**
+- FastAPI 0.115+, SQLAlchemy 2.0+, Pydantic 2.10+
+- Redis 5.0+, Celery 5.3+, Stripe 7.0+
+- Sentry 2.0+, Prometheus 0.20+
+- Security: bandit, safety, pip-audit
 
-**Вывод:** Все console.log/error/warn находятся в:
-- hooks (useAuth, useChat, usePerformance, useNotifications, useForm)
-- utils (api.ts, imageOptimization.tsx)
-- components (ErrorBoundary, MonitoringDashboard, OAuthButtons, ReviewForm, ReviewList)
-- sentry config (dev mode warnings)
+**Frontend (81 строка):**
+- Next.js 14.2+, React 18.3+, TypeScript 5.7+
+- Testing: Jest 29+, Testing Library 16+
+- Sentry 8.54+, TanStack Query 5.62+
 
-**Не требуется удаление** — это корректная отладка и error tracking для production.
+### Найдено в коде (допустимое)
+- ✅ "debug" — в названиях файлов/функций (debug_db.py, debug mode)
+- ✅ "bug" — в иконках (Bug icon в ErrorBoundary)
+- ✅ "optimize" — в названиях (query_optimization.py, OptimizedQueries)
+- ✅ "todo" — в тексте задания (ToDo компонент в tasks/[id]/page.tsx)
+
+**Вывод:** Код чистый, нет TODO/FIXME/XXX/HACK комментариев в production коде.
 
 ---
 
@@ -669,7 +679,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 32 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 33 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -696,3 +706,11 @@ Backend:
 - GitHub Actions: 12 workflows
 - Python файлов (app): 90 файлов
 - Консольные логи: 30 console.* (только отладка/ошибки)
+- MD документация: 11 файлов
+- Скрипты запуска: 11 файлов (.sh, .bat)
+- Файлов в корне: 52 файла
+
+**Последние коммиты:**
+- `6ce1ece` — docs: обновлён TODO.md (Сессия 32)
+- `8370512` — docs: обновлён TODO.md (Сессия 31)
+- `6364c13` — feat: Stripe Subscriptions
