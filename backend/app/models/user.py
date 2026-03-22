@@ -52,6 +52,7 @@ class User(BaseModel, TimestampMixin):
     payments = relationship("Payment", foreign_keys="Payment.student_id", back_populates="student")
     chat_rooms = relationship("ChatRoom", secondary="chat_room_members", back_populates="members")
     chat_messages = relationship("ChatMessage", back_populates="sender", foreign_keys="ChatMessage.sender_id")
+    subscription = relationship("Subscription", back_populates="user", uselist=False)
 
     # Составные индексы для оптимизации запросов
     __table_args__ = (

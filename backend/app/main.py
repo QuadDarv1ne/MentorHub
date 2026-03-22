@@ -55,6 +55,7 @@ from app.api import (
     chat_rooms,
     video_calls,
     calendar,
+    subscriptions,
 )
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
@@ -803,6 +804,14 @@ app.include_router(
     tags=["Calendar Integration"],
 )
 logger.info("✅ Calendar Integration routes loaded")
+
+# Subscription routes
+app.include_router(
+    subscriptions.router,
+    prefix=f"{api_prefix}",
+    tags=["Subscriptions"],
+)
+logger.info("✅ Subscription routes loaded")
 
 
 # ==================== OPENAPI/SECURITY CONFIGURATION ====================
