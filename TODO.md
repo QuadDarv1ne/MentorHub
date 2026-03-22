@@ -352,6 +352,24 @@ Backend:
   - ✅ Все миграции объединены (z999_merge_all_heads)
 - **Синхронизация:** dev → main актуальны
 
+### Сессия 2026-03-22 (Функциональные улучшения)
+- **Email уведомления (Celery tasks):**
+  - ✅ send_new_message_notification_task — уведомления о сообщениях
+  - ✅ send_course_enrollment_notification_task — уведомления о записи на курсы
+  - ✅ send_payment_confirmation_task — подтверждения платежей
+  - ✅ test_email_notifications.py — 11 тестов
+- **Dark Mode:**
+  - ✅ gradient-bg utility — градиент с dark mode поддержкой
+  - ✅ glass utility — glassmorphism с dark mode
+  - ✅ transition-colors для плавных переходов
+  - ✅ border-dark стили для всех элементов
+- **WebSocket chat:** ✅ Уже реализован (real-time чат, групповые чаты, уведомления)
+- **Admin dashboard:** ✅ Уже реализован (управление пользователя, курсами, сессиями)
+- **Analytics dashboard:** ✅ Уже реализован (платформа статистика, графики)
+- **Social login:** ✅ Уже реализован (Google OAuth, GitHub OAuth)
+- **Синхронизация:** dev → main актуальны
+- **Статус:** PRODUCTION READY ✅
+
 ### Сессия 2026-03-22 (Еженедельная проверка — Улучшения)
 - **Performance optimization:**
   - ✅ Code splitting (LazyComponents.tsx — 15+ компонентов)
