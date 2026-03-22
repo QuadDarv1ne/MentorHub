@@ -1,322 +1,275 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { User, Bell, Eye, Mail, Shield } from 'lucide-react'
-import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import Tabs from '@/components/ui/Tabs'
-import { useAuth } from '@/hooks/useAuth'
+import { useState } from 'react'
+import { useToast } from '@/hooks/useToast'
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const { isAuthenticated } = useAuth()
-  const [isLoading, setIsLoading] = useState(true)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
-  const [sessionReminders, setSessionReminders] = useState(true)
-  const [newsletter, setNewsletter] = useState(false)
+  const toast = useToast()
+  const [activeTab, setActiveTab] = useState('general')
+  const [settings, setSettings] = useState({
+    // General
+    language: 'ru',
+    timezone: 'Europe/Moscow',
+    emailNotifications: true,
+    pushNotifications: true,
+    
+    // Privacy
+    profileVisibility: 'public',
+    showOnlineStatus: true,
+    showLastSeen: true,
+    
+    // Security
+    twoFactorEnabled: false,
+    sessionsLimit: 5,
+  })
 
-  // Проверка авторизации
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login?redirect=/settings')
-    } else {
-      setIsLoading(true)
-      setTimeout(() => setIsLoading(false), 300)
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      })
+
+      if (response.ok) {
+        toast.success('Настройки сохранены')
+      } else {
+        toast.error('Ошибка сохранения')
+      }
+    } catch (error) {
+      console.error('Save settings error:', error)
+      toast.error('Ошибка сохранения настроек')
     }
-  }, [isAuthenticated, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600">Загрузка настроек...</p>
-        </div>
-      </div>
-    )
   }
 
-  const tabs = [
-    {
-      id: 'account',
-      label: 'Аккаунт',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Основная информация</h3>
-            <div className="space-y-4">
-              <Input
-                label="Email"
-                type="email"
-                defaultValue="user@example.com"
-                disabled
-                fullWidth
-                helperText="Email нельзя изменить"
-              />
-              <Input
-                label="Имя и фамилия"
-                type="text"
-                defaultValue="Иван Петров"
-                fullWidth
-              />
-              <Input
-                label="Телефон"
-                type="tel"
-                defaultValue="+7 (999) 123-45-67"
-                fullWidth
-              />
-            </div>
-          </div>
+  const TabButton = ({ id, label, icon }: any) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+        activeTab === id
+          ? 'bg-indigo-600 text-white'
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+      }`}
+    >
+      {icon} {label}
+    </button>
+  )
 
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Профиль</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Аватар
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                    ИП
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Загрузить фото
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            <Button variant="outline">Отмена</Button>
-            <Button variant="secondary">Сохранить изменения</Button>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'notifications',
-      label: 'Уведомления',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Настройки уведомлений
-            </h3>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Email уведомления</div>
-                    <div className="text-sm text-gray-500">Получать уведомления на email</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={emailNotifications}
-                  onChange={(e) => setEmailNotifications(e.target.checked)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Push уведомления</div>
-                    <div className="text-sm text-gray-500">Уведомления в браузере</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={pushNotifications}
-                  onChange={(e) => setPushNotifications(e.target.checked)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Напоминания о сессиях</div>
-                    <div className="text-sm text-gray-500">За 1 час до начала</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={sessionReminders}
-                  onChange={(e) => setSessionReminders(e.target.checked)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Новостная рассылка</div>
-                    <div className="text-sm text-gray-500">Новости и обновления платформы</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={newsletter}
-                  onChange={(e) => setNewsletter(e.target.checked)}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            <Button variant="outline">Отмена</Button>
-            <Button variant="secondary">Сохранить изменения</Button>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'security',
-      label: 'Безопасность',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Пароль</h3>
-            <div className="space-y-4">
-              <Input
-                label="Текущий пароль"
-                type="password"
-                fullWidth
-              />
-              <Input
-                label="Новый пароль"
-                type="password"
-                fullWidth
-                helperText="Минимум 8 символов"
-              />
-              <Input
-                label="Подтвердите новый пароль"
-                type="password"
-                fullWidth
-              />
-            </div>
-            <div className="mt-4">
-              <Button variant="secondary">Изменить пароль</Button>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Двухфакторная аутентификация</h3>
-            <p className="text-gray-600 mb-4">
-              Защитите свой аккаунт дополнительным уровнем безопасности
-            </p>
-            <Button variant="outline">
-              <Shield className="h-4 w-4 mr-2" />
-              Настроить 2FA
-            </Button>
-          </div>
-
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Активные сессии</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <div className="font-medium text-gray-900">Chrome на Windows</div>
-                  <div className="text-sm text-gray-500">Москва, Россия • Сейчас</div>
-                </div>
-                <Badge variant="success" size="sm">Текущая</Badge>
-              </div>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <div className="font-medium text-gray-900">Safari на iPhone</div>
-                  <div className="text-sm text-gray-500">Москва, Россия • 2 дня назад</div>
-                </div>
-                <Button variant="outline" size="sm">Завершить</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'privacy',
-      label: 'Приватность',
-      content: (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Видимость профиля</h3>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Eye className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Публичный профиль</div>
-                    <div className="text-sm text-gray-500">Ваш профиль виден всем пользователям</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-gray-600" />
-                  <div>
-                    <div className="font-medium text-gray-900">Показывать активность</div>
-                    <div className="text-sm text-gray-500">Время последнего входа</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Данные</h3>
-            <div className="space-y-3">
-              <Button variant="outline" fullWidth>
-                Скачать мои данные
-              </Button>
-              <Button variant="danger" fullWidth>
-                Удалить аккаунт
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Удаление аккаунта необратимо. Все ваши данные будут удалены.
-            </p>
-          </div>
-        </div>
-      )
-    }
-  ]
+  const Toggle = ({ enabled, onChange }: any) => (
+    <button
+      onClick={() => onChange(!enabled)}
+      className={`relative w-12 h-6 rounded-full transition-colors ${
+        enabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
+      }`}
+    >
+      <span
+        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+          enabled ? 'left-7' : 'left-1'
+        }`}
+      />
+    </button>
+  )
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Настройки</h1>
-        <p className="text-gray-600">
-          Управляйте настройками вашего аккаунта и профиля
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          ⚙️ Настройки
+        </h1>
 
-      <Card padding="none">
-        <div className="p-6">
-          <Tabs tabs={tabs} defaultTab="account" />
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <TabButton id="general" label="Основные" icon="🔧" />
+          <TabButton id="privacy" label="Приватность" icon="🔒" />
+          <TabButton id="security" label="Безопасность" icon="🛡" />
+          <TabButton id="notifications" label="Уведомления" icon="🔔" />
         </div>
-      </Card>
-    </main>
+
+        {/* Content */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+          {/* General Settings */}
+          {activeTab === 'general' && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                🔧 Основные настройки
+              </h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Язык
+                  </label>
+                  <select
+                    value={settings.language}
+                    onChange={(e) => setSettings({ ...settings, language: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
+                    <option value="he">עברית</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Часовой пояс
+                  </label>
+                  <select
+                    value={settings.timezone}
+                    onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="Europe/Moscow">Москва (UTC+3)</option>
+                    <option value="Europe/Kiev">Киев (UTC+2)</option>
+                    <option value="Asia/Almaty">Алматы (UTC+5)</option>
+                    <option value="Asia/Yekaterinburg">Екатеринбург (UTC+5)</option>
+                    <option value="Asia/Vladivostok">Владивосток (UTC+10)</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Privacy Settings */}
+          {activeTab === 'privacy' && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                🔒 Настройки приватности
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Видимость профиля</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Кто может видеть ваш профиль</p>
+                  </div>
+                  <select
+                    value={settings.profileVisibility}
+                    onChange={(e) => setSettings({ ...settings, profileVisibility: e.target.value })}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="public">Все</option>
+                    <option value="students">Только студенты</option>
+                    <option value="mentors">Только менторы</option>
+                    <option value="private">Приватный</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Показывать статус онлайн</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Другие видят, когда вы онлайн</p>
+                  </div>
+                  <Toggle
+                    enabled={settings.showOnlineStatus}
+                    onChange={(v: boolean) => setSettings({ ...settings, showOnlineStatus: v })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Показывать «Был(а)»</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Другие видят, когда вы последний раз были онлайн</p>
+                  </div>
+                  <Toggle
+                    enabled={settings.showLastSeen}
+                    onChange={(v: boolean) => setSettings({ ...settings, showLastSeen: v })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Security Settings */}
+          {activeTab === 'security' && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                🛡 Настройки безопасности
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Двухфакторная аутентификация</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Дополнительная защита аккаунта</p>
+                  </div>
+                  <Toggle
+                    enabled={settings.twoFactorEnabled}
+                    onChange={(v: boolean) => setSettings({ ...settings, twoFactorEnabled: v })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Лимит активных сессий</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Максимальное количество одновременных сессий</p>
+                  </div>
+                  <select
+                    value={settings.sessionsLimit}
+                    onChange={(e) => setSettings({ ...settings, sessionsLimit: Number(e.target.value) })}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value={3}>3</option>
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={999}>Без лимита</option>
+                  </select>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+                    🚫 Завершить все другие сессии
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Notifications Settings */}
+          {activeTab === 'notifications' && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                🔔 Настройки уведомлений
+              </h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Email уведомления</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Получать уведомления на email</p>
+                  </div>
+                  <Toggle
+                    enabled={settings.emailNotifications}
+                    onChange={(v: boolean) => setSettings({ ...settings, emailNotifications: v })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Push уведомления</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Получать push уведомления в браузере</p>
+                  </div>
+                  <Toggle
+                    enabled={settings.pushNotifications}
+                    onChange={(v: boolean) => setSettings({ ...settings, pushNotifications: v })}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleSave}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg"
+          >
+            💾 Сохранить настройки
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
