@@ -63,6 +63,14 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
       },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -70,6 +78,10 @@ const nextConfig = {
     // Lighthouse optimizations
     minimumCacheTTL: 60,
     contentDispositionType: 'inline',
+    // Quality optimization
+    quality: 75,
+    // Lazy loading
+    loading: 'lazy',
   },
 
   experimental: {
@@ -77,11 +89,17 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['lucide-react', 'react-hook-form', 'axios'],
     // Additional performance features
     scrollRestoration: true,
     // Reduce JavaScript bundle
     webpackBuildWorker: true,
+    // Bundle size optimization
+    optimizePackageImports: ['@heroicons/react', '@headlessui/react'],
+    // Font optimization
+    optimizeFonts: true,
+    // Modern image formats
+    imageOptimization: true,
   },
 
   webpack: (config, {isServer}) => {
@@ -123,12 +141,42 @@ const nextConfig = {
               chunks: 'all',
               priority: 60,
             },
+            // Analytics chunk
+            analytics: {
+              test: /[\\/]node_modules[\\/](@analytics|analytics)[\\/]/,
+              name: 'analytics',
+              chunks: 'all',
+              priority: 30,
+            },
+            // Video calls chunk
+            video: {
+              test: /[\\/]node_modules[\\/](agora-rtc-react|agora-rtc-sdk-ng)[\\/]/,
+              name: 'video',
+              chunks: 'all',
+              priority: 25,
+            },
+            // UI libraries
+            ui: {
+              test: /[\\/]node_modules[\\/](react-hot-toast|react-hook-form|zod)[\\/]/,
+              name: 'ui',
+              chunks: 'all',
+              priority: 35,
+            },
           },
         },
         // Minimize CSS
         minimize: true,
+        // Tree shaking
+        usedExports: true,
+        // Side effects
+        sideEffects: true,
       }
     }
+    
+    // Ignore missing modules in optional imports
+    config.externals = config.externals || []
+    config.externals.push('agora-rtc-react')
+    
     return config
   },
 }

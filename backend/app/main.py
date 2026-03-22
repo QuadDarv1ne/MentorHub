@@ -60,6 +60,7 @@ from app.api import (
 from app.middleware.security_advanced import SecurityMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.rate_limiter import RateLimitMiddleware
+from app.middleware.rate_limit_advanced import AdvancedRateLimitMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
 from app.utils.prometheus import PrometheusMiddleware, metrics_endpoint
@@ -449,11 +450,19 @@ logger.info("✅ Request Logging middleware added")
 
 # Rate Limiting Middleware (should be early in the chain)
 if settings.RATE_LIMIT_ENABLED:
+    # Basic rate limiting
     app.add_middleware(
         RateLimitMiddleware,
         redis_client=redis_client
     )
-    logger.info("✅ Rate limiting middleware added")
+    logger.info("✅ Basic Rate limiting middleware added")
+    
+    # Advanced per-endpoint rate limiting
+    app.add_middleware(
+        AdvancedRateLimitMiddleware,
+        redis_client=redis_client
+    )
+    logger.info("✅ Advanced Rate limiting middleware added (per-endpoint limits)")
 else:
     logger.info("ℹ️ Rate limiting disabled by configuration")
 
