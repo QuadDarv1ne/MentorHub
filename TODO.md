@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 38 — Performance + Security)
+**Дата обновления:** 22 марта 2026 г. (Сессия 39 — Dashboard + Search)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `48df75e` — feat: Performance + Security улучшения
+- ✅ Последний коммит: `cbe341e` — feat: Dashboard + Search улучшения
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 38)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 39)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -26,7 +26,7 @@
 | Frontend тестов | 12 файлов | ✅ *.test.tsx |
 | Alembic миграций | 15 файлов | ✅ (001 → z999_merge_all_heads) |
 | GitHub Actions | 12 workflows | ✅ |
-| Python файлов (app) | 91 файл | ✅ (+1 rate_limit_advanced.py) |
+| Python файлов (app) | 91 файл | ✅ |
 | Консольные логи | 30 console.* в hooks/utils | ✅ (только отладка/ошибки) |
 | TODO/FIXME в коде | 0 | ✅ (найдено только "ToDo" в тексте задания) |
 | Закомментированный код | 0 | ✅ (только docstrings) |
@@ -35,9 +35,11 @@
 | Файлов в корне | 52 файла | ✅ |
 | **Новые компоненты (Сессия 35)** | **3 файла** | ✅ VideoCall, ExportData, calls/page |
 | **Новые компоненты (Сессия 36)** | **3 файла** | ✅ AnalyticsDashboard, ConversionFunnels, useAnalytics |
+| **Новые компоненты (Сессия 39)** | **2 файла** | ✅ RealTimeDashboard, AdvancedSearch |
 | **Новые middleware (Сессия 38)** | **1 файл** | ✅ rate_limit_advanced.py |
 | **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
 | **Новые API routes (Сессия 36)** | **2 файла** | ✅ /api/analytics, /api/analytics/track |
+| **Новые API routes (Сессия 39)** | **1 файл** | ✅ /api/dashboard |
 
 ### Зависимости (актуальные)
 **Backend (109 строк):**
@@ -746,7 +748,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 38 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 39 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -754,7 +756,7 @@ Backend:
 
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
-- P1: 13/13 ✅ (100%)
+- P1: 15/15 ✅ (100%)
 - P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
@@ -778,34 +780,27 @@ Backend:
 - Файлов в корне: 52 файла
 
 **Последние коммиты:**
+- `cbe341e` — feat: Dashboard + Search улучшения
+- `cf7dfcd` — docs: обновлён TODO.md (Сессия 38)
 - `48df75e` — feat: Performance + Security улучшения
-- `8c48319` — feat: Analytics Dashboard + User Behavior Tracking
-- `e909fa3` — feat: PWA + Video Calls + Export data
 
 ---
 
-## 🎯 Выполнено (Сессия 38)
+## 🎯 Выполнено (Сессия 39)
 
-**Performance Optimization:**
-- ✅ Image optimization — quality=75, lazy loading, avif/webp formats
-- ✅ Bundle size optimization — code splitting (analytics, video, ui chunks)
-- ✅ Tree shaking — usedExports, sideEffects
-- ✅ Font optimization — optimizeFonts
-- ✅ Lighthouse CI — конфигурация обновлена (target >90)
+**Real-time Dashboard:**
+- ✅ RealTimeDashboard компонент — 6 stat cards с real-time обновлением
+- ✅ Live mode — автообновление каждые 5 секунд
+- ✅ Recent Activity — лента событий в реальном времени
+- ✅ Quick Actions — быстрые переходы (Analytics, Funnels, Export, Settings)
+- ✅ Страница /dashboard
 
-**Security Hardening:**
-- ✅ Advanced Rate Limiting — per-endpoint limits
-- ✅ User-based throttling — different limits for auth/anonymous
-- ✅ Slow attack prevention — requests per second limit
-- ✅ API abuse protection — auth endpoints (5/min), payments (30/min)
-- ✅ AdvancedRateLimitMiddleware — подключён в main.py
-
-**Per-Endpoint Rate Limits:**
-- Auth endpoints: 5-10 req/min (login, register, 2fa)
-- Payment endpoints: 10-30 req/min (strict)
-- Export endpoints: 5-15 req/min (resource-intensive)
-- Analytics: 10-60 req/min
-- Default API: 60-100 req/min
+**Advanced Search:**
+- ✅ AdvancedSearch компонент — поиск с дебаунсом (300ms)
+- ✅ Фильтры — type (mentor/course/session/user), price range, rating, sort
+- ✅ Сортировка — relevance, rating, price, newest
+- ✅ Search results — карточки с rating и price
+- ✅ Страница /search
 
 ---
 
@@ -813,13 +808,13 @@ Backend:
 
 **Рекомендуемый приоритет:**
 
-1. **Tests: Coverage улучшение** (1-2 сессии)
+1. **Tests: Backend + Frontend** (1-2 сессии)
    - Backend тесты: 31 → 40 файлов
    - Frontend тесты: 12 → 20 файлов
    - Integration tests
    - E2E tests
 
-2. **Documentation: API улучшение** (1 сессия)
+2. **Documentation: API обновление** (1 сессия)
    - OpenAPI/Swagger обновление
    - Примеры использования
    - Rate limiting документация
