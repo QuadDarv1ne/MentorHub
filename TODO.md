@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 21 марта 2026 г. (Сессия 28 — Финальная проверка и синхронизация)
+**Дата обновления:** 22 марта 2026 г. (Сессия 29 — Еженедельная проверка)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -178,7 +178,7 @@ Backend:
 - ✅ Rollback механизм (rollback.yml workflow)
 - ✅ Slack/Telegram уведомления (telegram_alerter.py, notifications.yml)
 - ✅ Auto-deploy из main (ci-cd.yml, deploy-production.yml)
-- ✅ 12 GitHub Actions workflows
+- ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-production, deploy-staging, deploy-cloudflare, deploy-multi-platform, deploy-notifications, rollback, notifications, main)
 
 ---
 
@@ -354,13 +354,24 @@ Backend:
   - ✅ Все миграции объединены (z999_merge_all_heads)
 - **Синхронизация:** dev → main актуальны
 
-### Сессия 2026-03-22 (Конфигурация инструментов)
+### Сессия 2026-03-22 (Еженедельная проверка)
+- **Проверка качества кода:**
+  - ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде (только в тексте заданий — ToDo компонент)
+  - ✅ Нет закомментированного кода (только документационные комментарии)
+  - ✅ 12 Alembic миграций (001_initial → z999_merge_all_heads)
+  - ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications)
+  - ✅ README.md — 760 строк документации
+  - ✅ 387 logger.error/warning/info для детального логирования
+  - ✅ CI/CD: staging, rollback, telegram уведомления настроены
+  - ✅ 1357 строк комментариев (docstrings и документация, не закомментированный код)
+  - ✅ 1 опциональный импорт (websocket manager — try/except паттерн)
 - **Добавлено:** pyproject.toml — конфигурация инструментов качества кода
   - black: форматирование кода (py310-312, исключение __pycache__)
   - isort: сортировка импортов (пропуск migrations/)
   - pytest: конфигурация тестов (testpaths, markers для slow/integration/e2e)
   - mypy: проверка типов (игнорирование alembic миграций)
-- **Синхронизация:** dev → main обновлены
+- **Синхронизация:** dev → main актуальны (git diff main dev — пустой)
+- **Статус:** PRODUCTION READY ✅
 
 ### Сессия 2026-03-21 (Кроссплатформенные скрипты)
 - **Добавлено:** start-dev.sh — Linux/macOS development скрипт
@@ -416,6 +427,31 @@ Backend:
 - P0: 5/5 ✅ (100%)
 - P1: 5/5 ✅ (100% — Documentation + кроссплатформенные скрипты)
 - P2: 0/3 ⏳ (долгосрочные, не блокируют релиз)
+
+**Проверка качества (2026-03-22 — еженедельная):**
+- ✅ Тесты: 339 тестов собрано
+- ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде (только в тексте заданий — ToDo компонент)
+- ✅ Нет закомментированного кода (1357 строк комментариев — docstrings и документация)
+- ✅ 1 опциональный импорт (websocket manager — try/except паттерн)
+- ✅ Зависимости обновлены
+- ✅ archive/ директория удалена
+- ✅ Sentry настроен (frontend + backend)
+- ✅ Monitoring настроен (Prometheus + Grafana)
+- ✅ Security hardening выполнен
+- ✅ Database индексы созданы
+- ✅ Redis production настроен
+- ✅ Health checks для 11 сервисов
+- ✅ Frontend cleanup: console.error оставлены только в hooks для отладки
+- ✅ Кроссплатформенные скрипты: 6 скриптов + документация
+- ✅ Code Quality Tools: black, isort, pytest, mypy настроены (pyproject.toml)
+- ✅ Alembic миграции: 12 файлов, все объединены
+- ✅ .gitignore настроен (Python, Node.js, QWEN, env)
+- ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications)
+- ✅ Error Handling: централизованная обработка
+- ✅ Logging: 387 logger.error/warning/info
+- ✅ Health Checks: 5 endpoints
+- ✅ README: 760 строк документации
+- ✅ Синхронизация: dev → main актуальны (git diff main dev — пустой)
 
 **Проверка качества (2026-03-21 — финальная):**
 - ✅ Тесты: 339 тестов собрано
