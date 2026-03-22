@@ -741,7 +741,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 35 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 36 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -749,7 +749,7 @@ Backend:
 
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
-- P1: 8/8 ✅ (100%)
+- P1: 11/11 ✅ (100%)
 - P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
@@ -771,35 +771,38 @@ Backend:
 - MD документация: 11 файлов
 - Скрипты запуска: 11 файлов (.sh, .bat)
 - Файлов в корне: 52 файла
+- **Новых компонентов (Сессия 36): 2** (AnalyticsDashboard, ConversionFunnels)
+- **Новых hooks (Сессия 36): 1** (useAnalytics)
 
 **Последние коммиты:**
-- `3fe1cdf` — docs: обновлён TODO.md (Сессия 33)
-- `6ce1ece` — docs: обновлён TODO.md (Сессия 32)
-- `6364c13` — feat: Stripe Subscriptions
+- `8c48319` — feat: Analytics Dashboard + User Behavior Tracking
+- `e909fa3` — feat: PWA + Video Calls + Export data
+- `b9b642f` — docs: обновлён TODO.md (Сессия 35)
 
 ---
 
-## 🎯 Выполнено (Сессия 35)
+## 🎯 Выполнено (Сессия 36)
 
-**PWA Support:**
-- ✅ manifest.json — icons, theme, start_url, shortcuts
-- ✅ Service Worker — offline caching, background sync
-- ✅ Push уведомления — FCM integration
-- ✅ Add to Home Screen prompt
-- ✅ Offline страница
+**Analytics Dashboard:**
+- ✅ AnalyticsDashboard компонент — платформа статистика, графики
+- ✅ Конверсия метрики — user growth, session analytics
+- ✅ Real-time данные — обновление по периоду (7/30/90/365 дней)
+- ✅ Экспорт отчётов — XLSX формат
+- ✅ Страница /analytics
 
-**Video Calls:**
-- ✅ Agora frontend компонент (VideoCall.tsx)
-- ✅ UI для видеозвонков — mute, video toggle, end call
-- ✅ Страница /calls — выбор типа звонка
-- ✅ API endpoints — /api/calls, /api/calls/token
-- ✅ Group video calls поддержка
+**User Behavior Tracking:**
+- ✅ useAnalytics hook — page views, clicks, scrolls, form submissions, errors
+- ✅ Time on page tracking — время на странице
+- ✅ Scroll depth tracking — глубина прокрутки (25%, 50%, 75%, 100%)
+- ✅ Error tracking — отслеживание ошибок frontend
+- ✅ API endpoint — /api/analytics/track
 
-**Export данных:**
-- ✅ ExportData компонент — выбор типа и формата
-- ✅ API endpoint — /api/export
-- ✅ Форматы: JSON, CSV, XLSX, PDF
-- ✅ Экспорт: users, courses, sessions, payments, analytics
+**Conversion Funnels:**
+- ✅ ConversionFunnels компонент — воронки конверсии
+- ✅ User Registration Funnel — 5 этапов
+- ✅ Course Enrollment Funnel — 4 этапа
+- ✅ Рекомендации по улучшению — автоматические insights
+- ✅ Страница /funnels
 
 ---
 
@@ -807,11 +810,16 @@ Backend:
 
 **Рекомендуемый приоритет:**
 
-1. **Analytics Dashboard** (1-2 сессии)
-   - User behavior tracking
-   - Conversion funnels
-   - Real-time dashboard
+1. **Performance: Lighthouse проверка** (1 сессия)
+   - Audit performance
+   - Optimizations если нужно
+   - Final score check
 
-2. **Mobile App** (долгосрочное)
+2. **Security: Rate limiting улучшение** (1 сессия)
+   - Per-endpoint limits
+   - User-based throttling
+   - API abuse protection
+
+3. **Mobile App** (долгосрочное)
    - React Native приложение
    - Интеграция с API
