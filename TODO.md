@@ -62,7 +62,6 @@
 Осталось (некритично):
 - [ ] test_auth.py 60% → 80% (опционально)
 - [ ] test_e2e добавить сценарии (6 skipped — mock режим)
-- [ ] Frontend компонентные тесты (опционально)
 - [ ] Frontend интеграционные тесты (опционально)
 
 ---
@@ -352,6 +351,31 @@ Backend:
   - ✅ alembic миграции: 11 файлов (001_initial, 313e11c98a64_merge, 4a3b2c1d5e6f_reviews, a1b2c3d4e5f6_oauth, a1b2c3d4e5f7_perf_indexes, b1f3d5c6a7e8_progress, b2c3d4e5f6g7_2fa, d123456789ab_courses, e4f5g6h7i8j9_perf, f5a6b7c8d9e0_composite, z999_merge_all_heads)
   - ✅ Все миграции объединены (z999_merge_all_heads)
 - **Синхронизация:** dev → main актуальны
+
+### Сессия 2026-03-22 (Еженедельная проверка — Улучшения)
+- **Performance optimization:**
+  - ✅ Code splitting (LazyComponents.tsx — 15+ компонентов)
+  - ✅ Lazy loading на homepage (Statistics, CodingTasks, InterviewTrainer, QuestionDatabase)
+  - ✅ Bundle size optimization (dynamic imports)
+- **OpenAPI/Swagger документация:**
+  - ✅ 24 тега API с подробными описаниями
+  - ✅ OPENAPI_GUIDE.md (313 строк документации)
+  - ✅ Примеры использования (Python, JavaScript, cURL)
+- **Frontend компонентные тесты:**
+  - ✅ Button.test.tsx (15 тестов)
+  - ✅ Card.test.tsx (10 тестов)
+  - ✅ Badge.test.tsx (13 тестов)
+  - ✅ LoadingSpinner.test.tsx (17 тестов)
+  - ✅ Итого: 55 frontend тестов
+- **Проверка качества кода:**
+  - ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде (только в тексте заданий — ToDo компонент)
+  - ✅ Нет закомментированного кода (только документационные комментарии)
+  - ✅ 12 Alembic миграций (001_initial → z999_merge_all_heads)
+  - ✅ 12 GitHub Actions workflows
+  - ✅ N+1 проблема решена (joinedload в основных query)
+  - ✅ Database query caching (@cached на 11 endpoints)
+- **Синхронизация:** dev → main актуальны
+- **Статус:** PRODUCTION READY ✅
 
 ### Сессия 2026-03-22 (Еженедельная проверка)
 - **Проверка качества кода:**
