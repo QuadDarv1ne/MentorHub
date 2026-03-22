@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 33 — Проверка актуальности)
+**Дата обновления:** 22 марта 2026 г. (Сессия 35 — PWA + Video Calls + Export)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `6ce1ece` — TODO.md update (Session 32)
+- ✅ Последний коммит: `e909fa3` — feat: PWA + Video Calls + Export data
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 33)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 35)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -33,6 +33,8 @@
 | MD документация | 11 файлов | ✅ |
 | Скрипты запуска | 11 файлов | ✅ (.sh, .bat) |
 | Файлов в корне | 52 файла | ✅ |
+| **Новые компоненты (Сессия 35)** | **3 файла** | ✅ VideoCall, ExportData, calls/page |
+| **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
 
 ### Зависимости (актуальные)
 **Backend (109 строк):**
@@ -40,17 +42,22 @@
 - Redis 5.0+, Celery 5.3+, Stripe 7.0+
 - Sentry 2.0+, Prometheus 0.20+
 - Security: bandit, safety, pip-audit
+- **Video:** agora-token-builder>=1.0.0
 
-**Frontend (81 строка):**
+**Frontend (82 строки):**
 - Next.js 14.2+, React 18.3+, TypeScript 5.7+
 - Testing: Jest 29+, Testing Library 16+
 - Sentry 8.54+, TanStack Query 5.62+
+- **Video:** agora-rtc-react>=2.3.0
+- **PWA:** Service Worker, manifest.json
 
 ### Найдено в коде (допустимое)
 - ✅ "debug" — в названиях файлов/функций (debug_db.py, debug mode)
 - ✅ "bug" — в иконках (Bug icon в ErrorBoundary)
 - ✅ "optimize" — в названиях (query_optimization.py, OptimizedQueries)
 - ✅ "todo" — в тексте задания (ToDo компонент в tasks/[id]/page.tsx)
+- ✅ "call" — Video Calls компонент (calls/page.tsx, VideoCall.tsx)
+- ✅ "export" — Export данных компонент (ExportData.tsx)
 
 **Вывод:** Код чистый, нет TODO/FIXME/XXX/HACK комментариев в production коде.
 
