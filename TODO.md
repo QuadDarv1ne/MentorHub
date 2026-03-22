@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 37 — Актуализация)
+**Дата обновления:** 22 марта 2026 г. (Сессия 38 — Performance + Security)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `d3a711c` — docs: обновлён TODO.md (Сессия 36)
+- ✅ Последний коммит: `48df75e` — feat: Performance + Security улучшения
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 37)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 38)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -26,7 +26,7 @@
 | Frontend тестов | 12 файлов | ✅ *.test.tsx |
 | Alembic миграций | 15 файлов | ✅ (001 → z999_merge_all_heads) |
 | GitHub Actions | 12 workflows | ✅ |
-| Python файлов (app) | 90 файлов | ✅ |
+| Python файлов (app) | 91 файл | ✅ (+1 rate_limit_advanced.py) |
 | Консольные логи | 30 console.* в hooks/utils | ✅ (только отладка/ошибки) |
 | TODO/FIXME в коде | 0 | ✅ (найдено только "ToDo" в тексте задания) |
 | Закомментированный код | 0 | ✅ (только docstrings) |
@@ -35,6 +35,7 @@
 | Файлов в корне | 52 файла | ✅ |
 | **Новые компоненты (Сессия 35)** | **3 файла** | ✅ VideoCall, ExportData, calls/page |
 | **Новые компоненты (Сессия 36)** | **3 файла** | ✅ AnalyticsDashboard, ConversionFunnels, useAnalytics |
+| **Новые middleware (Сессия 38)** | **1 файл** | ✅ rate_limit_advanced.py |
 | **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
 | **Новые API routes (Сессия 36)** | **2 файла** | ✅ /api/analytics, /api/analytics/track |
 
@@ -745,7 +746,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 36 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 38 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -753,7 +754,7 @@ Backend:
 
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
-- P1: 11/11 ✅ (100%)
+- P1: 13/13 ✅ (100%)
 - P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
@@ -770,43 +771,41 @@ Backend:
 - Frontend тестов: 12 файлов
 - Alembic миграций: 15 файлов
 - GitHub Actions: 12 workflows
-- Python файлов (app): 90 файлов
+- Python файлов (app): 91 файл
 - Консольные логи: 30 console.* (только отладка/ошибки)
 - MD документация: 11 файлов
 - Скрипты запуска: 11 файлов (.sh, .bat)
 - Файлов в корне: 52 файла
-- **Новых компонентов (Сессия 36): 2** (AnalyticsDashboard, ConversionFunnels)
-- **Новых hooks (Сессия 36): 1** (useAnalytics)
 
 **Последние коммиты:**
+- `48df75e` — feat: Performance + Security улучшения
 - `8c48319` — feat: Analytics Dashboard + User Behavior Tracking
 - `e909fa3` — feat: PWA + Video Calls + Export data
-- `b9b642f` — docs: обновлён TODO.md (Сессия 35)
 
 ---
 
-## 🎯 Выполнено (Сессия 36)
+## 🎯 Выполнено (Сессия 38)
 
-**Analytics Dashboard:**
-- ✅ AnalyticsDashboard компонент — платформа статистика, графики
-- ✅ Конверсия метрики — user growth, session analytics
-- ✅ Real-time данные — обновление по периоду (7/30/90/365 дней)
-- ✅ Экспорт отчётов — XLSX формат
-- ✅ Страница /analytics
+**Performance Optimization:**
+- ✅ Image optimization — quality=75, lazy loading, avif/webp formats
+- ✅ Bundle size optimization — code splitting (analytics, video, ui chunks)
+- ✅ Tree shaking — usedExports, sideEffects
+- ✅ Font optimization — optimizeFonts
+- ✅ Lighthouse CI — конфигурация обновлена (target >90)
 
-**User Behavior Tracking:**
-- ✅ useAnalytics hook — page views, clicks, scrolls, form submissions, errors
-- ✅ Time on page tracking — время на странице
-- ✅ Scroll depth tracking — глубина прокрутки (25%, 50%, 75%, 100%)
-- ✅ Error tracking — отслеживание ошибок frontend
-- ✅ API endpoint — /api/analytics/track
+**Security Hardening:**
+- ✅ Advanced Rate Limiting — per-endpoint limits
+- ✅ User-based throttling — different limits for auth/anonymous
+- ✅ Slow attack prevention — requests per second limit
+- ✅ API abuse protection — auth endpoints (5/min), payments (30/min)
+- ✅ AdvancedRateLimitMiddleware — подключён в main.py
 
-**Conversion Funnels:**
-- ✅ ConversionFunnels компонент — воронки конверсии
-- ✅ User Registration Funnel — 5 этапов
-- ✅ Course Enrollment Funnel — 4 этапа
-- ✅ Рекомендации по улучшению — автоматические insights
-- ✅ Страница /funnels
+**Per-Endpoint Rate Limits:**
+- Auth endpoints: 5-10 req/min (login, register, 2fa)
+- Payment endpoints: 10-30 req/min (strict)
+- Export endpoints: 5-15 req/min (resource-intensive)
+- Analytics: 10-60 req/min
+- Default API: 60-100 req/min
 
 ---
 
@@ -814,15 +813,16 @@ Backend:
 
 **Рекомендуемый приоритет:**
 
-1. **Performance: Lighthouse проверка** (1 сессия)
-   - Audit performance
-   - Optimizations если нужно
-   - Final score check
+1. **Tests: Coverage улучшение** (1-2 сессии)
+   - Backend тесты: 31 → 40 файлов
+   - Frontend тесты: 12 → 20 файлов
+   - Integration tests
+   - E2E tests
 
-2. **Security: Rate limiting улучшение** (1 сессия)
-   - Per-endpoint limits
-   - User-based throttling
-   - API abuse protection
+2. **Documentation: API улучшение** (1 сессия)
+   - OpenAPI/Swagger обновление
+   - Примеры использования
+   - Rate limiting документация
 
 3. **Mobile App** (долгосрочное)
    - React Native приложение
