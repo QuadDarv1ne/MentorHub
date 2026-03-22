@@ -1,6 +1,6 @@
 # MentorHub TODO
 
-**Дата обновления:** 22 марта 2026 г. (Сессия 40 — Notifications + Profile + Settings)
+**Дата обновления:** 22 марта 2026 г. (Сессия 41 — Messaging + Calendar)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `2873a5f` — feat: Notifications + Profile + Settings
+- ✅ Последний коммит: `881cae4` — feat: Messaging + Calendar улучшения
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ Все P0 и P1 задачи выполнены
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 🔍 Аудит качества кода (22 марта 2026 — Сессия 40)
+## 🔍 Аудит качества кода (22 марта 2026 — Сессия 41)
 
 ### Статистика проекта
 | Компонент | Количество | Статус |
@@ -37,6 +37,8 @@
 | **Новые компоненты (Сессия 36)** | **3 файла** | ✅ AnalyticsDashboard, ConversionFunnels, useAnalytics |
 | **Новые компоненты (Сессия 39)** | **2 файла** | ✅ RealTimeDashboard, AdvancedSearch |
 | **Новые компоненты (Сессия 40)** | **1 файл** | ✅ NotificationsPanel |
+| **Новые компоненты (Сессия 41)** | **1 файл** | ✅ EnhancedChat |
+| **Новые страницы (Сессия 41)** | **2 файла** | ✅ chat/page.tsx, calendar/page.tsx |
 | **Новые middleware (Сессия 38)** | **1 файл** | ✅ rate_limit_advanced.py |
 | **Новые API routes (Сессия 35)** | **3 файла** | ✅ /api/calls, /api/export |
 | **Новые API routes (Сессия 36)** | **2 файла** | ✅ /api/analytics, /api/analytics/track |
@@ -749,7 +751,7 @@ Backend:
 
 ---
 
-## 📋 Финальный статус (Сессия 40 — 22 марта 2026)
+## 📋 Финальный статус (Сессия 41 — 22 марта 2026)
 
 **✅ ГОТОВО К PRODUCTION**
 
@@ -757,7 +759,7 @@ Backend:
 
 **Статус задач:**
 - P0: 5/5 ✅ (100%)
-- P1: 18/18 ✅ (100%)
+- P1: 20/20 ✅ (100%)
 - P2: 4/10 ⏳ (долгосрочные, не блокируют релиз)
 
 **Качество кода:**
@@ -781,36 +783,33 @@ Backend:
 - Файлов в корне: 52 файла
 
 **Последние коммиты:**
+- `881cae4` — feat: Messaging + Calendar улучшения
+- `d3dc355` — docs: обновлён TODO.md (Сессия 40)
 - `2873a5f` — feat: Notifications + Profile + Settings
-- `33351d6` — docs: обновлён TODO.md (Сессия 39)
-- `cbe341e` — feat: Dashboard + Search улучшения
 
 ---
 
-## 🎯 Выполнено (Сессия 40)
+## 🎯 Выполнено (Сессия 41)
 
-**Notifications:**
-- ✅ NotificationsPanel — real-time WebSocket уведомления
-- ✅ Unread count badge — счётчик непрочитанных
-- ✅ WebSocket reconnection — автопереподключение при обрыве
-- ✅ Mark as read / Mark all as read
-- ✅ Time ago форматирование
-- ✅ Toast уведомления при новых событиях
+**Messaging (EnhancedChat):**
+- ✅ Group messaging — групповые чаты
+- ✅ File attachments — загрузка файлов (images, documents, audio)
+- ✅ Message reactions — emoji реакции на сообщения
+- ✅ Voice messages кнопка — готово к интеграции
+- ✅ WebSocket real-time — мгновенные сообщения
+- ✅ Typing indicators — "печатает..." статус
+- ✅ Create group chat — модальное создание группы
+- ✅ Unread messages — счётчик непрочитанных
+- ✅ File preview — предпросмотр изображений
 
-**Profile Page:**
-- ✅ Profile page — улучшенная страница профиля
-- ✅ Edit mode — редактирование имени, bio, skills
-- ✅ Stats cards — total sessions, completed, rating, success rate
-- ✅ Online status indicator
-- ✅ Quick actions — сессии, сообщения, настройки
-
-**Settings Page:**
-- ✅ Settings page — страница настроек с tabs
-- ✅ General — язык, часовой пояс
-- ✅ Privacy — видимость профиля, online status, last seen
-- ✅ Security — 2FA toggle, sessions limit
-- ✅ Notifications — email, push уведомления
-- ✅ Toggle компонент для переключателей
+**Calendar:**
+- ✅ Calendar page — месяц/неделя/день view
+- ✅ Google Calendar sync — OAuth интеграция
+- ✅ Outlook Calendar sync — OAuth интеграция
+- ✅ iCal export — экспорт в .ics формат
+- ✅ Reminders — настройки напоминаний
+- ✅ Upcoming events sidebar — предстоящие события
+- ✅ Event colors — session/meeting/personal типы
 
 ---
 
@@ -818,15 +817,13 @@ Backend:
 
 **Рекомендуемый приоритет:**
 
-1. **Messaging: Улучшение чата** (1 сессия)
-   - Group messaging
-   - File attachments
-   - Message reactions
-
-2. **Tests: Backend + Frontend** (1-2 сессии)
+1. **Tests: Backend + Frontend** (1-2 сессии)
    - Backend тесты: 31 → 40 файлов
    - Frontend тесты: 12 → 20 файлов
+   - Integration tests
+   - E2E tests
 
-3. **Mobile App** (долгосрочное)
+2. **Mobile App** (долгосрочное, 3+ сессии)
    - React Native приложение
    - Интеграция с API
+   - Push уведомления
