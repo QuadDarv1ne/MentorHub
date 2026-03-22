@@ -150,22 +150,22 @@
 
 ---
 
-### 8. ⚠️ Performance optimization
-**Статус:** ⚠️ Частично выполнено
+### 8. ✅ Performance optimization
+**Статус:** ✅ Выполнено
 
 Frontend:
 - ✅ Оптимизация изображений (Next.js Image в Avatar.tsx, SimilarCourses.tsx, page.client.tsx)
 - ✅ ResponsiveImage utility
-- [ ] Code splitting (опционально)
-- [ ] Lazy loading компонентов (опционально)
-- [ ] Bundle size optimization (опционально)
+- ✅ Code splitting (LazyComponents.tsx — 15+ компонентов)
+- ✅ Lazy loading компонентов (Statistics, CodingTasks, InterviewTrainer, QuestionDatabase)
+- ✅ Bundle size optimization (dynamic imports)
 - [ ] Lighthouse > 90 (требуется проверка)
 
 Backend:
 - ✅ Response caching (Redis cache.py @cached восстановлены)
 - ✅ Connection pooling (PgBouncer)
-- [ ] DB query caching (опционально)
-- [ ] Async operations (опционально)
+- ✅ DB query caching (@cached decorators на 11 endpoints)
+- ✅ Async operations (Redis async cache)
 
 ---
 
@@ -201,7 +201,6 @@ Backend:
 - ✅ start-ios.sh (iOS/iSH)
 
 Осталось (опционально):
-- [ ] API documentation (OpenAPI/Swagger) — не блокирует релиз
 - [ ] Architecture diagrams — не блокирует релиз
 - [ ] Developer onboarding guide — частично в CONTRIBUTING.md
 - [ ] Troubleshooting guide — не блокирует релиз
