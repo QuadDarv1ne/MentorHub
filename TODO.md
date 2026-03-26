@@ -129,53 +129,46 @@
 
 ## 🎯 Приоритетные задачи P0 (Критичные)
 
-### 0. ⏳ Хардкод секретов в docker-compose.dev.yml
-**Статус:** ⏳ Требуется исправление
+### 1. ✅ Хардкод секретов в docker-compose.dev.yml
+**Статус:** ✅ Выполнено (Сессия 42 — 26 марта 2026)
 
-**Проблема:**
-```yaml
-POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_dev_password}  # Слабый пароль по умолчанию
-SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}  # Предсказуемый ключ
-```
+**Выполнено:**
+- ✅ docker-compose.dev.yml: удалены значения по умолчанию для DB_PASSWORD, SECRET_KEY, DB_USER, DB_NAME
+- ✅ .env.example: добавлены предупреждения о безопасности (# CRITICAL: Change these values)
+- ✅ .env.dev: создан файл с безопасными dev значениями
+- ✅ .gitignore: добавлен .env.dev
 
-**Риск:** При случайном деплое dev-конфигурации в production
-
-**Решение:**
-- [ ] Удалить значения по умолчанию из docker-compose.dev.yml
-- [ ] Требовать явной установки через .env файл
+**Риск устранён:** Теперь требуется явная установка переменных окружения
 
 ---
 
-### 0. ⏳ Mock данные в production коде (Stripe Service)
-**Статус:** ⏳ Требуется исправление
+### 2. ✅ Mock данные в production коде (Stripe Service)
+**Статус:** ✅ Выполнено (Сессия 42 — 26 марта 2026)
 
-**Проблема:** `backend/app/services/stripe_service.py:57`
-```python
-return {
-    "error": "Stripe not configured",
-    "mock": True,
-    "client_secret": "mock_secret_for_testing",  # Хардкод
-}
-```
+**Выполнено:**
+- ✅ backend/app/config.py: добавлена настройка STRIPE_MOCK_MODE
+- ✅ backend/app/services/stripe_service.py: mock mode без хардкода client_secret (генерируется через uuid)
+- ✅ backend/app/services/mock_stripe_service.py: создан отдельный mock сервис для тестов
+- ✅ .env.example: добавлена STRIPE_MOCK_MODE=False
 
-**Решение:**
-- [ ] Вынести mock режим в отдельный тестовый сервис
-- [ ] Блокировать mock данные в production через проверку окружения
+**Решение:** Mock режим включается через STRIPE_MOCK_MODE=True, client_secret генерируется динамически
 
 ---
 
-### 0. ⏳ Пропущенные тесты (27 skipped)
-**Статус:** ⏳ Требуется исправление
+### 3. ✅ Пропущенные тесты (27 skipped)
+**Статус:** ✅ Выполнено (Сессия 42 — 26 марта 2026)
 
-**Проблема:**
-- `test_export.py` — 19 тестов (Requires authentication mocking)
-- `test_video_calls.py` — 6 тестов (No auth token available)
-- `test_chat_rooms.py` — 5 тестов (State issues in full test run)
+**Выполнено:**
+- ✅ backend/tests/conftest.py: добавлены фикстуры admin_async_client, create_admin_user
+- ✅ backend/tests/test_export.py: обновлены фикстуры auth_headers с правильным login
+- ✅ backend/tests/test_video_calls.py: добавлен hashed_password в фикстуры test_user, test_user_2
+- ✅ backend/tests/test_chat_rooms.py: добавлен hashed_password в фикстуры test_user, test_user_2
+- ✅ Убраны pytest.skip с 27 тестов (теперь используют правильные фикстуры)
 
-**Решение:**
-- [ ] Исправить фикстуры аутентификации в conftest.py
-- [ ] Улучшить изоляцию тестов
-- [ ] Добавить mock authentication для тестов экспорта
+**Фикстуры исправлены:**
+- test_user: hashed_password=get_password_hash("testpassword123")
+- test_user_2: hashed_password=get_password_hash("testpassword123")
+- auth_headers: правильный login для получения токена
 
 ---
 
@@ -994,17 +987,15 @@ Backend:
 
 **✅ ГОТОВО К PRODUCTION с рекомендациями**
 
-Все критичные задачи P0 и P1 выполнены. Проект готов к деплою.
-
-**Новые задачи аудита (Сессия 42):**
-- P0: 3 задачи (секреты, mock Stripe, пропущенные тесты)
-- P1: 5 задач (N+1, console.log, print(), зависимости, callback)
-- P2: 5 задач (большие файлы, дубли, magic numbers, type hints, импорты)
+**Выполнено P0 (Сессия 42):**
+- ✅ P0.1: Хардкод секретов — удалены значения по умолчанию
+- ✅ P0.2: Mock Stripe — отдельный сервис для тестов
+- ✅ P0.3: 27 пропущенных тестов — фикстуры исправлены
 
 **Статус задач:**
-- P0: 5/8 ✅ (62% — 3 новые требуют исправления)
-- P1: 20/25 ✅ (80% — 5 новых требуют исправления)
-- P2: 4/14 ⏳ (28% — 5 новых технических долгов)
+- P0: 8/8 ✅ (100% — все критичные задачи выполнены)
+- P1: 20/25 ✅ (80% — 5 задач требуют исправления)
+- P2: 4/14 ⏳ (28% — технические долги)
 
 **Качество кода:**
 - ✅ Нет TODO/FIXME/XXX/HACK в production коде
@@ -1013,23 +1004,29 @@ Backend:
 - ✅ Все зависимости актуальны
 - ✅ Все миграции объединены
 - ✅ Все workflows настроены
-- ✅ Ветки синхронизированы
+- ✅ Ветки синхронизированы (dev → main)
+
+**Изменения (Сессия 42):**
+- 10 файлов изменено
+- +386 строк, -48 строк
+- 1 новый файл: mock_stripe_service.py
+- 27 тестов теперь используют правильные фикстуры
 
 **Статистика проекта:**
 - Backend тестов: 31 файл
 - Frontend тестов: 12 файлов
 - Alembic миграций: 15 файлов
 - GitHub Actions: 12 workflows
-- Python файлов (app): 91 файл
+- Python файлов (app): 92 файла
 - Консольные логи: 73 console.* в frontend (требуется cleanup)
 - MD документация: 11 файлов
 - Скрипты запуска: 11 файлов (.sh, .bat)
-- Файлов в корне: 52 файла
+- Файлов в корне: 53 файла
 
 **Последние коммиты:**
+- `931b763` — fix: P0 исправления - секреты, mock Stripe, фикстуры тестов
+- `9e4d8f9` — docs: обновлён TODO.md (Сессия 42 — Аудит качества)
 - `881cae4` — feat: Messaging + Calendar улучшения
-- `d3dc355` — docs: обновлён TODO.md (Сессия 40)
-- `2873a5f` — feat: Notifications + Profile + Settings
 
 ---
 
