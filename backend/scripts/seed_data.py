@@ -4,9 +4,18 @@
 """
 import sys
 import os
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 import random
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 # Добавляем backend в PYTHONPATH
 backend_path = Path(__file__).parent.parent
@@ -33,8 +42,8 @@ def seed_data():
     db = SessionLocal()
 
     try:
-        print("🌱 Заполнение БД тестовыми данными...")
-        print("-" * 50)
+        logger.info("🌱 Заполнение БД тестовыми данными...")
+        logger.info("-" * 50)
 
         # Создаем тестовых пользователей
         users = []
