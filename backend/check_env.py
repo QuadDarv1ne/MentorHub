@@ -4,10 +4,19 @@
 """
 import os
 import sys
+import logging
 
-print("=" * 60)
-print("🔍 Проверка переменных окружения")
-print("=" * 60)
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
+
+logger.info("=" * 60)
+logger.info("🔍 Проверка переменных окружения")
+logger.info("=" * 60)
 
 required_vars = {
     "DATABASE_URL": "Строка подключения к PostgreSQL",
@@ -28,43 +37,43 @@ for var, description in required_vars.items():
     value = os.environ.get(var)
     if not value:
         errors.append(f"❌ {var} - {description}")
-        print(f"❌ {var}: НЕ УСТАНОВЛЕНА")
+        logger.error(f"❌ {var}: НЕ УСТАНОВЛЕНА")
     else:
         # Скрываем чувствительные данные
         if "PASSWORD" in var or "SECRET" in var or "KEY" in var:
             masked = value[:10] + "..." if len(value) > 10 else "***"
-            print(f"✅ {var}: {masked}")
+            logger.info(f"✅ {var}: {masked}")
         elif "URL" in var:
             # Показываем только протокол и хост
             masked = value.split("@")[-1] if "@" in value else value[:30] + "..."
-            print(f"✅ {var}: ...@{masked}")
+            logger.info(f"✅ {var}: ...@{masked}")
         else:
-            print(f"✅ {var}: {value}")
+            logger.info(f"✅ {var}: {value}")
 
 # Проверка опциональных переменных
-print("\n📋 Опциональные переменные:")
+logger.info("\n📋 Опциональные переменные:")
 for var, description in optional_vars.items():
     value = os.environ.get(var)
     if not value:
         warnings.append(f"⚠️  {var} - {description}")
-        print(f"⚠️  {var}: не установлена")
+        logger.warning(f"⚠️  {var}: не установлена")
     else:
-        print(f"✅ {var}: {value}")
+        logger.info(f"✅ {var}: {value}")
 
-print("=" * 60)
+logger.info("=" * 60)
 
 if errors:
-    print("\n❌ КРИТИЧЕСКИЕ ОШИБКИ:")
+    logger.error("\n❌ КРИТИЧЕСКИЕ ОШИБКИ:")
     for error in errors:
-        print(f"  {error}")
-    print("\n💡 Установите переменные окружения в настройках Amvera")
+        logger.error(f"  {error}")
+    logger.error("\n💡 Установите переменные окружения в настройках Amvera")
     sys.exit(1)
 
 if warnings:
-    print("\n⚠️  ПРЕДУПРЕЖДЕНИЯ:")
+    logger.warning("\n⚠️  ПРЕДУПРЕЖДЕНИЯ:")
     for warning in warnings:
-        print(f"  {warning}")
+        logger.warning(f"  {warning}")
 
-print("\n✅ Все обязательные переменные установлены!")
-print("🚀 Запуск приложения...\n")
+logger.info("\n✅ Все обязательные переменные установлены!")
+logger.info("🚀 Запуск приложения...\n")
 sys.exit(0)

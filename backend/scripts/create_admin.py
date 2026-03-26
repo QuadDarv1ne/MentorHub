@@ -4,7 +4,16 @@
 """
 import sys
 import os
+import logging
 from pathlib import Path
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 # Добавляем backend в PYTHONPATH
 backend_path = Path(__file__).parent.parent
@@ -26,21 +35,21 @@ def create_admin():
         existing_admin = db.execute(stmt).scalar_one_or_none()
 
         if existing_admin:
-            print(f"❌ Администратор уже существует: {existing_admin.email}")
+            logger.error(f"❌ Администратор уже существует: {existing_admin.email}")
             return
 
         # Запрашиваем данные
-        print("📝 Создание администратора MentorHub")
-        print("-" * 50)
+        logger.info("📝 Создание администратора MentorHub")
+        logger.info("-" * 50)
 
         email = input("Email: ").strip()
         if not email:
-            print("❌ Email обязателен!")
+            logger.error("❌ Email обязателен!")
             return
 
         password = input("Пароль: ").strip()
         if not password or len(password) < 8:
-            print("❌ Пароль должен быть не менее 8 символов!")
+            logger.error("❌ Пароль должен быть не менее 8 символов!")
             return
 
         full_name = input("Полное имя: ").strip() or "Administrator"
@@ -59,17 +68,17 @@ def create_admin():
         db.commit()
         db.refresh(admin)
 
-        print("\n" + "=" * 50)
-        print("✅ Администратор успешно создан!")
-        print("=" * 50)
-        print(f"📧 Email: {admin.email}")
-        print(f"👤 Имя: {admin.full_name}")
-        print(f"🔑 ID: {admin.id}")
-        print("=" * 50)
+        logger.info("\n" + "=" * 50)
+        logger.info("✅ Администратор успешно создан!")
+        logger.info("=" * 50)
+        logger.info(f"📧 Email: {admin.email}")
+        logger.info(f"👤 Имя: {admin.full_name}")
+        logger.info(f"🔑 ID: {admin.id}")
+        logger.info("=" * 50)
 
     except Exception as e:
         db.rollback()
-        print(f"❌ Ошибка: {e}")
+        logger.error(f"❌ Ошибка: {e}")
     finally:
         db.close()
 
