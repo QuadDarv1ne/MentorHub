@@ -6,6 +6,7 @@ Stripe Payment Service
 import logging
 from typing import Optional, Dict, Any
 from decimal import Decimal
+import os
 
 try:
     import stripe
@@ -24,7 +25,15 @@ class StripeService:
 
     def __init__(self):
         """Инициализация Stripe"""
-        if STRIPE_AVAILABLE and settings.STRIPE_SECRET_KEY:
+        # Mock mode для тестирования
+        self.mock_mode = getattr(settings, 'STRIPE_MOCK_MODE', False) or \
+                         os.environ.get('STRIPE_MOCK_MODE', '').lower() == 'true'
+        
+        if self.mock_mode:
+            self.enabled = False
+            self.mock_mode = True
+            logger.info("Stripe running in MOCK mode for testing")
+        elif STRIPE_AVAILABLE and settings.STRIPE_SECRET_KEY:
             stripe.api_key = settings.STRIPE_SECRET_KEY
             self.enabled = True
             logger.info("✅ Stripe API initialized")
@@ -51,6 +60,18 @@ class StripeService:
             Dict с информацией о Payment Intent
         """
         if not self.enabled:
+            # Mock mode для тестирования - без хардкода client_secret
+            if self.mock_mode:
+                import uuid
+                intent_id = f"pi_mock_{uuid.uuid4().hex[:16]}"
+                return {
+                    "error": "Stripe mock mode",
+                    "mock": True,
+                    "id": intent_id,
+                    "client_secret": f"{intent_id}_secret",
+                    "amount": float(amount),
+                    "currency": currency,
+                }
             return {
                 "error": "Stripe not configured",
                 "mock": True,

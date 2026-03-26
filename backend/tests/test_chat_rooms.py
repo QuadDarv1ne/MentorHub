@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.main import app
 from app.models.user import User, UserRole
 from app.models.chat_room import ChatRoom, ChatMessage
+from app.utils.security import get_password_hash
 
 client = TestClient(app)
 
@@ -21,7 +22,8 @@ def test_user(db_session: Session):
         username="chat_test_user",
         role=UserRole.STUDENT,
         is_active=True,
-        is_verified=True
+        is_verified=True,
+        hashed_password=get_password_hash("testpassword123")
     )
     db_session.add(user)
     db_session.commit()
@@ -39,7 +41,8 @@ def test_user_2(db_session: Session):
         username="chat_test_user_2",
         role=UserRole.STUDENT,
         is_active=True,
-        is_verified=True
+        is_verified=True,
+        hashed_password=get_password_hash("testpassword123")
     )
     db_session.add(user)
     db_session.commit()
@@ -56,16 +59,7 @@ def auth_header(test_user: User) -> dict:
         "/api/v1/auth/login",
         json={"email": test_user.email, "password": "testpassword123"}
     )
-    # If user has no password, we need to set one
-    if response.status_code != 200:
-        # Set password directly
-        test_user.hashed_password = "$2b$12$EixcR7lMYE9k.3yQp.8.8.8.8.8.8.8.8.8.8.8.8.8"  # "testpassword123"
-        db_session.commit()
-        response = client.post(
-            "/api/v1/auth/login",
-            json={"email": test_user.email, "password": "testpassword123"}
-        )
-    
+
     if response.status_code == 200:
         token = response.json().get("access_token")
         return {"Authorization": f"Bearer {token}"}

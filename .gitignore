@@ -7,6 +7,7 @@
 .env.test.local
 .env.*.example
 .env.render
+.env.dev
 
 # ==================== QWEN CONTEXT ====================
 .qwen/

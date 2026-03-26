@@ -10,6 +10,7 @@ from sqlalchemy import func
 from app.main import app
 from app.models.user import User, UserRole
 from app.models.video_call import VideoCall, CallType, CallStatus
+from app.utils.security import get_password_hash
 
 client = TestClient(app)
 
@@ -22,7 +23,8 @@ def test_user(db_session: Session):
         username="videocall_test_user",
         role=UserRole.STUDENT,
         is_active=True,
-        is_verified=True
+        is_verified=True,
+        hashed_password=get_password_hash("testpassword123")
     )
     db_session.add(user)
     db_session.commit()
@@ -40,7 +42,8 @@ def test_user_2(db_session: Session):
         username="videocall_test_user_2",
         role=UserRole.STUDENT,
         is_active=True,
-        is_verified=True
+        is_verified=True,
+        hashed_password=get_password_hash("testpassword123")
     )
     db_session.add(user)
     db_session.commit()
@@ -57,7 +60,7 @@ def auth_header(test_user: User) -> dict:
         "/api/v1/auth/login",
         json={"email": test_user.email, "password": "testpassword123"}
     )
-    
+
     if response.status_code == 200:
         token = response.json().get("access_token")
         return {"Authorization": f"Bearer {token}"}

@@ -7,15 +7,15 @@ services:
     image: postgres:16-alpine
     container_name: mentorhub-dev-postgres
     environment:
-      POSTGRES_USER: ${DB_USER:-mentorhub_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-mentorhub_dev_password}
-      POSTGRES_DB: ${DB_NAME:-mentorhub_dev}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mentorhub_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -44,11 +44,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: mentorhub-dev-backend
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:-mentorhub_dev_password}@postgres:5432/${DB_NAME:-mentorhub_dev}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: development
       DEBUG: "True"
       RELOAD: "True"

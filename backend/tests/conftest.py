@@ -337,3 +337,54 @@ async def second_async_authenticated_client(async_client):
     assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return async_client, {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def admin_async_client(async_client):
+    """Фикстура для авторизованного ADMIN клиента (async) - возвращает кортеж (client, headers)"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+
+    admin_data = {
+        "email": f"admin_{unique_id}@test.com",
+        "username": f"admin_{unique_id}",
+        "password": "AdminPass123!",
+        "full_name": "Admin User",
+        "role": "admin"
+    }
+
+    # Регистрация админа (201 Created)
+    register_response = await async_client.post("/api/v1/auth/register", json=admin_data)
+    assert register_response.status_code in [200, 201], f"Admin registration failed: {register_response.text}"
+
+    # Вход
+    login_response = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": admin_data["email"], "password": admin_data["password"]},
+    )
+    assert login_response.status_code == 200, f"Admin login failed: {login_response.text}"
+    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
+    token = login_response.json()["access_token"]
+    return async_client, {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def create_admin_user(db_session):
+    """Фикстура для создания admin пользователя в БД"""
+
+    def _create_admin_user(email, username, password):
+        import uuid
+        unique_id = str(uuid.uuid4())[:8]
+        user = User(
+            email=email if email else f"admin_{unique_id}@test.com",
+            username=username if username else f"admin_{unique_id}",
+            hashed_password=get_password_hash(password),
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+
+    return _create_admin_user

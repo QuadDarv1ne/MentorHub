@@ -176,6 +176,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_MOCK_MODE: bool = False  # Mock mode for testing
 
     # ==================== СБП (Система быстрых платежей) ====================
     SBP_MERCHANT_ID: str = ""
