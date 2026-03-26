@@ -88,12 +88,15 @@ async def create_session(
     if sanitized_notes and not is_safe_string(sanitized_notes):
         raise HTTPException(status_code=400, detail="Недопустимые символы в заметках")
 
-    # Проверяем, что студент существует
-    student = db.query(User).filter(User.id == session.student_id).first()
-    if not student:
+    # Проверяем, что студент и ментор существуют одним запросом (N+1 fix)
+    user_ids = {session.student_id, session.mentor_id}
+    users = db.query(User).filter(User.id.in_(user_ids)).all()
+    user_map = {u.id: u for u in users}
+
+    if session.student_id not in user_map:
         raise HTTPException(status_code=404, detail="Студент не найден")
 
-    # Проверяем, что ментор существует
+    # Проверяем ментора через отдельный запрос (т.к. это другая таблица)
     mentor = db.query(Mentor).filter(Mentor.id == session.mentor_id).first()
     if not mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")

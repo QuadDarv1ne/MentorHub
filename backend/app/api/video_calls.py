@@ -68,12 +68,14 @@ async def create_video_call(
     db: Session = Depends(get_db)
 ):
     """Создать видеозвонок"""
-    
-    # Определяем тип звонка
+
+    # Определяем тип звонка с использованием joinedload (N+1 fix)
     if call_data.room_id:
         call_type = CallType.GROUP
         # Проверяем, что пользователь является участником комнаты
-        room = db.query(ChatRoom).filter(
+        room = db.query(ChatRoom).options(
+            joinedload(ChatRoom.members)
+        ).filter(
             ChatRoom.id == call_data.room_id,
             ChatRoom.members.any(User.id == current_user.id)
         ).first()
@@ -114,27 +116,18 @@ async def create_video_call(
     
     db.commit()
     db.refresh(video_call)
-    
-    # Формируем ответ
-    creator = db.query(User).filter(User.id == current_user.id).first()
-    participant = None
-    room = None
-    
-    if video_call.participant_id:
-        participant = db.query(User).filter(User.id == video_call.participant_id).first()
-    
-    if video_call.room_id:
-        room = db.query(ChatRoom).filter(ChatRoom.id == video_call.room_id).first()
-    
+
+    # Формируем ответ с использованием joinedload (N+1 fix)
+    # Получаем все данные одним запросом через relationship
     return {
         "id": video_call.id,
         "creator_id": video_call.creator_id,
-        "creator_username": creator.username if creator else None,
+        "creator_username": video_call.creator.username if video_call.creator else None,
         "participant_id": video_call.participant_id,
-        "participant_username": participant.username if participant else None,
+        "participant_username": video_call.participant.username if video_call.participant else None,
         "call_type": video_call.call_type.value,
         "room_id": video_call.room_id,
-        "room_name": room.name if room else None,
+        "room_name": video_call.room.name if video_call.room else None,
         "agora_channel": video_call.agora_channel,
         "agora_token": video_call.agora_token,
         "agora_app_id": AGORA_APP_ID,
@@ -276,7 +269,7 @@ async def join_video_call(
     db: Session = Depends(get_db)
 ):
     """Получить токен для подключения к звонку"""
-    
+
     call = db.query(VideoCall).filter(
         VideoCall.id == call_id,
         or_(
@@ -288,14 +281,18 @@ async def join_video_call(
                 )
             )
         )
+    ).options(
+        joinedload(VideoCall.creator),
+        joinedload(VideoCall.participant),
+        joinedload(VideoCall.chat_room)
     ).first()
-    
+
     if not call:
         raise HTTPException(status_code=404, detail="Call not found or access denied")
-    
+
     # Генерируем токен
     agora_token = generate_agora_token(call.agora_channel, current_user.id)
-    
+
     return {
         "agora_app_id": AGORA_APP_ID,
         "agora_channel": call.agora_channel,
@@ -310,33 +307,32 @@ async def start_video_call(
     db: Session = Depends(get_db)
 ):
     """Начать видеозвонок"""
-    
+
     call = db.query(VideoCall).filter(
         VideoCall.id == call_id,
         VideoCall.creator_id == current_user.id
+    ).options(
+        joinedload(VideoCall.creator),
+        joinedload(VideoCall.participant),
+        joinedload(VideoCall.chat_room)
     ).first()
-    
+
     if not call:
         raise HTTPException(status_code=404, detail="Call not found or you are not the creator")
-    
+
     call.status = CallStatus.IN_PROGRESS
     call.started_at = datetime.now(timezone.utc)
-    
+
     db.commit()
     db.refresh(call)
-    
-    creator = db.query(User).filter(User.id == current_user.id).first()
-    participant = None
-    
-    if call.participant_id:
-        participant = db.query(User).filter(User.id == call.participant_id).first()
-    
+
+    # Используем loaded relationships (N+1 fix)
     return {
         "id": call.id,
         "creator_id": call.creator_id,
-        "creator_username": creator.username if creator else None,
+        "creator_username": call.creator.username if call.creator else None,
         "participant_id": call.participant_id,
-        "participant_username": participant.username if participant else None,
+        "participant_username": call.participant.username if call.participant else None,
         "call_type": call.call_type.value,
         "room_id": call.room_id,
         "room_name": call.chat_room.name if call.chat_room else None,
@@ -362,39 +358,38 @@ async def end_video_call(
     db: Session = Depends(get_db)
 ):
     """Завершить видеозвонок"""
-    
+
     call = db.query(VideoCall).filter(
         VideoCall.id == call_id,
         or_(
             VideoCall.creator_id == current_user.id,
             VideoCall.participant_id == current_user.id
         )
+    ).options(
+        joinedload(VideoCall.creator),
+        joinedload(VideoCall.participant),
+        joinedload(VideoCall.chat_room)
     ).first()
-    
+
     if not call:
         raise HTTPException(status_code=404, detail="Call not found or access denied")
-    
+
     call.status = CallStatus.COMPLETED
     call.ended_at = datetime.now(timezone.utc)
-    
+
     if call.started_at:
         call.duration_seconds = int((call.ended_at - call.started_at).total_seconds())
-    
+
     db.commit()
     db.refresh(call)
-    
-    creator = db.query(User).filter(User.id == call.creator_id).first()
-    participant = None
-    
-    if call.participant_id:
-        participant = db.query(User).filter(User.id == call.participant_id).first()
-    
+
+    # Используем loaded relationships (N+1 fix)
     return {
         "id": call.id,
         "creator_id": call.creator_id,
-        "creator_username": creator.username if creator else None,
+        "creator_username": call.creator.username if call.creator else None,
         "participant_id": call.participant_id,
-        "participant_username": participant.username if participant else None,
+        "participant_username": call.participant.username if call.participant else None,
         "call_type": call.call_type.value,
         "room_id": call.room_id,
         "room_name": call.chat_room.name if call.chat_room else None,
