@@ -1,0 +1,172 @@
+"""
+Payments CRUD Operations
+
+Database operations for payments management.
+"""
+
+from decimal import Decimal
+from typing import List, Optional
+
+from sqlalchemy.orm import Session, joinedload
+
+from app.models.payment import Payment as DBPayment, PaymentStatus
+from app.models.user import User
+from app.models.mentor import Mentor
+from app.models.session import Session as DBSession
+from app.schemas.payment import PaymentCreate, PaymentUpdate
+from app.utils.sanitization import sanitize_string, is_safe_string
+
+
+def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPayment]:
+    """Get all payments with pagination."""
+    if skip < 0:
+        skip = 0
+    if limit <= 0 or limit > 100:
+        limit = 100
+
+    payments = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).offset(skip).limit(limit).all()
+    return payments
+
+
+def get_payment_by_id(db: Session, payment_id: int) -> Optional[DBPayment]:
+    """Get payment by ID."""
+    payment = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).filter(DBPayment.id == payment_id).first()
+    return payment
+
+
+def get_payments_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> List[DBPayment]:
+    """Get payments by user ID with pagination."""
+    payments = db.query(DBPayment).options(
+        joinedload(DBPayment.student),
+        joinedload(DBPayment.mentor),
+        joinedload(DBPayment.session)
+    ).filter(DBPayment.student_id == user_id).order_by(
+        DBPayment.created_at.desc()
+    ).offset(skip).limit(limit).all()
+    return payments
+
+
+def create_payment(
+    db: Session,
+    student_id: int,
+    mentor_id: int,
+    session_id: int,
+    amount: Decimal,
+    currency: str = "USD",
+    payment_method: Optional[str] = None,
+    transaction_id: Optional[str] = None,
+    status: PaymentStatus = PaymentStatus.PENDING
+) -> DBPayment:
+    """Create a new payment."""
+    # Sanitize input data
+    sanitized_currency = sanitize_string(currency) if currency else "USD"
+    sanitized_payment_method = sanitize_string(payment_method) if payment_method else None
+    sanitized_transaction_id = sanitize_string(transaction_id) if transaction_id else None
+
+    # Validate input data
+    if sanitized_currency and not is_safe_string(sanitized_currency):
+        raise ValueError("Invalid currency characters")
+    if sanitized_payment_method and not is_safe_string(sanitized_payment_method):
+        raise ValueError("Invalid payment method characters")
+    if sanitized_transaction_id and not is_safe_string(sanitized_transaction_id):
+        raise ValueError("Invalid transaction ID characters")
+
+    # Verify related entities exist
+    student = db.query(User).filter(User.id == student_id).first()
+    if not student:
+        raise ValueError("Student not found")
+
+    mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+    if not mentor:
+        raise ValueError("Mentor not found")
+
+    session = db.query(DBSession).filter(DBSession.id == session_id).first()
+    if not session:
+        raise ValueError("Session not found")
+
+    # Create payment
+    db_payment = DBPayment(
+        student_id=student_id,
+        mentor_id=mentor_id,
+        session_id=session_id,
+        amount=amount,
+        currency=sanitized_currency,
+        payment_method=sanitized_payment_method,
+        transaction_id=sanitized_transaction_id,
+        status=status,
+    )
+    db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+
+
+def update_payment(
+    db: Session,
+    payment_id: int,
+    payment_data: PaymentUpdate
+) -> Optional[DBPayment]:
+    """Update payment."""
+    db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    if not db_payment:
+        return None
+
+    # Sanitize and update fields
+    for key, value in payment_data.model_dump(exclude_unset=True).items():
+        if key in ["payment_method", "transaction_id"] and value is not None:
+            sanitized_value = sanitize_string(value)
+            if not is_safe_string(sanitized_value):
+                raise ValueError(f"Invalid characters in {key}")
+            setattr(db_payment, key, sanitized_value)
+        else:
+            setattr(db_payment, key, value)
+
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+
+
+def delete_payment(db: Session, payment_id: int) -> bool:
+    """Delete payment."""
+    db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    if not db_payment:
+        return False
+
+    db.delete(db_payment)
+    db.commit()
+    return True
+
+
+def update_payment_status(
+    db: Session,
+    payment_id: int,
+    new_status: PaymentStatus
+) -> Optional[DBPayment]:
+    """Update payment status."""
+    payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+    if not payment:
+        return None
+
+    payment.status = new_status
+    db.commit()
+    db.refresh(payment)
+    return payment
+
+
+def get_payment_by_transaction_id(
+    db: Session,
+    transaction_id: str
+) -> Optional[DBPayment]:
+    """Get payment by transaction ID."""
+    payment = db.query(DBPayment).filter(
+        DBPayment.transaction_id == transaction_id
+    ).first()
+    return payment
