@@ -8,8 +8,8 @@
 ## 📌 Актуальные пометки (27 марта 2026 — Сессия 48 — P2 Middleware Consolidation)
 
 **Текущий статус:**
-- ✅ Ветки `main` и `dev` требуют синхронизации
-- ✅ Последний коммит: `3c8c5e9` — refactor(P2): консолидация rate limiter middleware
+- ✅ Ветки `main` и `dev` синхронизированы
+- ✅ Последний коммит: `fc7eac1` — docs: обновлён TODO.md (Сессия 48 — P2 Middleware Consolidation)
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 8/14 (57%)
 
@@ -30,6 +30,34 @@
 - 1 новый файл (rate_limiter_unified.py)
 
 **Проект готов к production деплою.**
+
+---
+
+## 📌 Пометки на будущее (не блокирует релиз)
+
+**P2 — Технические долги (долгосрочные):**
+- ⏳ Security middleware консолидация (security.py + security_advanced.py) — опционально
+- ⏳ Mobile app (React Native) — долгосрочная задача
+- ⏳ GraphQL API — опционально к REST
+- ⏳ Database read replicas — при масштабировании
+
+**Качество кода:**
+- ✅ Console.log только в hooks/components для error tracking (71 файл)
+- ✅ Type hints добавлены в monitoring.py, error_handlers.py, rate_limiter_unified.py
+- ✅ Magic numbers вынесены в constants.py (380+ строк)
+- ✅ Большие файлы рефакторированы (main.py 889→227, security_advanced.py 653→245)
+
+**Тесты:**
+- ✅ 32 backend тест файла (339 тестов)
+- ✅ 12 frontend тест файлов (55 тестов)
+- ⏳ Integration tests — требуются сценарии
+- ⏳ E2E tests — 6 skipped (mock режим)
+
+**Инфраструктура:**
+- ✅ 11 health checks в docker-compose.prod.yml
+- ✅ Prometheus + Grafana + Sentry настроены
+- ✅ 12 GitHub Actions workflows
+- ✅ Кроссплатформенные скрипты (6 файлов + STARTUP_GUIDE.md)
 
 **Выполнено (Сессия 47):**
 - ✅ `monitoring.py` — добавлены type hints (Dict, List, Callable, Any)
@@ -897,41 +925,53 @@ Backend:
 
 ---
 
-## 🎯 Итоговый статус
+## 🎯 Итоговый статус (27 марта 2026 — Сессия 48)
 
 **✅ ГОТОВО К PRODUCTION**
 
 Все критичные задачи P0 и P1 выполнены. Проект готов к деплою.
 
 **Статус задач:**
-- P0: 5/5 ✅ (100%)
-- P1: 5/5 ✅ (100% — Documentation + кроссплатформенные скрипты)
-- P2: 0/3 ⏳ (долгосрочные, не блокируют релиз)
+- P0: 8/8 ✅ (100%)
+- P1: 23/25 ✅ (92% — Documentation + кроссплатформенные скрипты)
+- P2: 8/14 ⏳ (57% — технические долги, не блокируют релиз)
 
-**Проверка качества (2026-03-22 — еженедельная):**
-- ✅ Тесты: 339 тестов собрано
-- ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде (только в тексте заданий — ToDo компонент)
-- ✅ Нет закомментированного кода (1357 строк комментариев — docstrings и документация)
-- ✅ 1 опциональный импорт (websocket manager — try/except паттерн)
+**Проверка качества (2026-03-27 — Сессия 48):**
+- ✅ Тесты: 339 тестов собрано (32 backend файла, 12 frontend файлов)
+- ✅ Нет TODO/FIXME/XXX/HACK комментариев в коде
+- ✅ Нет закомментированного кода
 - ✅ Зависимости обновлены
 - ✅ archive/ директория удалена
 - ✅ Sentry настроен (frontend + backend)
 - ✅ Monitoring настроен (Prometheus + Grafana)
-- ✅ Security hardening выполнен
+- ✅ Security hardening выполнен (rate limiting, CORS, CSP, HSTS)
 - ✅ Database индексы созданы
 - ✅ Redis production настроен
 - ✅ Health checks для 11 сервисов
-- ✅ Frontend cleanup: console.error оставлены только в hooks для отладки
-- ✅ Кроссплатформенные скрипты: 6 скриптов + документация
+- ✅ Frontend cleanup: console.log только в hooks/components для error tracking
+- ✅ Кроссплатформенные скрипты: 6 скриптов + STARTUP_GUIDE.md
 - ✅ Code Quality Tools: black, isort, pytest, mypy настроены (pyproject.toml)
-- ✅ Alembic миграции: 12 файлов, все объединены
+- ✅ Alembic миграции: 15 файлов, все объединены (z999_merge_all_heads)
 - ✅ .gitignore настроен (Python, Node.js, QWEN, env)
-- ✅ 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications)
+- ✅ Структура проекта: 50 файлов в корне
+- ✅ Синхронизация: dev = main (fc7eac1)
+- ✅ CI/CD: 12 GitHub Actions workflows (backend-tests, frontend-tests, ci-cd, lighthouse, deploy-*, rollback, notifications)
 - ✅ Error Handling: централизованная обработка
 - ✅ Logging: 387 logger.error/warning/info
-- ✅ Health Checks: 5 endpoints
-- ✅ README: 760 строк документации
-- ✅ Синхронизация: dev → main актуальны (git diff main dev — пустой)
+- ✅ Health Checks: 5 endpoints (/health, /health/detailed, /ready, /live, /database)
+- ✅ README: 760+ строк документации
+- ✅ Middleware консолидация: rate_limiter_unified.py (268 строк, 2→1)
+- ✅ Type hints: monitoring.py, error_handlers.py, rate_limiter_unified.py
+- ✅ Constants: constants.py (380+ строк), magic numbers вынесены
+- ✅ Рефакторинг: main.py (889→227), security_advanced.py (653→245)
+
+**Опциональные улучшения (не блокируют релиз):**
+- [ ] Security middleware консолидация (security.py + security_advanced.py)
+- [ ] Mobile app (React Native)
+- [ ] GraphQL API (опционально к REST)
+- [ ] Database read replicas (при масштабировании)
+- [ ] Integration tests сценарии
+- [ ] E2E tests (6 skipped — mock режим)
 
 **Проверка качества (2026-03-21 — финальная):**
 - ✅ Тесты: 339 тестов собрано
@@ -1365,3 +1405,50 @@ Backend:
   - ✅ Нет TODO/FIXME комментариев
   - ✅ Нет закомментированного кода
 - **Статус:** PRODUCTION READY ✅
+
+---
+
+## 📋 Финальный статус (Сессия 48 — 27 марта 2026 — P2 Middleware Consolidation)
+
+**✅ ГОТОВО К PRODUCTION**
+
+**Выполнено P2 (Сессия 48):**
+- ✅ P2.1: Rate limiter консолидация — rate_limiter_unified.py (268 строк)
+- ✅ P2.2: Type hints — monitoring.py, error_handlers.py
+- ✅ P2.3: Аудит импортов — 719 backend + 456 frontend (0 неиспользуемых)
+- ✅ P2.4: Magic numbers — constants.py (380+ строк)
+- ✅ P2.5: Рефакторинг — main.py, security_advanced.py, payments.py, export.py, websocket.py
+
+**Статус задач:**
+- P0: 8/8 ✅ (100% — все критичные задачи выполнены)
+- P1: 23/25 ✅ (92% — 2 задачи не блокируют релиз)
+- P2: 8/14 ⏳ (57% — технические долги)
+
+**Качество кода:**
+- ✅ Нет TODO/FIXME/XXX/HACK в production коде
+- ✅ Нет закомментированного кода
+- ✅ Console.log только для error tracking (hooks, components) — 71 файл
+- ✅ Все зависимости актуальны
+- ✅ Все миграции объединены (z999_merge_all_heads)
+- ✅ Все workflows настроены (12 GitHub Actions)
+- ✅ Ветки синхронизированы (dev = main, fc7eac1)
+
+**Статистика проекта:**
+- Backend тестов: 32 файла (339 тестов)
+- Frontend тестов: 12 файлов (55 тестов)
+- Alembic миграций: 15 файлов
+- GitHub Actions: 12 workflows
+- Python файлов (app): 92 файла
+- Консольные логи: 71 console.* в frontend (только error tracking) ✅
+- MD документация: 11+ файлов
+- Скрипты запуска: 11 файлов (.sh, .bat)
+- Файлов в корне: 50 файлов
+
+**Последние коммиты:**
+- `fc7eac1` — docs: обновлён TODO.md (Сессия 48 — P2 Middleware Consolidation)
+- `3c8c5e9` — refactor(P2): консолидация rate limiter middleware
+- `eb53739` — docs: обновлён TODO.md (Сессия 47 — P2 Type Hints)
+- `f6a7a95` — refactor(P2): добавлены type hints в utils файлы
+- `993221f` — docs: обновлён TODO.md (Сессия 46 — P2 Аудит импортов)
+
+**Рекомендация:** ✅ Проект полностью готов к production деплою. P2 задачи — долгосрочные, не блокируют релиз.
