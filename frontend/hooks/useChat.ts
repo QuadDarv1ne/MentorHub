@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
+import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
 
 export interface Message {
   id: number
@@ -38,7 +39,7 @@ interface UseChatOptions {
 export function useChat({
   recipientId,
   autoReconnect = true,
-  maxReconnectAttempts = 5,
+  maxReconnectAttempts = RETRY.MAX_ATTEMPTS,
   enableNotifications = true
 }: UseChatOptions & { enableNotifications?: boolean } = {}) {
   const toast = useToast()
@@ -57,7 +58,7 @@ export function useChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Load message history
-  const loadMessageHistory = useCallback(async (userId: number, limit = 50) => {
+  const loadMessageHistory = useCallback(async (userId: number, limit = LIMITS.MAX_MESSAGE_LENGTH / 2) => {
     setIsLoading(true)
     setError(null)
 
@@ -173,7 +174,7 @@ export function useChat({
             if (typingTimeoutRef.current) {
               clearTimeout(typingTimeoutRef.current)
             }
-            typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000)
+            typingTimeoutRef.current = setTimeout(() => setIsTyping(false), TIMEOUTS.TYPING_INDICATOR)
             break
 
           case 'read':

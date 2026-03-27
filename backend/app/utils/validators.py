@@ -6,12 +6,20 @@ import re
 import logging
 from fastapi import HTTPException, status
 
+from app.constants import (
+    EMAIL_MAX_LENGTH,
+    USERNAME_MIN_LENGTH,
+    USERNAME_MAX_LENGTH,
+    URL_MAX_LENGTH,
+    SANITIZE_TEXT_MAX_LENGTH,
+)
+
 logger = logging.getLogger(__name__)
 
 # Регулярные выражения для валидации
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 PHONE_REGEX = re.compile(r"^\+?[1-9]\d{1,14}$")  # E.164 format
-USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_-]{3,32}$")
+USERNAME_REGEX = re.compile(rf"^[a-zA-Z0-9_-]{{{USERNAME_MIN_LENGTH},{USERNAME_MAX_LENGTH}}}$")
 URL_REGEX = re.compile(
     r"^https?://"  # http:// or https://
     r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|"  # domain...
@@ -64,7 +72,7 @@ def validate_email(email: str) -> str:
             detail="Invalid email format",
         )
 
-    if len(email) > 254:  # RFC 5321
+    if len(email) > EMAIL_MAX_LENGTH:  # RFC 5321
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Email too long",
@@ -154,7 +162,7 @@ def validate_url(url: str) -> str:
             detail="Invalid URL format",
         )
 
-    if len(url) > 2048:
+    if len(url) > URL_MAX_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="URL too long",
@@ -163,7 +171,7 @@ def validate_url(url: str) -> str:
     return url
 
 
-def sanitize_input(text: str, max_length: int = 1000) -> str:
+def sanitize_input(text: str, max_length: int = SANITIZE_TEXT_MAX_LENGTH) -> str:
     """
     Очистка пользовательского ввода от потенциально опасных символов
 
@@ -220,13 +228,15 @@ def validate_password_strength(password: str) -> None:
     Raises:
         HTTPException: Если пароль слабый
     """
-    if len(password) < 8:
+    from app.constants import PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH
+    
+    if len(password) < PASSWORD_MIN_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Password must be at least 8 characters long",
         )
 
-    if len(password) > 128:
+    if len(password) > PASSWORD_MAX_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Password too long",

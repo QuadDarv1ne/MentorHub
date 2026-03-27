@@ -2,6 +2,8 @@
  * API клиент для взаимодействия с backend
  */
 
+import { RETRY, TIMEOUTS, LIMITS } from '@/lib/constants'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export class ApiError extends Error {
@@ -234,8 +236,8 @@ export class WebSocketClient {
   private ws: WebSocket | null = null
   private url: string
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
+  private maxReconnectAttempts = RETRY.MAX_ATTEMPTS
+  private reconnectDelay = RETRY.DELAY
 
   constructor(endpoint: string) {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'

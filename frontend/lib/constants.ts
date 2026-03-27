@@ -253,6 +253,10 @@ export const LIMITS = {
   MAX_TITLE_LENGTH: 100,
   MIN_PASSWORD_LENGTH: 6,
   MAX_PASSWORD_LENGTH: 50,
+  MAX_PAGE_SIZE: 100,
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_UPLOAD_SIZE: 10 * 1024 * 1024, // 10 MB
+  MAX_CHAT_FILE_SIZE: 10 * 1024 * 1024, // 10 MB for chat attachments
 } as const
 
 // Таймауты
@@ -262,6 +266,47 @@ export const TIMEOUTS = {
   API_TIMEOUT: 30000,
   TOAST_DURATION: 3000,
   ERROR_TOAST_DURATION: 5000,
+  TYPING_INDICATOR: 3000,
+  RECONNECT_DELAY: 5000,
+  LOADING_DELAY: 300,
+  LOADING_DELAY_LONG: 500,
+  COPY_TIMEOUT: 2000,
+  FORM_SAVE_TIMEOUT: 2000,
+  PAYMENT_PROCESSING_DELAY: 1500,
+  PAYMENT_SUCCESS_DISPLAY: 3000,
+} as const
+
+// Константы кеширования
+export const CACHE = {
+  TTL_DEFAULT: 5 * 60 * 1000, // 5 minutes in milliseconds
+  TTL_USER: 10 * 60 * 1000, // 10 minutes
+  TTL_COURSE: 30 * 60 * 1000, // 30 minutes
+  TTL_STATS: 5 * 60 * 1000, // 5 minutes
+  MAX_ITEMS: 1000,
+} as const
+
+// Константы производительности
+export const PERFORMANCE = {
+  CHECK_INTERVAL: 100,
+  WARNING_THRESHOLD: 1000,
+} as const
+
+// Константы для календаря
+export const CALENDAR = {
+  EMPTY_DAYS: 7,
+  CELL_MIN_HEIGHT: 100,
+} as const
+
+// Константы для пагинации
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  MAX_VISIBLE_PAGES: 5,
+} as const
+
+// Константы для повторных попыток
+export const RETRY = {
+  MAX_ATTEMPTS: 5,
+  DELAY: 5000,
 } as const
 
 // Социальные сети

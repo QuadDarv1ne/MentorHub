@@ -18,13 +18,24 @@ except ImportError:
     REDIS_AVAILABLE = False
 
 from app.config import settings
+from app.constants import (
+    CACHE_TTL_DEFAULT,
+    CACHE_TTL_USER,
+    CACHE_TTL_MENTOR,
+    CACHE_TTL_COURSE,
+    CACHE_TTL_REVIEW,
+    CACHE_TTL_STATS,
+    CACHE_TTL_ANALYTICS,
+    CACHE_TTL_SUBSCRIPTION,
+    MAX_MEMORY_CACHE_ITEMS,
+    MAX_CACHE_TTL,
+)
 
 logger = logging.getLogger(__name__)
 
-# Константы для кеширования
-DEFAULT_CACHE_TTL = 300  # 5 минут
-DEFAULT_CACHE_EXPIRATION = 3600  # 1 час
-MAX_MEMORY_CACHE_ITEMS = 1000
+# Константы для кеширования (экспорт из constants.py)
+DEFAULT_CACHE_TTL = CACHE_TTL_DEFAULT  # 5 минут
+DEFAULT_CACHE_EXPIRATION = CACHE_TTL_SUBSCRIPTION  # 1 час
 MEMORY_CACHE_CLEANUP_COUNT = 500
 
 
@@ -232,14 +243,23 @@ def reset_cache_stats():
 
 
 CACHE_TTL = {
-    "user": 600, "mentor": 900, "course": 1800, "review": 300,
-    "stats": 60, "session": 120, "list": 180, "achievement": 300,
-    "payment": 600, "message": 120,
+    "user": CACHE_TTL_USER,
+    "mentor": CACHE_TTL_MENTOR,
+    "course": CACHE_TTL_COURSE,
+    "review": CACHE_TTL_REVIEW,
+    "stats": CACHE_TTL_STATS,
+    "session": 120,
+    "list": 180,
+    "achievement": CACHE_TTL_REVIEW,
+    "payment": CACHE_TTL_ANALYTICS,
+    "message": 120,
+    "analytics": CACHE_TTL_ANALYTICS,
+    "subscription": CACHE_TTL_SUBSCRIPTION,
 }
 
 CACHE_CONFIG = {
-    "max_memory_items": 1000,
-    "cleanup_threshold": 500,
-    "default_ttl": 300,
-    "max_ttl": 3600
+    "max_memory_items": MAX_MEMORY_CACHE_ITEMS,
+    "cleanup_threshold": MEMORY_CACHE_CLEANUP_COUNT,
+    "default_ttl": CACHE_TTL_DEFAULT,
+    "max_ttl": MAX_CACHE_TTL
 }

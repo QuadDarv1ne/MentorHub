@@ -2,6 +2,8 @@
  * HTTP client с retry logic и обработкой ошибок
  */
 
+import { TIMEOUTS, RETRY } from '@/lib/constants'
+
 interface RetryConfig {
   maxRetries: number
   retryDelay: number
@@ -9,8 +11,8 @@ interface RetryConfig {
 }
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxRetries: 3,
-  retryDelay: 1000,
+  maxRetries: RETRY.MAX_ATTEMPTS > 3 ? 3 : RETRY.MAX_ATTEMPTS,
+  retryDelay: RETRY.DELAY,
   retryStatusCodes: [408, 429, 500, 502, 503, 504],
 }
 
@@ -54,7 +56,7 @@ export async function fetchWithRetry(
   while (attempts <= config.maxRetries) {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.API_TIMEOUT) // 30s timeout
 
       const response = await fetch(url, {
         ...options,

@@ -13,6 +13,15 @@ from collections import defaultdict
 import logging
 import jwt
 from app.config import settings
+from app.constants import (
+    PASSWORD_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    COMMON_PASSWORDS,
+    PASSWORD_ALPHABET,
+    MAX_LOGIN_ATTEMPTS,
+    LOCKOUT_DURATION_SECONDS,
+    CLEANUP_INTERVAL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,14 +65,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 class PasswordValidator:
     """Валидатор паролей с проверкой на надёжность"""
 
-    MIN_LENGTH = 8
-    MAX_LENGTH = 128
-    COMMON_PASSWORDS = {
-        "password", "123456", "12345678", "qwerty", "abc123", "monkey",
-        "1234567", "letmein", "trustno1", "dragon", "baseball", "iloveyou",
-        "master", "sunshine", "ashley", "bailey", "passw0rd", "shadow",
-        "123123", "654321",
-    }
+    MIN_LENGTH = PASSWORD_MIN_LENGTH
+    MAX_LENGTH = PASSWORD_MAX_LENGTH
+    COMMON_PASSWORDS = COMMON_PASSWORDS
 
     @classmethod
     def validate_password(cls, password: str) -> Dict[str, any]:
@@ -112,14 +116,18 @@ class PasswordValidator:
     @staticmethod
     def generate_strong_password(length: int = 16) -> str:
         """Генерация надёжного пароля"""
-        alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
-        return "".join(secrets.choice(alphabet) for _ in range(length))
+        return "".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(length))
 
 
 class BruteForceProtection:
     """Защита от brute-force атак"""
 
-    def __init__(self, max_attempts: int = 5, lockout_duration: int = 900, cleanup_interval: int = 3600):
+    def __init__(
+        self,
+        max_attempts: int = MAX_LOGIN_ATTEMPTS,
+        lockout_duration: int = LOCKOUT_DURATION_SECONDS,
+        cleanup_interval: int = CLEANUP_INTERVAL
+    ):
         self.max_attempts = max_attempts
         self.lockout_duration = lockout_duration
         self.cleanup_interval = cleanup_interval

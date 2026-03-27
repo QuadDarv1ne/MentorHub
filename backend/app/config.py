@@ -10,6 +10,27 @@ from functools import lru_cache
 import os
 import logging
 
+from .constants import (
+    SESSION_EXPIRE_SECONDS,
+    HSTS_MAX_AGE,
+    RATE_LIMIT_DEFAULT_REQUESTS,
+    RATE_LIMIT_DEFAULT_WINDOW,
+    DEFAULT_PAGE_SIZE,
+    MAX_PAGE_SIZE,
+    MAX_UPLOAD_SIZE,
+    ALLOWED_EXTENSIONS as ALLOWED_EXTENSIONS_LIST,
+    DB_POOL_RECYCLE,
+    REDIS_DEFAULT_PORT,
+    DEFAULT_BACKEND_PORT,
+    EXCLUDE_PORTS,
+    MAX_LOGIN_ATTEMPTS,
+    LOCKOUT_DURATION_SECONDS,
+    CLEANUP_INTERVAL,
+    DEFAULT_RATE_LIMIT_REQUESTS,
+    DEFAULT_RATE_LIMIT_PERIOD,
+    DEFAULT_MAX_BODY_SIZE,
+)
+
 
 class Settings(BaseSettings):
     """Main application settings"""
@@ -60,7 +81,7 @@ class Settings(BaseSettings):
 
     # ==================== SERVER ====================
     HOST: str = "0.0.0.0"
-    PORT: int = int(os.environ.get("PORT", "8000"))
+    PORT: int = int(os.environ.get("PORT", str(DEFAULT_BACKEND_PORT)))
     RELOAD: bool = True
 
     # ==================== DATABASE ====================
@@ -84,15 +105,15 @@ class Settings(BaseSettings):
     # Render Starter: 2GB RAM, 1 CPU
     DB_POOL_SIZE: int = int(os.environ.get("DB_POOL_SIZE", "5"))  # Reduced for PgBouncer (transaction pooling)
     DB_MAX_OVERFLOW: int = int(os.environ.get("DB_MAX_OVERFLOW", "10"))  # Reduced for PgBouncer
-    DB_POOL_RECYCLE: int = 1800  # Recycle connections after 30 minutes
+    DB_POOL_RECYCLE: int = DB_POOL_RECYCLE  # Recycle connections after 30 minutes
     DB_POOL_TIMEOUT: int = 30  # Timeout waiting for connection from pool
     # PgBouncer-specific settings
     DB_CONNECT_TIMEOUT: int = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
 
     # ==================== REDIS ====================
-    REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:6379/0")
+    REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:{REDIS_DEFAULT_PORT}/0")
     REDIS_HOST: str = os.environ.get("REDIS_HOST", _default_redis_host)
-    REDIS_PORT: int = int(os.environ.get("REDIS_PORT", "6379"))
+    REDIS_PORT: int = int(os.environ.get("REDIS_PORT", str(REDIS_DEFAULT_PORT)))
     REDIS_DB: int = 0
 
     # ==================== JWT AUTHENTICATION ====================
@@ -226,8 +247,8 @@ class Settings(BaseSettings):
 
     # ==================== RATE LIMITING ====================
     RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_REQUESTS: int = 100
-    RATE_LIMIT_PERIOD: int = 3600  # 1 hour
+    RATE_LIMIT_REQUESTS: int = RATE_LIMIT_DEFAULT_REQUESTS
+    RATE_LIMIT_PERIOD: int = RATE_LIMIT_DEFAULT_WINDOW  # 1 hour
 
     # ==================== SESSION ====================
     SESSION_EXPIRE_DAYS: int = 7
@@ -237,7 +258,7 @@ class Settings(BaseSettings):
     # ==================== SECURITY ====================
     ALLOWED_HOSTS: List[str] = []
     SECURE_SSL_REDIRECT: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
-    HSTS_SECONDS: int = 31536000
+    HSTS_SECONDS: int = HSTS_MAX_AGE
 
     @model_validator(mode='after')
     def validate_allowed_hosts(self):
@@ -262,12 +283,12 @@ class Settings(BaseSettings):
     FEATURE_EMAIL_NOTIFICATIONS: bool = True
 
     # ==================== PAGINATION ====================
-    DEFAULT_PAGE_SIZE: int = 20
-    MAX_PAGE_SIZE: int = 100
+    DEFAULT_PAGE_SIZE: int = DEFAULT_PAGE_SIZE
+    MAX_PAGE_SIZE: int = MAX_PAGE_SIZE
 
     # ==================== FILE UPLOAD ====================
-    MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx"]
+    MAX_UPLOAD_SIZE: int = MAX_UPLOAD_SIZE
+    ALLOWED_EXTENSIONS: List[str] = ALLOWED_EXTENSIONS_LIST
 
     # ==================== PUSH NOTIFICATIONS ====================
     PUSH_NOTIFICATIONS_ENABLED: bool = True
