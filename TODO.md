@@ -1,28 +1,28 @@
 # MentorHub TODO
 
-**Дата обновления:** 27 марта 2026 г. (Сессия 50 — Code Quality Audit)
+**Дата обновления:** 27 марта 2026 г. (Сессия 51 — API Audit)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (27 марта 2026 — Сессия 50 — Code Quality Audit)
+## 📌 Актуальные пометки (27 марта 2026 — Сессия 51 — API Audit)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `f3edb56` — refactor(S49): устранён TODO комментарий в EnhancedChat.tsx
+- ✅ Последний коммит: `b41e8e0` — docs(S50): Code Quality Audit
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
 - ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 9/14 (64%)
 
-**Аудит кода (Сессия 50):**
-- ✅ Backend: 0 TODO/FIXME/XXX/HACK комментариев
-- ✅ Frontend: 0 TODO/FIXME/XXX/HACK (5 совпадений — только в тексте заданий ToDo/HackerRank)
-- ✅ Console.log: 71 файл (только error tracking в hooks/components)
-- ✅ Большие файлы: auth.py (452 строки), email.py (410 строк) — требуют рефакторинга
+**Аудит API (Сессия 51):**
+- ✅ 196 endpoint'ов в backend/app/api
+- ✅ 5 файлов > 300 строк: auth.py (452), video_calls.py (395), courses.py (393), chat_rooms.py (387), calendar.py (355)
+- ✅ 1 условный импорт requests (sbp_service.py — опциональная зависимость)
+- ✅ 0 TODO/FIXME/XXX/HACK комментариев
 
 **Статистика:**
 - 108 Python файлов в backend/app
-- 71 console.* в frontend (только error handling)
-- 2 файла > 400 строк (auth.py, email.py)
+- 196 API endpoint'ов
+- 5 файлов > 300 строк (требуют рефакторинга)
 
 **Проект готов к production деплою.**
 
@@ -35,8 +35,11 @@
 - ⏳ Mobile app (React Native) — долгосрочная задача
 - ⏳ GraphQL API — опционально к REST
 - ⏳ Database read replicas — при масштабировании
-- ⏳ Рефакторинг auth.py (452 строки) — разбить на модули
-- ⏳ Рефакторинг email.py (410 строк) — вынести шаблоны
+- ⏳ Рефакторинг auth.py (452 строки) — разбить на модули (register, login, oauth, token)
+- ⏳ Рефакторинг video_calls.py (395 строк) — вынести Agora логику
+- ⏳ Рефакторинг courses.py (393 строки) — разбить CRUD операции
+- ⏳ Рефакторинг chat_rooms.py (387 строк) — вынести room management
+- ⏳ Рефакторинг calendar.py (355 строк) — разбить OAuth providers
 
 **Качество кода:**
 - ✅ Console.log только в hooks/components для error tracking (71 файл)
@@ -44,7 +47,7 @@
 - ✅ Magic numbers вынесены в constants.py (380+ строк)
 - ✅ Большие файлы рефакторированы (main.py 889→227, security_advanced.py 653→245)
 - ✅ TODO комментарии устранены (0 в backend, 0 в frontend production коде)
-- ⏳ 2 файла требуют рефакторинга: auth.py (452), email.py (410)
+- ⏳ 5 файлов > 300 строк требуют рефакторинга (auth.py, video_calls.py, courses.py, chat_rooms.py, calendar.py)
 
 **Тесты:**
 - ✅ 32 backend тест файла (339 тестов)
@@ -1522,3 +1525,40 @@ Backend:
 - `main` → `6b5d34c`
 
 **Рекомендация:** ✅ Проект готов к production. Рефакторинг auth.py/email.py — опционально.
+
+---
+
+## 📋 Финальный статус (Сессия 51 — 27 марта 2026 — API Audit)
+
+**✅ ГОТОВО К PRODUCTION**
+
+**Выполнено (Сессия 51):**
+- ✅ Аудит API: 196 endpoint'ов в backend/app/api
+- ✅ Выявлены файлы для рефакторинга: 5 файлов > 300 строк
+- ✅ Проверка импортов: 1 условный requests (sbp_service.py — опционально)
+- ✅ 0 TODO/FIXME/XXX/HACK комментариев
+- ✅ Обновлён TODO.md со статусом аудита
+
+**Статус задач:**
+- P0: 8/8 ✅ (100%)
+- P1: 23/25 ✅ (92%)
+- P2: 9/14 ⏳ (64%)
+
+**Качество кода:**
+- ✅ 0 TODO/FIXME/XXX/HACK комментариев
+- ✅ 0 закомментированного кода
+- ✅ 71 console.* (только error handling)
+- ✅ Type hints в ключевых модулях
+- ✅ Constants вынесены (380+ строк)
+- ⏳ 5 файлов > 300 строк (auth.py 452, video_calls.py 395, courses.py 393, chat_rooms.py 387, calendar.py 355)
+
+**Статистика:**
+- 108 Python файлов в backend/app
+- 196 API endpoint'ов
+- 5 файлов требуют рефакторинга
+
+**Последние коммиты:**
+- `dev` → `b41e8e0`
+- `main` → `2e92236`
+
+**Рекомендация:** ✅ Проект готов к production. Рефакторинг API файлов — опционально (не блокирует релиз).
