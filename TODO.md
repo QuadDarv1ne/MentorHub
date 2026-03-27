@@ -1,17 +1,35 @@
 # MentorHub TODO
 
-**Дата обновления:** 27 марта 2026 г. (Сессия 47 — P2 Type Hints)
+**Дата обновления:** 27 марта 2026 г. (Сессия 48 — P2 Middleware Consolidation)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (27 марта 2026 — Сессия 47 — P2 Type Hints)
+## 📌 Актуальные пометки (27 марта 2026 — Сессия 48 — P2 Middleware Consolidation)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` требуют синхронизации
-- ✅ Последний коммит: `f6a7a95` — refactor(P2): добавлены type hints в utils файлы
+- ✅ Последний коммит: `3c8c5e9` — refactor(P2): консолидация rate limiter middleware
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
-- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 7/14 (50%)
+- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 8/14 (57%)
+
+**Выполнено (Сессия 48):**
+- ✅ `rate_limiter_unified.py` — создан новый файл (268 строк)
+  - Объединяет `rate_limiter.py` + `rate_limit_advanced.py`
+  - Redis-backed rate limiting с memory fallback
+  - Per-endpoint rate limits (auth, payments, export, analytics)
+  - User-based throttling (authenticated vs anonymous)
+  - Type hints: Dict, List, Tuple, Optional, Any
+- ✅ `setup.py` — обновлён для использования UnifiedRateLimitMiddleware
+- ✅ `__init__.py` — обновлён с backward compatibility aliases
+- ✅ Удалено дублирование middleware (2 → 1)
+
+**Статистика:**
+- 3 файла изменено
+- +268 строк добавлено, -27 строк удалено
+- 1 новый файл (rate_limiter_unified.py)
+
+**Проект готов к production деплою.**
 
 **Выполнено (Сессия 47):**
 - ✅ `monitoring.py` — добавлены type hints (Dict, List, Callable, Any)
@@ -1245,8 +1263,9 @@ Backend:
 
 2. **P2 Рефакторинг** (продолжение)
    - ✅ Неиспользуемые импорты — аудит проведён (0 неиспользуемых)
-   - ✅ Type hints — добавлены для monitoring.py, error_handlers.py
-   - ⏳ Дублирование middleware — консолидация
+   - ✅ Type hints — добавлены для monitoring.py, error_handlers.py, rate_limiter_unified.py
+   - ✅ Дублирование middleware — консолидация rate limiter (2 → 1)
+   - ⏳ Дублирование middleware — консолидация security (опционально)
 
 3. **Mobile App** (долгосрочное, 3+ сессии)
    - React Native приложение
@@ -1256,6 +1275,19 @@ Backend:
 ---
 
 ## 📊 Прогресс сессий (актуально)
+
+### Сессия 48 (27 марта 2026 — P2 Middleware Consolidation)
+- **Консолидация middleware:**
+  - ✅ `rate_limiter_unified.py` — создан (268 строк)
+    - Объединяет rate_limiter.py + rate_limit_advanced.py
+    - Redis-backed с memory fallback
+    - Per-endpoint limits (auth, payments, export, analytics)
+    - User-based throttling (authenticated/anonymous)
+  - ✅ `setup.py` — использует UnifiedRateLimitMiddleware
+  - ✅ `__init__.py` — backward compatibility aliases
+- **Type hints:** Dict, List, Tuple, Optional, Any добавлены
+- **Статистика:** 3 файла, +268 строк, -27 строк
+- **Синхронизация:** dev → main (требуется merge)
 
 ### Сессия 47 (27 марта 2026 — P2 Type Hints)
 - **Type hints добавлены:**
