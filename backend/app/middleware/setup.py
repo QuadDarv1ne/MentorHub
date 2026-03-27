@@ -6,6 +6,7 @@ Order matters: middleware is executed in the order it's added.
 """
 
 import logging
+from typing import Any, Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -14,19 +15,19 @@ from starlette.middleware.gzip import GZipMiddleware
 from app.config import settings, is_production
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
-from app.middleware.rate_limiter import RateLimitMiddleware
-from app.middleware.rate_limit_advanced import AdvancedRateLimitMiddleware
+from app.middleware.rate_limiter_unified import UnifiedRateLimitMiddleware
 from app.middleware.security_advanced import SecurityMiddleware
 from app.utils.prometheus import PrometheusMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
+from app.constants import RATE_LIMIT_DEFAULT_WINDOW, DEFAULT_MAX_BODY_SIZE
 
 logger = logging.getLogger(__name__)
 
 
-def register_middleware(app: FastAPI, redis_client=None) -> None:
+def register_middleware(app: FastAPI, redis_client: Any = None) -> None:
     """
     Register all middleware for the application.
-    
+
     Order is important:
     1. Request ID (must be first for tracing)
     2. Request Logging (after Request ID)
@@ -37,12 +38,12 @@ def register_middleware(app: FastAPI, redis_client=None) -> None:
     7. CORS
     8. Trusted Host (production only)
     9. GZip Compression (last for response compression)
-    
+
     Args:
         app: FastAPI application instance
         redis_client: Optional Redis client for rate limiting
     """
-    
+
     # 1. Request ID Middleware (должен быть первым)
     app.add_middleware(RequestIDMiddleware)
     logger.info("✅ Request ID middleware added")
@@ -53,19 +54,13 @@ def register_middleware(app: FastAPI, redis_client=None) -> None:
 
     # 3. Rate Limiting Middleware (should be early in the chain)
     if settings.RATE_LIMIT_ENABLED:
-        # Basic rate limiting
+        # Unified rate limiting (combines basic + advanced)
         app.add_middleware(
-            RateLimitMiddleware,
-            redis_client=redis_client
+            UnifiedRateLimitMiddleware,
+            redis_client=redis_client,
+            enabled=True
         )
-        logger.info("✅ Basic Rate limiting middleware added")
-
-        # Advanced per-endpoint rate limiting
-        app.add_middleware(
-            AdvancedRateLimitMiddleware,
-            redis_client=redis_client
-        )
-        logger.info("✅ Advanced Rate limiting middleware added (per-endpoint limits)")
+        logger.info("✅ Unified Rate limiting middleware added (per-endpoint limits)")
     else:
         logger.info("ℹ️ Rate limiting disabled by configuration")
 
@@ -81,8 +76,8 @@ def register_middleware(app: FastAPI, redis_client=None) -> None:
     app.add_middleware(
         SecurityMiddleware,
         rate_limit_requests=settings.RATE_LIMIT_REQUESTS if settings.RATE_LIMIT_ENABLED else 999999,
-        rate_limit_window=settings.RATE_LIMIT_PERIOD if settings.RATE_LIMIT_ENABLED else 3600,
-        max_body_size=10 * 1024 * 1024,  # 10MB
+        rate_limit_window=settings.RATE_LIMIT_PERIOD if settings.RATE_LIMIT_ENABLED else RATE_LIMIT_DEFAULT_WINDOW,
+        max_body_size=DEFAULT_MAX_BODY_SIZE,
     )
     logger.info("✅ Advanced Security middleware added")
 
