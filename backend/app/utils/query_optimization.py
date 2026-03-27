@@ -3,14 +3,20 @@ Database Query Optimization Guide
 N+1 Problem Solutions and Best Practices
 """
 
-from sqlalchemy.orm import joinedload, selectinload, contains_eager
-from typing import List, Optional
+from sqlalchemy.orm import Session, joinedload, selectinload, contains_eager
+from sqlalchemy import func
+from typing import List, Optional, Dict, Any
+from app.models.user import User
+from app.models.course import Course, CourseEnrollment
+from app.models.session import Session
+from app.models.progress import Progress
+from app.models.notification import Notification
 
 
 # ==================== N+1 PROBLEM EXAMPLES ====================
 
 # ❌ BAD: N+1 query problem
-def get_users_with_mentors_bad(db):
+def get_users_with_mentors_bad(db: Session) -> List[User]:
     """Fetches users then makes N queries for mentors"""
     users = db.query(User).all()
     for user in users:
@@ -20,7 +26,7 @@ def get_users_with_mentors_bad(db):
 
 
 # ✅ GOOD: Using joinedload (eager loading)
-def get_users_with_mentors_good(db):
+def get_users_with_mentors_good(db: Session) -> List[User]:
     """Single query with JOIN"""
     users = db.query(User).options(
         joinedload(User.mentor_profile)

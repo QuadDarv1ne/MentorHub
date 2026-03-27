@@ -17,13 +17,20 @@ from urllib.parse import unquote_plus
 
 logger = logging.getLogger(__name__)
 
+# Константы для security middleware
+DEFAULT_RATE_LIMIT_REQUESTS = 100
+DEFAULT_RATE_LIMIT_WINDOW = 60  # секунды
+DEFAULT_MAX_BODY_SIZE = 10 * 1024 * 1024  # 10MB
+DEFAULT_HSTS_MAX_AGE = 31536000  # 1 год в секундах
+DEFAULT_TRUNCATE_LOG_LENGTH = 100  # символов для логирования
+
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     """
     Middleware для защиты от различных видов атак
     """
 
-    def __init__(self, app, rate_limit_requests: int = 100, rate_limit_window: int = 60, max_body_size: int = 10 * 1024 * 1024):  # 10MB по умолчанию
+    def __init__(self, app, rate_limit_requests: int = DEFAULT_RATE_LIMIT_REQUESTS, rate_limit_window: int = DEFAULT_RATE_LIMIT_WINDOW, max_body_size: int = DEFAULT_MAX_BODY_SIZE):
         super().__init__(app)
         self.rate_limit_requests = rate_limit_requests
         self.rate_limit_window = rate_limit_window
@@ -214,7 +221,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     pass  # Не JSON, проверяем как обычный текст
 
                 if self._detect_sql_injection(body_str):
-                    logger.warning(f"SQL Injection attempt detected in body: {body_str[:100]}...")
+                    logger.warning(f"SQL Injection attempt detected in body: {body_str[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                     # Записываем инцидент в Prometheus метрики
                     try:
                         from app.utils.prometheus import record_security_incident
@@ -226,7 +233,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     )
 
                 if self._detect_xss(body_str):
-                    logger.warning(f"XSS attempt detected in body: {body_str[:100]}...")
+                    logger.warning(f"XSS attempt detected in body: {body_str[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                     # Записываем инцидент в Prometheus метрики
                     try:
                         from app.utils.prometheus import record_security_incident
@@ -238,7 +245,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     )
 
                 if self._detect_command_injection(body_str):
-                    logger.warning(f"Command injection attempt detected in body: {body_str[:100]}...")
+                    logger.warning(f"Command injection attempt detected in body: {body_str[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                     # Записываем инцидент в Prometheus метрики
                     try:
                         from app.utils.prometheus import record_security_incident
@@ -259,11 +266,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Обнаружение SQL-инъекций"""
         if not text:
             return False
-            
+
         text_lower = text.lower()
         for pattern in self.sql_injection_patterns:
             if re.search(pattern, text_lower, re.IGNORECASE):
-                logger.warning(f"SQL Injection pattern detected: {pattern} in text: {text[:100]}...")
+                logger.warning(f"SQL Injection pattern detected: {pattern} in text: {text[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                 return True
         return False
 
@@ -271,11 +278,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Обнаружение XSS"""
         if not text:
             return False
-            
+
         text_lower = text.lower()
         for pattern in self.xss_patterns:
             if re.search(pattern, text_lower, re.IGNORECASE):
-                logger.warning(f"XSS pattern detected: {pattern} in text: {text[:100]}...")
+                logger.warning(f"XSS pattern detected: {pattern} in text: {text[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                 return True
         return False
 
@@ -283,10 +290,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Обнаружение path traversal"""
         if not text:
             return False
-            
+
         for pattern in self.path_traversal_patterns:
             if re.search(pattern, text, re.IGNORECASE):
-                logger.warning(f"Path traversal pattern detected: {pattern} in text: {text[:100]}...")
+                logger.warning(f"Path traversal pattern detected: {pattern} in text: {text[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                 return True
         return False
 
@@ -294,10 +301,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Обнаружение command injection"""
         if not text:
             return False
-            
+
         for pattern in self.command_injection_patterns:
             if re.search(pattern, text, re.IGNORECASE):
-                logger.warning(f"Command injection pattern detected: {pattern} in text: {text[:100]}...")
+                logger.warning(f"Command injection pattern detected: {pattern} in text: {text[:DEFAULT_TRUNCATE_LOG_LENGTH]}...")
                 return True
         return False
 
@@ -451,7 +458,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         )
 
         # HSTS (HTTP Strict Transport Security)
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["Strict-Transport-Security"] = f"max-age={DEFAULT_HSTS_MAX_AGE}; includeSubDomains; preload"
 
         # Referrer Policy
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

@@ -21,6 +21,12 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+# Константы для кеширования
+DEFAULT_CACHE_TTL = 300  # 5 минут
+DEFAULT_CACHE_EXPIRATION = 3600  # 1 час
+MAX_MEMORY_CACHE_ITEMS = 1000
+MEMORY_CACHE_CLEANUP_COUNT = 500
+
 
 class CacheManager:
     """Менеджер кеширования с поддержкой Redis и памяти"""
@@ -56,18 +62,18 @@ class CacheManager:
             self.stats["errors"] += 1
         return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = 300):
+    async def set(self, key: str, value: Any, ttl: Optional[int] = DEFAULT_CACHE_TTL):
         """Сохранение значения в кеш"""
         try:
             serialized_value = json.dumps(value)
             value_size = len(serialized_value)
 
             if self.use_redis:
-                await self.redis.setex(key, ttl or 3600, serialized_value)
+                await self.redis.setex(key, ttl or DEFAULT_CACHE_EXPIRATION, serialized_value)
                 self.cache_sizes["redis"] += value_size
             else:
-                if len(self.memory_cache) > 1000:
-                    keys_to_delete = list(self.memory_cache.keys())[:500]
+                if len(self.memory_cache) > MAX_MEMORY_CACHE_ITEMS:
+                    keys_to_delete = list(self.memory_cache.keys())[:MEMORY_CACHE_CLEANUP_COUNT]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
