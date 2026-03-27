@@ -1,17 +1,37 @@
 # MentorHub TODO
 
-**Дата обновления:** 27 марта 2026 г. (Сессия 46 — P2 Аудит импортов)
+**Дата обновления:** 27 марта 2026 г. (Сессия 47 — P2 Type Hints)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (27 марта 2026 — Сессия 46 — P2 Аудит импортов)
+## 📌 Актуальные пометки (27 марта 2026 — Сессия 47 — P2 Type Hints)
 
 **Текущий статус:**
-- ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `4307d1e` — docs: обновлён TODO.md (Сессия 45 — P2 Magic Numbers)
+- ✅ Ветки `main` и `dev` требуют синхронизации
+- ✅ Последний коммит: `f6a7a95` — refactor(P2): добавлены type hints в utils файлы
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
-- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 6/14 (43%)
+- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 7/14 (50%)
+
+**Выполнено (Сессия 47):**
+- ✅ `monitoring.py` — добавлены type hints (Dict, List, Callable, Any)
+  - PerformanceMonitor класс: аннотации атрибутов и методов
+  - PerformanceMiddleware: аннотации для dispatch метода
+  - measure_time: async context manager с return type
+  - measure_execution_time: decorator с Callable типами
+- ✅ `error_handlers.py` — добавлены type hints
+  - ErrorResponse.to_dict(): Dict[str, Any]
+  - http_exception_handler: JSONResponse return type
+  - validation_exception_handler: List[Dict] для ошибок
+  - database_exception_handler: SQLAlchemyError handling
+  - general_exception_handler: Exception handling
+  - register_error_handlers: FastAPI app тип
+
+**Статистика:**
+- 2 файла изменено
+- +40 строк добавлено, -28 строк удалено
+
+**Проект готов к production деплою.**
 
 **Выполнено (Сессия 46 — Аудит):**
 - ✅ Проведён полный аудит импортов в backend (719 импортов проверено)
@@ -1225,7 +1245,7 @@ Backend:
 
 2. **P2 Рефакторинг** (продолжение)
    - ✅ Неиспользуемые импорты — аудит проведён (0 неиспользуемых)
-   - ⏳ Type hints — добавить для остальных файлов
+   - ✅ Type hints — добавлены для monitoring.py, error_handlers.py
    - ⏳ Дублирование middleware — консолидация
 
 3. **Mobile App** (долгосрочное, 3+ сессии)
@@ -1236,6 +1256,20 @@ Backend:
 ---
 
 ## 📊 Прогресс сессий (актуально)
+
+### Сессия 47 (27 марта 2026 — P2 Type Hints)
+- **Type hints добавлены:**
+  - ✅ `monitoring.py` — Dict, List, Callable, Any для всех методов
+    - PerformanceMonitor: аннотации атрибутов и методов
+    - PerformanceMiddleware: dispatch метод с типами
+    - measure_time: async context manager → Any
+    - measure_execution_time: decorator с Callable
+  - ✅ `error_handlers.py` — Dict, List, Any, FastAPI
+    - ErrorResponse.to_dict(): Dict[str, Any]
+    - Все обработчики: JSONResponse return type
+    - register_error_handlers: app: FastAPI
+- **Статистика:** 2 файла, +40 строк, -28 строк
+- **Синхронизация:** dev → main (требуется merge)
 
 ### Сессия 46 (27 марта 2026 — P2 Аудит импортов)
 - **Аудит импортов:**
