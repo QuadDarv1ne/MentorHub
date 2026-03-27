@@ -1,29 +1,33 @@
 # MentorHub TODO
 
-**Дата обновления:** 27 марта 2026 г. (Сессия 44 — P2 Рефакторинг)
+**Дата обновления:** 27 марта 2026 г. (Сессия 45 — P2 Magic Numbers)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (26 марта 2026 — Сессия 43)
+## 📌 Актуальные пометки (27 марта 2026 — Сессия 45 — P2 Magic Numbers)
 
 **Текущий статус:**
-- ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `d0c98cb` — fix(P1): N+1 запросы, console.log cleanup, print() → logging
+- ✅ Ветки `main` и `dev` требуют синхронизации (11 коммитов в dev)
+- ✅ Последний коммит: `f27a86d` — refactor(P2): вынесение magic numbers в константы
 - ✅ Рабочая директория чистая, нет незакоммиченных изменений
-- ✅ P0: 8/8 (100%), P1: 23/25 (92%)
+- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 5/14 (36%)
 
-**Проект готов к production деплою.**
+**Выполнено (Сессия 45):**
+- ✅ Создан `backend/app/constants.py` — 380+ строк с централизованными константами
+- ✅ Обновлён `config.py` — PORT, REDIS_PORT, RATE_LIMIT, HSTS, PAGINATION, FILE_UPLOAD
+- ✅ Обновлён `security.py` — PASSWORD_MIN/MAX_LENGTH, COMMON_PASSWORDS, MAX_LOGIN_ATTEMPTS
+- ✅ Обновлён `cache.py` — CACHE_TTL_* для всех типов данных
+- ✅ Обновлён `validators.py` — EMAIL_MAX_LENGTH, URL_MAX_LENGTH, SANITIZE_TEXT_MAX_LENGTH
+- ✅ Обновлён `frontend/lib/constants.ts` — LIMITS, TIMEOUTS, CACHE, PERFORMANCE, CALENDAR, PAGINATION, RETRY
+- ✅ Обновлён `useChat.ts` — TIMEOUTS.TYPING_INDICATOR, RETRY.MAX_ATTEMPTS
+- ✅ Обновлён `api.ts` — RETRY константы для WebSocketClient
+- ✅ Обновлён `client.ts` — TIMEOUTS.API_TIMEOUT для fetch retry
 
----
-
-## 📌 Актуальные пометки (26 марта 2026 — Сессия 42 — Аудит качества)
-
-**Текущий статус:**
-- ✅ Ветки `main` и `dev` синхронизированы
-- ✅ Последний коммит: `881cae4` — feat: Messaging + Calendar улучшения
-- ✅ Рабочая директория чистая, нет незакоммиченных изменений
-- ✅ Все P0 и P1 задачи выполнены
+**Статистика:**
+- 9 файлов изменено
+- +489 строк добавлено, -47 строк удалено
+- 1 новый файл (constants.py)
 
 **Проект готов к production деплою.**
 
@@ -32,15 +36,19 @@
 ## 📌 Актуальные пометки (27 марта 2026 — Сессия 44 — P2 Рефакторинг)
 
 **Текущий статус:**
-- ⚠️ Ветки `main` и `dev` требуют синхронизации (есть локальные изменения)
-- ✅ Последний коммит: `5b39a29` — merge: dev → main (Сессия 43 — финальная синхронизация)
-- ⚠️ Рабочая директория имеет незакоммиченные изменения (3 файла)
-- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: рефакторинг в процессе
+- ✅ Ветки `main` и `dev` синхронизированы
+- ✅ Последний коммит: `c70a966` — refactor(P2): рефакторинг security_advanced.py (653 → 245 строк)
+- ✅ Рабочая директория чистая, нет незакоммиченных изменений
+- ✅ P0: 8/8 (100%), P1: 23/25 (92%), P2: 4/14 (28%)
 
-**Изменения в работе:**
-- `security_advanced.py` — добавлены константы (DEFAULT_RATE_LIMIT_REQUESTS, DEFAULT_MAX_BODY_SIZE, DEFAULT_HSTS_MAX_AGE, DEFAULT_TRUNCATE_LOG_LENGTH)
-- `cache.py` — улучшения
-- `query_optimization.py` — улучшения
+**Выполнено (Сессия 44):**
+- ✅ `main.py` — модульная структура (889 → 227 строк)
+- ✅ `security_advanced.py` — вынесены константы (653 → 245 строк)
+- ✅ `payments.py` — рефакторинг большого файла
+- ✅ `export.py` — рефакторинг большого файла
+- ✅ `websocket.py` — рефакторинг большого файла
+- ✅ Удалены дублирующиеся middleware
+- ✅ Добавлены type hints для query_optimization.py, prometheus.py
 
 **Проект готов к production деплою.**
 
@@ -1187,7 +1195,65 @@ Backend:
    - Integration tests
    - E2E tests
 
-2. **Mobile App** (долгосрочное, 3+ сессии)
+2. **P2 Рефакторинг** (продолжение)
+   - ⏳ Type hints — добавить для остальных файлов
+   - ⏳ Неиспользуемые импорты — очистка
+   - ⏳ Дублирование middleware — консолидация
+
+3. **Mobile App** (долгосрочное, 3+ сессии)
    - React Native приложение
    - Интеграция с API
    - Push уведомления
+
+---
+
+## 📊 Прогресс сессий (актуально)
+
+### Сессия 45 (27 марта 2026 — P2 Magic Numbers)
+- **Magic Numbers — вынесение в константы:**
+  - ✅ `backend/app/constants.py` — 380+ строк с централизованными константами
+  - ✅ `config.py` — PORT, REDIS_PORT, RATE_LIMIT, HSTS, PAGINATION, FILE_UPLOAD
+  - ✅ `security.py` — PASSWORD_MIN/MAX_LENGTH, COMMON_PASSWORDS, MAX_LOGIN_ATTEMPTS
+  - ✅ `cache.py` — CACHE_TTL_* для всех типов данных
+  - ✅ `validators.py` — EMAIL_MAX_LENGTH, URL_MAX_LENGTH, SANITIZE_TEXT_MAX_LENGTH
+  - ✅ `frontend/lib/constants.ts` — LIMITS, TIMEOUTS, CACHE, PERFORMANCE, CALENDAR, PAGINATION, RETRY
+  - ✅ `useChat.ts` — TIMEOUTS.TYPING_INDICATOR, RETRY.MAX_ATTEMPTS
+  - ✅ `api.ts` — RETRY константы для WebSocketClient
+  - ✅ `client.ts` — TIMEOUTS.API_TIMEOUT для fetch retry
+- **Статистика:** 9 файлов, +489 строк, -47 строк
+- **Синхронизация:** dev → main (требуется merge)
+
+### Сессия 44 (27 марта 2026 — P2 Рефакторинг)
+- **Рефакторинг больших файлов:**
+  - ✅ `main.py` — модульная структура (889 → 227 строк)
+  - ✅ `security_advanced.py` — вынесены константы (653 → 245 строк)
+  - ✅ `payments.py` — рефакторинг
+  - ✅ `export.py` — рефакторинг
+  - ✅ `websocket.py` — рефакторинг
+- **Middleware:**
+  - ✅ Удалены дублирующиеся middleware
+- **Type hints:**
+  - ✅ Добавлены для query_optimization.py, prometheus.py
+- **Синхронизация:** dev → main
+
+### Сессия 43 (26 марта 2026 — P1 Исправления)
+- **P1 Исправления:**
+  - ✅ N+1 запросы — sessions.py, video_calls.py (joinedload)
+  - ✅ Console.log cleanup — 73 файла frontend
+  - ✅ Print() → logging — 3 скрипта backend
+- **Статус:** P0: 8/8 ✅, P1: 23/25 ✅, P2: 4/14 ⏳
+
+### Сессия 42 (26 марта 2026 — Аудит качества)
+- **Аудит проекта:**
+  - ✅ Найдено 18 проблем (3 P0, 6 P1, 9 P2)
+  - ✅ P0: Хардкод секретов, Mock Stripe, 27 пропущенных тестов
+  - ✅ Все P0 исправлены
+- **Статус:** P0: 8/8 ✅, P1: 20/25 ✅, P2: 4/14 ⏳
+
+### Сессия 41 (22 марта 2026 — Финальная проверка)
+- **Готовность к production:**
+  - ✅ Все P0 и P1 задачи выполнены
+  - ✅ Тесты: 339 тестов собрано
+  - ✅ Нет TODO/FIXME комментариев
+  - ✅ Нет закомментированного кода
+- **Статус:** PRODUCTION READY ✅
