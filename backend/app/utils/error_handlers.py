@@ -1,16 +1,19 @@
 """
 Централизованная обработка ошибок с детальным логированием
+
+Type hints added for better IDE support and type checking.
 """
 
 import logging
 import traceback
-from typing import Optional
+from typing import Optional, Any, Dict, List
 from datetime import datetime, timezone
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +37,9 @@ class ErrorResponse:
         self.path = path
         self.timestamp = timestamp or datetime.now(timezone.utc).isoformat()
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Преобразование в словарь для JSON ответа"""
-        response = {
+        response: Dict[str, Any] = {
             "status_code": self.status_code,
             "message": self.message,
             "timestamp": self.timestamp,
@@ -189,7 +192,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error.to_dict())
 
 
-def register_error_handlers(app):
+def register_error_handlers(app: FastAPI) -> None:
     """
     Регистрация всех обработчиков ошибок в приложении
 

@@ -1,16 +1,19 @@
 """
 Мониторинг производительности и метрик приложения
+
+Type hints added for better IDE support and type checking.
 """
 
 import time
 import psutil
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List, Callable
 from datetime import datetime, timezone
 from collections import defaultdict
 from contextlib import asynccontextmanager
+from functools import wraps
 
-from fastapi import Request
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
@@ -20,20 +23,20 @@ class PerformanceMonitor:
     """Монитор производительности приложения"""
 
     def __init__(self):
-        self.request_times = defaultdict(list)
-        self.error_counts = defaultdict(int)
-        self.endpoint_calls = defaultdict(int)
-        self.status_code_counts = defaultdict(lambda: defaultdict(int))
-        self.slow_requests = defaultdict(list)  # Для отслеживания медленных запросов
-        self.start_time = datetime.now(timezone.utc)
-        self.alert_thresholds = {
+        self.request_times: Dict[str, List[float]] = defaultdict(list)
+        self.error_counts: Dict[str, int] = defaultdict(int)
+        self.endpoint_calls: Dict[str, int] = defaultdict(int)
+        self.status_code_counts: Dict[str, Dict[int, int]] = defaultdict(lambda: defaultdict(int))
+        self.slow_requests: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        self.start_time: datetime = datetime.now(timezone.utc)
+        self.alert_thresholds: Dict[str, float] = {
             "error_rate": 5.0,  # 5% ошибок
             "response_time": 2.0,  # 2 секунды
             "cpu_usage": 80.0,  # 80% CPU
             "memory_usage": 90.0,  # 90% памяти
         }
 
-    def record_request(self, endpoint: str, duration: float, status_code: int):
+    def record_request(self, endpoint: str, duration: float, status_code: int) -> None:
         """Запись метрик запроса"""
         self.endpoint_calls[endpoint] += 1
         self.request_times[endpoint].append(duration)
@@ -61,18 +64,18 @@ class PerformanceMonitor:
         """Получение текущих метрик"""
 
         # Системные метрики
-        cpu_percent = psutil.cpu_percent(interval=0.1)
+        cpu_percent: float = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
 
         # Метрики приложения
-        total_requests = sum(self.endpoint_calls.values())
-        total_errors = sum(self.error_counts.values())
-        error_rate = (total_errors / total_requests * 100) if total_requests > 0 else 0
+        total_requests: int = sum(self.endpoint_calls.values())
+        total_errors: int = sum(self.error_counts.values())
+        error_rate: float = (total_errors / total_requests * 100) if total_requests > 0 else 0.0
 
         # Средние времена ответа
-        avg_response_times = {}
-        p95_response_times = {}
+        avg_response_times: Dict[str, Dict[str, float]] = {}
+        p95_response_times: Dict[str, float] = {}
         for endpoint, times in self.request_times.items():
             if times:
                 sorted_times = sorted(times)
@@ -148,9 +151,15 @@ class PerformanceMonitor:
         self.start_time = datetime.now(timezone.utc)
         logger.info("📊 Metrics reset")
 
-    def _check_alerts(self, cpu_percent: float, memory_percent: float, error_rate: float, avg_response_times: dict) -> list:
+    def _check_alerts(
+        self,
+        cpu_percent: float,
+        memory_percent: float,
+        error_rate: float,
+        avg_response_times: Dict[str, Dict[str, float]]
+    ) -> List[Dict[str, Any]]:
         """Проверка наличия алертов"""
-        alerts = []
+        alerts: List[Dict[str, Any]] = []
         
         # Проверка высокого уровня ошибок
         if error_rate > self.alert_thresholds["error_rate"]:
@@ -193,7 +202,7 @@ class PerformanceMonitor:
                 
         return alerts
 
-    def set_alert_thresholds(self, thresholds: dict):
+    def set_alert_thresholds(self, thresholds: Dict[str, float]) -> None:
         """Установка пороговых значений для алертов"""
         self.alert_thresholds.update(thresholds)
         logger.info(f"🔔 Alert thresholds updated: {thresholds}")
@@ -202,11 +211,11 @@ class PerformanceMonitor:
 class PerformanceMiddleware(BaseHTTPMiddleware):
     """Middleware для мониторинга производительности"""
 
-    def __init__(self, app, monitor: PerformanceMonitor):
+    def __init__(self, app: Any, monitor: PerformanceMonitor):
         super().__init__(app)
         self.monitor = monitor
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable[[Any], Any]) -> Response:
         # Пропуск метрик для health checks
         if request.url.path in ["/health", "/metrics"]:
             return await call_next(request)
@@ -235,7 +244,7 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
 
 
 @asynccontextmanager
-async def measure_time(operation: str, alert_threshold: float = 1.0):
+async def measure_time(operation: str, alert_threshold: float = 1.0) -> Any:
     """
     Context manager для измерения времени выполнения
 
@@ -254,7 +263,7 @@ async def measure_time(operation: str, alert_threshold: float = 1.0):
             logger.info(f"⏱️ {operation} took {duration:.4f}s")
 
 
-def measure_execution_time(func):
+def measure_execution_time(func: Callable) -> Callable:
     """
     Декоратор для измерения времени выполнения функции
 
@@ -264,7 +273,7 @@ def measure_execution_time(func):
             ...
     """
 
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
         start = time.time()
         try:
             result = await func(*args, **kwargs)
