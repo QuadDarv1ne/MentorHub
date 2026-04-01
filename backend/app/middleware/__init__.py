@@ -9,9 +9,6 @@ from .rate_limiter_unified import (
     UnifiedRateLimitMiddleware,
     RateLimiter,
     create_rate_limiter,
-    # Backward compatibility
-    RateLimitMiddleware,
-    AdvancedRateLimitMiddleware,
 )
 from .security_advanced import SecurityMiddleware
 from .request_id import RequestIDMiddleware
@@ -23,10 +20,6 @@ __all__ = [
     "UnifiedRateLimitMiddleware",
     "RateLimiter",
     "create_rate_limiter",
-    
-    # Backward compatibility aliases
-    "RateLimitMiddleware",
-    "AdvancedRateLimitMiddleware",
 
     # Security
     "SecurityMiddleware",
