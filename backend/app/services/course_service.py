@@ -89,92 +89,116 @@ class CourseService:
 
     def create_course(self, user: User, course_data: CourseCreate) -> Course:
         """Создать курс"""
-        mentor = self.check_mentor_status(user)
-        if not mentor:
-            raise PermissionError("Только менторы могут создавать курсы")
+        try:
+            mentor = self.check_mentor_status(user)
+            if not mentor:
+                raise PermissionError("Только менторы могут создавать курсы")
 
-        # Санитизация данных
-        sanitized_data = self._sanitize_course_data(course_data.model_dump())
+            # Санитизация данных
+            sanitized_data = self._sanitize_course_data(course_data.model_dump())
 
-        db_course = Course(
-            title=sanitized_data["title"],
-            description=sanitized_data.get("description"),
-            category=sanitized_data.get("category"),
-            difficulty=course_data.difficulty,
-            duration_hours=course_data.duration_hours,
-            price=course_data.price,
-            is_active=course_data.is_active,
-            thumbnail_url=course_data.thumbnail_url,
-            instructor_id=mentor.id
-        )
-        self.db.add(db_course)
-        self.db.commit()
-        self.db.refresh(db_course)
-        return db_course
+            db_course = Course(
+                title=sanitized_data["title"],
+                description=sanitized_data.get("description"),
+                category=sanitized_data.get("category"),
+                difficulty=course_data.difficulty,
+                duration_hours=course_data.duration_hours,
+                price=course_data.price,
+                is_active=course_data.is_active,
+                thumbnail_url=course_data.thumbnail_url,
+                instructor_id=mentor.id
+            )
+            self.db.add(db_course)
+            self.db.commit()
+            self.db.refresh(db_course)
+            return db_course
+        except (PermissionError, ValueError):
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
     def update_course(self, course_id: int, user: User, course_data: CourseUpdate) -> Course:
         """Обновить курс"""
-        db_course = self.get_course_with_instructor(course_id)
-        if not db_course:
-            raise ValueError("Курс не найден")
+        try:
+            db_course = self.get_course_with_instructor(course_id)
+            if not db_course:
+                raise ValueError("Курс не найден")
 
-        if not self.check_mentor_access(user, db_course.instructor_id):
-            raise PermissionError("Вы не являетесь инструктором этого курса")
+            if not self.check_mentor_access(user, db_course.instructor_id):
+                raise PermissionError("Вы не являетесь инструктором этого курса")
 
-        # Санитизация и обновление
-        sanitized_data = self._sanitize_course_data(course_data.model_dump(exclude_unset=True))
-        for key, value in sanitized_data.items():
-            setattr(db_course, key, value)
+            # Санитизация и обновление
+            sanitized_data = self._sanitize_course_data(course_data.model_dump(exclude_unset=True))
+            for key, value in sanitized_data.items():
+                setattr(db_course, key, value)
 
-        self.db.commit()
-        self.db.refresh(db_course)
-        return db_course
+            self.db.commit()
+            self.db.refresh(db_course)
+            return db_course
+        except (PermissionError, ValueError):
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
     def create_lesson(self, course_id: int, user: User, lesson_data: LessonCreate) -> Lesson:
         """Создать урок"""
-        course = self.get_course_with_instructor(course_id)
-        if not course:
-            raise ValueError("Курс не найден")
+        try:
+            course = self.get_course_with_instructor(course_id)
+            if not course:
+                raise ValueError("Курс не найден")
 
-        if not self.check_mentor_access(user, course.instructor_id):
-            raise PermissionError("Вы не являетесь инструктором этого курса")
+            if not self.check_mentor_access(user, course.instructor_id):
+                raise PermissionError("Вы не являетесь инструктором этого курса")
 
-        # Санитизация данных
-        sanitized_data = self._sanitize_lesson_data(lesson_data.model_dump())
+            # Санитизация данных
+            sanitized_data = self._sanitize_lesson_data(lesson_data.model_dump())
 
-        db_lesson = Lesson(
-            course_id=course_id,
-            title=sanitized_data["title"],
-            description=sanitized_data.get("description"),
-            content=sanitized_data.get("content"),
-            video_url=lesson_data.video_url,
-            duration_minutes=lesson_data.duration_minutes,
-            order=lesson_data.order,
-            is_preview=lesson_data.is_preview
-        )
-        self.db.add(db_lesson)
-        self.db.commit()
-        self.db.refresh(db_lesson)
-        return db_lesson
+            db_lesson = Lesson(
+                course_id=course_id,
+                title=sanitized_data["title"],
+                description=sanitized_data.get("description"),
+                content=sanitized_data.get("content"),
+                video_url=lesson_data.video_url,
+                duration_minutes=lesson_data.duration_minutes,
+                order=lesson_data.order,
+                is_preview=lesson_data.is_preview
+            )
+            self.db.add(db_lesson)
+            self.db.commit()
+            self.db.refresh(db_lesson)
+            return db_lesson
+        except (PermissionError, ValueError):
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
     def update_lesson(self, lesson_id: int, user: User, lesson_data: LessonUpdate) -> Lesson:
         """Обновить урок"""
-        db_lesson = self.db.query(Lesson).filter(Lesson.id == lesson_id).first()
-        if not db_lesson:
-            raise ValueError("Урок не найден")
+        try:
+            db_lesson = self.db.query(Lesson).filter(Lesson.id == lesson_id).first()
+            if not db_lesson:
+                raise ValueError("Урок не найден")
 
-        course = self.get_course_with_instructor(db_lesson.course_id)
-        if not self.check_mentor_access(user, course.instructor_id if course else -1):
-            raise PermissionError("Вы не являетесь инструктором этого курса")
+            course = self.get_course_with_instructor(db_lesson.course_id)
+            if not self.check_mentor_access(user, course.instructor_id if course else -1):
+                raise PermissionError("Вы не являетесь инструктором этого курса")
 
-        # Санитизация и обновление
-        sanitized_data = self._sanitize_lesson_data(lesson_data.model_dump(exclude_unset=True))
-        for key, value in sanitized_data.items():
-            setattr(db_lesson, key, value)
+            # Санитизация и обновление
+            sanitized_data = self._sanitize_lesson_data(lesson_data.model_dump(exclude_unset=True))
+            for key, value in sanitized_data.items():
+                setattr(db_lesson, key, value)
 
-        self.db.commit()
-        self.db.refresh(db_lesson)
-        return db_lesson
+            self.db.commit()
+            self.db.refresh(db_lesson)
+            return db_lesson
+        except (PermissionError, ValueError):
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
 
 # Глобальная функция для инвалидации кеша (используется в API)

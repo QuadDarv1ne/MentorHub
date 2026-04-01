@@ -71,49 +71,61 @@ class ChatRoomService:
 
     def add_member(self, room_id: int, member_id: int) -> bool:
         """Добавить участника в комнату"""
-        room = self.db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
-        if not room:
-            return False
+        try:
+            room = self.db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
+            if not room:
+                return False
 
-        member = self.db.query(User).filter(User.id == member_id).first()
-        if not member:
-            return False
+            member = self.db.query(User).filter(User.id == member_id).first()
+            if not member:
+                return False
 
-        if member not in room.members:
-            room.members.append(member)
-            self.db.commit()
-            return True
-        return False
+            if member not in room.members:
+                room.members.append(member)
+                self.db.commit()
+                return True
+            return False
+        except Exception:
+            self.db.rollback()
+            raise
 
     def remove_member(self, room_id: int, member_id: int) -> bool:
         """Удалить участника из комнаты"""
-        room = self.db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
-        if not room:
-            return False
+        try:
+            room = self.db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
+            if not room:
+                return False
 
-        member = self.db.query(User).filter(User.id == member_id).first()
-        if not member:
-            return False
+            member = self.db.query(User).filter(User.id == member_id).first()
+            if not member:
+                return False
 
-        if member in room.members:
-            room.members.remove(member)
-            self.db.commit()
-            return True
-        return False
+            if member in room.members:
+                room.members.remove(member)
+                self.db.commit()
+                return True
+            return False
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete_room(self, room_id: int, user_id: int) -> bool:
         """Удалить комнату (только создатель)"""
-        room = self.db.query(ChatRoom).filter(
-            ChatRoom.id == room_id,
-            ChatRoom.created_by == user_id
-        ).first()
-        
-        if not room:
-            return False
+        try:
+            room = self.db.query(ChatRoom).filter(
+                ChatRoom.id == room_id,
+                ChatRoom.created_by == user_id
+            ).first()
 
-        self.db.delete(room)
-        self.db.commit()
-        return True
+            if not room:
+                return False
+
+            self.db.delete(room)
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def send_message(
         self,
@@ -122,20 +134,26 @@ class ChatRoomService:
         message_data: ChatMessageCreate
     ) -> ChatMessage:
         """Отправить сообщение в комнату"""
-        # Проверяем, что пользователь является участником
-        room = self.get_room_by_id(room_id, user.id)
-        if not room:
-            raise PermissionError("Вы не являетесь участником этой комнаты")
+        try:
+            # Проверяем, что пользователь является участником
+            room = self.get_room_by_id(room_id, user.id)
+            if not room:
+                raise PermissionError("Вы не являетесь участником этой комнаты")
 
-        db_message = ChatMessage(
-            room_id=room_id,
-            sender_id=user.id,
-            content=message_data.content
-        )
-        self.db.add(db_message)
-        self.db.commit()
-        self.db.refresh(db_message)
-        return db_message
+            db_message = ChatMessage(
+                room_id=room_id,
+                sender_id=user.id,
+                content=message_data.content
+            )
+            self.db.add(db_message)
+            self.db.commit()
+            self.db.refresh(db_message)
+            return db_message
+        except PermissionError:
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
     def get_room_messages(
         self,
