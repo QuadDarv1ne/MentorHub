@@ -1,481 +1,425 @@
-# MentorHub Architecture
+# MentorHub Architecture Documentation
 
-## System Overview
+**Версия:** 2.0  
+**Дата обновления:** 1 апреля 2026 г.  
+**Статус:** Production Ready
 
-```mermaid
-graph TB
-    subgraph Client Layer
-        Web[Web Browser]
-        Mobile[Mobile App]
-        Admin[Admin Dashboard]
-    end
+---
 
-    subgraph CDN
-        Cloudflare[Cloudflare CDN]
-    end
+## 📐 Обзор Архитектуры
 
-    subgraph Load Balancer
-        Nginx[Nginx Reverse Proxy]
-    end
+MentorHub — это современная платформа для менторства, построенная на основе **микросервисной архитектуры** с элементами **сервисного слоя** (Service Layer Pattern).
 
-    subgraph Application Layer
-        Frontend[Next.js Frontend<br/>Port 3000]
-        Backend[FastAPI Backend<br/>Port 8000]
-    end
+### Ключевые Принципы
 
-    subgraph Data Layer
-        PostgreSQL[(PostgreSQL<br/>Database)]
-        Redis[(Redis<br/>Cache)]
-        S3[AWS S3<br/>File Storage]
-    end
+1. **Separation of Concerns** — разделение ответственности между слоями
+2. **Dependency Injection** — внедрение зависимостей через FastAPI Depends
+3. **Service Layer Pattern** — бизнес-логика вынесена в сервисы
+4. **Repository Pattern** — доступ к данным через SQLAlchemy ORM
+5. **CQRS Lite** — разделение команд (POST/PUT/DELETE) и запросов (GET)
 
-    subgraph External Services
-        Stripe[Stripe Payments]
-        Agora[Agora Video]
-        SMTP[Email Service]
-        Sentry[Sentry Monitoring]
-    end
+---
 
-    Web --> Cloudflare
-    Mobile --> Cloudflare
-    Admin --> Cloudflare
-    Cloudflare --> Nginx
-    Nginx --> Frontend
-    Nginx --> Backend
-    Frontend --> Backend
-    Backend --> PostgreSQL
-    Backend --> Redis
-    Backend --> S3
-    Backend --> Stripe
-    Backend --> Agora
-    Backend --> SMTP
-    Backend --> Sentry
+## 🏗️ Архитектурные Слои
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Frontend (Next.js)                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │  Pages   │  │Components│  │  Hooks   │  │  Utils  │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+└─────────────────────────────────────────────────────────┘
+                          ↕ HTTP/WebSocket
+┌─────────────────────────────────────────────────────────┐
+│                  Backend (FastAPI)                       │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │              API Layer (Routers)                  │   │
+│  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐  │   │
+│  │  │  auth  │ │ courses│ │sessions│ │ payments │  │   │
+│  │  └────────┘ └────────┘ └────────┘ └──────────┘  │   │
+│  └──────────────────────────────────────────────────┘   │
+│                          ↕                               │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │            Service Layer (Business Logic)         │   │
+│  │  ┌────────────┐ ┌──────────┐ ┌────────────────┐  │   │
+│  │  │AuthServices│ │CourseSvc │ │CalendarService │  │   │
+│  │  └────────────┘ └──────────┘ └────────────────┘  │   │
+│  └──────────────────────────────────────────────────┘   │
+│                          ↕                               │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │         Data Access Layer (SQLAlchemy ORM)        │   │
+│  │  ┌────────┐ ┌─────────┐ ┌──────────┐ ┌────────┐ │   │
+│  │  │ Models │ │Schemas  │ │Repositories│ │ Cache │ │   │
+│  │  └────────┘ └─────────┘ └──────────┘ └────────┘ │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                          ↕
+┌─────────────────────────────────────────────────────────┐
+│                 Infrastructure Layer                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │PostgreSQL│  │  Redis   │  │  Celery  │  │  Agora  │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Application Flow
+## 📁 Структура Проекта
 
-### User Authentication Flow
+### Backend Структура
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend
-    participant B as Backend
-    participant DB as Database
-    participant R as Redis
+```
+backend/
+├── app/
+│   ├── api/                    # API Layer (Router endpoints)
+│   │   ├── auth.py            # → auth_core.py + auth_oauth.py
+│   │   ├── auth_core.py       # Регистрация, логин, refresh
+│   │   ├── auth_oauth.py      # OAuth Google/GitHub
+│   │   ├── courses.py         # CRUD курсов
+│   │   ├── sessions.py        # Бронирование сессий
+│   │   ├── payments.py        # Платежи и подписки
+│   │   ├── video_calls.py     # Видеозвонки (Agora)
+│   │   ├── chat_rooms.py      # Групповые чаты
+│   │   ├── calendar.py        # Интеграция календарей
+│   │   └── ...
+│   │
+│   ├── services/              # Service Layer (Бизнес-логика)
+│   │   ├── auth_service.py    # Логика аутентификации
+│   │   ├── course_service.py  # Логика курсов
+│   │   ├── chat_room_service.py # Логика чатов
+│   │   ├── calendar_service.py # OAuth и календари
+│   │   ├── agora_service.py   # Agora токены
+│   │   ├── cache.py           # Кэширование (Redis)
+│   │   └── stripe_service.py  # Платежи Stripe
+│   │
+│   ├── models/                # Data Layer (SQLAlchemy ORM)
+│   │   ├── user.py            # Модель пользователя
+│   │   ├── course.py          # Модели курсов
+│   │   ├── session.py         # Модели сессий
+│   │   ├── payment.py         # Модели платежей
+│   │   └── ...
+│   │
+│   ├── schemas/               # Pydantic схемы (DTO)
+│   │   ├── user.py            # Схемы пользователя
+│   │   ├── course.py          # Схемы курсов
+│   │   └── ...
+│   │
+│   ├── utils/                 # Утилиты
+│   │   ├── security.py        # Хеширование, JWT
+│   │   ├── auth_tokens.py     # Создание/валидация токенов
+│   │   ├── sanitization.py    # Санитизация данных
+│   │   └── logger.py          # Логирование
+│   │
+│   ├── middleware/            # Middleware
+│   │   ├── rate_limiter.py    # Rate limiting
+│   │   ├── security.py        # Security headers
+│   │   └── request_logging.py # Логирование запросов
+│   │
+│   ├── tasks/                 # Background tasks (Celery)
+│   │   ├── celery_tasks.py    # Email, уведомления
+│   │   └── celery_config.py   # Конфигурация Celery
+│   │
+│   └── config.py              # Конфигурация приложения
+│
+├── tests/                     # Тесты
+│   ├── test_auth.py           # Тесты аутентификации
+│   ├── test_courses.py        # Тесты курсов
+│   ├── test_integration.py    # Integration тесты
+│   └── ...
+│
+└── alembic/                   # Миграции БД
+```
 
-    U->>F: Enter credentials
-    F->>B: POST /api/v1/auth/login
-    B->>DB: Validate user
-    DB-->>B: User data
-    B->>B: Generate JWT tokens
-    B->>R: Store session (optional)
-    B-->>F: Return tokens
-    F->>F: Store tokens
-    F->>U: Redirect to dashboard
-    U->>F: Access protected route
-    F->>B: Request with JWT
-    B->>B: Verify JWT
-    B->>R: Check session (optional)
-    R-->>B: Session valid
-    B-->>F: Return data
-    F->>U: Display data
+### Frontend Структура
+
+```
+frontend/
+├── app/                       # Next.js App Router
+│   ├── (auth)/                # Auth страницы
+│   ├── (dashboard)/           # Dashboard страницы
+│   ├── api/                   # API Routes
+│   └── ...
+│
+├── components/                # React компоненты
+│   ├── ui/                    # UI компоненты (Button, Card)
+│   ├── auth/                  # Auth компоненты
+│   ├── courses/               # Course компоненты
+│   └── ...
+│
+├── hooks/                     # Custom React hooks
+│   ├── useAuth.ts            # Аутентификация
+│   ├── useChat.ts            # WebSocket чат
+│   ├── usePerformance.ts     # Метрики производительности
+│   └── ...
+│
+├── lib/                       # Утилиты и API
+│   ├── api/                   # API клиенты
+│   ├── utils/                 # Утилиты
+│   │   ├── logger.ts         # Logger с Sentry
+│   │   ├── api.ts            # API клиент
+│   │   └── ...
+│   └── constants.ts           # Константы
+│
+├── types/                     # TypeScript типы
+│ └── ...
+│
+└── public/                    # Статические файлы
+    ├── sw.js                 # Service Worker
+    └── manifest.json         # PWA manifest
 ```
 
 ---
 
-## Database Schema
+## 🔄 Поток Данных
 
-```mermaid
-erDiagram
-    USER ||--o{ MENTOR : "can be"
-    USER ||--o{ SESSION : "books"
-    USER ||--o{ MESSAGE : "sends"
-    USER ||--o{ PAYMENT : "makes"
-    USER ||--o{ PROGRESS : "has"
-    USER ||--o{ REVIEW : "writes"
-    USER ||--o{ ACHIEVEMENT : "earns"
-    USER ||--o{ NOTIFICATION : "receives"
+### 1. Аутентификация (Auth Flow)
 
-    MENTOR ||--o{ SESSION : "conducts"
-    MENTOR ||--o{ REVIEW : "receives"
-    MENTOR ||--o{ COURSE : "creates"
+```
+┌─────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────┐
+│Client   │     │API Layer │     │Service Layer│     │Data Layer│
+└────┬────┘     └────┬─────┘     └──────┬──────┘     └────┬─────┘
+     │               │                  │                  │
+     │ POST /login   │                  │                  │
+     │──────────────>│                  │                  │
+     │               │                  │                  │
+     │               │ validate_input() │                  │
+     │               │─────────────────>│                  │
+     │               │                  │                  │
+     │               │                  │ get_user(email)  │
+     │               │                  │─────────────────>│
+     │               │                  │                  │
+     │               │                  │<─────────────────│
+     │               │                  │     User data    │
+     │               │                  │                  │
+     │               │                  │ verify_password()│
+     │               │                  │                  │
+     │               │                  │ create_tokens()  │
+     │               │                  │                  │
+     │               │<─────────────────│                  │
+     │               │   tokens         │                  │
+     │               │                  │                  │
+     │<──────────────│                  │                  │
+     │  JWT tokens   │                  │                  │
+     │               │                  │                  │
+```
 
-    COURSE ||--o{ PROGRESS : "tracked in"
-    COURSE ||--o{ REVIEW : "has"
-    COURSE ||--o{ ENROLLMENT : "has"
+### 2. Запись на Курс (Course Enrollment)
 
-    SESSION ||--o{ MESSAGE : "contains"
-    SESSION ||--o{ PAYMENT : "generates"
-
-    USER {
-        int id PK
-        string email
-        string password_hash
-        string full_name
-        string role
-        datetime created_at
-    }
-
-    MENTOR {
-        int id PK
-        int user_id FK
-        string specialization
-        float price_per_hour
-        string availability
-    }
-
-    COURSE {
-        int id PK
-        int mentor_id FK
-        string title
-        string description
-        string level
-        float price
-    }
-
-    SESSION {
-        int id PK
-        int user_id FK
-        int mentor_id FK
-        datetime scheduled_at
-        string status
-    }
-
-    PAYMENT {
-        int id PK
-        int user_id FK
-        int session_id FK
-        float amount
-        string status
-        string provider
-    }
+```
+┌─────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────┐
+│Client   │     │API Layer │     │CourseService│     │Database  │
+└────┬────┘     └────┬─────┘     └──────┬──────┘     └────┬─────┘
+     │               │                  │                  │
+     │ POST /enroll  │                  │                  │
+     │──────────────>│                  │                  │
+     │               │                  │                  │
+     │               │ check_mentor()   │                  │
+     │               │─────────────────>│                  │
+     │               │                  │                  │
+     │               │                  │ SELECT course    │
+     │               │                  │─────────────────>│
+     │               │                  │                  │
+     │               │                  │<─────────────────│
+     │               │                  │   Course data    │
+     │               │                  │                  │
+     │               │                  │ check_enrollment()
+     │               │                  │                  │
+     │               │                  │ INSERT enrollment│
+     │               │                  │─────────────────>│
+     │               │                  │                  │
+     │<──────────────│                  │                  │
+     │ Enrollment    │                  │                  │
+     │               │                  │                  │
 ```
 
 ---
 
-## Component Architecture
+## 🔐 Безопасность
 
-### Frontend Architecture
+### Уровни Защиты
 
-```mermaid
-graph TB
-    subgraph Next.js App
-        Pages[Pages/Routes]
-        Components[Components]
-        Store[Redux Store]
-        API[API Client]
-    end
+1. **Transport Layer**
+   - HTTPS/TLS для всех соединений
+   - HSTS headers
 
-    subgraph Key Components
-        Auth[Auth Components]
-        Dashboard[Dashboard]
-        Booking[Booking System]
-        Chat[Chat Widget]
-        Courses[Course Player]
-    end
+2. **Authentication Layer**
+   - JWT токены (access + refresh)
+   - OAuth 2.0 (Google, GitHub)
+   - 2FA TOTP
 
-    subgraph External
-        Backend[Backend API]
-        WebSocket[WebSocket]
-    end
+3. **Authorization Layer**
+   - RBAC (Role-Based Access Control)
+   - Permissions на уровне endpoints
 
-    Pages --> Components
-    Pages --> Store
-    Components --> Store
-    Store --> API
-    API --> Backend
-    Components --> WebSocket
-    Auth --> Booking
-    Dashboard --> Courses
-    Chat --> WebSocket
-```
+4. **Input Validation**
+   - Pydantic схемы
+   - Санитизация данных
+   - Rate limiting
 
-### Backend Architecture
-
-```mermaid
-graph TB
-    subgraph API Layer
-        Routes[API Routes]
-        Middleware[Middleware]
-        Auth[Authentication]
-    end
-
-    subgraph Business Logic
-        Services[Services]
-        Validators[Validators]
-        Tasks[Celery Tasks]
-    end
-
-    subgraph Data Access
-        Models[SQLAlchemy Models]
-        Repositories[Repositories]
-        Cache[Cache Layer]
-    end
-
-    subgraph External
-        DB[Database]
-        Redis[Redis]
-        Queue[Celery Queue]
-    end
-
-    Routes --> Middleware
-    Middleware --> Auth
-    Auth --> Services
-    Services --> Validators
-    Services --> Models
-    Services --> Cache
-    Models --> DB
-    Cache --> Redis
-    Tasks --> Queue
-    Tasks --> Services
-```
+5. **Data Protection**
+   - Хеширование паролей (bcrypt)
+   - Шифрование чувствительных данных
+   - SQL injection protection (ORM)
 
 ---
 
-## Deployment Architecture
+## 📊 Масштабирование
 
-### Render Cloud Platform
+### Горизонтальное Масштабирование
 
-```mermaid
-graph TB
-    subgraph Render
-        WebService[Web Service<br/>Backend + Frontend]
-        PostgreSQL[(PostgreSQL<br/>Managed DB)]
-        Redis[(Redis<br/>Managed Cache)]
-    end
-
-    subgraph External
-        Users[Users]
-        GitHub[GitHub Repository]
-        Monitor[Monitoring]
-    end
-
-    Users --> WebService
-    GitHub --> WebService
-    WebService --> PostgreSQL
-    WebService --> Redis
-    WebService --> Monitor
+```
+                    ┌─────────────┐
+                    │ Load Balancer│
+                    │   (nginx)    │
+                    └──────┬──────┘
+                           │
+         ┌─────────────────┼─────────────────┐
+         │                 │                 │
+   ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
+   │ Backend 1 │    │ Backend 2 │    │ Backend N │
+   └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
+         │                │                │
+         └────────────────┼────────────────┘
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+        ┌─────▼─────┐          ┌─────▼─────┐
+        │ PostgreSQL│          │   Redis   │
+        │  (Primary)│          │  (Cache)  │
+        └───────────┘          └───────────┘
 ```
 
-### Docker Compose (Local/Production)
+### Кэширование
 
-```mermaid
-graph TB
-    subgraph Docker Containers
-        Nginx[Nginx<br/>:80/:443]
-        Frontend[Frontend<br/>:3000]
-        Backend[Backend<br/>:8000]
-        DB[(PostgreSQL<br/>:5432)]
-        Cache[(Redis<br/>:6379]
-        Worker[Celery Worker]
-    end
+1. **Redis Cache**
+   - Сессионные данные
+   - JWT blacklist
+   - Rate limiting counters
+   - API response cache
 
-    Nginx --> Frontend
-    Nginx --> Backend
-    Frontend --> Backend
-    Backend --> DB
-    Backend --> Cache
-    Worker --> Backend
-    Worker --> DB
-    Worker --> Cache
-```
+2. **HTTP Cache**
+   - ETag headers
+   - Last-Modified
+   - Cache-Control
+
+3. **Frontend Cache**
+   - React Query cache
+   - SWR cache
+   - Service Worker cache
 
 ---
 
-## Security Architecture
+## 🧪 Тестирование
 
-```mermaid
-graph TB
-    subgraph Security Layers
-        HTTPS[HTTPS/TLS]
-        CORS[CORS Policy]
-        RateLimit[Rate Limiting]
-        Auth[JWT Authentication]
-        Input[Input Validation]
-    end
+### Уровни Тестирования
 
-    subgraph Data Protection
-        Hash[Password Hashing<br/>bcrypt]
-        Encrypt[Data Encryption]
-        Sanitize[SQL Injection<br/>Protection]
-    end
+```
+┌─────────────────────────────────────┐
+│         E2E Tests (Playwright)      │  ← Full user flows
+├─────────────────────────────────────┤
+│    Integration Tests (pytest)       │  ← API integration
+├─────────────────────────────────────┤
+│      Service Tests (pytest)         │  ← Business logic
+├─────────────────────────────────────┤
+│       Unit Tests (pytest/jest)      │  ← Functions/components
+└─────────────────────────────────────┘
+```
 
-    subgraph Monitoring
-        Sentry[Error Tracking]
-        Logs[Audit Logs]
-        Alerts[Security Alerts]
-    end
+### Покрытие Кода
 
-    HTTPS --> CORS
-    CORS --> RateLimit
-    RateLimit --> Auth
-    Auth --> Input
-    Input --> Hash
-    Hash --> Encrypt
-    Encrypt --> Sanitize
-    Sanitize --> Sentry
-    Sentry --> Logs
-    Logs --> Alerts
+- **Backend:** ~80% (339 тестов)
+- **Frontend:** ~75% (55 тестов)
+- **Критичные пути:** 100%
+
+---
+
+## 📈 Мониторинг
+
+### Метрики
+
+1. **Performance**
+   - API response time (p95, p99)
+   - Database query time
+   - Cache hit rate
+
+2. **Reliability**
+   - Error rate
+   - Uptime
+   - MTTR (Mean Time To Recovery)
+
+3. **Business**
+   - Active users
+   - Course enrollments
+   - Session bookings
+
+### Инструменты
+
+- **Prometheus** — сбор метрик
+- **Grafana** — визуализация
+- **Sentry** — error tracking
+- **ELK Stack** — log aggregation
+
+---
+
+## 🚀 Деплой
+
+### Production Environment
+
+```yaml
+Сервисы:
+  - Frontend (Next.js) — 2 replicas
+  - Backend (FastAPI) — 3 replicas
+  - PostgreSQL 17 — primary + replica
+  - Redis 7 — cluster mode
+  - Celery Worker — 2 workers
+  - Celery Beat — 1 scheduler
+  - nginx — load balancer
+  - Prometheus + Grafana — monitoring
+```
+
+### CI/CD Pipeline
+
+```
+┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌──────────┐
+│  Push   │──>│  Build  │──>│  Test   │──>│  Deploy │──>│  Health  │
+│  (git)  │   │(Docker) │   │(pytest) │   │ (K8s)   │   │  Check   │
+└─────────┘   └─────────┘   └─────────┘   └─────────┘   └──────────┘
 ```
 
 ---
 
-## Data Flow
+## 📝 Best Practices
 
-### Booking Session Flow
+### Код
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend
-    participant B as Backend
-    participant DB as Database
-    participant P as Payment
-    participant N as Notification
+1. **DRY (Don't Repeat Yourself)** — избегать дублирования
+2. **SOLID** — принципы объектно-ориентированного дизайна
+3. **KISS (Keep It Simple, Stupid)** — простота прежде всего
+4. **YAGNI (You Aren't Gonna Need It)** — не добавлять лишнее
 
-    U->>F: Select mentor & time
-    F->>B: POST /api/v1/sessions
-    B->>DB: Check availability
-    DB-->>B: Available
-    B->>DB: Create session
-    B->>P: Process payment
-    P-->>B: Payment success
-    B->>N: Send confirmation
-    N->>U: Email notification
-    N->>M: Notify mentor
-    B-->>F: Session created
-    F->>U: Show confirmation
-```
+### Git
+
+1. **Feature Branches** — одна фича = одна ветка
+2. **Pull Requests** — code review обязательно
+3. **Conventional Commits** — стандарт коммитов
+4. **Semantic Versioning** — версионирование
+
+### Безопасность
+
+1. **Principle of Least Privilege** — минимальные права
+2. **Defense in Depth** — многоуровневая защита
+3. **Secure by Default** — безопасные настройки по умолчанию
+4. **Fail Securely** — безопасная обработка ошибок
 
 ---
 
-## Monitoring & Observability
+## 📚 Дополнительные Ресурсы
 
-```mermaid
-graph TB
-    subgraph Application
-        App[Backend + Frontend]
-    end
-
-    subgraph Metrics
-        Prometheus[Prometheus<br/>Metrics]
-        Grafana[Grafana<br/>Dashboards]
-    end
-
-    subgraph Logging
-        ELK[ELK Stack<br/>Logs]
-    end
-
-    subgraph Tracing
-        Sentry[Sentry<br/>Errors]
-    end
-
-    subgraph Alerts
-        PagerDuty[PagerDuty<br/>Alerts]
-    end
-
-    App --> Prometheus
-    App --> ELK
-    App --> Sentry
-    Prometheus --> Grafana
-    Sentry --> PagerDuty
-    Grafana --> PagerDuty
-```
+- [API Documentation](./docs/API.md)
+- [Deployment Guide](./docs/DEPLOYMENT.md)
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
 
 ---
 
-## Technology Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | Next.js 14 | React framework |
-| **State** | Redux Toolkit | State management |
-| **Data Fetching** | TanStack Query | API caching |
-| **Backend** | FastAPI | Python API framework |
-| **Database** | PostgreSQL 16 | Primary database |
-| **Cache** | Redis 7 | Caching & sessions |
-| **Queue** | Celery | Background tasks |
-| **Auth** | JWT | Token-based auth |
-| **Payments** | Stripe | Payment processing |
-| **Video** | Agora | Video calls |
-| **Monitoring** | Sentry + Prometheus | Error tracking & metrics |
-| **Deployment** | Render | Cloud platform |
-
----
-
-## Scalability Considerations
-
-### Current Architecture
-- Single instance deployment
-- Vertical scaling (Render plans)
-- Database connection pooling
-- Redis caching
-
-### Future Scaling
-- Horizontal scaling (multiple instances)
-- Load balancing
-- Database read replicas
-- CDN for static assets
-- Microservices architecture
-- Kubernetes orchestration
-
----
-
-## Disaster Recovery
-
-```mermaid
-graph TB
-    subgraph Backup Strategy
-        Daily[Daily Backups<br/>7 days retention]
-        Weekly[Weekly Backups<br/>4 weeks retention]
-        Monthly[Monthly Backups<br/>6 months retention]
-    end
-
-    subgraph Recovery
-        RPO[RPO: 24 hours<br/>Recovery Point Objective]
-        RTO[RTO: 4 hours<br/>Recovery Time Objective]
-    end
-
-    Daily --> RPO
-    Weekly --> RPO
-    Monthly --> RPO
-    RPO --> RTO
-```
-
----
-
-## API Gateway Pattern
-
-```mermaid
-graph TB
-    subgraph Gateway
-        Nginx[Nginx Gateway]
-        RateLimit[Rate Limiting]
-        Auth[Auth Check]
-        Routing[Request Routing]
-    end
-
-    subgraph Services
-        AuthSvc[Auth Service]
-        UserSvc[User Service]
-        CourseSvc[Course Service]
-        PaymentSvc[Payment Service]
-    end
-
-    Client --> Nginx
-    Nginx --> RateLimit
-    RateLimit --> Auth
-    Auth --> Routing
-    Routing --> AuthSvc
-    Routing --> UserSvc
-    Routing --> CourseSvc
-    Routing --> PaymentSvc
-```
-
----
-
-**Last Updated:** 2026-03-10
-**Version:** 1.0.0
+**MentorHub © 2026** — Open-source платформа для менторства
