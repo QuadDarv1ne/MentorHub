@@ -256,18 +256,20 @@ class CalendarService:
 # Фабрика сервисов
 def create_google_service() -> GoogleCalendarService:
     """Создать Google Calendar сервис"""
+    from app.config import settings
     return GoogleCalendarService(
-        client_id=os.getenv("GOOGLE_CLIENT_ID", ""),
-        client_secret=os.getenv("GOOGLE_CLIENT_SECRET", ""),
-        redirect_uri=os.getenv("GOOGLE_REDIRECT_URI", "")
+        client_id=settings.GOOGLE_CLIENT_ID,
+        client_secret=settings.GOOGLE_CLIENT_SECRET,
+        redirect_uri=settings.OAUTH_REDIRECT_URI
     )
 
 
 def create_microsoft_service() -> MicrosoftCalendarService:
     """Создать Microsoft Calendar сервис"""
+    from app.config import settings
     return MicrosoftCalendarService(
-        client_id=os.getenv("MICROSOFT_CLIENT_ID", ""),
-        client_secret=os.getenv("MICROSOFT_CLIENT_SECRET", ""),
-        redirect_uri=os.getenv("MICROSOFT_REDIRECT_URI", ""),
-        tenant_id=os.getenv("MICROSOFT_TENANT_ID", "common")
+        client_id=settings.MICROSOFT_CLIENT_ID,
+        client_secret=settings.MICROSOFT_CLIENT_SECRET,
+        redirect_uri=settings.OAUTH_REDIRECT_URI,
+        tenant_id=settings.MICROSOFT_TENANT_ID
     )

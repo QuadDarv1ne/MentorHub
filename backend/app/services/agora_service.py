@@ -3,16 +3,13 @@ Agora Video Service
 Генерация токенов для видеозвонков
 """
 
-import os
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+from app.config import settings
 
-# Agora конфигурация
-AGORA_APP_ID = os.getenv("AGORA_APP_ID", "")
-AGORA_APP_CERTIFICATE = os.getenv("AGORA_APP_CERTIFICATE", "")
+logger = logging.getLogger(__name__)
 
 try:
     from agora_token_builder import RtcTokenBuilder, RtcTokenBuilderRole
@@ -26,8 +23,8 @@ class AgoraService:
     """Сервис для работы с Agora API"""
 
     def __init__(self):
-        self.app_id = AGORA_APP_ID
-        self.app_certificate = AGORA_APP_CERTIFICATE
+        self.app_id = settings.AGORA_APP_ID
+        self.app_certificate = settings.AGORA_APP_CERTIFICATE
         self.available = AGORA_AVAILABLE and bool(self.app_id) and bool(self.app_certificate)
 
     def generate_token(
