@@ -110,31 +110,37 @@ async def verify_2fa(
 ):
     """
     Верификация 2FA кода после настройки
-    
+
     Подтверждает что пользователь правильно настроил приложение аутентификации
     """
-    if not current_user.two_factor_secret:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="2FA not set up. Call /setup first."
-        )
-    
-    # Верификация кода
-    totp = pyotp.TOTP(current_user.two_factor_secret)
-    
-    if not totp.verify(verify_data.code, valid_window=1):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid 2FA code"
-        )
-    
-    # Включаем 2FA
-    current_user.two_factor_enabled = True
-    db.commit()
-    
-    logger.info(f"2FA enabled for user {current_user.id}")
-    
-    return TwoFactorResponse(enabled=True)
+    try:
+        if not current_user.two_factor_secret:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="2FA not set up. Call /setup first."
+            )
+
+        # Верификация кода
+        totp = pyotp.TOTP(current_user.two_factor_secret)
+
+        if not totp.verify(verify_data.code, valid_window=1):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid 2FA code"
+            )
+
+        # Включаем 2FA
+        current_user.two_factor_enabled = True
+        db.commit()
+
+        logger.info(f"2FA enabled for user {current_user.id}")
+
+        return TwoFactorResponse(enabled=True)
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.post("/disable", response_model=TwoFactorResponse)
@@ -145,32 +151,38 @@ async def disable_2fa(
 ):
     """
     Отключение двухфакторной аутентификации
-    
+
     Требует текущий 2FA код для подтверждения
     """
-    if not current_user.two_factor_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="2FA is not enabled"
-        )
-    
-    # Верификация кода
-    totp = pyotp.TOTP(current_user.two_factor_secret)
-    
-    if not totp.verify(verify_data.code, valid_window=1):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid 2FA code"
-        )
-    
-    # Отключаем 2FA
-    current_user.two_factor_enabled = False
-    current_user.two_factor_secret = None
-    db.commit()
-    
-    logger.info(f"2FA disabled for user {current_user.id}")
-    
-    return TwoFactorResponse(enabled=False)
+    try:
+        if not current_user.two_factor_enabled:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="2FA is not enabled"
+            )
+
+        # Верификация кода
+        totp = pyotp.TOTP(current_user.two_factor_secret)
+
+        if not totp.verify(verify_data.code, valid_window=1):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid 2FA code"
+            )
+
+        # Отключаем 2FA
+        current_user.two_factor_enabled = False
+        current_user.two_factor_secret = None
+        db.commit()
+
+        logger.info(f"2FA disabled for user {current_user.id}")
+
+        return TwoFactorResponse(enabled=False)
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.get("/status", response_model=TwoFactorResponse)
