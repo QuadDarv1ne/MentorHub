@@ -29,6 +29,35 @@
 - ✅ `/api/mentors/top-rated` — топ менторов по рейтингу
 - ✅ `backend/app/api/mentors.py` — интеграция с mentors_search router
 
+**Backend тесты:**
+- ✅ `backend/tests/test_agora_service.py` — 15 тестов для Agora сервиса
+  - Генерация и валидация токенов
+  - Валидация имени канала
+  - Конфигурация записи
+  - Обработка ошибок
+- ✅ `backend/tests/test_mentors_search.py` — 15 тестов для поиска менторов
+  - Поиск по query, specialization, price, experience
+  - Фильтрация по доступности
+  - Сортировка по rating, price, experience, name
+  - Пагинация и комбинированные фильтры
+
+**Frontend компоненты:**
+- ✅ `frontend/components/mentors/MentorSearchFilters.tsx` — фильтры поиска
+  - Текстовый поиск с debouncing
+  - 7 параметров фильтрации
+  - Опции сортировки
+  - Функция сброса
+- ✅ `frontend/components/mentors/MentorSearchResults.tsx` — результаты поиска
+  - Карточки менторов со статистикой
+  - Контролы пагинации
+  - Адаптивная grid раскладка
+  - Индикаторы доступности
+- ✅ `frontend/hooks/useMentorSearch.ts` — хук для поиска
+  - searchMentors() — поиск с фильтрами
+  - fetchSpecializations() — получение специализаций
+  - fetchTopRated() — топ менторов
+  - Управление состоянием результатов
+
 **Agora Service (видеозвонки):**
 - ✅ `backend/app/services/agora_service.py` — сервис для Agora SDK
   - `generate_rtc_token()` — генерация RTC токенов
@@ -87,13 +116,16 @@
 - Расширенный поиск менторов с 7 параметрами фильтрации
 - Agora Service для централизованной работы с видеозвонками
 - Модульная структура API для курсов и видеозвонков
+- Frontend компоненты для поиска менторов
+- 30 новых тестов (15 Agora + 15 Mentor Search)
 
 **Статистика изменений:**
-- 10 файлов изменено/добавлено
-- 7 новых файлов (mentors_search, agora_service, courses_*, video_calls_*)
+- 15 файлов изменено/добавлено
+- 12 новых файлов (API modules, tests, frontend components)
 - 3 файла обновлено (courses, video_calls, mentors)
-- +1200 строк добавлено
+- +2200 строк добавлено
 - -788 строк удалено (рефакторинг)
+- 30 новых тестов
 - 0 breaking changes (backward compatible)
 
 **Проект готов к production деплою v1.2.**
