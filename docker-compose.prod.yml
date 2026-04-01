@@ -1,188 +1,153 @@
 version: '3.8'
 
+# Production-optimized Docker Compose configuration
+# Features: PgBouncer, optimized settings, health checks, resource limits
+
 services:
-  # Nginx reverse proxy
-  nginx:
-    image: nginx:alpine-slim
-    container_name: mentorhub_nginx
+  # ==================== PGBOUNCER (Connection Pooling) ====================
+  pgbouncer:
+    image: edoburu/pgbouncer:1.21.0
+    container_name: mentorhub-pgbouncer
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@postgres:5432/${DB_NAME:-mentorhub}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+      MIN_POOL_SIZE: 10
+      RESERVE_POOL_SIZE: 5
+      RESERVE_POOL_TIMEOUT: 3
+      MAX_DB_CONNECTIONS: 100
+      MAX_USER_CONNECTIONS: 100
+      SERVER_IDLE_TIMEOUT: 600
+      SERVER_LIFETIME: 3600
+      SERVER_CONNECT_TIMEOUT: 15
+      QUERY_TIMEOUT: 0
+      CLIENT_IDLE_TIMEOUT: 0
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - static_volume:/app/static
-      - media_volume:/app/media
+      - "6432:5432"
     depends_on:
-      - backend
-        condition: service_healthy
-      - frontend
+      postgres:
         condition: service_healthy
     networks:
-      - mentorhub_network
+      - mentorhub-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    # Performance tuning
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 20000
-        hard: 40000
-
-  # PostgreSQL Database
-  postgres:
-    image: postgres:17-alpine
-    container_name: mentorhub_postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-mentorhub}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-mentorhub}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mentorhub}"]
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432"]
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ==================== DATABASE ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentorhub-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-mentorhub_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+      POSTGRES_DB: ${DB_NAME:-mentorhub}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mentorhub_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mentorhub-network
     restart: unless-stopped
-    # Performance tuning
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
     command: >
       postgres
       -c shared_buffers=512MB
       -c effective_cache_size=2GB
       -c maintenance_work_mem=256MB
       -c checkpoint_completion_target=0.9
-      -c wal_buffers=32MB
+      -c wal_buffers=16MB
       -c default_statistics_target=100
       -c random_page_cost=1.1
       -c effective_io_concurrency=200
       -c work_mem=32MB
       -c min_wal_size=2GB
       -c max_wal_size=8GB
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
+      -c max_connections=200
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+      -c log_min_duration_statement=1000
+      -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
 
-  # Redis Cache
+  # ==================== REDIS ====================
   redis:
     image: redis:7-alpine
-    container_name: mentorhub_redis
-    command: >
-      redis-server
-      --maxmemory 1G
-      --maxmemory-policy allkeys-lru
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-      --tcp-keepalive 300
-      --notify-keyspace-events Ex
+    container_name: mentorhub-redis
     volumes:
       - redis_data:/data
-    networks:
-      - mentorhub_network
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  # PgBouncer Connection Pooler
-  pgbouncer:
-    image: bitnami/pgbouncer:latest
-    container_name: mentorhub_pgbouncer
-    environment:
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_USER: ${POSTGRES_USER:-mentorhub}
-      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRESQL_DATABASE: ${POSTGRES_DB:-mentorhub}
-      PGBOUNCER_DATABASE: ${POSTGRES_DB:-mentorhub}
-      PGBOUNCER_PORT: 6432
-      PGBOUNCER_BIND_ADDRESS: 0.0.0.0
-      PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_MAX_CLIENT_CONN: 1000
-      PGBOUNCER_DEFAULT_POOL_SIZE: 50
-      PGBOUNCER_MIN_POOL_SIZE: 10
-      PGBOUNCER_RESERVE_POOL_SIZE: 25
-      PGBOUNCER_IGNORE_STARTUP_PARAMETERS: extra_float_digits
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -p 6432 -U ${POSTGRES_USER:-mentorhub}"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - mentorhub-network
     restart: unless-stopped
     deploy:
       resources:
         limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
           cpus: '0.5'
           memory: 512M
 
-  # Backend API
+  # ==================== BACKEND ====================
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mentorhub_backend
+      args:
+        ENVIRONMENT: production
+    container_name: mentorhub-backend
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
-      - ENVIRONMENT=production
-      - DEBUG=false
-      - SENTRY_DSN=${SENTRY_DSN}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
-    volumes:
-      - static_volume:/app/static
-      - media_volume:/app/media
-      - logs_volume:/app/logs
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@pgbouncer:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      ENVIRONMENT: production
+      WORKERS: ${WORKERS:-4}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_healthy
-      pgbouncer:
-        condition: service_healthy
     networks:
-      - mentorhub_network
+      - mentorhub-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -191,112 +156,45 @@ services:
         reservations:
           cpus: '1'
           memory: 1G
-      replicas: 3
-    # Production logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
-        compress: "true"
+    command: >
+      gunicorn app.main:app
+      --workers ${WORKERS:-4}
+      --worker-class uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:8000
+      --timeout 120
+      --graceful-timeout 30
+      --keep-alive 5
+      --max-requests 1000
+      --max-requests-jitter 100
+      --access-logfile -
+      --error-logfile -
+      --log-level info
 
-  # Celery Worker
+  # ==================== CELERY WORKER ====================
   celery_worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mentorhub_celery
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=8 --pool=threads
+    container_name: mentorhub-celery
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
-      - ENVIRONMENT=production
-    volumes:
-      - logs_volume:/app/logs
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@pgbouncer:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      ENVIRONMENT: production
     depends_on:
-      - postgres
-        condition: service_healthy
+      - pgbouncer
       - redis
-        condition: service_healthy
-      - pgbouncer:
-        condition: service_healthy
     networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD-SHELL", "celery -A app.celery_app inspect ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      - mentorhub-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 1G
-        reservations:
-          cpus: '1'
-          memory: 512M
-    # Production logging
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
-        compress: "true"
-
-  # Celery Beat (Scheduler)
-  celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mentorhub_celery_beat
-    command: celery -A app.celery_app beat --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
-      - ENVIRONMENT=production
-    volumes:
-      - logs_volume:/app/logs
-    depends_on:
-      - postgres
-        condition: service_healthy
-      - redis
-        condition: service_healthy
-      - pgbouncer:
-        condition: service_healthy
-    networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'celery.*beat'"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-
-  # Frontend (Next.js)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    container_name: mentorhub_frontend
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
+    command: >
+      celery -A app.tasks worker
+      --loglevel=info
+      --concurrency=4
+      --pool=threads
+      --max-tasks-per-child=1000
+      --time-limit=300
+      --soft-time-limit=240
     deploy:
       resources:
         limits:
@@ -306,136 +204,135 @@ services:
           cpus: '0.5'
           memory: 512M
 
-  # Database backup
-  backup:
-    image: postgres:17-alpine
-    container_name: mentorhub_backup
+  # ==================== CELERY BEAT ====================
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mentorhub-celery-beat
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-mentorhub}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB:-mentorhub}
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_KEEP_WEEKS=4
-      - BACKUP_KEEP_MONTHS=6
-    volumes:
-      - ./backups:/backups
-      - ./backend/scripts/backup.sh:/backup.sh:ro
-    command: sh -c "chmod +x /backup.sh && crond -f"
+      DATABASE_URL: postgresql://${DB_USER:-mentorhub_user}:${DB_PASSWORD:?DB_PASSWORD required}@pgbouncer:5432/${DB_NAME:-mentorhub}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY required}
+      ENVIRONMENT: production
     depends_on:
-      - postgres
+      - pgbouncer
+      - redis
     networks:
-      - mentorhub_network
+      - mentorhub-network
     restart: unless-stopped
-
-  # Monitoring - Prometheus
-  prometheus:
-    image: prom/prometheus:v2.47.0
-    container_name: mentorhub_prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-    networks:
-      - mentorhub_network
-
-  # Monitoring - Grafana
-  grafana:
-    image: grafana/grafana-enterprise
-    container_name: mentorhub_grafana
-    ports:
-      - "3001:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
-      - ./monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/mentorhub-dashboard.json:ro
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    restart: unless-stopped
-    networks:
-      - mentorhub_network
-    depends_on:
-      - prometheus
-        condition: service_healthy
-
-  # Monitoring - Node Exporter
-  node_exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    container_name: mentorhub_node_exporter
-    command:
-      - '--path.rootfs=/host'
-    pid: host
-    restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
-    networks:
-      - mentorhub_network
-
-  # PgBouncer Exporter
-  pgbouncer_exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: mentorhub_pgbouncer_exporter
-    environment:
-      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-mentorhub}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-mentorhub}?sslmode=disable
-      - PG_EXPORTER_AUTO_DISCOVER_DATABASES=true
-      - PG_EXPORTER_INCLUDE_SYSTEM_DATABASES=false
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
-    networks:
-      - mentorhub_network
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9187/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
+    command: celery -A app.tasks beat --loglevel=info
     deploy:
       resources:
         limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
           cpus: '0.25'
           memory: 128M
 
-networks:
-  mentorhub_network:
-    driver: bridge
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: mentorhub-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.mentorhub.com}
+      NODE_ENV: production
+    depends_on:
+      - backend
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==================== NGINX ====================
+  nginx:
+    image: nginx:alpine-slim
+    container_name: mentorhub-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ==================== BACKUP SERVICE ====================
+  backup:
+    image: postgres:16-alpine
+    container_name: mentorhub-backup
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${DB_USER:-mentorhub_user}
+      PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+      PGDATABASE: ${DB_NAME:-mentorhub}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mentorhub-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+      while true; do
+        /backup.sh
+        sleep 86400
+      done
+      "
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
 volumes:
   postgres_data:
     driver: local
   redis_data:
     driver: local
-  static_volume:
+  nginx_cache:
     driver: local
-  media_volume:
-    driver: local
-  logs_volume:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
+
+networks:
+  mentorhub-network:
+    driver: bridge

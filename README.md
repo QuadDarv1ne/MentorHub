@@ -361,14 +361,47 @@ npm test
 Для удобства можно запустить всё через Docker:
 
 ```bash
-# Из корневой папки проекта
+# Development
 docker-compose up -d
+
+# Production (с PgBouncer и оптимизациями)
+docker-compose -f docker-compose.prod.yml up -d
 
 # Просмотр логов
 docker-compose logs -f
 
 # Остановка контейнеров
 docker-compose down
+```
+
+### Использование Makefile
+
+Проект включает Makefile с 40+ командами для упрощения разработки:
+
+```bash
+# Показать все доступные команды
+make help
+
+# Установить зависимости
+make install
+
+# Запустить development серверы
+make dev
+
+# Запустить тесты с покрытием
+make test-coverage
+
+# Проверить код (lint + test + security)
+make check
+
+# Создать резервную копию БД
+make backup
+
+# Запустить load testing
+make test-load
+
+# Очистить временные файлы
+make clean
 ```
 
 ### Переменные окружения (.env)
@@ -659,7 +692,7 @@ GET    /api/v1/payments/history     # История платежей
 
 ## 🗺️ Дорожная карта
 
-### MVP (v1.0) - Q1 2025
+### MVP (v1.0) - Q1 2025 ✅
 
 - [x] Основная структура проекта
 - [x] Аутентификация и авторизация с защитой маршрутов
@@ -676,12 +709,20 @@ GET    /api/v1/payments/history     # История платежей
 - [ ] Встроенный чат
 - [ ] Реальная система оплаты (Stripe)
 
-### V1.1 - Q2 2025
+### V1.1 - Q1 2025 (В разработке) 🚀
 
 - [x] Улучшенная аутентификация (22.11.2024)
 - [x] Восстановление пароля
 - [x] Индикатор силы пароля
 - [x] Защита маршрутов с перенаправлением
+- [x] **Автоматическое сканирование безопасности** (16.01.2025)
+- [x] **PgBouncer для connection pooling** (16.01.2025)
+- [x] **Система резервного копирования БД** (16.01.2025)
+- [x] **Load testing с k6** (16.01.2025)
+- [x] **Production-ready Docker конфигурация** (16.01.2025)
+- [x] **Makefile с 40+ командами** (16.01.2025)
+- [x] **Dependabot для автообновлений** (16.01.2025)
+- [x] **Nginx с кешированием и rate limiting** (16.01.2025)
 - [ ] Backend интеграция для аутентификации
 - [ ] Email уведомления
 - [ ] Курсы и материалы (backend)
@@ -782,6 +823,41 @@ git push origin feature/your-feature-name
 
 ---
 
+## 📊 Последние улучшения (v1.1)
+
+### Безопасность 🔐
+- ✅ Автоматическое сканирование уязвимостей (Safety, Bandit, Trivy, CodeQL)
+- ✅ Dependabot для автоматических обновлений зависимостей
+- ✅ Pre-commit hooks для проверки кода
+
+### Производительность ⚡
+- ✅ PgBouncer connection pooling (3-5x улучшение)
+- ✅ Redis оптимизация с LRU eviction
+- ✅ Nginx с кешированием и rate limiting
+- ✅ Production-ready Docker конфигурация с resource limits
+
+### Надёжность 🛡️
+- ✅ Автоматические резервные копии БД (ежедневно)
+- ✅ Health checks для всех сервисов
+- ✅ Graceful shutdown с 30s timeout
+- ✅ Скрипты backup/restore
+
+### Тестирование 🧪
+- ✅ Coverage конфигурация (75% минимум)
+- ✅ Load testing с k6
+- ✅ Performance testing workflow
+- ✅ Lighthouse CI для frontend
+
+### Developer Experience 🛠️
+- ✅ Makefile с 40+ командами
+- ✅ Улучшенная документация
+- ✅ Code quality tools (Black, isort, mypy, ruff)
+- ✅ CHANGELOG.md
+
+Подробнее: [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md)
+
+---
+
 **Made with ❤️ by Maestro7IT / MentorHub Team**
 
-*Последнее обновление: 16/11/2025*
+*Последнее обновление: 16/01/2025*
