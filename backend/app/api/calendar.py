@@ -3,7 +3,6 @@ Calendar Integration API
 Google Calendar + Outlook Calendar + ICS Export
 """
 
-import os
 import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
@@ -22,6 +21,7 @@ from app.services.calendar_service import (
     create_microsoft_service,
     CalendarService
 )
+from app.config import settings
 
 router = APIRouter(prefix="/calendar", tags=["Calendar Integration"])
 
@@ -31,25 +31,14 @@ def _get_calendar_service(db: Session, user: User) -> CalendarService:
     return CalendarService(db, user)
 
 
-# OAuth конфигурация
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "")
-
-MICROSOFT_CLIENT_ID = os.getenv("MICROSOFT_CLIENT_ID", "")
-MICROSOFT_CLIENT_SECRET = os.getenv("MICROSOFT_CLIENT_SECRET", "")
-MICROSOFT_REDIRECT_URI = os.getenv("MICROSOFT_REDIRECT_URI", "")
-MICROSOFT_TENANT_ID = os.getenv("MICROSOFT_TENANT_ID", "common")
-
-
 @router.get("/auth/google")
 async def google_auth_url() -> Dict[str, str]:
     """Получить URL для авторизации Google Calendar"""
     from urllib.parse import urlencode
 
     params = {
-        "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "redirect_uri": settings.OAUTH_REDIRECT_URI,
         "response_type": "code",
         "access_type": "offline",
         "prompt": "consent",
@@ -71,9 +60,9 @@ async def google_callback(
 
     token_url = "https://oauth2.googleapis.com/token"
     data = {
-        "client_id": GOOGLE_CLIENT_ID,
-        "client_secret": GOOGLE_CLIENT_SECRET,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+        "redirect_uri": settings.OAUTH_REDIRECT_URI,
         "code": code,
         "grant_type": "authorization_code"
     }
@@ -101,13 +90,13 @@ async def microsoft_auth_url() -> Dict[str, str]:
     from urllib.parse import urlencode
 
     params = {
-        "client_id": MICROSOFT_CLIENT_ID,
-        "redirect_uri": MICROSOFT_REDIRECT_URI,
+        "client_id": settings.MICROSOFT_CLIENT_ID,
+        "redirect_uri": settings.OAUTH_REDIRECT_URI,
         "response_type": "code",
         "scope": "Calendars.ReadWrite offline_access"
     }
 
-    auth_url = f"https://login.microsoftonline.com/{MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize"
+    auth_url = f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize"
     return {"auth_url": f"{auth_url}?{urlencode(params)}"}
 
 
@@ -120,11 +109,11 @@ async def microsoft_callback(
     """Callback после авторизации Microsoft"""
     import httpx
 
-    token_url = f"https://login.microsoftonline.com/{MICROSOFT_TENANT_ID}/oauth2/v2.0/token"
+    token_url = f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/token"
     data = {
-        "client_id": MICROSOFT_CLIENT_ID,
-        "client_secret": MICROSOFT_CLIENT_SECRET,
-        "redirect_uri": MICROSOFT_REDIRECT_URI,
+        "client_id": settings.MICROSOFT_CLIENT_ID,
+        "client_secret": settings.MICROSOFT_CLIENT_SECRET,
+        "redirect_uri": settings.OAUTH_REDIRECT_URI,
         "code": code,
         "grant_type": "authorization_code"
     }
