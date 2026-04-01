@@ -2,30 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import { SearchFilters } from '@/components/mentors/MentorSearchFilters';
-
-interface Mentor {
-  id: number;
-  user_id: number;
-  specialization: string;
-  bio: string;
-  experience_years: number;
-  hourly_rate: number;
-  rating: number;
-  total_reviews: number;
-  is_available: boolean;
-  user: {
-    id: number;
-    full_name: string;
-    email: string;
-  };
-}
-
-interface SearchResponse {
-  items: Mentor[];
-  total: number;
-  page: number;
-  page_size: number;
-}
+import {
+  searchMentors as apiSearchMentors,
+  getSpecializations as apiGetSpecializations,
+  getTopRatedMentors as apiGetTopRatedMentors,
+  Mentor,
+} from '@/lib/api/mentors';
 
 export function useMentorSearch() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -38,11 +20,8 @@ export function useMentorSearch() {
 
   const fetchSpecializations = useCallback(async () => {
     try {
-      const response = await fetch('/api/v1/mentors/specializations');
-      if (response.ok) {
-        const data = await response.json();
-        setSpecializations(data);
-      }
+      const data = await apiGetSpecializations();
+      setSpecializations(data);
     } catch (err) {
       console.error('Failed to fetch specializations:', err);
     }
@@ -53,28 +32,12 @@ export function useMentorSearch() {
     setError(null);
 
     try {
-      // Build query params
-      const params = new URLSearchParams();
-      params.append('page', currentPage.toString());
-      params.append('page_size', pageSize.toString());
+      const data = await apiSearchMentors({
+        ...filters,
+        page: currentPage,
+        page_size: pageSize,
+      });
 
-      if (filters.query) params.append('query', filters.query);
-      if (filters.specialization) params.append('specialization', filters.specialization);
-      if (filters.minRate !== undefined) params.append('min_rate', filters.minRate.toString());
-      if (filters.maxRate !== undefined) params.append('max_rate', filters.maxRate.toString());
-      if (filters.minExperience !== undefined) params.append('min_experience', filters.minExperience.toString());
-      if (filters.maxExperience !== undefined) params.append('max_experience', filters.maxExperience.toString());
-      if (filters.isAvailable !== undefined) params.append('is_available', filters.isAvailable.toString());
-      params.append('sort_by', filters.sortBy);
-      params.append('sort_order', filters.sortOrder);
-
-      const response = await fetch(`/api/v1/mentors/search?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to search mentors');
-      }
-
-      const data: SearchResponse = await response.json();
       setMentors(data.items);
       setTotal(data.total);
       setPage(data.page);
@@ -92,13 +55,7 @@ export function useMentorSearch() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/v1/mentors/top-rated?limit=${limit}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch top rated mentors');
-      }
-
-      const data: Mentor[] = await response.json();
+      const data = await apiGetTopRatedMentors(limit);
       setMentors(data);
       setTotal(data.length);
     } catch (err) {

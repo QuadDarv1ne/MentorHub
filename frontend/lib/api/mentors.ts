@@ -1,79 +1,150 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+/**
+ * Mentors API Client
+ * Клиент для работы с API менторов
+ */
+
+import { SearchFilters } from '@/components/mentors/MentorSearchFilters';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface Mentor {
   id: number;
-  full_name: string;
-  email: string;
-  bio?: string;
-  location?: string;
-  occupation?: string;
-  hourly_rate?: number;
-  experience_years?: number;
-  specializations?: string[];
-  rating?: number;
-  total_sessions?: number;
-  avatar_url?: string;
+  user_id: number;
+  specialization: string;
+  bio: string;
+  experience_years: number;
+  hourly_rate: number;
+  rating: number;
+  total_reviews: number;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: number;
+    full_name: string;
+    email: string;
+    role: string;
+  };
 }
 
-export interface MentorsFilters {
-  search?: string;
-  specialization?: string;
-  experience?: string;
-  priceRange?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface MentorsResponse {
-  mentors: Mentor[];
+export interface PaginatedResponse<T> {
+  items: T[];
   total: number;
   page: number;
-  pages: number;
+  page_size: number;
+}
+
+export interface MentorSearchParams extends SearchFilters {
+  page?: number;
+  page_size?: number;
 }
 
 /**
- * Получить список менторов с фильтрами
+ * Поиск менторов с фильтрацией
  */
-export async function getMentors(filters?: MentorsFilters): Promise<MentorsResponse> {
-  const params = new URLSearchParams();
-  
-  if (filters?.search) params.append('search', filters.search);
-  if (filters?.specialization) params.append('specialization', filters.specialization);
-  if (filters?.experience) params.append('experience', filters.experience);
-  if (filters?.priceRange) params.append('price_range', filters.priceRange);
-  if (filters?.page) params.append('page', filters.page.toString());
-  if (filters?.limit) params.append('limit', filters.limit.toString());
+export async function searchMentors(
+  params: MentorSearchParams
+): Promise<PaginatedResponse<Mentor>> {
+  const searchParams = new URLSearchParams();
 
-  const url = `${API_BASE_URL}/mentors?${params.toString()}`;
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  // Pagination
+  searchParams.append('page', (params.page || 1).toString());
+  searchParams.append('page_size', (params.page_size || 12).toString());
+
+  // Filters
+  if (params.query) searchParams.append('query', params.query);
+  if (params.specialization) searchParams.append('specialization', params.specialization);
+  if (params.minRate !== undefined) searchParams.append('min_rate', params.minRate.toString());
+  if (params.maxRate !== undefined) searchParams.append('max_rate', params.maxRate.toString());
+  if (params.minExperience !== undefined) searchParams.append('min_experience', params.minExperience.toString());
+  if (params.maxExperience !== undefined) searchParams.append('max_experience', params.maxExperience.toString());
+  if (params.isAvailable !== undefined) searchParams.append('is_available', params.isAvailable.toString());
+
+  // Sorting
+  searchParams.append('sort_by', params.sortBy);
+  searchParams.append('sort_order', params.sortOrder);
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mentors/search?${searchParams.toString()}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Disable caching for search results
+    }
+  );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch mentors: ${response.statusText}`);
+    throw new Error(`Failed to search mentors: ${response.statusText}`);
   }
 
   return response.json();
 }
 
 /**
- * Получить ментора по ID
+ * Получить список всех специализаций
  */
-export async function getMentor(id: number): Promise<Mentor> {
-  const url = `${API_BASE_URL}/mentors/${id}`;
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export async function getSpecializations(): Promise<string[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mentors/specializations`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    }
+  );
 
   if (!response.ok) {
+    throw new Error(`Failed to fetch specializations: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Получить топ менторов по рейтингу
+ */
+export async function getTopRatedMentors(limit: number = 10): Promise<Mentor[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mentors/top-rated?limit=${limit}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 1800 }, // Cache for 30 minutes
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top rated mentors: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Получить информацию о менторе по ID
+ */
+export async function getMentorById(id: number): Promise<Mentor> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mentors/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 900 }, // Cache for 15 minutes
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Mentor not found');
+    }
     throw new Error(`Failed to fetch mentor: ${response.statusText}`);
   }
 
@@ -81,20 +152,25 @@ export async function getMentor(id: number): Promise<Mentor> {
 }
 
 /**
- * Получить отзывы о менторе
+ * Получить список всех менторов (без фильтрации)
  */
-export async function getMentorReviews(mentorId: number) {
-  const url = `${API_BASE_URL}/mentors/${mentorId}/reviews`;
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export async function getAllMentors(
+  skip: number = 0,
+  limit: number = 100
+): Promise<Mentor[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mentors?skip=${skip}&limit=${limit}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 900 }, // Cache for 15 minutes
+    }
+  );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch reviews: ${response.statusText}`);
+    throw new Error(`Failed to fetch mentors: ${response.statusText}`);
   }
 
   return response.json();
