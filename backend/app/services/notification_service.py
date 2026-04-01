@@ -59,45 +59,57 @@ class NotificationService:
 
     def mark_as_read(self, notification_id: int) -> bool:
         """Отметить уведомление как прочитанное"""
-        notification = self.db.query(Notification).filter(
-            Notification.id == notification_id,
-            Notification.user_id == self.user.id
-        ).first()
+        try:
+            notification = self.db.query(Notification).filter(
+                Notification.id == notification_id,
+                Notification.user_id == self.user.id
+            ).first()
 
-        if not notification:
-            return False
+            if not notification:
+                return False
 
-        notification.is_read = True
-        notification.read_at = datetime.now(timezone.utc)
-        self.db.commit()
-        return True
+            notification.is_read = True
+            notification.read_at = datetime.now(timezone.utc)
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def mark_all_as_read(self) -> int:
         """Отметить все уведомления как прочитанные"""
-        result = self.db.query(Notification).filter(
-            Notification.user_id == self.user.id,
-            Notification.is_read == False
-        ).update({
-            Notification.is_read: True,
-            Notification.read_at: datetime.now(timezone.utc)
-        }, synchronize_session=False)
+        try:
+            result = self.db.query(Notification).filter(
+                Notification.user_id == self.user.id,
+                Notification.is_read == False
+            ).update({
+                Notification.is_read: True,
+                Notification.read_at: datetime.now(timezone.utc)
+            }, synchronize_session=False)
 
-        self.db.commit()
-        return result
+            self.db.commit()
+            return result
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete_notification(self, notification_id: int) -> bool:
         """Удалить уведомление"""
-        notification = self.db.query(Notification).filter(
-            Notification.id == notification_id,
-            Notification.user_id == self.user.id
-        ).first()
+        try:
+            notification = self.db.query(Notification).filter(
+                Notification.id == notification_id,
+                Notification.user_id == self.user.id
+            ).first()
 
-        if not notification:
-            return False
+            if not notification:
+                return False
 
-        self.db.delete(notification)
-        self.db.commit()
-        return True
+            self.db.delete(notification)
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete_all_read(self) -> int:
         """Удалить все прочитанные уведомления"""
