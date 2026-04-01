@@ -1,0 +1,160 @@
+"""
+Courses CRUD Operations
+Базовые CRUD операции для курсов
+"""
+
+import asyncio
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session, joinedload
+
+from app.dependencies import get_db, get_current_user, rate_limit_dependency
+from app.models.course import Course
+from app.models.user import User
+from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, CourseWithLessonsResponse
+from app.services.cache import cached
+from app.utils.cache import invalidate_cache
+from app.services.course_service import CourseService
+
+router = APIRouter()
+
+
+def _get_course_service(db: Session) -> CourseService:
+    """Получить сервис курсов"""
+    return CourseService(db)
+
+
+@router.get("/", response_model=List[CourseResponse])
+@cached(ttl=1800, key_prefix="courses_list")
+async def get_courses(
+    skip: int = 0,
+    limit: int = 100,
+    category: str = None,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить список курсов с фильтрацией"""
+    if skip < 0:
+        skip = 0
+    if limit <= 0 or limit > 100:
+        limit = 100
+
+    query = db.query(Course).options(joinedload(Course.instructor))
+
+    if category:
+        query = query.filter(Course.category == category)
+
+    courses = query.offset(skip).limit(limit).all()
+    return courses
+
+
+@router.get("/{course_id}", response_model=CourseWithLessonsResponse)
+@cached(ttl=1800, key_prefix="course_detail")
+async def get_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
+):
+    """Получить информацию о курсе по ID с уроками"""
+    course = (
+        db.query(Course)
+        .options(
+            joinedload(Course.instructor),
+            joinedload(Course.lessons)
+        )
+        .filter(Course.id == course_id)
+        .first()
+    )
+
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+
+    return course
+
+
+@router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
+async def create_course(
+    course: CourseCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Создать новый курс"""
+    service = _get_course_service(db)
+    new_course = service.create_course(course, current_user.id)
+    
+    # Инвалидируем кеш списка курсов
+    asyncio.create_task(invalidate_cache("courses_list:*"))
+    
+    return new_course
+
+
+@router.put("/{course_id}", response_model=CourseResponse)
+async def update_course(
+    course_id: int,
+    course: CourseUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Обновить курс"""
+    service = _get_course_service(db)
+    updated_course = service.update_course(course_id, course, current_user.id)
+    
+    # Инвалидируем кеш
+    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
+    asyncio.create_task(invalidate_cache("courses_list:*"))
+    
+    return updated_course
+
+
+@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Удалить курс"""
+    service = _get_course_service(db)
+    service.delete_course(course_id, current_user.id)
+    
+    # Инвалидируем кеш
+    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
+    asyncio.create_task(invalidate_cache("courses_list:*"))
+    
+    return None
+
+
+@router.get("/{course_id}/similar", response_model=List[dict])
+async def get_similar_courses(
+    course_id: int,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить похожие курсы"""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+
+    # Поиск похожих курсов по категории
+    similar = (
+        db.query(Course)
+        .filter(
+            Course.category == course.category,
+            Course.id != course_id,
+            Course.is_active == True
+        )
+        .limit(5)
+        .all()
+    )
+
+    return [
+        {
+            "id": c.id,
+            "title": c.title,
+            "category": c.category,
+            "instructor_id": c.instructor_id,
+        }
+        for c in similar
+    ]

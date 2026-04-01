@@ -1,11 +1,12 @@
 """
-Роуты менторов
-API для работы с профилями менторов
+Mentors API Router
+Объединяет все роуты для работы с менторами
 """
 
+from fastapi import APIRouter
 import asyncio
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, rate_limit_dependency
@@ -16,7 +17,13 @@ from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe
 from app.services.cache import cached
 from app.utils.cache import invalidate_cache
 
+# Импортируем роутер поиска
+from app.api.mentors_search import router as mentors_search_router
+
 router = APIRouter()
+
+# Включаем роутер поиска
+router.include_router(mentors_search_router)
 
 
 @router.get("/", response_model=List[MentorResponse])
