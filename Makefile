@@ -1,171 +1,242 @@
-.PHONY: help install install-backend install-frontend dev dev-backend dev-frontend build test clean docker-up docker-down docker-build migrate migrate-up migrate-down lint format type-check setup
+# MentorHub - Development Makefile
+# Convenient commands for development, testing, and deployment
 
-help: ## Показать эту справку
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+.PHONY: help install dev test clean docker-up docker-down backup restore security lint format
+
+# Colors
+BLUE := \033[0;34m
+GREEN := \033[0;32m
+YELLOW := \033[1;33m
+RED := \033[0;31m
+NC := \033[0m # No Color
+
+help: ## Show this help message
+	@echo "$(BLUE)MentorHub - Available Commands$(NC)"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 
 # ==================== INSTALLATION ====================
 
-install: install-backend install-frontend ## Установить все зависимости
-
-install-backend: ## Установить зависимости backend
-	cd backend && python -m venv venv || true
-	cd backend && source venv/bin/activate || .\venv\Scripts\activate || true
-	cd backend && pip install --upgrade pip
+install: ## Install all dependencies (backend + frontend)
+	@echo "$(BLUE)Installing backend dependencies...$(NC)"
 	cd backend && pip install -r requirements.txt
-
-install-frontend: ## Установить зависимости frontend
+	@echo "$(BLUE)Installing frontend dependencies...$(NC)"
 	cd frontend && npm install
+	@echo "$(GREEN)✓ All dependencies installed$(NC)"
+
+install-backend: ## Install backend dependencies only
+	@echo "$(BLUE)Installing backend dependencies...$(NC)"
+	cd backend && pip install -r requirements.txt
+	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
+
+install-frontend: ## Install frontend dependencies only
+	@echo "$(BLUE)Installing frontend dependencies...$(NC)"
+	cd frontend && npm install
+	@echo "$(GREEN)✓ Frontend dependencies installed$(NC)"
 
 # ==================== DEVELOPMENT ====================
 
-dev: ## Запустить backend и frontend в режиме разработки
-	@echo "Запуск в режиме разработки..."
-	@echo "Backend: http://localhost:8000"
-	@echo "Frontend: http://localhost:3000"
-	@echo "API Docs: http://localhost:8000/docs"
-	docker-compose up
+dev: ## Start development servers (backend + frontend)
+	@echo "$(BLUE)Starting development servers...$(NC)"
+	@make -j2 dev-backend dev-frontend
 
-dev-backend: ## Запустить только backend
+dev-backend: ## Start backend development server
+	@echo "$(BLUE)Starting backend server...$(NC)"
 	cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-dev-frontend: ## Запустить только frontend
+dev-frontend: ## Start frontend development server
+	@echo "$(BLUE)Starting frontend server...$(NC)"
 	cd frontend && npm run dev
-
-# ==================== BUILDING ====================
-
-build: build-backend build-frontend ## Собрать проект
-
-build-backend: ## Собрать backend
-	cd backend && pip install -r requirements.txt
-
-build-frontend: ## Собрать frontend
-	cd frontend && npm run build
 
 # ==================== TESTING ====================
 
-test: test-backend test-frontend ## Запустить все тесты
+test: ## Run all tests (backend + frontend)
+	@echo "$(BLUE)Running all tests...$(NC)"
+	@make test-backend
+	@make test-frontend
+	@echo "$(GREEN)✓ All tests completed$(NC)"
 
-test-backend: ## Запустить тесты backend
-	cd backend && pytest tests/ -v --cov=app --cov-report=html
+test-backend: ## Run backend tests with coverage
+	@echo "$(BLUE)Running backend tests...$(NC)"
+	cd backend && pytest -v --cov=app --cov-report=term-missing --cov-report=html
 
-test-frontend: ## Запустить тесты frontend
-	cd frontend && npm run test
+test-frontend: ## Run frontend tests
+	@echo "$(BLUE)Running frontend tests...$(NC)"
+	cd frontend && npm test
 
-test-watch: ## Запустить тесты в watch режиме
-	cd backend && pytest tests/ -v --watch || cd frontend && npm run test:watch
+test-coverage: ## Generate test coverage report
+	@echo "$(BLUE)Generating coverage report...$(NC)"
+	cd backend && pytest --cov=app --cov-report=html --cov-report=xml
+	@echo "$(GREEN)✓ Coverage report generated in backend/htmlcov/$(NC)"
+
+test-load: ## Run load tests with k6
+	@echo "$(BLUE)Running load tests...$(NC)"
+	k6 run k6-load-test.js
 
 # ==================== CODE QUALITY ====================
 
-lint: lint-backend lint-frontend ## Проверить код линтерами
+lint: ## Run linters (backend + frontend)
+	@echo "$(BLUE)Running linters...$(NC)"
+	@make lint-backend
+	@make lint-frontend
+	@echo "$(GREEN)✓ Linting completed$(NC)"
 
-lint-backend: ## Проверить код backend
-	cd backend && flake8 app/ --max-line-length=120 --exclude=__pycache__,migrations
-	cd backend && black --check app/ || true
-	cd backend && isort --check-only app/ || true
+lint-backend: ## Run backend linters
+	@echo "$(BLUE)Running backend linters...$(NC)"
+	cd backend && flake8 app --max-line-length=120
+	cd backend && mypy app --config-file=pyproject.toml
 
-lint-frontend: ## Проверить код frontend
+lint-frontend: ## Run frontend linters
+	@echo "$(BLUE)Running frontend linters...$(NC)"
 	cd frontend && npm run lint
 
-format: format-backend format-frontend ## Форматировать код
+format: ## Format code (backend + frontend)
+	@echo "$(BLUE)Formatting code...$(NC)"
+	@make format-backend
+	@make format-frontend
+	@echo "$(GREEN)✓ Code formatted$(NC)"
 
-format-backend: ## Форматировать код backend
-	cd backend && black app/
-	cd backend && isort app/
+format-backend: ## Format backend code with black and isort
+	@echo "$(BLUE)Formatting backend code...$(NC)"
+	cd backend && black app --line-length=120
+	cd backend && isort app --profile=black
 
-format-frontend: ## Форматировать код frontend
+format-frontend: ## Format frontend code with prettier
+	@echo "$(BLUE)Formatting frontend code...$(NC)"
 	cd frontend && npm run format
 
-type-check: type-check-backend type-check-frontend ## Проверить типы
-
-type-check-backend: ## Проверить типы backend
-	cd backend && mypy app/ --ignore-missing-imports || true
-
-type-check-frontend: ## Проверить типы frontend
-	cd frontend && npm run type-check
-
-# ==================== DATABASE ====================
-
-migrate: ## Создать новую миграцию
-	cd backend && alembic revision --autogenerate -m "$(msg)"
-
-migrate-up: ## Применить миграции
-	cd backend && alembic upgrade head
-
-migrate-down: ## Откатить последнюю миграцию
-	cd backend && alembic downgrade -1
-
-migrate-history: ## Показать историю миграций
-	cd backend && alembic history
+security: ## Run security checks
+	@echo "$(BLUE)Running security checks...$(NC)"
+	cd backend && safety check
+	cd backend && bandit -r app -ll
+	cd frontend && npm audit
+	@echo "$(GREEN)✓ Security checks completed$(NC)"
 
 # ==================== DOCKER ====================
 
-docker-up: ## Запустить Docker контейнеры
-	docker-compose up -d
-
-docker-down: ## Остановить Docker контейнеры
-	docker-compose down
-
-docker-build: ## Собрать Docker образы
+docker-build: ## Build Docker images
+	@echo "$(BLUE)Building Docker images...$(NC)"
 	docker-compose build
+	@echo "$(GREEN)✓ Docker images built$(NC)"
 
-docker-logs: ## Показать логи Docker
+docker-up: ## Start Docker containers (development)
+	@echo "$(BLUE)Starting Docker containers...$(NC)"
+	docker-compose up -d
+	@echo "$(GREEN)✓ Docker containers started$(NC)"
+
+docker-down: ## Stop Docker containers
+	@echo "$(BLUE)Stopping Docker containers...$(NC)"
+	docker-compose down
+	@echo "$(GREEN)✓ Docker containers stopped$(NC)"
+
+docker-prod: ## Start production Docker containers
+	@echo "$(BLUE)Starting production containers...$(NC)"
+	docker-compose -f docker-compose.prod.yml up -d
+	@echo "$(GREEN)✓ Production containers started$(NC)"
+
+docker-logs: ## Show Docker logs
 	docker-compose logs -f
 
-docker-clean: ## Очистить Docker (остановить и удалить volumes)
+docker-clean: ## Clean Docker resources
+	@echo "$(YELLOW)Cleaning Docker resources...$(NC)"
 	docker-compose down -v
+	docker system prune -f
+	@echo "$(GREEN)✓ Docker resources cleaned$(NC)"
 
-# ==================== SETUP ====================
+# ==================== DATABASE ====================
 
-setup: ## Первоначальная настройка проекта
-	@echo "Настройка проекта MentorHub..."
-	@echo "Создание .env файлов..."
-	@test -f backend/.env || cp backend/.env.example backend/.env
-	@test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
-	@echo "Установка зависимостей..."
-	@$(MAKE) install
-	@echo "✅ Настройка завершена!"
-	@echo "📝 Не забудьте отредактировать .env файлы"
-
-setup-db: ## Настроить базу данных
-	@echo "Настройка базы данных..."
-	docker-compose up -d postgres redis
-	@echo "Ожидание запуска PostgreSQL..."
-	@sleep 5
+db-migrate: ## Run database migrations
+	@echo "$(BLUE)Running database migrations...$(NC)"
 	cd backend && alembic upgrade head
-	@echo "✅ База данных настроена!"
+	@echo "$(GREEN)✓ Migrations completed$(NC)"
+
+db-rollback: ## Rollback last migration
+	@echo "$(YELLOW)Rolling back last migration...$(NC)"
+	cd backend && alembic downgrade -1
+	@echo "$(GREEN)✓ Rollback completed$(NC)"
+
+db-reset: ## Reset database (drop and recreate)
+	@echo "$(RED)WARNING: This will delete all data!$(NC)"
+	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ]
+	cd backend && alembic downgrade base
+	cd backend && alembic upgrade head
+	@echo "$(GREEN)✓ Database reset completed$(NC)"
+
+backup: ## Create database backup
+	@echo "$(BLUE)Creating database backup...$(NC)"
+	./scripts/backup.sh
+	@echo "$(GREEN)✓ Backup completed$(NC)"
+
+restore: ## Restore database from backup
+	@echo "$(YELLOW)Restoring database...$(NC)"
+	@read -p "Enter backup file path: " backup_file && ./scripts/restore.sh $$backup_file
+	@echo "$(GREEN)✓ Restore completed$(NC)"
+
+# ==================== DEPLOYMENT ====================
+
+deploy-staging: ## Deploy to staging environment
+	@echo "$(BLUE)Deploying to staging...$(NC)"
+	git push origin dev
+	@echo "$(GREEN)✓ Deployed to staging$(NC)"
+
+deploy-production: ## Deploy to production environment
+	@echo "$(RED)Deploying to production...$(NC)"
+	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ]
+	git checkout main
+	git merge dev
+	git push origin main
+	@echo "$(GREEN)✓ Deployed to production$(NC)"
 
 # ==================== CLEANUP ====================
 
-clean: ## Очистить временные файлы
-	find . -type d -name __pycache__ -exec rm -r {} + || true
-	find . -type f -name "*.pyc" -delete || true
-	find . -type d -name "*.egg-info" -exec rm -r {} + || true
-	find . -type d -name ".pytest_cache" -exec rm -r {} + || true
-	find . -type d -name ".mypy_cache" -exec rm -r {} + || true
-	rm -rf backend/htmlcov/ || true
-	rm -rf frontend/.next/ || true
-	rm -rf frontend/coverage/ || true
+clean: ## Clean temporary files and caches
+	@echo "$(BLUE)Cleaning temporary files...$(NC)"
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	find . -type f -name ".coverage" -delete 2>/dev/null || true
+	cd frontend && rm -rf .next node_modules/.cache 2>/dev/null || true
+	@echo "$(GREEN)✓ Cleanup completed$(NC)"
 
-clean-all: clean docker-clean ## Полная очистка (включая Docker)
-	rm -rf backend/venv/ || true
-	rm -rf frontend/node_modules/ || true
+clean-all: clean docker-clean ## Clean everything including Docker
+	@echo "$(GREEN)✓ Full cleanup completed$(NC)"
+
+# ==================== MONITORING ====================
+
+logs: ## Show application logs
+	@echo "$(BLUE)Showing logs...$(NC)"
+	docker-compose logs -f backend
+
+logs-backend: ## Show backend logs
+	docker-compose logs -f backend
+
+logs-frontend: ## Show frontend logs
+	docker-compose logs -f frontend
+
+logs-db: ## Show database logs
+	docker-compose logs -f postgres
+
+logs-redis: ## Show Redis logs
+	docker-compose logs -f redis
 
 # ==================== UTILITIES ====================
 
-shell-backend: ## Открыть Python shell для backend
-	cd backend && source venv/bin/activate && python
+shell-backend: ## Open backend shell
+	cd backend && python -m app.main
 
-shell-db: ## Открыть PostgreSQL shell
+shell-db: ## Open database shell
 	docker-compose exec postgres psql -U mentorhub_user -d mentorhub
 
-logs-backend: ## Показать логи backend
-	docker-compose logs -f backend
+shell-redis: ## Open Redis CLI
+	docker-compose exec redis redis-cli
 
-logs-frontend: ## Показать логи frontend
-	docker-compose logs -f frontend
+check: ## Run all checks (lint + test + security)
+	@echo "$(BLUE)Running all checks...$(NC)"
+	@make lint
+	@make test
+	@make security
+	@echo "$(GREEN)✓ All checks passed$(NC)"
 
-restart: docker-down docker-up ## Перезапустить Docker контейнеры
-
-status: ## Показать статус сервисов
-	docker-compose ps
-
+.DEFAULT_GOAL := help
