@@ -57,7 +57,7 @@
     "@types/node": "^22.10.5",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.27",
     "babel-plugin-transform-remove-console": "^0.0.1",
     "critters": "^0.0.23",
     "eslint": "^8.57.1",
