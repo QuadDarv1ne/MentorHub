@@ -1,12 +1,13 @@
 # Telegram Alert Bot for MentorHub
 # Бот для отправки уведомлений в Telegram
 
-import os
 import asyncio
 import logging
 from typing import Optional
 from aiogram import Bot
 from aiogram.types import ParseMode
+
+from ..config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,8 +17,8 @@ class TelegramAlerter:
     """Отправка алертов в Telegram"""
 
     def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None):
-        self.bot_token = bot_token or os.getenv("TELEGRAM_BOT_TOKEN")
-        self.chat_id = chat_id or os.getenv("TELEGRAM_CHAT_ID")
+        self.bot_token = bot_token or settings.TELEGRAM_BOT_TOKEN
+        self.chat_id = chat_id or settings.TELEGRAM_CHAT_ID
         self.bot: Optional[Bot] = None
 
         if not self.bot_token or not self.chat_id:

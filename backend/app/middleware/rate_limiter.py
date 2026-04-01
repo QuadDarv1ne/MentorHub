@@ -9,7 +9,6 @@ Features:
 - Returns proper 429 responses with retry-after headers
 """
 
-import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -169,7 +168,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable):
         # Skip rate limiting if disabled (e.g., in testing)
-        enabled = os.getenv("RATE_LIMIT_ENABLED", "True").lower() != "false"
+        enabled = settings.RATE_LIMIT_ENABLED
         if not enabled:
             return await call_next(request)
 

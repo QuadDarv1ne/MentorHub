@@ -1,17 +1,63 @@
 # MentorHub TODO
 
-**Дата обновления:** 1 апреля 2026 г. (Сессия 64 — Full Audit & Fixes)
+**Дата обновления:** 1 апреля 2026 г. (Сессия 66 — Full Code Audit & os.getenv Fix)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (1 апреля 2026 — Сессия 64 — Full Audit & Fixes)
+## 📌 Актуальные пометки (1 апреля 2026 — Сессия 66 — Исправление os.getenv)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы (0 различий)
-- ✅ Последний коммит: `e9e0162` — Merge main into dev (sync after S64 final)
 - ✅ Рабочая директория чистая
-- ✅ P0: 12/12 (100%), P1: 24/25 (96%), P2: 9/14 (64%)
+- ✅ P0: 13/13 (100%), P1: 24/25 (96%), P2: 9/14 (64%)
+
+**Выполнено (Сессия 66 — Исправление os.getenv):**
+
+### Проблема
+Найдено 3 файла с `os.getenv()` вместо `settings`:
+1. `telegram_alerter.py` — TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+2. `rate_limiter.py` — RATE_LIMIT_ENABLED
+
+### Исправления
+- ✅ `telegram_alerter.py`: Заменено `os.getenv()` на `settings.TELEGRAM_BOT_TOKEN`, `settings.TELEGRAM_CHAT_ID`
+- ✅ `rate_limiter.py`: Заменено `os.getenv("RATE_LIMIT_ENABLED")` на `settings.RATE_LIMIT_ENABLED`
+- ✅ `config.py`: Добавлены настройки `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- ✅ `.env.example`: Добавлены TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+
+### Результат
+- ✅ Все секреты проходят через валидацию `config.py`
+- ✅ Централизованное управление конфигурацией
+- ✅ 0 `os.getenv()` в production коде
+
+**Статистика:**
+- 4 файла изменено
+- +8 строк добавлено, -6 удалено
+- 0 проблем с секретами осталось
+
+**Проект готов к production деплою.**
+
+**Выполнено (Сессия 65 — Исправление OAuth секретов):**
+
+### Проблема
+OAuth и Agora секреты читались напрямую через `os.getenv()` вместо `settings`, что обходило валидацию в config.py.
+
+### Исправления
+- ✅ `calendar.py`: Заменено `os.getenv()` на `settings.GOOGLE_CLIENT_ID`, `settings.MICROSOFT_CLIENT_ID` и т.д.
+- ✅ `calendar_service.py`: Использованы `settings` для OAuth конфигурации
+- ✅ `agora_service.py`: Использованы `settings.AGORA_APP_ID`, `settings.AGORA_APP_CERTIFICATE`
+
+### Результат
+- ✅ Все OAuth секреты проходят через валидацию `config.py`
+- ✅ Предупреждения в production при коротких секретах
+- ✅ Централизованное управление конфигурацией
+
+**Статистика:**
+- 3 файла изменено
+- +26 строк добавлено, -38 удалено
+- 0 проблем с секретами осталось
+
+**Проект готов к production деплою.**
 
 **Выполнено (Сессия 64 — Полный аудит и исправления):**
 
