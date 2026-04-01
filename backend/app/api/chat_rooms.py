@@ -204,26 +204,33 @@ async def get_chat_messages(
         raise HTTPException(status_code=404, detail="Чат не найден или вы не являетесь участником")
     
     # Получаем сообщения
-    query = db.query(ChatMessage).filter(
+    query = db.query(ChatMessage).options(
+        joinedload(ChatMessage.sender)
+    ).filter(
         ChatMessage.room_id == room_id,
         ChatMessage.is_deleted == False
-    ).options(
-        joinedload(ChatMessage.sender)
     ).order_by(desc(ChatMessage.created_at))
-    
+
     total = query.count()
     messages = query.offset(skip).limit(limit).all()
-    
+
     # Переворачиваем для хронологического порядка
     messages.reverse()
+
+    # Считаем количество ответов для каждого сообщения (один запрос вместо N+1)
+    message_ids = [msg.id for msg in messages]
+    replies_query = db.query(
+        ChatMessage.parent_message_id,
+        func.count(ChatMessage.id).label('replies_count')
+    ).filter(
+        ChatMessage.parent_message_id.in_(message_ids)
+    ).group_by(ChatMessage.parent_message_id)
     
-    # Считаем количество ответов для каждого сообщения
+    replies_map = {row.parent_message_id: row.replies_count for row in replies_query}
+
+    # Формируем ответ
     result = []
     for msg in messages:
-        replies_count = db.query(func.count(ChatMessage.id)).filter(
-            ChatMessage.parent_message_id == msg.id
-        ).scalar()
-        
         result.append({
             "id": msg.id,
             "room_id": msg.room_id,
@@ -238,9 +245,9 @@ async def get_chat_messages(
             "parent_message_id": msg.parent_message_id,
             "created_at": msg.created_at,
             "updated_at": msg.updated_at,
-            "replies_count": replies_count
+            "replies_count": replies_map.get(msg.id, 0)
         })
-    
+
     return {
         "messages": result,
         "has_more": skip + limit < total
