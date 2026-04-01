@@ -1,33 +1,34 @@
 # MentorHub TODO
 
-**Дата обновления:** 1 апреля 2026 г. (Сессия 69 — Full Project Audit & Verification)
+**Дата обновления:** 1 апреля 2026 г. (Сессия 70 — Deep Project Audit & Fixes)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (1 апреля 2026 — Сессия 69 — Полная проверка проекта)
+## 📌 Актуальные пометки (1 апреля 2026 — Сессия 70 — Глубокая проверка проекта)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы (0 различий)
 - ✅ Рабочая директория чистая
 - ✅ P0: 13/13 (100%), P1: 24/25 (96%), P2: 10/14 (71%)
 
-**Выполнено (Сессия 69 — Глубокий аудит проекта):**
+**Выполнено (Сессия 70 — Глубокая проверка проекта):**
 
 ### Полная проверка функционала
 
-**Backend API (39 файлов):**
+**Backend API (38 файлов):**
 - ✅ 138 HTTPException с правильными кодами (400, 403, 404, 429, 500)
 - ✅ 366 try/except блоков для обработки ошибок
 - ✅ Валидация через sanitize_string, sanitize_username, is_safe_string
 - ✅ SQLAlchemy ORM для защиты от SQL injection
 - ✅ Кэширование на 11+ endpoint'ах (@cached decorator)
+- ✅ subscriptions.py — импорты stripe_service и SUBSCRIPTION_PLANS используются
 
 **Backend сервисы (15 файлов):**
 - ✅ two_factor_service.py — 2FA TOTP + backup codes
-- ✅ stripe_service.py — Stripe payments + mock mode
+- ✅ stripe_service.py — Stripe payments + mock mode (упрощена проверка mock mode)
 - ✅ sbp_service.py — SBP payments (QR)
-- ✅ cache_service.py — Redis cache с memory fallback
+- ✅ cache_service.py — Redis cache с memory fallback (исправлено на settings.ENVIRONMENT)
 - ✅ email.py — 6 типов email уведомлений
 - ✅ course_service.py — CRUD операции с кэшем
 - ✅ analytics_service.py — аналитика платформы
@@ -42,9 +43,14 @@
 
 **Backend утилиты:**
 - ✅ validators.py — валидация email, phone, username, URL
-- ✅ constants.py — 380+ централизованных констант
+- ✅ constants.py — 380+ централизованных констант + SUBSCRIPTION_PLANS
 - ✅ prometheus.py — метрики Prometheus
 - ✅ monitoring.py — performance monitoring
+
+**Backend config:**
+- ✅ config.py — валидация SECRET_KEY через os.environ (не getattr)
+- ✅ config.py — CORS валидация через self.ENVIRONMENT
+- ✅ config.py — security настройки (SESSION_COOKIE_SECURE, SECURE_SSL_REDIRECT)
 
 **Frontend компоненты (56 файлов):**
 - ✅ 0 dangerouslySetInnerHTML/eval/Function() (безопасно)
@@ -88,8 +94,8 @@
 - ✅ XSS защита (SecurityMiddleware)
 
 **Зависимости:**
-- ✅ Backend: fastapi>=0.115.0, pydantic>=2.10.0, sqlalchemy>=2.0.35, redis>=5.0.0
-- ✅ Frontend: next:^14.2.20, react:^18.3.1, typescript:^5.7.2
+- ✅ Backend: fastapi>=0.115.0, pydantic>=2.11.0, sqlalchemy>=2.0.35, redis>=5.2.0
+- ✅ Frontend: next:^14.2.23, react:^18.3.1, typescript:^5.7.2
 - ✅ Все зависимости актуальны
 
 **Результат:**
@@ -111,7 +117,7 @@
 
 ---
 
-## 📌 Актуальные пометки (1 апреля 2026 — Сессия 68 — Консолидация middleware)
+## 📌 Актуальные пометки (1 апреля 2026 — Сессия 69 — Полная проверка проекта)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы (0 различий)
