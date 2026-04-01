@@ -3,7 +3,7 @@ Chat rooms API endpoints
 Групповые чаты для курсов и проектов
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc
@@ -16,34 +16,24 @@ from app.schemas.chat_room import (
     ChatRoomCreate, ChatRoomUpdate, ChatRoomResponse, ChatRoomWithMembersResponse,
     ChatMessageCreate, ChatMessageResponse, ChatMessageListResponse, AddMemberRequest, RemoveMemberRequest
 )
+from app.services.chat_room_service import ChatRoomService, format_room_response
 
 router = APIRouter()
+
+
+def _get_chat_room_service(db: Session) -> ChatRoomService:
+    """Получить сервис чат-комнат"""
+    return ChatRoomService(db)
 
 
 @router.post("/chat-rooms", response_model=ChatRoomResponse, status_code=status.HTTP_201_CREATED)
 async def create_chat_room(
     chat_room: ChatRoomCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+    service: ChatRoomService = Depends(_get_chat_room_service)
+) -> ChatRoom:
     """Создать чат-комнату"""
-    db_room = ChatRoom(
-        name=chat_room.name,
-        description=chat_room.description,
-        created_by=current_user.id,
-        is_private=chat_room.is_private,
-        course_id=chat_room.course_id
-    )
-    db.add(db_room)
-    db.commit()
-    db.refresh(db_room)
-    
-    # Добавляем создателя как участника
-    db_room.members.append(current_user)
-    db.commit()
-    db.refresh(db_room)
-    
-    return db_room
+    return service.create_chat_room(current_user, chat_room)
 
 
 @router.get("/chat-rooms", response_model=List[ChatRoomResponse])
@@ -51,35 +41,15 @@ async def get_chat_rooms(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+    service: ChatRoomService = Depends(_get_chat_room_service)
+) -> List[Dict[str, Any]]:
     """Получить список чат-комнат, где пользователь является участником"""
-    query = db.query(ChatRoom).filter(
-        ChatRoom.members.any(User.id == current_user.id)
-    ).options(
-        joinedload(ChatRoom.creator)
-    ).order_by(desc(ChatRoom.updated_at))
-    
-    total = query.count()
-    rooms = query.offset(skip).limit(limit).all()
+    rooms = service.get_user_rooms(current_user.id, skip, limit)
     
     result = []
     for room in rooms:
-        member_count = db.query(func.count(chat_room_members.c.user_id)).filter(
-            chat_room_members.c.chat_room_id == room.id
-        ).scalar()
-        
-        result.append({
-            "id": room.id,
-            "name": room.name,
-            "description": room.description,
-            "created_by": room.created_by,
-            "is_private": room.is_private,
-            "course_id": room.course_id,
-            "created_at": room.created_at,
-            "updated_at": room.updated_at,
-            "member_count": member_count
-        })
+        member_count = service.get_room_member_count(room.id)
+        result.append(format_room_response(room, member_count))
     
     return result
 
