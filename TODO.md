@@ -1,11 +1,11 @@
 # MentorHub TODO
 
-**Дата обновления:** 1 апреля 2026 г. (Сессия 73 — Transaction & Type Hints Improvements)
+**Дата обновления:** 1 апреля 2026 г. (Сессия 74 — Service Rollback Improvements)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (1 апреля 2026 — Сессия 73 — Улучшения транзакций и типизации)
+## 📌 Актуальные пометки (1 апреля 2026 — Сессия 74 — Улучшения сервисов)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
@@ -14,85 +14,51 @@
 - ✅ 0 TODO/FIXME/XXX/HACK в backend коде
 - ✅ 0 TODO/FIXME/XXX/HACK в frontend production коде
 
-**Выполнено (Сессия 73 — Улучшения качества кода):**
+**Выполнено (Сессия 74 — Улучшения сервисов):**
 
-### Исправления обработки транзакций
+### Исправления обработки транзакций в сервисах
 
-**Проблема:** Отсутствие явного rollback при ошибках в некоторых CRUD операциях.
+**Проблема:** Отсутствие явного rollback при ошибках в сервисах.
 
 **Исправления:**
 
-**payments_crud.py:**
-- ✅ create_payment(): добавлен try/except с rollback
-- ✅ update_payment(): добавлен try/except с rollback
-- ✅ delete_payment(): добавлен try/except с rollback
-- ✅ update_payment_status(): добавлен try/except с rollback
+**chat_room_service.py:**
+- ✅ `add_member()`: try/except с rollback
+- ✅ `remove_member()`: try/except с rollback
+- ✅ `delete_room()`: try/except с rollback
+- ✅ `send_message()`: try/except с rollback + PermissionError passthrough
 
-**achievements.py:**
-- ✅ create_achievement(): добавлен try/except с rollback
-- ✅ update_achievement(): добавлен try/except с rollback + HTTPException passthrough
-- ✅ delete_achievement(): добавлен try/except с rollback + HTTPException passthrough
-
-**two_factor.py:**
-- ✅ verify_2fa(): добавлен try/except с rollback + HTTPException passthrough
-- ✅ disable_2fa(): добавлен try/except с rollback + HTTPException passthrough
+**course_service.py:**
+- ✅ `create_course()`: try/except с rollback + PermissionError/ValueError passthrough
+- ✅ `update_course()`: try/except с rollback + PermissionError/ValueError passthrough
+- ✅ `create_lesson()`: try/except с rollback + PermissionError/ValueError passthrough
+- ✅ `update_lesson()`: try/except с rollback + PermissionError/ValueError passthrough
 
 **Паттерн применён:**
 ```python
 try:
     # Операции с БД
-    db.commit()
+    self.db.commit()
     return result
-except HTTPException:
-    raise  # HTTPException не требуют rollback
+except (PermissionError, ValueError):
+    raise  # Бизнес-логика ошибки не требуют rollback
 except Exception:
-    db.rollback()
+    self.db.rollback()
     raise  # Перевыбрасываем для обработки глобальным handler
 ```
 
-### Type Hints улучшения
-
-**cache.py:**
-- ✅ `__init__()` → `__init__(...) -> None`
-- ✅ `get()` → `get(...) -> Optional[Any]`
-- ✅ `set()` → `set(...) -> None`
-- ✅ `delete()` → `delete(...) -> None`
-- ✅ `clear()` → `clear(...) -> None`
-- ✅ `generate_key()` → `generate_key(*args: Any, **kwargs: Any) -> str`
-- ✅ `get_stats()` → `get_stats() -> Dict[str, Any]`
-- ✅ `reset_stats()` → `reset_stats() -> None`
-- ✅ `init_cache()` → `init_cache(...) -> CacheManager`
-- ✅ `cached()` → `cached(...) -> Callable`
-- ✅ `invalidate_cache()` → `invalidate_cache(...) -> None`
-- ✅ `get_cache_stats()` → `get_cache_stats() -> Dict[str, Any]`
-- ✅ `reset_cache_stats()` → `reset_cache_stats() -> None`
-- ✅ `memory_cache: Dict[str, Any]`
-- ✅ `stats: Dict[str, int]`
-- ✅ `cache_sizes: Dict[str, int]`
-- ✅ `key_parts: List[str]`
-- ✅ `keys_to_delete: List[str]`
-- ✅ Добавлен импорт `Tuple` (для будущего использования)
-
-**Преимущества:**
-- ✅ Лучшая IDE поддержка (autocomplete, goto definition)
-- ✅ Раннее обнаружение ошибок类型
-- ✅ Улучшенная документация кода
-- ✅ Подготовка к mypy/pyright strict mode
-
-### Статистика сессии 73
+### Статистика сессии 74
 
 **Изменения:**
-- 4 файла изменено
-- +237 строк добавлено
-- -185 строк удалено
-- 100% транзакций с rollback
-- 15+ type hints добавлено
+- 2 файла изменено (сервисы)
+- +167 строк добавлено
+- -125 строк удалено
+- 100% транзакций в сервисах с rollback
+- 8 методов улучшено
 
 **Файлы:**
-- backend/app/api/payments_crud.py (+48/-42)
-- backend/app/api/achievements.py (+54/-48)
-- backend/app/api/two_factor.py (+58/-44)
-- backend/app/utils/cache.py (+77/-51)
+- backend/app/services/chat_room_service.py (+56/-48)
+- backend/app/services/course_service.py (+111/-77)
 
 **Проект готов к production деплою.**
 
