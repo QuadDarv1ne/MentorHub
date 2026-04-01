@@ -66,47 +66,51 @@ def create_payment(
     status: PaymentStatus = PaymentStatus.PENDING
 ) -> DBPayment:
     """Create a new payment."""
-    # Sanitize input data
-    sanitized_currency = sanitize_string(currency) if currency else "USD"
-    sanitized_payment_method = sanitize_string(payment_method) if payment_method else None
-    sanitized_transaction_id = sanitize_string(transaction_id) if transaction_id else None
+    try:
+        # Sanitize input data
+        sanitized_currency = sanitize_string(currency) if currency else "USD"
+        sanitized_payment_method = sanitize_string(payment_method) if payment_method else None
+        sanitized_transaction_id = sanitize_string(transaction_id) if transaction_id else None
 
-    # Validate input data
-    if sanitized_currency and not is_safe_string(sanitized_currency):
-        raise ValueError("Invalid currency characters")
-    if sanitized_payment_method and not is_safe_string(sanitized_payment_method):
-        raise ValueError("Invalid payment method characters")
-    if sanitized_transaction_id and not is_safe_string(sanitized_transaction_id):
-        raise ValueError("Invalid transaction ID characters")
+        # Validate input data
+        if sanitized_currency and not is_safe_string(sanitized_currency):
+            raise ValueError("Invalid currency characters")
+        if sanitized_payment_method and not is_safe_string(sanitized_payment_method):
+            raise ValueError("Invalid payment method characters")
+        if sanitized_transaction_id and not is_safe_string(sanitized_transaction_id):
+            raise ValueError("Invalid transaction ID characters")
 
-    # Verify related entities exist
-    student = db.query(User).filter(User.id == student_id).first()
-    if not student:
-        raise ValueError("Student not found")
+        # Verify related entities exist
+        student = db.query(User).filter(User.id == student_id).first()
+        if not student:
+            raise ValueError("Student not found")
 
-    mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
-    if not mentor:
-        raise ValueError("Mentor not found")
+        mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+        if not mentor:
+            raise ValueError("Mentor not found")
 
-    session = db.query(DBSession).filter(DBSession.id == session_id).first()
-    if not session:
-        raise ValueError("Session not found")
+        session = db.query(DBSession).filter(DBSession.id == session_id).first()
+        if not session:
+            raise ValueError("Session not found")
 
-    # Create payment
-    db_payment = DBPayment(
-        student_id=student_id,
-        mentor_id=mentor_id,
-        session_id=session_id,
-        amount=amount,
-        currency=sanitized_currency,
-        payment_method=sanitized_payment_method,
-        transaction_id=sanitized_transaction_id,
-        status=status,
-    )
-    db.add(db_payment)
-    db.commit()
-    db.refresh(db_payment)
-    return db_payment
+        # Create payment
+        db_payment = DBPayment(
+            student_id=student_id,
+            mentor_id=mentor_id,
+            session_id=session_id,
+            amount=amount,
+            currency=sanitized_currency,
+            payment_method=sanitized_payment_method,
+            transaction_id=sanitized_transaction_id,
+            status=status,
+        )
+        db.add(db_payment)
+        db.commit()
+        db.refresh(db_payment)
+        return db_payment
+    except Exception:
+        db.rollback()
+        raise
 
 
 def update_payment(
@@ -115,34 +119,42 @@ def update_payment(
     payment_data: PaymentUpdate
 ) -> Optional[DBPayment]:
     """Update payment."""
-    db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
-    if not db_payment:
-        return None
+    try:
+        db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+        if not db_payment:
+            return None
 
-    # Sanitize and update fields
-    for key, value in payment_data.model_dump(exclude_unset=True).items():
-        if key in ["payment_method", "transaction_id"] and value is not None:
-            sanitized_value = sanitize_string(value)
-            if not is_safe_string(sanitized_value):
-                raise ValueError(f"Invalid characters in {key}")
-            setattr(db_payment, key, sanitized_value)
-        else:
-            setattr(db_payment, key, value)
+        # Sanitize and update fields
+        for key, value in payment_data.model_dump(exclude_unset=True).items():
+            if key in ["payment_method", "transaction_id"] and value is not None:
+                sanitized_value = sanitize_string(value)
+                if not is_safe_string(sanitized_value):
+                    raise ValueError(f"Invalid characters in {key}")
+                setattr(db_payment, key, sanitized_value)
+            else:
+                setattr(db_payment, key, value)
 
-    db.commit()
-    db.refresh(db_payment)
-    return db_payment
+        db.commit()
+        db.refresh(db_payment)
+        return db_payment
+    except Exception:
+        db.rollback()
+        raise
 
 
 def delete_payment(db: Session, payment_id: int) -> bool:
     """Delete payment."""
-    db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
-    if not db_payment:
-        return False
+    try:
+        db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+        if not db_payment:
+            return False
 
-    db.delete(db_payment)
-    db.commit()
-    return True
+        db.delete(db_payment)
+        db.commit()
+        return True
+    except Exception:
+        db.rollback()
+        raise
 
 
 def update_payment_status(
@@ -151,14 +163,18 @@ def update_payment_status(
     new_status: PaymentStatus
 ) -> Optional[DBPayment]:
     """Update payment status."""
-    payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
-    if not payment:
-        return None
+    try:
+        payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
+        if not payment:
+            return None
 
-    payment.status = new_status
-    db.commit()
-    db.refresh(payment)
-    return payment
+        payment.status = new_status
+        db.commit()
+        db.refresh(payment)
+        return payment
+    except Exception:
+        db.rollback()
+        raise
 
 
 def get_payment_by_transaction_id(

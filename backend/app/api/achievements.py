@@ -70,29 +70,33 @@ async def create_achievement(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Создать достижение для текущего пользователя"""
-    db_achievement = Achievement(
-        user_id=current_user.id,
-        title=achievement.title,
-        description=achievement.description,
-        icon=achievement.icon,
-    )
-    db.add(db_achievement)
-    db.commit()
-    db.refresh(db_achievement)
-
-    # Отправка email уведомления о достижении
     try:
-        from app.tasks.celery_tasks import send_achievement_email_task
-        send_achievement_email_task.delay(
-            email=current_user.email,
-            username=current_user.username,
-            achievement_name=achievement.title,
-            achievement_description=achievement.description
+        db_achievement = Achievement(
+            user_id=current_user.id,
+            title=achievement.title,
+            description=achievement.description,
+            icon=achievement.icon,
         )
-    except Exception as e:
-        logger.error(f"Failed to send achievement email: {e}")
+        db.add(db_achievement)
+        db.commit()
+        db.refresh(db_achievement)
 
-    return db_achievement
+        # Отправка email уведомления о достижении
+        try:
+            from app.tasks.celery_tasks import send_achievement_email_task
+            send_achievement_email_task.delay(
+                email=current_user.email,
+                username=current_user.username,
+                achievement_name=achievement.title,
+                achievement_description=achievement.description
+            )
+        except Exception as e:
+            logger.error(f"Failed to send achievement email: {e}")
+
+        return db_achievement
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.put("/{achievement_id}", response_model=AchievementRead)
@@ -104,21 +108,27 @@ async def update_achievement(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Обновить достижение"""
-    db_achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
-    if not db_achievement:
-        raise HTTPException(status_code=404, detail="Достижение не найдено")
-    
-    # Проверяем, что пользователь является владельцем достижения
-    if db_achievement.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Нет доступа к этому достижению")
+    try:
+        db_achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
+        if not db_achievement:
+            raise HTTPException(status_code=404, detail="Достижение не найдено")
 
-    # Обновляем поля
-    for key, value in achievement.model_dump(exclude_unset=True).items():
-        setattr(db_achievement, key, value)
+        # Проверяем, что пользователь является владельцем достижения
+        if db_achievement.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Нет доступа к этому достижению")
 
-    db.commit()
-    db.refresh(db_achievement)
-    return db_achievement
+        # Обновляем поля
+        for key, value in achievement.model_dump(exclude_unset=True).items():
+            setattr(db_achievement, key, value)
+
+        db.commit()
+        db.refresh(db_achievement)
+        return db_achievement
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.delete("/{achievement_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -129,14 +139,20 @@ async def delete_achievement(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Удалить достижение"""
-    db_achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
-    if not db_achievement:
-        raise HTTPException(status_code=404, detail="Достижение не найдено")
-    
-    # Проверяем, что пользователь является владельцем достижения
-    if db_achievement.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Нет доступа к этому достижению")
+    try:
+        db_achievement = db.query(Achievement).filter(Achievement.id == achievement_id).first()
+        if not db_achievement:
+            raise HTTPException(status_code=404, detail="Достижение не найдено")
 
-    db.delete(db_achievement)
-    db.commit()
-    return None
+        # Проверяем, что пользователь является владельцем достижения
+        if db_achievement.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Нет доступа к этому достижению")
+
+        db.delete(db_achievement)
+        db.commit()
+        return None
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise

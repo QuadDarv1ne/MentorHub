@@ -1,6 +1,8 @@
 """
 Система кеширования для MentorHub
 Поддержка Redis и in-memory fallback
+
+Type hints added for better IDE support and type checking.
 """
 
 from __future__ import annotations
@@ -8,7 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import hashlib
-from typing import Any, Optional, Callable
+from typing import Any, Optional, Callable, Dict, List, Tuple
 from functools import wraps
 
 try:
@@ -42,12 +44,12 @@ MEMORY_CACHE_CLEANUP_COUNT = 500
 class CacheManager:
     """Менеджер кеширования с поддержкой Redis и памяти"""
 
-    def __init__(self, redis_client: Optional[Redis] = None):
+    def __init__(self, redis_client: Optional[Redis] = None) -> None:
         self.redis = redis_client
-        self.memory_cache: dict = {}
+        self.memory_cache: Dict[str, Any] = {}
         self.use_redis = redis_client is not None
-        self.stats = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0}
-        self.cache_sizes = {"memory": 0, "redis": 0}
+        self.stats: Dict[str, int] = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0}
+        self.cache_sizes: Dict[str, int] = {"memory": 0, "redis": 0}
 
         if self.use_redis:
             logger.info("✅ Cache: используется Redis")
@@ -73,7 +75,7 @@ class CacheManager:
             self.stats["errors"] += 1
         return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = DEFAULT_CACHE_TTL):
+    async def set(self, key: str, value: Any, ttl: Optional[int] = DEFAULT_CACHE_TTL) -> None:
         """Сохранение значения в кеш"""
         try:
             serialized_value = json.dumps(value)
@@ -84,7 +86,7 @@ class CacheManager:
                 self.cache_sizes["redis"] += value_size
             else:
                 if len(self.memory_cache) > MAX_MEMORY_CACHE_ITEMS:
-                    keys_to_delete = list(self.memory_cache.keys())[:MEMORY_CACHE_CLEANUP_COUNT]
+                    keys_to_delete: List[str] = list(self.memory_cache.keys())[:MEMORY_CACHE_CLEANUP_COUNT]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
@@ -96,7 +98,7 @@ class CacheManager:
             logger.error(f"Cache set error: {e}")
             self.stats["errors"] += 1
 
-    async def delete(self, key: str):
+    async def delete(self, key: str) -> None:
         """Удаление из кеша"""
         try:
             if self.use_redis:
@@ -113,7 +115,7 @@ class CacheManager:
             logger.error(f"Cache delete error: {e}")
             self.stats["errors"] += 1
 
-    async def clear(self, pattern: str = "*"):
+    async def clear(self, pattern: str = "*") -> None:
         """Очистка кеша по паттерну"""
         try:
             if self.use_redis:
@@ -127,7 +129,7 @@ class CacheManager:
                     self.memory_cache.clear()
                 else:
                     prefix = pattern.replace("*", "")
-                    keys_to_delete = [k for k in self.memory_cache.keys() if k.startswith(prefix)]
+                    keys_to_delete: List[str] = [k for k in self.memory_cache.keys() if k.startswith(prefix)]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
@@ -136,12 +138,12 @@ class CacheManager:
             logger.error(f"Cache clear error: {e}")
             self.stats["errors"] += 1
 
-    def generate_key(self, *args, **kwargs) -> str:
+    def generate_key(self, *args: Any, **kwargs: Any) -> str:
         """Генерация ключа кеша из параметров"""
         key_data = f"{args}:{sorted(kwargs.items())}"
         return hashlib.md5(key_data.encode()).hexdigest()
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, Any]:
         """Получение статистики кеша"""
         total_requests = self.stats["hits"] + self.stats["misses"]
         hit_rate = (self.stats["hits"] / total_requests * 100) if total_requests > 0 else 0
@@ -152,7 +154,7 @@ class CacheManager:
             "total_requests": total_requests
         }
 
-    def reset_stats(self):
+    def reset_stats(self) -> None:
         """Сброс статистики кеша"""
         self.stats = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0}
 
@@ -161,14 +163,20 @@ class CacheManager:
 cache_manager: Optional[CacheManager] = None
 
 
-def init_cache(redis_client: Optional[Redis] = None):
+def init_cache(redis_client: Optional[Redis] = None) -> CacheManager:
     """Инициализация кеш-менеджера"""
     global cache_manager
     cache_manager = CacheManager(redis_client)
     return cache_manager
 
 
-def cached(ttl: int = 300, key_prefix: str = "", skip_auth: bool = False, cache_none: bool = False, invalidate_on_error: bool = False):
+def cached(
+    ttl: int = 300,
+    key_prefix: str = "",
+    skip_auth: bool = False,
+    cache_none: bool = False,
+    invalidate_on_error: bool = False
+) -> Callable:
     """
     Декоратор для кеширования результатов функций
 
@@ -180,14 +188,14 @@ def cached(ttl: int = 300, key_prefix: str = "", skip_auth: bool = False, cache_
         invalidate_on_error: Инвалидировать кеш при ошибках
     """
 
-    def decorator(func: Callable):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             if not cache_manager:
                 return await func(*args, **kwargs)
 
             cache_key = f"{key_prefix}:{func.__name__}:"
-            key_parts = []
+            key_parts: List[str] = []
 
             for arg in args:
                 if hasattr(arg, "id"):
@@ -223,19 +231,19 @@ def cached(ttl: int = 300, key_prefix: str = "", skip_auth: bool = False, cache_
     return decorator
 
 
-async def invalidate_cache(pattern: str):
+async def invalidate_cache(pattern: str) -> None:
     """Инвалидация кеша по паттерну"""
     if cache_manager:
         await cache_manager.clear(pattern)
         logger.info(f"🗑️ Cache invalidated: {pattern}")
 
 
-def get_cache_stats() -> dict:
+def get_cache_stats() -> Dict[str, Any]:
     """Получение статистики кеша"""
     return cache_manager.get_stats() if cache_manager else {}
 
 
-def reset_cache_stats():
+def reset_cache_stats() -> None:
     """Сброс статистики кеша"""
     if cache_manager:
         cache_manager.reset_stats()
