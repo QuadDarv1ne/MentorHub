@@ -4,9 +4,11 @@ Agora Video Service
 """
 
 import os
+import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
+logger = logging.getLogger(__name__)
 
 # Agora конфигурация
 AGORA_APP_ID = os.getenv("AGORA_APP_ID", "")
@@ -17,6 +19,7 @@ try:
     AGORA_AVAILABLE = True
 except ImportError:
     AGORA_AVAILABLE = False
+    logger.warning("Agora token builder not installed. Video calls will be disabled.")
 
 
 class AgoraService:
@@ -64,7 +67,8 @@ class AgoraService:
                 privilege_expired_ts
             )
             return token
-        except Exception:
+        except Exception as e:
+            logger.error(f"Agora token generation error: {e}")
             return ""
 
     def get_app_id(self) -> str:

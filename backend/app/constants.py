@@ -98,6 +98,25 @@ SANITIZE_TEXT_MAX_LENGTH = 5000
 URL_MAX_LENGTH = 2048
 AGORA_TOKEN_MAX_LENGTH = 2048
 ACCESS_TOKEN_MAX_LENGTH = 2048
+
+# ==================== OAUTH VALIDATION ====================
+# OAuth secrets minimum length for security
+OAUTH_SECRET_MIN_LENGTH = 10  # Minimum length for OAuth client secrets
+OAUTH_STATE_EXPIRE_SECONDS = 600  # 10 minutes
+OAUTH_TOKEN_EXPIRE_SECONDS = 3600  # 1 hour
+
+# Google OAuth
+GOOGLE_SCOPE_DEFAULT = "https://www.googleapis.com/auth/calendar"
+
+# Microsoft OAuth
+MICROSOFT_TENANT_DEFAULT = "common"
+MICROSOFT_SCOPE_DEFAULT = "Calendars.ReadWrite"
+
+# ==================== AGORA VALIDATION ====================
+AGORA_TOKEN_EXPIRE_DEFAULT = 3600  # 1 hour in seconds
+AGORA_TOKEN_EXPIRE_MAX = 86400  # 24 hours in seconds
+AGORA_ROLE_PUBLISHER = "publisher"
+AGORA_ROLE_SUBSCRIBER = "subscriber"
 REFRESH_TOKEN_MAX_LENGTH = 2048
 
 # Phone

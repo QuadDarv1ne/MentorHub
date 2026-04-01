@@ -216,8 +216,8 @@ async def websocket_room_handler(
         if user:
             try:
                 await manager.leave_room(room_id, user.id)
-            except Exception:
-                pass
+            except Exception as leave_error:
+                logger.error(f"Failed to leave room: {leave_error}")
             manager.disconnect(websocket, user.id)
         try:
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR)

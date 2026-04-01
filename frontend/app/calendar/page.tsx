@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 interface CalendarEvent {
   id: number
@@ -50,7 +51,7 @@ export default function CalendarPage() {
         setEvents(data)
       }
     } catch (error) {
-      console.error('Fetch events error:', error)
+      logger.error('Fetch events error', error)
     }
   }
 
@@ -65,7 +66,7 @@ export default function CalendarPage() {
         toast.error('Ошибка синхронизации с Google')
       }
     } catch (error) {
-      console.error('Google sync error:', error)
+      logger.error('Google sync error', error)
       toast.error('Ошибка синхронизации с Google Calendar')
     }
   }
@@ -81,7 +82,7 @@ export default function CalendarPage() {
         toast.error('Ошибка синхронизации с Outlook')
       }
     } catch (error) {
-      console.error('Outlook sync error:', error)
+      logger.error('Outlook sync error', error)
       toast.error('Ошибка синхронизации с Outlook Calendar')
     }
   }
@@ -102,7 +103,7 @@ export default function CalendarPage() {
         toast.error('Ошибка экспорта iCal')
       }
     } catch (error) {
-      console.error('iCal export error:', error)
+      logger.error('iCal export error', error)
       toast.error('Ошибка экспорта iCal')
     }
   }
