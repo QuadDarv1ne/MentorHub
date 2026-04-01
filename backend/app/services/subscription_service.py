@@ -88,87 +88,109 @@ class SubscriptionService:
         stripe_subscription_id: Optional[str] = None
     ) -> Subscription:
         """Создать новую подписку"""
-        plan = self.get_plan(tier)
-        if not plan:
-            raise ValueError(f"Invalid subscription tier: {tier}")
+        try:
+            plan = self.get_plan(tier)
+            if not plan:
+                raise ValueError(f"Invalid subscription tier: {tier}")
 
-        # Проверяем существующую подписку
-        existing = self.get_user_subscription(user.id)
-        if existing and existing.status == SubscriptionStatus.ACTIVE:
-            raise ValueError("User already has an active subscription")
+            # Проверяем существующую подписку
+            existing = self.get_user_subscription(user.id)
+            if existing and existing.status == SubscriptionStatus.ACTIVE:
+                raise ValueError("User already has an active subscription")
 
-        trial_end = datetime.now(timezone.utc) + timedelta(days=plan["trial_days"])
+            trial_end = datetime.now(timezone.utc) + timedelta(days=plan["trial_days"])
 
-        subscription = Subscription(
-            user_id=user.id,
-            tier=tier,
-            status=SubscriptionStatus.TRIAL,
-            trial_end=trial_end,
-            current_period_end=trial_end,
-            amount=plan["price"],
-            currency=plan["currency"],
-            stripe_subscription_id=stripe_subscription_id,
-            cancel_at_period_end=False
-        )
+            subscription = Subscription(
+                user_id=user.id,
+                tier=tier,
+                status=SubscriptionStatus.TRIAL,
+                trial_end=trial_end,
+                current_period_end=trial_end,
+                amount=plan["price"],
+                currency=plan["currency"],
+                stripe_subscription_id=stripe_subscription_id,
+                cancel_at_period_end=False
+            )
 
-        self.db.add(subscription)
-        self.db.commit()
-        self.db.refresh(subscription)
-        return subscription
+            self.db.add(subscription)
+            self.db.commit()
+            self.db.refresh(subscription)
+            return subscription
+        except ValueError:
+            raise
+        except Exception:
+            self.db.rollback()
+            raise
 
     def activate_subscription(self, subscription_id: int) -> bool:
         """Активировать подписку"""
-        subscription = self.db.query(Subscription).filter(
-            Subscription.id == subscription_id
-        ).first()
+        try:
+            subscription = self.db.query(Subscription).filter(
+                Subscription.id == subscription_id
+            ).first()
 
-        if not subscription:
-            return False
+            if not subscription:
+                return False
 
-        subscription.status = SubscriptionStatus.ACTIVE
-        self.db.commit()
-        return True
+            subscription.status = SubscriptionStatus.ACTIVE
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def cancel_subscription(self, subscription_id: int, user_id: int) -> bool:
         """Отменить подписку (в конце периода)"""
-        subscription = self.db.query(Subscription).filter(
-            Subscription.id == subscription_id,
-            Subscription.user_id == user_id
-        ).first()
+        try:
+            subscription = self.db.query(Subscription).filter(
+                Subscription.id == subscription_id,
+                Subscription.user_id == user_id
+            ).first()
 
-        if not subscription:
-            return False
+            if not subscription:
+                return False
 
-        subscription.cancel_at_period_end = True
-        self.db.commit()
-        return True
+            subscription.cancel_at_period_end = True
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def reactivate_subscription(self, subscription_id: int, user_id: int) -> bool:
         """Восстановить подписку"""
-        subscription = self.db.query(Subscription).filter(
-            Subscription.id == subscription_id,
-            Subscription.user_id == user_id
-        ).first()
+        try:
+            subscription = self.db.query(Subscription).filter(
+                Subscription.id == subscription_id,
+                Subscription.user_id == user_id
+            ).first()
 
-        if not subscription:
-            return False
+            if not subscription:
+                return False
 
-        subscription.cancel_at_period_end = False
-        self.db.commit()
-        return True
+            subscription.cancel_at_period_end = False
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def expire_subscription(self, subscription_id: int) -> bool:
         """Истечь подписку"""
-        subscription = self.db.query(Subscription).filter(
-            Subscription.id == subscription_id
-        ).first()
+        try:
+            subscription = self.db.query(Subscription).filter(
+                Subscription.id == subscription_id
+            ).first()
 
-        if not subscription:
-            return False
+            if not subscription:
+                return False
 
-        subscription.status = SubscriptionStatus.EXPIRED
-        self.db.commit()
-        return True
+            subscription.status = SubscriptionStatus.EXPIRED
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def upgrade_subscription(
         self,
@@ -177,22 +199,26 @@ class SubscriptionService:
         new_tier: str
     ) -> bool:
         """Обновить подписку на более высокий тариф"""
-        subscription = self.db.query(Subscription).filter(
-            Subscription.id == subscription_id,
-            Subscription.user_id == user_id
-        ).first()
+        try:
+            subscription = self.db.query(Subscription).filter(
+                Subscription.id == subscription_id,
+                Subscription.user_id == user_id
+            ).first()
 
-        if not subscription:
-            return False
+            if not subscription:
+                return False
 
-        plan = self.get_plan(new_tier)
-        if not plan:
-            return False
+            plan = self.get_plan(new_tier)
+            if not plan:
+                return False
 
-        subscription.tier = new_tier
-        subscription.amount = plan["price"]
-        self.db.commit()
-        return True
+            subscription.tier = new_tier
+            subscription.amount = plan["price"]
+            self.db.commit()
+            return True
+        except Exception:
+            self.db.rollback()
+            raise
 
     def get_subscription_stats(self, user_id: int) -> Dict[str, Any]:
         """Получить статистику подписки пользователя"""
