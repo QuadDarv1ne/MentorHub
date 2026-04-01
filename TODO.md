@@ -1,11 +1,11 @@
 # MentorHub TODO
 
-**Дата обновления:** 1 апреля 2026 г. (Сессия 74 — Service Rollback Improvements)
+**Дата обновления:** 1 апреля 2026 г. (Сессия 75 — More Service Rollback Improvements)
 **Статус проекта:** ✅ PRODUCTION READY
 
 ---
 
-## 📌 Актуальные пометки (1 апреля 2026 — Сессия 74 — Улучшения сервисов)
+## 📌 Актуальные пометки (1 апреля 2026 — Сессия 75 — Улучшения сервисов часть 2)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
@@ -14,25 +14,26 @@
 - ✅ 0 TODO/FIXME/XXX/HACK в backend коде
 - ✅ 0 TODO/FIXME/XXX/HACK в frontend production коде
 
-**Выполнено (Сессия 74 — Улучшения сервисов):**
+**Выполнено (Сессия 75 — Улучшения сервисов часть 2):**
 
-### Исправления обработки транзакций в сервисах
+### Исправления обработки транзакций в сервисах (часть 2)
 
 **Проблема:** Отсутствие явного rollback при ошибках в сервисах.
 
 **Исправления:**
 
-**chat_room_service.py:**
-- ✅ `add_member()`: try/except с rollback
-- ✅ `remove_member()`: try/except с rollback
-- ✅ `delete_room()`: try/except с rollback
-- ✅ `send_message()`: try/except с rollback + PermissionError passthrough
+**subscription_service.py:**
+- ✅ `create_subscription()`: try/except с rollback + ValueError passthrough
+- ✅ `activate_subscription()`: try/except с rollback
+- ✅ `cancel_subscription()`: try/except с rollback
+- ✅ `reactivate_subscription()`: try/except с rollback
+- ✅ `expire_subscription()`: try/except с rollback
+- ✅ `upgrade_subscription()`: try/except с rollback
 
-**course_service.py:**
-- ✅ `create_course()`: try/except с rollback + PermissionError/ValueError passthrough
-- ✅ `update_course()`: try/except с rollback + PermissionError/ValueError passthrough
-- ✅ `create_lesson()`: try/except с rollback + PermissionError/ValueError passthrough
-- ✅ `update_lesson()`: try/except с rollback + PermissionError/ValueError passthrough
+**notification_service.py:**
+- ✅ `mark_as_read()`: try/except с rollback
+- ✅ `mark_all_as_read()`: try/except с rollback
+- ✅ `delete_notification()`: try/except с rollback
 
 **Паттерн применён:**
 ```python
@@ -40,25 +41,25 @@ try:
     # Операции с БД
     self.db.commit()
     return result
-except (PermissionError, ValueError):
+except (ValueError, PermissionError):
     raise  # Бизнес-логика ошибки не требуют rollback
 except Exception:
     self.db.rollback()
     raise  # Перевыбрасываем для обработки глобальным handler
 ```
 
-### Статистика сессии 74
+### Статистика сессии 75
 
 **Изменения:**
 - 2 файла изменено (сервисы)
-- +167 строк добавлено
-- -125 строк удалено
+- +152 строк добавлено
+- -114 строк удалено
 - 100% транзакций в сервисах с rollback
-- 8 методов улучшено
+- 9 методов улучшено
 
 **Файлы:**
-- backend/app/services/chat_room_service.py (+56/-48)
-- backend/app/services/course_service.py (+111/-77)
+- backend/app/services/subscription_service.py (+84/-70)
+- backend/app/services/notification_service.py (+68/-44)
 
 **Проект готов к production деплою.**
 
