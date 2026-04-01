@@ -4,14 +4,14 @@ API для управления подписками пользователей
 """
 
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
-from app.services.stripe_service import stripe_service
+from app.services.subscription_service import get_subscription_service, SubscriptionService
 from app.services.cache import cached
 from pydantic import BaseModel, Field
 
@@ -48,78 +48,41 @@ class SubscriptionResponse(BaseModel):
     is_trial: bool
 
 
-# Тарифные планы
-SUBSCRIPTION_PLANS = {
-    "basic": SubscriptionPlan(
-        tier="basic",
-        name="Basic",
-        price=Decimal("9.99"),
-        currency="USD",
-        trial_days=14,
-        features=[
-            "Доступ к базовым курсам",
-            "2 сессии с ментором в месяц",
-            "Доступ к сообществу",
-        ]
-    ),
-    "pro": SubscriptionPlan(
-        tier="pro",
-        name="Pro",
-        price=Decimal("29.99"),
-        currency="USD",
-        trial_days=14,
-        features=[
-            "Доступ ко всем курсам",
-            "8 сессий с ментором в месяц",
-            "Приоритетная поддержка",
-            "Доступ к закрытым материалам",
-        ]
-    ),
-    "premium": SubscriptionPlan(
-        tier="premium",
-        name="Premium",
-        price=Decimal("99.99"),
-        currency="USD",
-        trial_days=7,
-        features=[
-            "Доступ ко всем курсам + новые материалы",
-            "Безлимитные сессии с ментором",
-            "Персональный ментор",
-            "Помощь в трудоустройстве",
-            "Доступ к VIP сообществу",
-        ]
-    ),
-}
+def _get_service(db: Session = Depends(get_db)) -> SubscriptionService:
+    """Получить сервис подписок"""
+    return get_subscription_service(db)
 
 
 @router.get("/plans", response_model=list[SubscriptionPlan])
 @cached(ttl=3600, key_prefix="subscription_plans")
-async def get_subscription_plans():
+async def get_subscription_plans(
+    service: SubscriptionService = Depends(_get_service)
+):
     """Получить список тарифных планов"""
-    return list(SUBSCRIPTION_PLANS.values())
+    plans = service.get_plans()
+    return [SubscriptionPlan(**plan) for plan in plans]
 
 
 @router.get("/my", response_model=SubscriptionResponse)
 async def get_my_subscription(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    service: SubscriptionService = Depends(_get_service)
 ):
     """Получить информацию о подписке текущего пользователя"""
-    subscription = db.query(Subscription).filter(
-        Subscription.user_id == current_user.id
-    ).first()
+    subscription = service.get_user_subscription(current_user.id)
 
     if not subscription:
         # Создаём бесплатную подписку по умолчанию
+        from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
         subscription = Subscription(
             user_id=current_user.id,
             tier=SubscriptionTier.FREE,
             status=SubscriptionStatus.FREE,
             currency="USD",
         )
-        db.add(subscription)
-        db.commit()
-        db.refresh(subscription)
+        service.db.add(subscription)
+        service.db.commit()
+        service.db.refresh(subscription)
 
     return subscription
 

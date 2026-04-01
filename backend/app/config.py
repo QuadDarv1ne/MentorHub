@@ -29,6 +29,7 @@ from .constants import (
     DEFAULT_RATE_LIMIT_REQUESTS,
     DEFAULT_RATE_LIMIT_PERIOD,
     DEFAULT_MAX_BODY_SIZE,
+    OAUTH_SECRET_MIN_LENGTH,
 )
 
 
@@ -192,6 +193,17 @@ class Settings(BaseSettings):
     AGORA_APP_ID: str = ""
     AGORA_APP_CERTIFICATE: str = ""
 
+    @model_validator(mode='after')
+    def validate_agora_secrets(self):
+        """Валидация Agora секретов - предупреждения в production"""
+        if self.ENVIRONMENT == "production":
+            if self.AGORA_APP_ID and len(self.AGORA_APP_CERTIFICATE) < OAUTH_SECRET_MIN_LENGTH:
+                logging.getLogger("config").warning(
+                    f"⚠️ WARNING: AGORA_APP_CERTIFICATE length ({len(self.AGORA_APP_CERTIFICATE)}) "
+                    f"is less than {OAUTH_SECRET_MIN_LENGTH} characters!"
+                )
+        return self
+
     # ==================== STRIPE PAYMENTS ====================
     STRIPE_API_KEY: str = ""
     STRIPE_SECRET_KEY: str = ""
@@ -299,6 +311,24 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: str = ""
     GITHUB_CLIENT_SECRET: str = ""
     OAUTH_REDIRECT_URI: str = "http://localhost:3000/auth/callback"
+
+    @model_validator(mode='after')
+    def validate_oauth_secrets(self):
+        """Валидация OAuth секретов - предупреждения в production"""
+        if self.ENVIRONMENT == "production":
+            # Google OAuth
+            if self.GOOGLE_CLIENT_ID and len(self.GOOGLE_CLIENT_SECRET) < OAUTH_SECRET_MIN_LENGTH:
+                logging.getLogger("config").warning(
+                    f"⚠️ WARNING: GOOGLE_CLIENT_SECRET length ({len(self.GOOGLE_CLIENT_SECRET)}) "
+                    f"is less than {OAUTH_SECRET_MIN_LENGTH} characters!"
+                )
+            # GitHub OAuth
+            if self.GITHUB_CLIENT_ID and len(self.GITHUB_CLIENT_SECRET) < OAUTH_SECRET_MIN_LENGTH:
+                logging.getLogger("config").warning(
+                    f"⚠️ WARNING: GITHUB_CLIENT_SECRET length ({len(self.GITHUB_CLIENT_SECRET)}) "
+                    f"is less than {OAUTH_SECRET_MIN_LENGTH} characters!"
+                )
+        return self
 
 
 @lru_cache()

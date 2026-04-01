@@ -6,7 +6,7 @@ Google Calendar + Outlook Calendar + ICS Export
 import os
 import json
 from datetime import datetime, timezone, timedelta
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
@@ -17,8 +17,18 @@ from app.models.user import User
 from app.models.calendar import CalendarSync, CalendarEvent, CalendarProvider
 from app.models.session import Session as SessionModel
 from app.models.video_call import VideoCall
+from app.services.calendar_service import (
+    create_google_service,
+    create_microsoft_service,
+    CalendarService
+)
 
 router = APIRouter(prefix="/calendar", tags=["Calendar Integration"])
+
+
+def _get_calendar_service(db: Session, user: User) -> CalendarService:
+    """Получить сервис календаря"""
+    return CalendarService(db, user)
 
 
 # OAuth конфигурация
@@ -33,10 +43,10 @@ MICROSOFT_TENANT_ID = os.getenv("MICROSOFT_TENANT_ID", "common")
 
 
 @router.get("/auth/google")
-async def google_auth_url():
+async def google_auth_url() -> Dict[str, str]:
     """Получить URL для авторизации Google Calendar"""
     from urllib.parse import urlencode
-    
+
     params = {
         "client_id": GOOGLE_CLIENT_ID,
         "redirect_uri": GOOGLE_REDIRECT_URI,
@@ -45,7 +55,7 @@ async def google_auth_url():
         "prompt": "consent",
         "scope": "https://www.googleapis.com/auth/calendar"
     }
-    
+
     auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
     return {"auth_url": f"{auth_url}?{urlencode(params)}"}
 
@@ -55,10 +65,10 @@ async def google_callback(
     code: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, str]:
     """Callback после авторизации Google"""
     import httpx
-    
+
     token_url = "https://oauth2.googleapis.com/token"
     data = {
         "client_id": GOOGLE_CLIENT_ID,
@@ -67,56 +77,36 @@ async def google_callback(
         "code": code,
         "grant_type": "authorization_code"
     }
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, data=data)
         response.raise_for_status()
         tokens = response.json()
-    
+
     # Получаем информацию о календаре
     calendar_id = "primary"
-    
+
     # Сохраняем или обновляем синхронизацию
-    existing = db.query(CalendarSync).filter(
-        CalendarSync.user_id == current_user.id,
-        CalendarSync.provider == CalendarProvider.GOOGLE
-    ).first()
-    
-    if existing:
-        existing.access_token = tokens["access_token"]
-        existing.refresh_token = tokens.get("refresh_token", existing.refresh_token)
-        existing.token_expiry = datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
-        existing.calendar_id = calendar_id
-        existing.is_active = True
-    else:
-        sync = CalendarSync(
-            user_id=current_user.id,
-            provider=CalendarProvider.GOOGLE,
-            access_token=tokens["access_token"],
-            refresh_token=tokens.get("refresh_token"),
-            token_expiry=datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600)),
-            calendar_id=calendar_id,
-            is_active=True
-        )
-        db.add(sync)
-    
+    service = _get_calendar_service(db, current_user)
+    service.save_google_tokens(tokens, calendar_id)
+
     db.commit()
-    
+
     return {"message": "Google Calendar connected successfully", "calendar_id": calendar_id}
 
 
 @router.get("/auth/microsoft")
-async def microsoft_auth_url():
+async def microsoft_auth_url() -> Dict[str, str]:
     """Получить URL для авторизации Outlook Calendar"""
     from urllib.parse import urlencode
-    
+
     params = {
         "client_id": MICROSOFT_CLIENT_ID,
         "redirect_uri": MICROSOFT_REDIRECT_URI,
         "response_type": "code",
         "scope": "Calendars.ReadWrite offline_access"
     }
-    
+
     auth_url = f"https://login.microsoftonline.com/{MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize"
     return {"auth_url": f"{auth_url}?{urlencode(params)}"}
 
@@ -126,10 +116,10 @@ async def microsoft_callback(
     code: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, str]:
     """Callback после авторизации Microsoft"""
     import httpx
-    
+
     token_url = f"https://login.microsoftonline.com/{MICROSOFT_TENANT_ID}/oauth2/v2.0/token"
     data = {
         "client_id": MICROSOFT_CLIENT_ID,
@@ -138,41 +128,21 @@ async def microsoft_callback(
         "code": code,
         "grant_type": "authorization_code"
     }
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, data=data)
         response.raise_for_status()
         tokens = response.json()
-    
+
     # Получаем ID календаря
     calendar_id = "calendar"
-    
+
     # Сохраняем или обновляем синхронизацию
-    existing = db.query(CalendarSync).filter(
-        CalendarSync.user_id == current_user.id,
-        CalendarSync.provider == CalendarProvider.OUTLOOK
-    ).first()
-    
-    if existing:
-        existing.access_token = tokens["access_token"]
-        existing.refresh_token = tokens.get("refresh_token", existing.refresh_token)
-        existing.token_expiry = datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
-        existing.calendar_id = calendar_id
-        existing.is_active = True
-    else:
-        sync = CalendarSync(
-            user_id=current_user.id,
-            provider=CalendarProvider.OUTLOOK,
-            access_token=tokens["access_token"],
-            refresh_token=tokens.get("refresh_token"),
-            token_expiry=datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600)),
-            calendar_id=calendar_id,
-            is_active=True
-        )
-        db.add(sync)
-    
+    service = _get_calendar_service(db, current_user)
+    service.save_microsoft_tokens(tokens, calendar_id)
+
     db.commit()
-    
+
     return {"message": "Outlook Calendar connected successfully", "calendar_id": calendar_id}
 
 

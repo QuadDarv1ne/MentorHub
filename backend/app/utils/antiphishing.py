@@ -74,7 +74,8 @@ class AntiPhishingValidator:
             parsed = urlparse(url)
             domain = parsed.netloc.lower()
             path = parsed.path.lower()
-        except Exception:
+        except Exception as parse_error:
+            logger.warning(f"URL parse error: {parse_error}")
             result["is_safe"] = False
             result["warnings"].append("Invalid URL format")
             return result

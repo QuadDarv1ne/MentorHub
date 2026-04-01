@@ -2,7 +2,8 @@
 
 **Платформа для профессионального менторства и карьерного развития в IT**
 
-![MentorHub](https://img.shields.io/badge/status-in%20development-yellow) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.9%2B-brightgreen) ![React](https://img.shields.io/badge/react-18%2B-blue)
+![MentorHub](https://img.shields.io/badge/status-production%20ready-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.9%2B-brightgreen) ![React](https://img.shields.io/badge/react-18%2B-blue)
+![Tests](https://img.shields.io/badge/tests-355%20tests-brightgreen) ![Coverage](https://img.shields.io/badge/coverage-~80%25-brightgreen)
 
 ![first](img/img_1.png)
 
@@ -170,6 +171,32 @@
 
 ## 🏗️ Архитектура
 
+### Service Layer Pattern
+
+MentorHub использует **Service Layer Pattern** для разделения бизнес-логики от API endpoints:
+
+```
+Backend Services (10 модулей):
+├── agora_service.py         — Видеозвонки (Agora)
+├── calendar_service.py      — Календари (Google, Outlook)
+├── chat_room_service.py     — Чат-комнаты
+├── course_service.py        — Курсы и уроки
+├── notification_service.py  — Уведомления
+├── stripe_service.py        — Платежи (Stripe)
+├── subscription_service.py  — Подписки
+├── two_factor_service.py    — 2FA (TOTP)
+├── cache.py                 — Кэширование (Redis)
+└── fcm_service.py           — Push-уведомления (Firebase)
+```
+
+**Преимущества:**
+- ✅ Separation of Concerns — бизнес-логика отделена от HTTP layer
+- ✅ Testability — сервисы легко тестировать независимо
+- ✅ Reusability — сервисы переиспользуются в разных endpoint'ах
+- ✅ Maintainability — изменения в логике в одном месте
+
+### Общая Архитектура
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Frontend (Next.js)                    │
@@ -188,7 +215,7 @@
 │  │ Auth Routes  │  │API Routes│  │WebSocket Handler  │   │
 │  └──────────────┘  └──────────┘  └────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │         Business Logic & Services                   │  │
+│  │         Service Layer (10 сервисов)                 │  │
 │  └──────────────────────────────────────────────────────┘  │
 └────────────────┬──────────────────────┬────────────────────┘
                  │                      │

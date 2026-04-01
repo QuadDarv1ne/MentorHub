@@ -64,8 +64,11 @@ async def create_mentor(
     if sanitized_specialization and not is_safe_string(sanitized_specialization):
         raise HTTPException(status_code=400, detail="Недопустимые символы в специализации")
 
-    # Проверяем, что пользователь существует
-    user = db.query(User).filter(User.id == mentor.user_id).first()
+    # Проверяем, что пользователь существует с использованием joinedload для оптимизации
+    user = db.query(User).options(
+        joinedload(User.sessions),
+        joinedload(User.reviews)
+    ).filter(User.id == mentor.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 

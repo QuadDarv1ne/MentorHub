@@ -3,11 +3,12 @@ Health check endpoint для мониторинга состояния прил�
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 import psutil
 import time
 
@@ -34,6 +35,7 @@ except Exception as e:
     logger.debug(f"Redis client not available for health checks: {e}")
     redis_client = None
 
+
 def get_system_metrics() -> Dict[str, Any]:
     """Получает системные метрики"""
     try:
@@ -47,14 +49,15 @@ def get_system_metrics() -> Dict[str, Any]:
         logger.error(f"Error getting system metrics: {e}")
         return {}
 
+
 @router.get("")
 async def health_check(
-    db = Depends(get_db)
+    db: Session = Depends(get_db)
 ) -> JSONResponse:
     """
     Базовая проверка здоровья приложения
     """
-    health_status = {
+    health_status: Dict[str, Any] = {
         "status": "healthy",
         "timestamp": time.time(),
         "services": {}

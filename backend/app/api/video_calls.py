@@ -3,10 +3,9 @@ Video Calls API
 Интеграция с Agora для видеозвонков
 """
 
-import os
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import List, Optional
+from datetime import datetime, timezone
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, desc
@@ -16,49 +15,38 @@ from app.models.user import User
 from app.models.video_call import VideoCall, CallType, CallStatus
 from app.models.chat_room import ChatRoom
 from app.schemas.video_call import (
-    VideoCallCreate, VideoCallUpdate, VideoCallResponse, 
+    VideoCallCreate, VideoCallUpdate, VideoCallResponse,
     VideoCallListResponse, AgoraTokenResponse
 )
+from app.services.agora_service import agora_service
 
 router = APIRouter(prefix="/calls", tags=["Video Calls"])
 
 
-# Agora конфигурация
-AGORA_APP_ID = os.getenv("AGORA_APP_ID", "")
-AGORA_APP_CERTIFICATE = os.getenv("AGORA_APP_CERTIFICATE", "")
-
-try:
-    from agora_token_builder import RtcTokenBuilder, RtcTokenBuilderRole
-    AGORA_AVAILABLE = True
-except ImportError:
-    AGORA_AVAILABLE = False
-
-
-def generate_agora_token(channel: str, uid: int, role: str = "publisher", expiration: int = 3600) -> str:
-    """Генерация токена Agora"""
-    if not AGORA_AVAILABLE or not AGORA_APP_ID or not AGORA_APP_CERTIFICATE:
-        return ""
-    
-    try:
-        current_time = datetime.now(timezone.utc)
-        privilege_expired_ts = int((current_time + timedelta(seconds=expiration)).timestamp())
-        
-        if role == "publisher":
-            rtc_role = RtcTokenBuilderRole.PUBLISHER
-        else:
-            rtc_role = RtcTokenBuilderRole.SUBSCRIBER
-        
-        token = RtcTokenBuilder.build_token_with_uid(
-            AGORA_APP_ID,
-            AGORA_APP_CERTIFICATE,
-            channel,
-            uid,
-            rtc_role,
-            privilege_expired_ts
-        )
-        return token
-    except Exception as e:
-        return ""
+def _format_call_response(call: VideoCall) -> Dict[str, Any]:
+    """Форматирование ответа для видеозвонка"""
+    return {
+        "id": call.id,
+        "creator_id": call.creator_id,
+        "creator_username": call.creator.username if call.creator else None,
+        "participant_id": call.participant_id,
+        "participant_username": call.participant.username if call.participant else None,
+        "call_type": call.call_type.value,
+        "room_id": call.room_id,
+        "room_name": call.chat_room.name if call.chat_room else None,
+        "agora_channel": call.agora_channel,
+        "agora_token": call.agora_token,
+        "agora_app_id": agora_service.get_app_id(),
+        "status": call.status.value,
+        "scheduled_at": call.scheduled_at,
+        "started_at": call.started_at,
+        "ended_at": call.ended_at,
+        "duration_seconds": call.duration_seconds,
+        "title": call.title,
+        "description": call.description,
+        "created_at": call.created_at,
+        "updated_at": call.updated_at
+    }
 
 
 @router.post("/", response_model=VideoCallResponse, status_code=status.HTTP_201_CREATED)
@@ -109,38 +97,15 @@ async def create_video_call(
     db.add(video_call)
     db.commit()
     db.refresh(video_call)
-    
-    # Генерируем токен
-    agora_token = generate_agora_token(agora_channel, current_user.id)
+
+    # Генерируем токен через сервис
+    agora_token = agora_service.generate_token(agora_channel, current_user.id)
     video_call.agora_token = agora_token
-    
+
     db.commit()
     db.refresh(video_call)
 
-    # Формируем ответ с использованием joinedload (N+1 fix)
-    # Получаем все данные одним запросом через relationship
-    return {
-        "id": video_call.id,
-        "creator_id": video_call.creator_id,
-        "creator_username": video_call.creator.username if video_call.creator else None,
-        "participant_id": video_call.participant_id,
-        "participant_username": video_call.participant.username if video_call.participant else None,
-        "call_type": video_call.call_type.value,
-        "room_id": video_call.room_id,
-        "room_name": video_call.room.name if video_call.room else None,
-        "agora_channel": video_call.agora_channel,
-        "agora_token": video_call.agora_token,
-        "agora_app_id": AGORA_APP_ID,
-        "status": video_call.status.value,
-        "scheduled_at": video_call.scheduled_at,
-        "started_at": video_call.started_at,
-        "ended_at": video_call.ended_at,
-        "duration_seconds": video_call.duration_seconds,
-        "title": video_call.title,
-        "description": video_call.description,
-        "created_at": video_call.created_at,
-        "updated_at": video_call.updated_at
-    }
+    return _format_call_response(video_call)
 
 
 @router.get("/", response_model=VideoCallListResponse)
@@ -180,33 +145,10 @@ async def get_video_calls(
     
     total = query.count()
     calls = query.offset(skip).limit(limit).all()
-    
-    # Формируем ответ
-    result = []
-    for call in calls:
-        result.append({
-            "id": call.id,
-            "creator_id": call.creator_id,
-            "creator_username": call.creator.username if call.creator else None,
-            "participant_id": call.participant_id,
-            "participant_username": call.participant.username if call.participant else None,
-            "call_type": call.call_type.value,
-            "room_id": call.room_id,
-            "room_name": call.chat_room.name if call.chat_room else None,
-            "agora_channel": call.agora_channel,
-            "agora_token": call.agora_token,
-            "agora_app_id": AGORA_APP_ID,
-            "status": call.status.value,
-            "scheduled_at": call.scheduled_at,
-            "started_at": call.started_at,
-            "ended_at": call.ended_at,
-            "duration_seconds": call.duration_seconds,
-            "title": call.title,
-            "description": call.description,
-            "created_at": call.created_at,
-            "updated_at": call.updated_at
-        })
-    
+
+    # Формируем ответ через utility функцию
+    result = [_format_call_response(call) for call in calls]
+
     return {"calls": result, "total": total}
 
 
@@ -237,29 +179,8 @@ async def get_video_call(
     
     if not call:
         raise HTTPException(status_code=404, detail="Call not found or access denied")
-    
-    return {
-        "id": call.id,
-        "creator_id": call.creator_id,
-        "creator_username": call.creator.username if call.creator else None,
-        "participant_id": call.participant_id,
-        "participant_username": call.participant.username if call.participant else None,
-        "call_type": call.call_type.value,
-        "room_id": call.room_id,
-        "room_name": call.chat_room.name if call.chat_room else None,
-        "agora_channel": call.agora_channel,
-        "agora_token": call.agora_token,
-        "agora_app_id": AGORA_APP_ID,
-        "status": call.status.value,
-        "scheduled_at": call.scheduled_at,
-        "started_at": call.started_at,
-        "ended_at": call.ended_at,
-        "duration_seconds": call.duration_seconds,
-        "title": call.title,
-        "description": call.description,
-        "created_at": call.created_at,
-        "updated_at": call.updated_at
-    }
+
+    return _format_call_response(call)
 
 
 @router.post("/{call_id}/join", response_model=AgoraTokenResponse)
@@ -290,11 +211,11 @@ async def join_video_call(
     if not call:
         raise HTTPException(status_code=404, detail="Call not found or access denied")
 
-    # Генерируем токен
-    agora_token = generate_agora_token(call.agora_channel, current_user.id)
+    # Генерируем токен через сервис
+    agora_token = agora_service.generate_token(call.agora_channel, current_user.id)
 
     return {
-        "agora_app_id": AGORA_APP_ID,
+        "agora_app_id": agora_service.get_app_id(),
         "agora_channel": call.agora_channel,
         "agora_token": agora_token
     }
@@ -326,29 +247,7 @@ async def start_video_call(
     db.commit()
     db.refresh(call)
 
-    # Используем loaded relationships (N+1 fix)
-    return {
-        "id": call.id,
-        "creator_id": call.creator_id,
-        "creator_username": call.creator.username if call.creator else None,
-        "participant_id": call.participant_id,
-        "participant_username": call.participant.username if call.participant else None,
-        "call_type": call.call_type.value,
-        "room_id": call.room_id,
-        "room_name": call.chat_room.name if call.chat_room else None,
-        "agora_channel": call.agora_channel,
-        "agora_token": call.agora_token,
-        "agora_app_id": AGORA_APP_ID,
-        "status": call.status.value,
-        "scheduled_at": call.scheduled_at,
-        "started_at": call.started_at,
-        "ended_at": call.ended_at,
-        "duration_seconds": call.duration_seconds,
-        "title": call.title,
-        "description": call.description,
-        "created_at": call.created_at,
-        "updated_at": call.updated_at
-    }
+    return _format_call_response(call)
 
 
 @router.post("/{call_id}/end", response_model=VideoCallResponse)
@@ -383,29 +282,7 @@ async def end_video_call(
     db.commit()
     db.refresh(call)
 
-    # Используем loaded relationships (N+1 fix)
-    return {
-        "id": call.id,
-        "creator_id": call.creator_id,
-        "creator_username": call.creator.username if call.creator else None,
-        "participant_id": call.participant_id,
-        "participant_username": call.participant.username if call.participant else None,
-        "call_type": call.call_type.value,
-        "room_id": call.room_id,
-        "room_name": call.chat_room.name if call.chat_room else None,
-        "agora_channel": call.agora_channel,
-        "agora_token": call.agora_token,
-        "agora_app_id": AGORA_APP_ID,
-        "status": call.status.value,
-        "scheduled_at": call.scheduled_at,
-        "started_at": call.started_at,
-        "ended_at": call.ended_at,
-        "duration_seconds": call.duration_seconds,
-        "title": call.title,
-        "description": call.description,
-        "created_at": call.created_at,
-        "updated_at": call.updated_at
-    }
+    return _format_call_response(call)
 
 
 @router.delete("/{call_id}", status_code=status.HTTP_204_NO_CONTENT)

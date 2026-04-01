@@ -180,18 +180,19 @@ class AdvancedRateLimiter:
                 pipe.zremrangebyscore(redis_key, 0, current_time - window_seconds)
                 pipe.zcard(redis_key)
                 pipe.expire(redis_key, window_seconds)
-                
+
                 results = await pipe.execute()
                 request_count = results[2]
-                
+
                 if request_count > max_rps:
                     logger.warning(f"Slow attack detected: {client_key} ({request_count} req/s)")
                     return True
-                
+
                 return False
-            except Exception:
+            except Exception as e:
+                logger.error(f"Rate limiter Redis error: {e}")
                 pass
-        
+
         return False
 
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 interface UserProfile {
   id: number
@@ -47,7 +48,7 @@ export default function ProfilePage() {
         })
       }
     } catch (error) {
-      console.error('Fetch profile error:', error)
+      logger.error('Fetch profile error', error)
       toast.error('Ошибка загрузки профиля')
     }
   }
@@ -72,7 +73,7 @@ export default function ProfilePage() {
         toast.error('Ошибка сохранения')
       }
     } catch (error) {
-      console.error('Save profile error:', error)
+      logger.error('Save profile error', error)
       toast.error('Ошибка сохранения профиля')
     }
   }

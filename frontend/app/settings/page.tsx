@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 export default function SettingsPage() {
   const toast = useToast()
@@ -12,12 +13,12 @@ export default function SettingsPage() {
     timezone: 'Europe/Moscow',
     emailNotifications: true,
     pushNotifications: true,
-    
+
     // Privacy
     profileVisibility: 'public',
     showOnlineStatus: true,
     showLastSeen: true,
-    
+
     // Security
     twoFactorEnabled: false,
     sessionsLimit: 5,
@@ -37,7 +38,7 @@ export default function SettingsPage() {
         toast.error('Ошибка сохранения')
       }
     } catch (error) {
-      console.error('Save settings error:', error)
+      logger.error('Save settings error', error)
       toast.error('Ошибка сохранения настроек')
     }
   }
