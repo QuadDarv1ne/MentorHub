@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
 import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
+import { logger } from '@/lib/utils/logger'
 
 export interface Message {
   id: number
@@ -192,7 +193,7 @@ export function useChat({
             break
         }
       } catch (err) {
-        console.error('Error parsing WebSocket message:', err)
+        logger.error('Error parsing WebSocket message', err)
       }
     }
 

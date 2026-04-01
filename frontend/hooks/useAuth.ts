@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/api/auth';
+import { logger } from '@/lib/utils/logger';
 
 interface UseAuthReturn {
   user: User | null;
@@ -73,7 +74,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
               return;
             }
           } catch (refreshError) {
-            console.error('Token refresh failed:', refreshError);
+            logger.error('Token refresh failed', refreshError);
             logout();
             return;
           }
@@ -100,11 +101,11 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
           return;
         }
       } catch (apiError) {
-        console.error('Failed to fetch user:', apiError);
+        logger.error('Failed to fetch user', apiError);
         setError('Не удалось загрузить данные пользователя');
       }
     } catch (err) {
-      console.error('Auth check failed:', err);
+      logger.error('Auth check failed', err);
       setError('Ошибка проверки аутентификации');
     } finally {
       setLoading(false);
@@ -126,7 +127,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       // Перенаправление после успешного входа
       router.push('/dashboard');
     } catch (err) {
-      console.error('Login failed:', err);
+      logger.error('Login failed', err);
       setError('Ошибка при входе');
       throw err;
     }
@@ -193,7 +194,7 @@ export function useOptionalAuth(): {
             setUser(userData);
           }
         } catch (err) {
-          console.error('Optional auth check failed:', err);
+          logger.error('Optional auth check failed', err);
         }
       }
 
