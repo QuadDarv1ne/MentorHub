@@ -305,6 +305,10 @@ class Settings(BaseSettings):
     # ==================== PUSH NOTIFICATIONS ====================
     PUSH_NOTIFICATIONS_ENABLED: bool = True
 
+    # ==================== TELEGRAM ALERTS ====================
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    TELEGRAM_CHAT_ID: Optional[str] = None
+
     # ==================== OAUTH ====================
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
