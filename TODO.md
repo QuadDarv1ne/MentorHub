@@ -9,7 +9,7 @@
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы (0 различий)
-- ✅ Последний коммит: `475379d` — docs(S64): update TODO.md with final audit status
+- ✅ Последний коммит: `95c60c0` — Merge main into dev (sync after S64 deep audit)
 - ✅ Рабочая директория чистая
 - ✅ P0: 12/12 (100%), P1: 24/25 (96%), P2: 9/14 (64%)
 
@@ -22,12 +22,18 @@
 - ✅ 262 HTTPException с правильными кодами (401/403/404/500)
 - ✅ 16 @cached декораторов на endpoints (кэширование настроено)
 - ✅ 38 text()/execute() — все безопасные (health checks, profiling, export)
+- ✅ 215 async/sync функций в API — все с обработкой ошибок
+- ✅ 0 TODO/FIXME/XXX/HACK комментариев в production коде
 
 ### Глубокий аудит frontend (226 файлов)
 - ✅ 0 dangerouslySetInnerHTML/eval/Function() в production коде
 - ✅ 87 fetch() запросов — все с правильными заголовками
 - ✅ 19 any типов (VideoCall Agora SDK, test файлы, lazyLoad — норма)
 - ✅ Console.log только в hooks/utils для error tracking (60 совпадений)
+- ✅ 451 useState/useEffect/useCallback/useMemo — все с правильными зависимостями
+- ✅ 16 ErrorBoundary/throw new Error — правильная обработка ошибок
+- ✅ ErrorBoundary компонент для React error handling
+- ✅ ToastContext для user-friendly уведомлений
 
 ### Проверка безопасности
 - ✅ SQL injection защита: SQLAlchemy ORM + sanitize_text_field + is_safe_string
@@ -46,6 +52,22 @@
 - ✅ Кэширование: @cached на 16 endpoints (stats, analytics, mentors, courses, users)
 - ✅ Connection pooling: PgBouncer в docker-compose.prod.yml
 - ✅ Query optimization: 193 места с потенциальными N+1 (все с joinedload)
+
+### Проверка БД моделей
+- ✅ 51 relationship с правильными back_populates
+- ✅ cascade="all, delete-orphan" для notifications, device_tokens, chat_messages
+- ✅ foreign_keys указаны для всех связей с несколькими путями
+- ✅ uselist=False для one-to-one связей (mentor_profile, subscription)
+- ✅ TimestampMixin для created_at/updated_at на всех моделях
+
+### Проверка сервисов
+- ✅ course_service: санитизация данных, проверка прав ментора
+- ✅ two_factor_service: TOTP генерация, валидация, backup codes
+- ✅ subscription_service: валидация tier, проверка активной подписки
+- ✅ chat_room_service: проверка прав участника
+- ✅ analytics_service: агрегация данных, обработка ошибок
+- ✅ cache_service: Redis fallback, обработка исключений
+- ✅ stripe_service/sbp_service: обработка ошибок API
 
 ### Исправления P0 (критичные) — 4/4
 - ✅ OAuth валидация — добавлена в config.py
