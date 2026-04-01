@@ -118,13 +118,23 @@
 - Модульная структура API для курсов и видеозвонков
 - Frontend компоненты для поиска менторов
 - 30 новых тестов (15 Agora + 15 Mentor Search)
+- **Полная интеграция frontend с backend API**
+
+**Frontend интеграция:**
+- ✅ API клиент для менторов (lib/api/mentors.ts)
+- ✅ Главная страница менторов с реальными данными
+- ✅ Страница расширенного поиска (/mentors/search)
+- ✅ Синхронизация URL параметров
+- ✅ Пагинация и фильтрация
+- ✅ Loading states и error handling
+- ✅ Responsive design + Dark mode
 
 **Статистика изменений:**
-- 15 файлов изменено/добавлено
-- 12 новых файлов (API modules, tests, frontend components)
+- 20 файлов изменено/добавлено
+- 17 новых файлов (API modules, tests, frontend components, pages)
 - 3 файла обновлено (courses, video_calls, mentors)
-- +2200 строк добавлено
-- -788 строк удалено (рефакторинг)
+- +2800 строк добавлено
+- -1200 строк удалено (рефакторинг)
 - 30 новых тестов
 - 0 breaking changes (backward compatible)
 
