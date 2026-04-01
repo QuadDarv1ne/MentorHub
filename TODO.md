@@ -1,11 +1,106 @@
 # MentorHub TODO
 
-**Дата обновления:** 16 января 2025 г. (Сессия 76 — v1.1 Improvements)
-**Статус проекта:** ✅ PRODUCTION READY v1.1
+**Дата обновления:** 16 января 2025 г. (Сессия 77 — v1.2 Refactoring & Features)
+**Статус проекта:** ✅ PRODUCTION READY v1.2
 
 ---
 
-## 📌 Актуальные пометки (16 января 2025 — Сессия 76 — v1.1 Major Improvements)
+## 📌 Актуальные пометки (16 января 2025 — Сессия 77 — v1.2 Refactoring & Features)
+
+**Текущий статус:**
+- ✅ Ветки `main` и `dev` синхронизированы
+- ✅ Рабочая директория: 10 файлов изменено/добавлено
+- ✅ P0: 13/13 (100%), P1: 25/25 (100%), P2: 13/14 (93%)
+- ✅ v1.2 улучшения: Refactoring, Search, Agora Service
+
+**Выполнено (Сессия 77 — v1.2 Refactoring & Features):**
+
+### 🎯 MVP Функционал (Пункт 1)
+
+**Поиск и фильтрация менторов:**
+- ✅ `backend/app/api/mentors_search.py` — расширенный поиск менторов
+  - Поиск по имени, специализации, биографии
+  - Фильтры: цена (min/max), опыт (min/max), доступность
+  - Сортировка: rating, price, experience, name (asc/desc)
+  - Пагинация с PaginatedResponse
+  - Кеширование результатов (TTL 600s)
+- ✅ `/api/mentors/search` — endpoint для поиска
+- ✅ `/api/mentors/specializations` — список всех специализаций
+- ✅ `/api/mentors/top-rated` — топ менторов по рейтингу
+- ✅ `backend/app/api/mentors.py` — интеграция с mentors_search router
+
+**Agora Service (видеозвонки):**
+- ✅ `backend/app/services/agora_service.py` — сервис для Agora SDK
+  - `generate_rtc_token()` — генерация RTC токенов
+  - `generate_token_for_call()` — токен для конкретного звонка
+  - `validate_channel_name()` — валидация имени канала
+  - `get_recording_config()` — конфигурация записи
+  - Singleton instance `agora_service`
+- ✅ Вынесена вся логика Agora из API endpoints в сервис
+
+### 🔨 Рефакторинг больших файлов (Пункт 2)
+
+**Courses API (393 строки → модульная структура):**
+- ✅ `backend/app/api/courses.py` — главный роутер (15 строк)
+- ✅ `backend/app/api/courses_crud.py` — CRUD операции (150 строк)
+  - GET /courses — список курсов с фильтрацией
+  - GET /courses/{id} — детали курса с уроками
+  - POST /courses — создание курса
+  - PUT /courses/{id} — обновление курса
+  - DELETE /courses/{id} — удаление курса
+  - GET /courses/{id}/similar — похожие курсы
+- ✅ `backend/app/api/courses_lessons.py` — управление уроками (130 строк)
+  - GET /courses/{id}/lessons — список уроков
+  - POST /courses/{id}/lessons — создание урока
+  - PUT /lessons/{id} — обновление урока
+  - DELETE /lessons/{id} — удаление урока
+  - POST /lessons/{id}/complete — завершение урока
+- ✅ `backend/app/api/courses_enrollments.py` — записи на курсы (150 строк)
+  - GET /courses/my — мои курсы
+  - POST /courses/{id}/enroll — запись на курс
+  - DELETE /courses/{id}/enroll — отписка от курса
+  - PUT /courses/{id}/progress — обновление прогресса
+
+**Video Calls API (395 строк → модульная структура):**
+- ✅ `backend/app/api/video_calls.py` — главный роутер (15 строк)
+- ✅ `backend/app/api/video_calls_crud.py` — CRUD операции (180 строк)
+  - POST /video-calls — создание звонка
+  - GET /video-calls — список звонков с фильтрацией
+  - GET /video-calls/{id} — детали звонка
+  - DELETE /video-calls/{id} — отмена звонка
+  - `_format_call_response()` — форматирование ответа
+- ✅ `backend/app/api/video_calls_agora.py` — Agora интеграция (150 строк)
+  - POST /video-calls/{id}/join — получение Agora токена
+  - POST /video-calls/{id}/start — начало звонка
+  - POST /video-calls/{id}/end — завершение звонка
+  - GET /video-calls/{id}/recording-config — конфигурация записи
+
+### 📊 Результаты v1.2
+
+**Рефакторинг:**
+- courses.py: 393 строк → 15 строк (главный роутер) + 3 модуля (430 строк)
+- video_calls.py: 395 строк → 15 строк (главный роутер) + 2 модуля (330 строк)
+- Улучшена модульность и поддерживаемость кода
+- Разделение ответственности (CRUD, бизнес-логика, интеграции)
+
+**Новые возможности:**
+- Расширенный поиск менторов с 7 параметрами фильтрации
+- Agora Service для централизованной работы с видеозвонками
+- Модульная структура API для курсов и видеозвонков
+
+**Статистика изменений:**
+- 10 файлов изменено/добавлено
+- 7 новых файлов (mentors_search, agora_service, courses_*, video_calls_*)
+- 3 файла обновлено (courses, video_calls, mentors)
+- +1200 строк добавлено
+- -788 строк удалено (рефакторинг)
+- 0 breaking changes (backward compatible)
+
+**Проект готов к production деплою v1.2.**
+
+---
+
+## 📌 Актуальные пометки (16 января 2025 — Сессия 76 — v1.1 Improvements)
 
 **Текущий статус:**
 - ✅ Ветки `main` и `dev` синхронизированы
