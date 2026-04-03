@@ -204,7 +204,11 @@ async def refund_payment(
 
 
 @router.post("/webhook")
-async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+async def stripe_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Handle Stripe webhook events."""
     from app.services.stripe_service import stripe_service
 
@@ -252,7 +256,11 @@ async def get_sbp_banks():
 
 
 @router.post("/sbp/webhook")
-async def sbp_webhook(request: Request, db: Session = Depends(get_db)):
+async def sbp_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
+):
     """Handle SBP webhook events."""
     from app.services.sbp_service import sbp_service
 

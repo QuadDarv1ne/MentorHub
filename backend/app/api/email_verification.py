@@ -4,6 +4,7 @@ Email verification endpoints
 """
 
 import logging
+import json
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,6 +16,7 @@ from app.models.user import User
 from app.utils.email import email_service
 from app.api.auth import create_access_token
 from app.utils.security import get_password_hash
+from app.services.cache import cache_service
 from pydantic import BaseModel, EmailStr
 
 logger = logging.getLogger(__name__)
@@ -42,9 +44,9 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-# Временное хранилище токенов (в production использовать Redis)
-verification_tokens = {}
-reset_tokens = {}
+# TTL для токенов: 24 часа
+VERIFICATION_TOKEN_TTL = 86400  # 24 * 60 * 60
+RESET_TOKEN_TTL = 3600  # 1 час
 
 
 @router.post("/send-verification", status_code=status.HTTP_200_OK)
@@ -64,11 +66,14 @@ async def send_verification_email(
     
     # Генерируем токен
     token = secrets.token_urlsafe(32)
-    verification_tokens[token] = {
-        "email": user.email,
-        "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
-    }
     
+    # Сохраняем токен в Redis с TTL 24 часа
+    token_data = {
+        "email": user.email,
+        "expires_at": datetime.now(timezone.utc).isoformat()
+    }
+    cache_service.set(f"verification:{token}", json.dumps(token_data), ttl=VERIFICATION_TOKEN_TTL)
+
     # Отправляем email
     success = email_service.send_verification_email(
         to_email=user.email,
@@ -90,22 +95,16 @@ async def verify_email(
     db: Session = Depends(get_db)
 ):
     """Подтверждение email по токену"""
-    token_data = verification_tokens.get(request.token)
-    
-    if not token_data:
+    token_data_str = cache_service.get(f"verification:{request.token}")
+
+    if not token_data_str:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный или истекший токен"
         )
-    
-    # Проверяем срок действия
-    if datetime.now(timezone.utc) > token_data["expires_at"]:
-        del verification_tokens[request.token]
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Токен истек"
-        )
-    
+
+    token_data = json.loads(token_data_str)
+
     # Находим пользователя
     user = db.query(User).filter(User.email == token_data["email"]).first()
     if not user:
@@ -113,16 +112,16 @@ async def verify_email(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Пользователь не найден"
         )
-    
+
     # Подтверждаем email
     user.is_verified = True
     db.commit()
-    
-    # Удаляем использованный токен
-    del verification_tokens[request.token]
-    
+
+    # Удаляем использованный токен из Redis
+    cache_service.delete(f"verification:{request.token}")
+
     logger.info(f"✅ Email verified for user {user.email}")
-    
+
     return {
         "message": "Email успешно подтвержден",
         "email": user.email
@@ -143,10 +142,13 @@ async def forgot_password(
     
     # Генерируем токен
     token = secrets.token_urlsafe(32)
-    reset_tokens[token] = {
+    
+    # Сохраняем токен в Redis с TTL 1 час
+    token_data = {
         "email": user.email,
-        "expires_at": datetime.now(timezone.utc) + timedelta(hours=1)
+        "expires_at": datetime.now(timezone.utc).isoformat()
     }
+    cache_service.set(f"reset:{token}", json.dumps(token_data), ttl=RESET_TOKEN_TTL)
     
     # Отправляем email
     success = email_service.send_password_reset_email(
@@ -169,22 +171,16 @@ async def reset_password(
     db: Session = Depends(get_db)
 ):
     """Сброс пароля по токену"""
-    token_data = reset_tokens.get(request.token)
-    
-    if not token_data:
+    token_data_str = cache_service.get(f"reset:{request.token}")
+
+    if not token_data_str:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный или истекший токен"
         )
-    
-    # Проверяем срок действия
-    if datetime.now(timezone.utc) > token_data["expires_at"]:
-        del reset_tokens[request.token]
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Токен истек"
-        )
-    
+
+    token_data = json.loads(token_data_str)
+
     # Находим пользователя
     user = db.query(User).filter(User.email == token_data["email"]).first()
     if not user:
@@ -192,16 +188,16 @@ async def reset_password(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Пользователь не найден"
         )
-    
+
     # Обновляем пароль
     user.hashed_password = get_password_hash(request.new_password)
     db.commit()
-    
-    # Удаляем использованный токен
-    del reset_tokens[request.token]
-    
+
+    # Удаляем использованный токен из Redis
+    cache_service.delete(f"reset:{request.token}")
+
     logger.info(f"✅ Password reset for user {user.email}")
-    
+
     return {
         "message": "Пароль успешно изменен",
         "email": user.email
