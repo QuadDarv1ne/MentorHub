@@ -139,9 +139,16 @@ async def get_message_history(
 
 @router.get("/", response_model=List[MessageResponse])
 async def get_messages(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список сообщений (admin only)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
@@ -153,10 +160,25 @@ async def get_messages(
 
 @router.get("/{message_id}", response_model=MessageResponse)
 async def get_message(
-    message_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    message_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить информацию о сообщении по ID"""
-    message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
+    # Пользователь может видеть только свои сообщения
+    message = db.query(DBMessage).filter(
+        DBMessage.id == message_id,
+        or_(
+            DBMessage.sender_id == current_user.id,
+            DBMessage.recipient_id == current_user.id
+        )
+    ).first()
+
+    # Администратор может видеть любые сообщения
+    if not message and current_user.role == "admin":
+        message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
+
     if not message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
     return message
@@ -164,9 +186,16 @@ async def get_message(
 
 @router.post("/", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 async def create_message(
-    message: MessageCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    message: MessageCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Создать сообщение"""
+    # Пользователь может отправлять сообщения только от своего имени
+    if message.sender_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     # Санитизация входных данных
     sanitized_content = sanitize_text_field(message.content)
 
@@ -174,18 +203,13 @@ async def create_message(
     if not is_safe_string(sanitized_content):
         raise HTTPException(status_code=400, detail="Недопустимые символы в сообщении")
 
-    # Проверяем, что отправитель существует
-    sender = db.query(User).filter(User.id == message.sender_id).first()
-    if not sender:
-        raise HTTPException(status_code=404, detail="Отправитель не найден")
-
     # Проверяем, что получатель существует
     recipient = db.query(User).filter(User.id == message.recipient_id).first()
     if not recipient:
         raise HTTPException(status_code=404, detail="Получатель не найден")
 
     # Создаем сообщение с санитизированными данными
-    db_message = DBMessage(sender_id=message.sender_id, recipient_id=message.recipient_id, content=sanitized_content)
+    db_message = DBMessage(sender_id=current_user.id, recipient_id=message.recipient_id, content=sanitized_content)
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
@@ -196,6 +220,7 @@ async def create_message(
 async def update_message(
     message_id: int,
     message: MessageUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
@@ -203,6 +228,10 @@ async def update_message(
     db_message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
     if not db_message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
+
+    # Только автор может редактировать своё сообщение (или админ)
+    if db_message.sender_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     # Санитизация входных данных
     sanitized_data = {}
@@ -226,12 +255,19 @@ async def update_message(
 
 @router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_message(
-    message_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    message_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Удалить сообщение"""
     db_message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
     if not db_message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
+
+    # Только автор может удалять своё сообщение (или админ)
+    if db_message.sender_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     db.delete(db_message)
     db.commit()

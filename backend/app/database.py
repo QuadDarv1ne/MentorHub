@@ -293,25 +293,6 @@ def transactional():
         db.close()
 
 
-# ==================== DEPENDENCY INJECTION ====================
-
-
-def get_db():
-    """
-    FastAPI dependency for getting database session
-
-    Usage in routes:
-        @app.get("/users")
-        def get_users(db: Session = Depends(get_db)):
-            return db.query(User).all()
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # ==================== EXPORT ====================
 
 __all__ = [
@@ -323,5 +304,4 @@ __all__ = [
     "close_db",
     "get_db_context",
     "transactional",
-    "get_db",
 ]

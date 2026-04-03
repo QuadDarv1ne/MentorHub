@@ -45,16 +45,20 @@ router = APIRouter()
 async def get_payments(
     skip: int = 0,
     limit: int = 100,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
-    """Get all payments."""
+    """Get all payments (admin only)."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
     return get_all_payments(db, skip, limit)
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)
 async def get_payment(
     payment_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
@@ -62,20 +66,30 @@ async def get_payment(
     payment = get_payment_by_id(db, payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
+
+    # Пользователь может видеть только свои платежи
+    if current_user.role != "admin" and payment.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     return payment
 
 
 @router.post("/", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def create_payment(
     payment: PaymentCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Create a new payment."""
+    # Пользователь может создавать платежи только от своего имени (или админ)
+    if payment.student_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     try:
         return create_payment_crud(
             db=db,
-            student_id=payment.student_id,
+            student_id=current_user.id,
             mentor_id=payment.mentor_id,
             session_id=payment.session_id,
             amount=payment.amount,
@@ -91,10 +105,19 @@ async def create_payment(
 async def update_payment(
     payment_id: int,
     payment: PaymentUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Update payment."""
+    existing_payment = get_payment_by_id(db, payment_id)
+    if not existing_payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    # Только админ может обновлять платежи
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     try:
         updated = update_payment_crud(db, payment_id, payment)
         if not updated:
@@ -107,10 +130,14 @@ async def update_payment(
 @router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_payment(
     payment_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
-    """Delete payment."""
+    """Delete payment (admin only)."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
     if not delete_payment_crud(db, payment_id):
         raise HTTPException(status_code=404, detail="Payment not found")
 

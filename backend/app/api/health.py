@@ -19,7 +19,7 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.getLogger(__name__).warning("redis-py not installed, health checks limited")
 
-from app.database import get_db
+from app.dependencies import get_db
 from app.config import settings
 
 logger = logging.getLogger(__name__)
