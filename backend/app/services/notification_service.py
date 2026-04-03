@@ -182,9 +182,9 @@ def create_notification(
         is_read=False
     )
 
-    self.db.add(notification)
-    self.db.commit()
-    self.db.refresh(notification)
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
 
     logger.info(f"Notification created for user {user_id}: {notification_type.value}")
     return notification
