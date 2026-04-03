@@ -9,7 +9,7 @@ from sqlalchemy import func
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.schemas.progress import ProgressCreate, ProgressRead, ProgressAggregate
-from app.models import Progress
+from app.models import Progress, CourseEnrollment
 
 router = APIRouter()
 
@@ -22,6 +22,18 @@ def upsert_progress(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Create or update a progress record for current user"""
+    # Проверяем, что пользователь записан на курс
+    enrollment = db.query(CourseEnrollment).filter(
+        CourseEnrollment.user_id == current_user.id,
+        CourseEnrollment.course_id == payload.course_id
+    ).first()
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы должны быть записаны на курс чтобы отслеживать прогресс"
+        )
+
     # Try to find an existing record for user/course/lesson
     q = db.query(Progress).filter(
         Progress.user_id == current_user.id,

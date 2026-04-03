@@ -10,7 +10,7 @@ from sqlalchemy import func
 from app.dependencies import get_db, get_current_user, get_current_user_optional, rate_limit_dependency
 from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 from app.schemas.common import PaginatedResponse
-from app.models import Review, User
+from app.models import Review, User, CourseEnrollment
 
 router = APIRouter()
 
@@ -23,6 +23,18 @@ def create_review(
     current_user: User = Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
+    # Проверяем, что пользователь записан на курс
+    enrollment = db.query(CourseEnrollment).filter(
+        CourseEnrollment.user_id == current_user.id,
+        CourseEnrollment.course_id == course_id
+    ).first()
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы должны быть записаны на курс чтобы оставить отзыв"
+        )
+
     # Проверяем, не оставлял ли пользователь уже отзыв для этого курса
     existing = db.query(Review).filter(Review.course_id == course_id, Review.user_id == current_user.id).first()
     if existing:
