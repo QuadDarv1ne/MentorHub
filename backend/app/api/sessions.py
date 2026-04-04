@@ -3,6 +3,7 @@
 API для работы с сессиями менторства
 """
 
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -14,6 +15,7 @@ from app.models.mentor import Mentor
 from app.schemas.session import SessionCreate, SessionUpdate, SessionResponse
 from app.utils.sanitization import sanitize_string, is_safe_string
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -149,7 +151,8 @@ async def create_session(
         return db_session
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при создании сессии: {str(e)}")
+        logger.error(f"Error creating session: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при создании сессии")
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
@@ -193,7 +196,8 @@ async def update_session(
         return db_session
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении сессии: {str(e)}")
+        logger.error(f"Error updating session: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении сессии")
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -220,4 +224,5 @@ async def delete_session(
         return None
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при удалении сессии: {str(e)}")
+        logger.error(f"Error deleting session: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении сессии")

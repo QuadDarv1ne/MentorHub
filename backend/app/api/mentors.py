@@ -3,6 +3,7 @@ Mentors API Router
 Объединяет все роуты для работы с менторами
 """
 
+import logging
 from fastapi import APIRouter
 import asyncio
 from typing import List
@@ -16,6 +17,8 @@ from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
 from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe_string
 from app.services.cache import cached
 from app.utils.cache import invalidate_cache
+
+logger = logging.getLogger(__name__)
 
 # Импортируем роутер поиска
 from app.api.mentors_search import router as mentors_search_router
@@ -108,7 +111,8 @@ async def create_mentor(
         return db_mentor
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при создании профиля ментора: {str(e)}")
+        logger.error(f"Error creating mentor profile: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при создании профиля ментора")
 
 
 @router.put("/{mentor_id}", response_model=MentorResponse)
@@ -153,7 +157,8 @@ async def update_mentor(
         db.refresh(db_mentor)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении профиля ментора: {str(e)}")
+        logger.error(f"Error updating mentor profile: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении профиля ментора")
 
     # Инвалидируем кеш обновленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
@@ -183,7 +188,8 @@ async def delete_mentor(
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка при удалении профиля ментора: {str(e)}")
+        logger.error(f"Error deleting mentor profile: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении профиля ментора")
 
     # Инвалидируем кеш удаленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))

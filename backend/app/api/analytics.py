@@ -29,6 +29,11 @@ async def get_platform_analytics(
     Returns:
         Ключевые метрики платформы
     """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещен. Требуются права администратора."
+        )
     try:
         analytics = AnalyticsService(db)
         stats = analytics.get_platform_stats()
@@ -54,6 +59,11 @@ async def get_user_growth(
     Query params:
         - days: Количество дней для анализа (1-365)
     """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещен. Требуются права администратора."
+        )
     try:
         analytics = AnalyticsService(db)
         growth_data = analytics.get_user_growth(days)
@@ -77,10 +87,15 @@ async def get_session_analytics(
 ):
     """
     Аналитика по сессиям
-    
+
     Query params:
         - days: Количество дней для анализа (1-365)
     """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещен. Требуются права администратора."
+        )
     try:
         analytics = AnalyticsService(db)
         session_data = analytics.get_session_analytics(days)
@@ -104,10 +119,15 @@ async def get_course_analytics(
 ):
     """
     Анализ производительности курсов
-    
+
     Query params:
         - course_id: ID курса (опционально)
     """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещен. Требуются права администратора."
+        )
     try:
         analytics = AnalyticsService(db)
         course_data = analytics.get_course_performance(course_id)
@@ -128,10 +148,15 @@ async def get_revenue_analytics(
 ):
     """
     Аналитика по доходам
-    
+
     Query params:
         - days: Количество дней для анализа (1-365)
     """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещен. Требуются права администратора."
+        )
     try:
         analytics = AnalyticsService(db)
         revenue_data = analytics.get_revenue_analytics(days)
@@ -171,9 +196,10 @@ async def get_user_engagement(
         engagement_data = analytics.get_user_engagement(user_id)
         return engagement_data
     except ValueError as e:
+        logger.error(f"User not found for engagement: {user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail="Пользователь не найден"
         )
     except Exception as e:
         logger.error(f"Error getting user engagement: {e}")

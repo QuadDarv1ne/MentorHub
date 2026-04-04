@@ -4,6 +4,7 @@ Stripe Payment Integration
 Stripe payment processing and webhook handling.
 """
 
+import logging
 from decimal import Decimal
 from typing import Optional
 
@@ -15,6 +16,8 @@ from app.models.user import User
 from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
 from app.services.stripe_service import stripe_service
+
+logger = logging.getLogger(__name__)
 
 
 def create_stripe_payment_intent(
@@ -234,7 +237,8 @@ def handle_stripe_webhook_event(
         return False
     except Exception as e:
         db.rollback()
+        logger.error(f"Webhook processing error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Webhook processing error: {str(e)}"
+            detail="Webhook processing error"
         )
