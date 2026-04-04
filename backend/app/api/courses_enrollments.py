@@ -78,35 +78,31 @@ async def enroll_in_course(
     if not course:
         raise HTTPException(status_code=404, detail="Курс не найден")
 
-    # Проверяем, не записан ли уже пользователь
-    existing = (
-        db.query(CourseEnrollment)
-        .filter(
-            CourseEnrollment.course_id == course_id,
-            CourseEnrollment.user_id == current_user.id
+    # Создаем запись с обработкой race condition
+    try:
+        enrollment = CourseEnrollment(
+            user_id=current_user.id,
+            course_id=course_id,
+            progress=0,
+            completed=False
         )
-        .first()
-    )
 
-    if existing:
+        db.add(enrollment)
+        db.commit()
+        db.refresh(enrollment)
+        return enrollment
+    except Exception as e:
+        db.rollback()
+        # Проверяем, не дубликат ли это (unique constraint violation)
+        if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+            raise HTTPException(
+                status_code=400,
+                detail="Вы уже записаны на этот курс"
+            )
         raise HTTPException(
-            status_code=400,
-            detail="Вы уже записаны на этот курс"
+            status_code=500,
+            detail="Ошибка при записи на курс"
         )
-
-    # Создаем запись
-    enrollment = CourseEnrollment(
-        user_id=current_user.id,
-        course_id=course_id,
-        progress=0,
-        completed=False
-    )
-
-    db.add(enrollment)
-    db.commit()
-    db.refresh(enrollment)
-
-    return enrollment
 
 
 @router.delete("/{course_id}/enroll", status_code=status.HTTP_204_NO_CONTENT)

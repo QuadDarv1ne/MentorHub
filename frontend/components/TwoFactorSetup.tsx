@@ -47,8 +47,8 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
       setBackupCodes(data.backup_codes || [])
       setSetupComplete(true)
       setStep('verify')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка')
     } finally {
       setLoading(false)
     }
@@ -75,8 +75,8 @@ export default function TwoFactorSetup({ onSuccess, onCancel }: TwoFactorSetupPr
       }
 
       onSuccess?.()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка')
     } finally {
       setLoading(false)
     }

@@ -27,7 +27,7 @@ export default function MentorSearchFilters({ onSearch, specializations }: Mento
     sortOrder: 'desc'
   });
 
-  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+  const handleFilterChange = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
     setFilters(prev => ({
       ...prev,
       [key]: value === '' ? undefined : value

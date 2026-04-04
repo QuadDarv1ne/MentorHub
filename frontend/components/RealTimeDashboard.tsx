@@ -70,7 +70,15 @@ export default function RealTimeDashboard() {
     }
   }
 
-  const StatCard = ({ title, value, change, icon, color }: any) => (
+  interface StatCardProps {
+    title: string
+    value: string | number
+    change?: number
+    icon: string
+    color: string
+  }
+
+  const StatCard = ({ title, value, change, icon, color }: StatCardProps) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div>

@@ -24,8 +24,8 @@ export function useApiRequest<T>() {
       const result = await apiCall();
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Произошла ошибка';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Произошла ошибка';
       setState({ data: null, loading: false, error: errorMessage });
       throw err;
     }
@@ -59,8 +59,8 @@ export function useMutation<T, P = void>() {
       const result = await apiCall(params);
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Произошла ошибка';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Произошла ошибка';
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
       throw err;
     }

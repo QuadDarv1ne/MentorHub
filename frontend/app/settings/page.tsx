@@ -43,7 +43,13 @@ export default function SettingsPage() {
     }
   }
 
-  const TabButton = ({ id, label, icon }: any) => (
+  interface TabButtonProps {
+    id: string
+    label: string
+    icon: React.ReactNode
+  }
+
+  const TabButton = ({ id, label, icon }: TabButtonProps) => (
     <button
       onClick={() => setActiveTab(id)}
       className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -56,7 +62,12 @@ export default function SettingsPage() {
     </button>
   )
 
-  const Toggle = ({ enabled, onChange }: any) => (
+  interface ToggleProps {
+    enabled: boolean
+    onChange: (val: boolean) => void
+  }
+
+  const Toggle = ({ enabled, onChange }: ToggleProps) => (
     <button
       onClick={() => onChange(!enabled)}
       className={`relative w-12 h-6 rounded-full transition-colors ${

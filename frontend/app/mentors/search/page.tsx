@@ -33,6 +33,15 @@ export default function MentorSearchPage() {
 
   // Parse URL params and perform initial search
   useEffect(() => {
+    const isValidSortBy = (val: string): val is SearchFilters['sortBy'] =>
+      ['rating', 'price', 'experience', 'name'].includes(val)
+    
+    const isValidSortOrder = (val: string): val is SearchFilters['sortOrder'] =>
+      ['asc', 'desc'].includes(val)
+
+    const rawSortBy = searchParams.get('sort_by') || 'rating'
+    const rawSortOrder = searchParams.get('sort_order') || 'desc'
+
     const filters: SearchFilters = {
       query: searchParams.get('query') || undefined,
       specialization: searchParams.get('specialization') || undefined,
@@ -41,8 +50,8 @@ export default function MentorSearchPage() {
       minExperience: searchParams.get('min_experience') ? Number(searchParams.get('min_experience')) : undefined,
       maxExperience: searchParams.get('max_experience') ? Number(searchParams.get('max_experience')) : undefined,
       isAvailable: searchParams.get('is_available') ? searchParams.get('is_available') === 'true' : undefined,
-      sortBy: (searchParams.get('sort_by') as any) || 'rating',
-      sortOrder: (searchParams.get('sort_order') as any) || 'desc',
+      sortBy: isValidSortBy(rawSortBy) ? rawSortBy : 'rating',
+      sortOrder: isValidSortOrder(rawSortOrder) ? rawSortOrder : 'desc',
     };
 
     setCurrentFilters(filters);

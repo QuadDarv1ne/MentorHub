@@ -36,24 +36,32 @@ def create_review(
             detail="Вы должны быть записаны на курс чтобы оставить отзыв"
         )
 
-    # Проверяем, не оставлял ли пользователь уже отзыв для этого курса
-    existing = db.query(Review).filter(Review.course_id == course_id, Review.user_id == current_user.id).first()
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Вы уже оставили отзыв для этого курса")
-
-    review = Review(
-        user_id=current_user.id,
-        course_id=course_id,
-        rating=payload.rating,
-        comment=sanitize_text_field(payload.comment) if payload.comment else None,
-    )
-    db.add(review)
-    db.commit()
-    # Attach user relationship so returned object includes user_name
-    review.user = current_user
-    db.refresh(review)
-
-    return review
+    # Создаем отзыв с обработкой race condition
+    try:
+        review = Review(
+            user_id=current_user.id,
+            course_id=course_id,
+            rating=payload.rating,
+            comment=sanitize_text_field(payload.comment) if payload.comment else None,
+        )
+        db.add(review)
+        db.commit()
+        # Attach user relationship so returned object includes user_name
+        review.user = current_user
+        db.refresh(review)
+        return review
+    except Exception as e:
+        db.rollback()
+        # Проверяем, не дубликат ли это (unique constraint violation)
+        if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Вы уже оставили отзыв для этого курса"
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при создании отзыва"
+        )
 
 
 @router.get("/courses/{course_id}/reviews", response_model=PaginatedResponse[ReviewRead])
