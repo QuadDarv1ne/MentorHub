@@ -42,11 +42,22 @@ export default function EnhancedChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
   useEffect(() => {
     fetchRooms()
     connectWebSocket()
-    return () => wsRef.current?.close()
+    return () => {
+      // Очищаем все timeout'ы
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+      typingTimeoutsRef.current.forEach(timeout => clearTimeout(timeout))
+      typingTimeoutsRef.current.clear()
+      // Закрываем WebSocket
+      wsRef.current?.close()
+    }
   }, [])
 
   useEffect(() => {
@@ -114,9 +125,15 @@ export default function EnhancedChat() {
           if (data.type === 'typing') {
             if (data.room_id === selectedRoom) {
               setTypingUsers(prev => [...new Set([...prev, data.user_name])])
-              setTimeout(() => {
+              // Очищаем предыдущий timeout
+              if (typingTimeoutsRef.current.has(data.user_name)) {
+                clearTimeout(typingTimeoutsRef.current.get(data.user_name))
+              }
+              const timeout = setTimeout(() => {
                 setTypingUsers(prev => prev.filter(u => u !== data.user_name))
+                typingTimeoutsRef.current.delete(data.user_name)
               }, 3000)
+              typingTimeoutsRef.current.set(data.user_name, timeout)
             }
           }
           
@@ -134,7 +151,7 @@ export default function EnhancedChat() {
 
       wsRef.current.onclose = () => {
         console.log('❌ Chat WebSocket disconnected')
-        setTimeout(connectWebSocket, 5000)
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000)
       }
     } catch (error) {
       console.error('WebSocket connection error:', error)

@@ -172,7 +172,12 @@ export default function VideoCall({
         localTrackRef.current.video?.close()
       }
       if (agoraClientRef.current) {
-        await agoraClientRef.current.leave()
+        const client = agoraClientRef.current as any
+        // Снимаем все event listeners перед уходом
+        client.off('user-published')
+        client.off('user-unpublished')
+        client.off('user-left')
+        await client.leave()
       }
     } catch (err) {
       console.error('Cleanup error:', err)
