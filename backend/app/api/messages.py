@@ -146,7 +146,7 @@ async def get_messages(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список сообщений (admin only)"""
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     if skip < 0:
@@ -176,7 +176,7 @@ async def get_message(
     ).first()
 
     # Администратор может видеть любые сообщения
-    if not message and current_user.role == "admin":
+    if not message and current_user.role.value == "admin":
         message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
 
     if not message:
@@ -193,7 +193,7 @@ async def create_message(
 ):
     """Создать сообщение"""
     # Пользователь может отправлять сообщения только от своего имени
-    if message.sender_id != current_user.id and current_user.role != "admin":
+    if message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     # Санитизация входных данных
@@ -230,7 +230,7 @@ async def update_message(
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
     # Только автор может редактировать своё сообщение (или админ)
-    if db_message.sender_id != current_user.id and current_user.role != "admin":
+    if db_message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     # Санитизация входных данных
@@ -266,7 +266,7 @@ async def delete_message(
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
     # Только автор может удалять своё сообщение (или админ)
-    if db_message.sender_id != current_user.id and current_user.role != "admin":
+    if db_message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     db.delete(db_message)

@@ -24,7 +24,7 @@ class ChatRoomService:
         user: User,
         room_data: ChatRoomCreate
     ) -> ChatRoom:
-        """Создать чат-комнату"""
+        """Создать чат-комнату и добавить создателя как участника (одна транзакция)"""
         db_room = ChatRoom(
             name=room_data.name,
             description=room_data.description,
@@ -33,10 +33,7 @@ class ChatRoomService:
             course_id=room_data.course_id
         )
         self.db.add(db_room)
-        self.db.commit()
-        self.db.refresh(db_room)
-
-        # Добавляем создателя как участника
+        # Добавляем создателя как участника ДО commit
         db_room.members.append(user)
         self.db.commit()
         self.db.refresh(db_room)

@@ -26,7 +26,7 @@ async def get_sessions(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список сессий (только для администраторов)"""
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права администратора.")
     
     if skip < 0:
@@ -84,7 +84,7 @@ async def get_session(
     # Проверка доступа: студент, ментор или админ
     if (session.student_id != current_user.id and 
         session.mentor_id != current_user.id and 
-        current_user.role != "admin"):
+        current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен")
     
     return session
@@ -99,7 +99,7 @@ async def create_session(
 ):
     """Создать сессию (только для менторов и администраторов)"""
     # Проверяем что пользователь ментор или админ
-    if current_user.role not in ["mentor", "admin"]:
+    if current_user.role.value not in ["mentor", "admin"]:
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права ментора.")
     
     # Санитизация входных данных
@@ -126,7 +126,7 @@ async def create_session(
         raise HTTPException(status_code=404, detail="Ментор не найден")
 
     # Если пользователь не админ, проверяем что он создаёт сессию как ментор
-    if current_user.role != "admin" and session.mentor_id != current_user.id:
+    if current_user.role.value != "admin" and session.mentor_id != current_user.id:
         # Проверяем что пользователь associated с этим ментором
         user_mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
         if not user_mentor or user_mentor.id != session.mentor_id:
@@ -168,7 +168,7 @@ async def update_session(
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and 
         db_session.mentor_id != current_user.id and 
-        current_user.role != "admin"):
+        current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     # Санитизация входных данных
@@ -211,7 +211,7 @@ async def delete_session(
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and 
         db_session.mentor_id != current_user.id and 
-        current_user.role != "admin"):
+        current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     try:

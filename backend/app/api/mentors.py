@@ -65,7 +65,7 @@ async def create_mentor(
 ):
     """Создать профиль ментора (только для авторизованных пользователей)"""
     # Пользователь может создать профиль только от своего имени (или админ)
-    if mentor.user_id != current_user.id and current_user.role != "admin":
+    if mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете создать профиль только от своего имени.")
     
     # Санитизация входных данных
@@ -125,7 +125,7 @@ async def update_mentor(
         raise HTTPException(status_code=404, detail="Ментор не найден")
     
     # Проверка ownership: владелец профиля или админ
-    if db_mentor.user_id != current_user.id and current_user.role != "admin":
+    if db_mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете редактировать только свой профиль.")
 
     # Санитизация входных данных
@@ -175,7 +175,7 @@ async def delete_mentor(
         raise HTTPException(status_code=404, detail="Ментор не найден")
     
     # Проверка ownership: владелец профиля или админ
-    if db_mentor.user_id != current_user.id and current_user.role != "admin":
+    if db_mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете удалить только свой профиль.")
 
     try:

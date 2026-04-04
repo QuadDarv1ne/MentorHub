@@ -5,7 +5,7 @@ API для управления подписками пользователей
 
 from decimal import Decimal
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_db, get_current_user
@@ -13,9 +13,39 @@ from app.models.user import User
 from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
 from app.services.subscription_service import get_subscription_service, SubscriptionService
 from app.services.cache import cached
+from app.services.stripe_service import get_stripe_service
+from app.config import settings
 from pydantic import BaseModel, Field
 
 router = APIRouter()
+
+# Тарифы подписок
+SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
+    "basic": {
+        "tier": "basic",
+        "name": "Basic",
+        "price": Decimal("9.99"),
+        "currency": "USD",
+        "trial_days": 14,
+        "features": ["Доступ к базовым курсам", "Чат с менторами", "1 сессия в месяц"],
+    },
+    "pro": {
+        "tier": "pro",
+        "name": "Pro",
+        "price": Decimal("29.99"),
+        "currency": "USD",
+        "trial_days": 14,
+        "features": ["Доступ ко всем курсам", "Приоритетная поддержка", "5 сессий в месяц", "Записи видео"],
+    },
+    "premium": {
+        "tier": "premium",
+        "name": "Premium",
+        "price": Decimal("59.99"),
+        "currency": "USD",
+        "trial_days": 14,
+        "features": ["Всё из Pro", "Безлимитные сессии", "Персональный ментор", "Приоритетная поддержка 24/7"],
+    },
+}
 
 
 class SubscriptionPlan(BaseModel):
@@ -90,16 +120,17 @@ async def get_my_subscription(
 @router.post("/create", response_model=dict)
 async def create_subscription(
     request: CreateSubscriptionRequest,
+    http_request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Создать подписку
-    
+
     Перенаправляет на Stripe Checkout для оплаты
     """
     tier = request.tier.lower()
-    
+
     if tier not in SUBSCRIPTION_PLANS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -107,7 +138,8 @@ async def create_subscription(
         )
 
     plan = SUBSCRIPTION_PLANS[tier]
-    
+    stripe_service = get_stripe_service()
+
     # Проверяем существующую подписку
     existing_subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
@@ -126,20 +158,21 @@ async def create_subscription(
             name=current_user.full_name,
             metadata={"user_id": current_user.id}
         )
-        
+
         if "error" in customer_result and not customer_result.get("mock"):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Ошибка создания клиента: {customer_result['error']}"
             )
-        
+
         customer_id = customer_result.get("id")
     else:
         customer_id = existing_subscription.stripe_customer_id
 
     # Создаём Checkout сессию
-    success_url = f"{request.headers.get('host', 'http://localhost:3000')}/billing/success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{request.headers.get('host', 'http://localhost:3000')}/billing/cancel"
+    frontend_url = settings.FRONTEND_URL or "http://localhost:3000"
+    success_url = f"{frontend_url}/billing/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{frontend_url}/billing/cancel"
     
     # Price ID должен быть получен из Stripe (в production используем реальные ID)
     # Для demo используем заглушку
@@ -195,9 +228,10 @@ async def cancel_subscription(
 ):
     """
     Отменить подписку
-    
+
     Подписка остаётся активной до конца оплаченного периода
     """
+    stripe_service = get_stripe_service()
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()
@@ -245,9 +279,10 @@ async def cancel_subscription_now(
 ):
     """
     Отменить подписку немедленно
-    
+
     Возвращает пропорциональную сумму за неиспользованный период
     """
+    stripe_service = get_stripe_service()
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()

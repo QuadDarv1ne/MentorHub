@@ -11,6 +11,7 @@ from app.dependencies import get_db, get_current_user, get_current_user_optional
 from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate
 from app.schemas.common import PaginatedResponse
 from app.models import Review, User, CourseEnrollment
+from app.utils.sanitization import sanitize_text_field
 
 router = APIRouter()
 
@@ -44,7 +45,7 @@ def create_review(
         user_id=current_user.id,
         course_id=course_id,
         rating=payload.rating,
-        comment=payload.comment,
+        comment=sanitize_text_field(payload.comment) if payload.comment else None,
     )
     db.add(review)
     db.commit()

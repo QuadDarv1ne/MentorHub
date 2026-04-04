@@ -50,7 +50,7 @@ async def get_payments(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Get all payments (admin only)."""
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
     return get_all_payments(db, skip, limit)
 
@@ -68,7 +68,7 @@ async def get_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     # Пользователь может видеть только свои платежи
-    if current_user.role != "admin" and payment.user_id != current_user.id:
+    if current_user.role.value != "admin" and payment.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     return payment
@@ -83,7 +83,7 @@ async def create_payment(
 ):
     """Create a new payment."""
     # Пользователь может создавать платежи только от своего имени (или админ)
-    if payment.student_id != current_user.id and current_user.role != "admin":
+    if payment.student_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     try:
@@ -115,7 +115,7 @@ async def update_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     # Только админ может обновлять платежи
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     try:
@@ -135,7 +135,7 @@ async def delete_payment(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Delete payment (admin only)."""
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     if not delete_payment_crud(db, payment_id):

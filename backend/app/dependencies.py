@@ -41,7 +41,8 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
-        db.commit()
+        # Don't auto-commit here - let endpoints manage their own commits
+        # This prevents double-commit issues
     except Exception as e:
         db.rollback()
         logger.error(f"Database error: {e}", exc_info=True)

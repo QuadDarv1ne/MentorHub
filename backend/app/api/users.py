@@ -67,12 +67,24 @@ async def update_current_user_profile(
 
 @router.get("/{user_id}", response_model=UserResponse)
 @cached(ttl=600, key_prefix="user_detail")
-async def get_user(user_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)):
-    """Получить пользователя по ID"""
+async def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить пользователя по ID (требует авторизации)"""
     if user_id <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Некорректный ID пользователя",
+        )
+
+    # Пользователи могут видеть только свой профиль, админы - все
+    if current_user.id != user_id and current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Доступ запрещён",
         )
 
     user = db.query(User).options(

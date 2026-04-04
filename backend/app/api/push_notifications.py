@@ -187,7 +187,7 @@ async def send_push_notification(
         Результат отправки
     """
     # Проверяем права администратора
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administrators can send push notifications"
@@ -258,7 +258,7 @@ async def send_push_to_user(
         Результат отправки
     """
     # Проверяем права администратора
-    if current_user.role != "admin":
+    if current_user.role.value != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administrators can send push notifications"

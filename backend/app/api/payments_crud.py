@@ -116,13 +116,22 @@ def create_payment(
 def update_payment(
     db: Session,
     payment_id: int,
-    payment_data: PaymentUpdate
+    payment_data: PaymentUpdate,
+    current_user_id: Optional[int] = None
 ) -> Optional[DBPayment]:
-    """Update payment."""
+    """Update payment with ownership check."""
     try:
         db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
         if not db_payment:
             return None
+
+        # Ownership check: only student or admin can update
+        if current_user_id and db_payment.student_id != current_user_id:
+            # Check if user is admin (need to query user)
+            from app.models.user import UserRole
+            user = db.query(User).filter(User.id == current_user_id).first()
+            if not user or user.role.value != "admin":
+                raise ValueError("You don't have permission to update this payment")
 
         # Sanitize and update fields
         for key, value in payment_data.model_dump(exclude_unset=True).items():
@@ -142,12 +151,23 @@ def update_payment(
         raise
 
 
-def delete_payment(db: Session, payment_id: int) -> bool:
-    """Delete payment."""
+def delete_payment(
+    db: Session,
+    payment_id: int,
+    current_user_id: Optional[int] = None
+) -> bool:
+    """Delete payment with ownership check."""
     try:
         db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
         if not db_payment:
             return False
+
+        # Ownership check: only student or admin can delete
+        if current_user_id and db_payment.student_id != current_user_id:
+            from app.models.user import UserRole
+            user = db.query(User).filter(User.id == current_user_id).first()
+            if not user or user.role.value != "admin":
+                raise ValueError("You don't have permission to delete this payment")
 
         db.delete(db_payment)
         db.commit()
