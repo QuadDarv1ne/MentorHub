@@ -1,11 +1,33 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 86 — Null Safety & Runtime Error Prevention)
-**Статус проекта:** ✅ HEALTHY v1.9 (runtime ошибки предотвращены)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 88 — Error Handling & Code Dedup)
+**Статус проекта:** ✅ HEALTHY v2.0 (стабильный, код чище)
 
 ---
 
-## ✅ Исправлено (Сессия 86 — 4 апреля 2026)
+## ✅ Исправлено (Сессия 88 — 4 апреля 2026)
+
+### Backend Error Handling & Code Quality
+
+**1. Добавлена обработка ошибок (3 файла):**
+- ✅ users.py — try/except с rollback для update профиля
+- ✅ notifications.py — try/except с rollback для mark-all-as-read
+- ✅ messages.py — error handling для mark-messages-read (non-breaking)
+
+**2. Устранено дублирование кода (pagination utility):**
+- ✅ Создан pagination.py — validate_pagination(skip, limit, max_limit)
+- ✅ Заменен дублирующийся код в 6 файлах:
+  * achievements.py, courses_crud.py, mentors.py
+  * messages.py, payments_crud.py, sessions.py
+- ✅ Единая точка изменения логики пагинации
+
+**3. Улучшена консистность:**
+- ✅ Добавлены logger импорты для error logging
+- ✅ Единообразная обработка ошибок across endpoints
+
+---
+
+## ✅ Исправлено (Сессия 87 — 4 апреля 2026)
 
 ### Frontend Null/Undefined Safety (10 файлов)
 
