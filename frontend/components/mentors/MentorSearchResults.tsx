@@ -100,7 +100,7 @@ export default function MentorSearchResults({
               <div className="flex items-center gap-2 text-sm">
                 <Star className="w-4 h-4 text-yellow-500" />
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {mentor.rating.toFixed(1)}
+                  {mentor.rating?.toFixed(1) ?? 'N/A'}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400">
                   ({mentor.total_reviews} отзывов)

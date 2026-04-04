@@ -6,6 +6,7 @@
  * Форматирование числа с разделителями тысяч
  */
 export function formatNumber(num: number, decimals = 0): string {
+  if (num == null) return '0'
   return num.toLocaleString('ru-RU', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
@@ -19,6 +20,7 @@ export function formatCurrency(
   amount: number,
   currency: 'RUB' | 'USD' | 'EUR' = 'RUB'
 ): string {
+  if (amount == null) return `0 ${currency}`
   return amount.toLocaleString('ru-RU', {
     style: 'currency',
     currency,
@@ -84,6 +86,7 @@ export function truncate(str: string, maxLength: number): string {
  * Капитализация первой буквы
  */
 export function capitalize(str: string): string {
+  if (!str) return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
@@ -107,6 +110,7 @@ export function stripHtml(html: string): string {
  * Извлечение инициалов из имени
  */
 export function getInitials(name: string): string {
+  if (!name || typeof name !== 'string') return ''
   const parts = name.trim().split(' ')
   if (parts.length === 1) {
     return parts[0].charAt(0).toUpperCase()

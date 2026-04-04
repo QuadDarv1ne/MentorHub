@@ -95,7 +95,7 @@ export function ChatList({ onConversationSelect }: ChatListProps) {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    conversation.username.charAt(0).toUpperCase()
+                    conversation.username?.charAt(0)?.toUpperCase() || '?'
                   )}
                 </div>
                 {/* Online indicator */}

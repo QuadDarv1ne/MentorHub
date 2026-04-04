@@ -89,9 +89,9 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
                 <p className="text-gray-600">
                   <span className="font-semibold">Рейтинг:</span>{" "}
                   {aggregate && aggregate.total_reviews > 0 ? (
-                    <>{aggregate.average_rating.toFixed(1)} / 5.0 ({aggregate.total_reviews} отзывов)</>
+                    <>{aggregate?.average_rating?.toFixed(1) ?? 'N/A'} / 5.0 ({aggregate?.total_reviews ?? 0} отзывов)</>
                   ) : course.review_summary?.average ? (
-                    <>{course.review_summary.average.toFixed(1)} / 5.0 (stepik)</>
+                    <>{course.review_summary?.average?.toFixed(1) ?? 'N/A'} / 5.0 (stepik)</>
                   ) : (
                     <>Нет оценок</>
                   )}

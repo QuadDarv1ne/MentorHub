@@ -73,7 +73,7 @@ export default function EnhancedChat() {
       if (response.ok) {
         const data = await response.json()
         setRooms(data)
-        if (data.length > 0 && selectedRoom === null) {
+        if (Array.isArray(data) && data.length > 0 && selectedRoom === null) {
           setSelectedRoom(data[0].id)
         }
       }
@@ -291,13 +291,13 @@ export default function EnhancedChat() {
                   </div>
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center text-lg">
-                    {room.participants[0]?.avatar || '👤'}
+                    {room.participants?.[0]?.avatar || '👤'}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                      {room.type === 'group' ? room.name : room.participants[0]?.name}
+                      {room.type === 'group' ? room.name : room.participants?.[0]?.name}
                     </h3>
                     {room.unread_count > 0 && (
                       <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
@@ -339,7 +339,14 @@ export default function EnhancedChat() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
               {messages.map((message, index) => {
                 const currentUserId = typeof window !== 'undefined'
-                  ? JSON.parse(localStorage.getItem('user') || '{}')?.id
+                  ? (() => {
+                      try {
+                        const user = localStorage.getItem('user')
+                        return user ? JSON.parse(user)?.id : null
+                      } catch {
+                        return null
+                      }
+                    })()
                   : null
                 const isOwn = message.sender_id === currentUserId
                 return (

@@ -118,7 +118,7 @@ export default function ProfilePage() {
                 <p className="text-gray-600 dark:text-gray-400 capitalize">{profile.role}</p>
                 <div className="flex items-center justify-center sm:justify-start gap-4 mt-2">
                   <span className="text-yellow-600 dark:text-yellow-400 font-semibold">
-                    ⭐ {profile.rating.toFixed(1)}
+                    ⭐ {profile.rating?.toFixed(1) ?? 'N/A'}
                   </span>
                   <span className="text-gray-600 dark:text-gray-400">
                     {profile.totalSessions} сессий
@@ -151,7 +151,7 @@ export default function ProfilePage() {
             <p className="text-gray-600 dark:text-gray-400 text-sm">Завершено</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{profile.rating.toFixed(1)}</p>
+            <p className="text-3xl font-bold text-yellow-600">{profile.rating?.toFixed(1) ?? 'N/A'}</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Рейтинг</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 text-center">

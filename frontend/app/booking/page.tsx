@@ -234,7 +234,7 @@ export default function BookingPage() {
                 >
                   {/* Аватар */}
                   <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4">
-                    {mentor.name.charAt(0)}
+                    {mentor.name?.charAt(0) || '?'}
                   </div>
 
                   {/* Информация */}

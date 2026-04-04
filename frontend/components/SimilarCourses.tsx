@@ -84,7 +84,7 @@ export default function SimilarCourses({ courseId }: { courseId: number }) {
                     <div className="text-xs text-gray-500">Отзывов: {it.total_reviews}</div>
                   </div>
                 </a>
-                <div className="text-sm font-medium">⭐ {it.average_rating.toFixed(1)}</div>
+                <div className="text-sm font-medium">⭐ {it.average_rating?.toFixed(1) ?? 'N/A'}</div>
               </li>
             ))}
           </ul>

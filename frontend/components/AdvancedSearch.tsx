@@ -91,7 +91,7 @@ export default function AdvancedSearch() {
             <div className="flex items-center gap-4">
               {result.rating && (
                 <span className="text-yellow-600 dark:text-yellow-400 font-medium">
-                  ⭐ {result.rating.toFixed(1)}
+                  ⭐ {result.rating?.toFixed(1) ?? 'N/A'}
                 </span>
               )}
               {result.price && (
