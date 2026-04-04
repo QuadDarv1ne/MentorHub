@@ -172,8 +172,6 @@ const nextConfig = {
         minimize: true,
         // Tree shaking
         usedExports: true,
-        // Side effects
-        sideEffects: true,
       }
     }
     

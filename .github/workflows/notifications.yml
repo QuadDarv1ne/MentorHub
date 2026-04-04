@@ -60,54 +60,6 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Commit:*\n${{ github.sha }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Branch:*\n${{ github.ref_name }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Author:*\n${{ github.actor }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ inputs.message != '' && inputs.message || 'No additional message' }}"
-                  }
-                }
-              ]
-            }
-        if: ${{ inputs.deploy_url != '' }}
-        with:
-          payload: |
-            {
-              "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "${{ inputs.status == 'success' && '✅' || '❌' }} ${{ inputs.environment }} Deployment"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Status:*\n${{ inputs.status == 'success' && 'Success' || 'Failed' }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Commit:*\n${{ github.sha }}"
                     },
                     {
                       "type": "mrkdwn",
@@ -135,7 +87,7 @@ jobs:
                         "type": "plain_text",
                         "text": "View Deployment"
                       },
-                      "url": "${{ inputs.deploy_url }}"
+                      "url": "${{ inputs.deploy_url || 'https://github.com/' }}"
                     },
                     {
                       "type": "button",

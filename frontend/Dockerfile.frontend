@@ -9,11 +9,11 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Кэшируем зависимости
-COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps
 
 # Копируем и собираем
-COPY frontend/ ./
+COPY . ./
 RUN mkdir -p public
 
 # Собираем (NEXT_PUBLIC_API_URL передаётся через env)

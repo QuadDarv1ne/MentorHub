@@ -72,7 +72,7 @@ async def send_verification_email(
         "email": user.email,
         "expires_at": datetime.now(timezone.utc).isoformat()
     }
-    cache_service.set(f"verification:{token}", json.dumps(token_data), ttl=VERIFICATION_TOKEN_TTL)
+    cache_service.set(f"verification:{token}", token_data, ttl=VERIFICATION_TOKEN_TTL)
 
     # Отправляем email
     success = email_service.send_verification_email(
@@ -148,7 +148,7 @@ async def forgot_password(
         "email": user.email,
         "expires_at": datetime.now(timezone.utc).isoformat()
     }
-    cache_service.set(f"reset:{token}", json.dumps(token_data), ttl=RESET_TOKEN_TTL)
+    cache_service.set(f"reset:{token}", token_data, ttl=RESET_TOKEN_TTL)
     
     # Отправляем email
     success = email_service.send_password_reset_email(

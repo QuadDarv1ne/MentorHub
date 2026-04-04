@@ -72,7 +72,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: mentorhub-dev-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-8000}
+      NEXT_PUBLIC_API_URL: http://backend:${BACKEND_PORT:-8000}
       NODE_ENV: development
     ports:
       - "${FRONTEND_PORT:-3000}:3000"

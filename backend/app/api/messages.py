@@ -3,6 +3,7 @@
 API для работы с сообщениями между пользователями
 """
 
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
@@ -15,6 +16,7 @@ from app.models.user import User
 from app.schemas.message import MessageCreate, MessageUpdate, MessageResponse, MessageListResponse, ConversationResponse
 from app.utils.sanitization import sanitize_text_field, is_safe_string
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
