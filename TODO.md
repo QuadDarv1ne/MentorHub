@@ -1,7 +1,39 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 83 — Исправления критических проблем)
-**Статус проекта:** ✅ STABILIZING v1.6 (критические проблемы исправлены)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 84 — Type Safety, Race Conditions, Memory Leaks)
+**Статус проекта:** ✅ HEALTHY v1.7 (стабильный, качество улучшено)
+
+---
+
+## ✅ Исправлено (Сессия 84 — 4 апреля 2026)
+
+### Frontend Type Safety (9 файлов)
+
+**1. Заменены `any` типы на proper TypeScript интерфейсы:**
+- ✅ RealTimeDashboard.tsx — StatCardProps interface
+- ✅ settings/page.tsx — TabButtonProps, ToggleProps interfaces
+- ✅ mentors/search/page.tsx — type guards вместо `as any` для URL params
+- ✅ AdvancedSearch.tsx — правильный type cast для sortBy
+- ✅ MentorSearchFilters.tsx — generics вместо value: any
+- ✅ useApiRequest.ts — err: unknown (2 места)
+- ✅ TwoFactorSetup.tsx — err: unknown (2 места)
+
+### Backend Race Conditions (2 файла)
+
+**2. Добавлена обработка unique constraint violations:**
+- ✅ courses_enrollments.py — try/except вместо check-then-create
+- ✅ reviews.py — try/except вместо check-then-create
+- Теперь race conditions корректно обрабатываются через БД constraints
+
+### Memory Leaks Fixed (2 файла)
+
+**3. Добавлен missing cleanup в useEffect:**
+- ✅ VideoCall.tsx — добавлены client.off() для Agora event listeners
+  * user-published, user-unpublished, user-left теперь снимаются при unmount
+- ✅ EnhancedChat.tsx — добавлены cleanup для всех timeout'ов
+  * reconnectTimeoutRef — для WebSocket reconnection delay
+  * typingTimeoutsRef Map — для typing indicators
+  * Все timeout'ы очищаются при unmount компонента
 
 ---
 
