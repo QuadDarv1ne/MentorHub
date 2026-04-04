@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
 from app.services.subscription_service import get_subscription_service, SubscriptionService
 from app.services.cache import cached
-from app.services.stripe_service import get_stripe_service
+from app.services.stripe_service import stripe_service
 from app.config import settings
 from pydantic import BaseModel, Field
 
@@ -138,7 +138,7 @@ async def create_subscription(
         )
 
     plan = SUBSCRIPTION_PLANS[tier]
-    stripe_service = get_stripe_service()
+    stripe_service = stripe_service
 
     # Проверяем существующую подписку
     existing_subscription = db.query(Subscription).filter(
@@ -231,7 +231,7 @@ async def cancel_subscription(
 
     Подписка остаётся активной до конца оплаченного периода
     """
-    stripe_service = get_stripe_service()
+    stripe_service = stripe_service
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()
@@ -282,7 +282,7 @@ async def cancel_subscription_now(
 
     Возвращает пропорциональную сумму за неиспользованный период
     """
-    stripe_service = get_stripe_service()
+    stripe_service = stripe_service
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()

@@ -50,7 +50,7 @@ class AnalyticsService:
 
             # Курсы
             total_courses = self.db.query(Course).count()
-            published_courses = self.db.query(Course).filter(Course.is_published == True).count()
+            active_courses = self.db.query(Course).filter(Course.is_active == True).count()
             total_enrollments = self.db.query(CourseEnrollment).count()
 
             # Отзывы
@@ -76,7 +76,7 @@ class AnalyticsService:
                 },
                 "courses": {
                     "total": total_courses,
-                    "published": published_courses,
+                    "active": active_courses,
                     "enrollments": total_enrollments,
                     "avg_enrollments_per_course": round(total_enrollments / total_courses if total_courses > 0 else 0, 2)
                 },
@@ -226,7 +226,7 @@ class AnalyticsService:
 
                 # Прогресс
                 avg_progress = self.db.query(
-                    func.avg(Progress.progress_percentage)
+                    func.avg(Progress.progress_percent)
                 ).filter(
                     Progress.course_id == course.id
                 ).scalar() or 0.0
@@ -235,7 +235,7 @@ class AnalyticsService:
                 completed_count = self.db.query(Progress).filter(
                     and_(
                         Progress.course_id == course.id,
-                        Progress.progress_percentage >= 100
+                        Progress.progress_percent >= 100
                     )
                 ).count()
 
@@ -352,7 +352,7 @@ class AnalyticsService:
 
             # Прогресс
             avg_progress = self.db.query(
-                func.avg(Progress.progress_percentage)
+                func.avg(Progress.progress_percent)
             ).filter(
                 Progress.user_id == user_id
             ).scalar() or 0.0

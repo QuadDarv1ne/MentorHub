@@ -205,14 +205,16 @@ class CalendarService:
             ).first()
 
             if not event:
+                # Session имеет notes (не description) и duration_minutes (не duration_hours)
+                duration_hours = (getattr(session, 'duration_minutes', 60) or 60) / 60
                 event = CalendarEvent(
                     user_id=self.user.id,
-                    title=f"Session: {session.title}",
-                    description=session.description,
+                    title=f"Session #{session.id}",
+                    description=getattr(session, 'notes', None),
                     start_time=session.scheduled_at,
-                    end_time=session.scheduled_at + timedelta(hours=session.duration_hours or 1),
+                    end_time=session.scheduled_at + timedelta(hours=duration_hours),
                     external_id=f"session_{session.id}",
-                    source="session"
+                    session_id=session.id
                 )
                 self.db.add(event)
                 synced += 1
@@ -239,12 +241,12 @@ class CalendarService:
             if not event:
                 event = CalendarEvent(
                     user_id=self.user.id,
-                    title=f"Video Call: {call.title or 'Call'}",
-                    description=call.description,
+                    title=f"Video Call #{call.id}",
+                    description=getattr(call, 'description', None),
                     start_time=call.scheduled_at,
                     end_time=call.scheduled_at + timedelta(hours=1),
                     external_id=f"call_{call.id}",
-                    source="video_call"
+                    video_call_id=call.id
                 )
                 self.db.add(event)
                 synced += 1

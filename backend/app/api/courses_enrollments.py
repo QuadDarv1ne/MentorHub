@@ -47,7 +47,7 @@ async def get_my_courses(
             "title": enrollment.course.title,
             "description": enrollment.course.description,
             "category": enrollment.course.category,
-            "difficulty_level": enrollment.course.difficulty_level,
+            "difficulty": enrollment.course.difficulty,
             "duration_hours": enrollment.course.duration_hours,
             "instructor_id": enrollment.course.instructor_id,
             "is_active": enrollment.course.is_active,
@@ -57,9 +57,9 @@ async def get_my_courses(
             "lessons": enrollment.course.lessons,
             "enrollment": {
                 "id": enrollment.id,
-                "enrolled_at": enrollment.enrolled_at,
+                "enrolled_at": enrollment.created_at,
                 "completed": enrollment.completed,
-                "progress": enrollment.progress,
+                "progress_percent": enrollment.progress_percent,
             }
         }
         result.append(course_dict)
@@ -85,7 +85,7 @@ async def enroll_in_course(
         enrollment = CourseEnrollment(
             user_id=current_user.id,
             course_id=course_id,
-            progress=0,
+            progress_percent=0,
             completed=False
         )
 
@@ -171,7 +171,7 @@ async def update_course_progress(
             detail="Вы не записаны на этот курс"
         )
 
-    enrollment.progress = progress
+    enrollment.progress_percent = progress
     enrollment.completed = (progress == 100)
 
     db.commit()

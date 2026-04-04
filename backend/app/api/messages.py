@@ -91,11 +91,8 @@ async def get_message_history(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить историю переписки с конкретным пользователем"""
-    # Проверяем существование собеседника с использованием joinedload для оптимизации
-    other_user = db.query(User).options(
-        joinedload(User.sessions),
-        joinedload(User.reviews)
-    ).filter(User.id == other_user_id).first()
+    # Проверяем существование собеседника
+    other_user = db.query(User).filter(User.id == other_user_id).first()
     if not other_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 

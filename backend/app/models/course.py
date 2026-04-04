@@ -3,7 +3,7 @@
 Модель для хранения информации о курсах
 """
 
-from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float, Index
+from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin

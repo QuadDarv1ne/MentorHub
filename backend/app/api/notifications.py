@@ -263,7 +263,7 @@ async def create_notification(
     """
     notification = Notification(
         user_id=user_id,
-        type=type,
+        notification_type=type,
         title=title,
         message=message,
         data=json.dumps(data) if data else None,

@@ -4,9 +4,12 @@ Anti-Phishing Utilities
 URL safety checking and phishing detection.
 """
 
+import logging
 import re
 from typing import Dict, List
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 
 class AntiPhishingValidator:
