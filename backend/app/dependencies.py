@@ -8,7 +8,7 @@ from collections import defaultdict
 from typing import Generator, Optional
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends, HTTPException, status, Query
+from fastapi import Depends, HTTPException, status, Query, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -296,6 +296,14 @@ _rate_limiter = (
     else None
 )
 
+# Webhook rate limiter - более строгие лимиты для webhook endpoints
+# Webhook провайдеры обычно отправляют 100-1000 запросов в час
+_webhook_rate_limiter = (
+    RateLimiter(requests=500, period=3600)  # 500 запросов в час
+    if settings.RATE_LIMIT_ENABLED
+    else None
+)
+
 
 def rate_limit_dependency(
     current_user: Optional[User] = Depends(get_current_user_optional),
@@ -308,5 +316,26 @@ def rate_limit_dependency(
 
     if not _rate_limiter.is_allowed(client_id):
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded")
+
+    return True
+
+
+def webhook_rate_limit_dependency(request: Request) -> bool:
+    """
+    Специальный rate limiter для webhook endpoints.
+    Использует IP адрес для идентификации, так как webhook'и не имеют авторизации.
+    """
+    if not _webhook_rate_limiter:
+        return True
+
+    # Используем IP адрес + path для более точной идентификации
+    client_ip = request.client.host if request.client else "unknown"
+    client_id = f"webhook_{client_ip}_{request.url.path}"
+
+    if not _webhook_rate_limiter.is_allowed(client_id):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Webhook rate limit exceeded"
+        )
 
     return True

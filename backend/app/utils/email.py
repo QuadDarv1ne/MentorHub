@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 class EmailService:
     """Сервис для отправки email уведомлений"""
 
+    # Timeout для SMTP подключений (секунды)
+    SMTP_TIMEOUT = 30
+
     def __init__(self):
         self.smtp_host = getattr(settings, 'SMTP_HOST', 'smtp.gmail.com')
         self.smtp_port = getattr(settings, 'SMTP_PORT', 587)
@@ -46,7 +49,7 @@ class EmailService:
                 msg.attach(MIMEText(text_content, 'plain'))
             msg.attach(MIMEText(html_content, 'html'))
 
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=self.SMTP_TIMEOUT) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.send_message(msg)

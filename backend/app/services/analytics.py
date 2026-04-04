@@ -132,10 +132,10 @@ class AnalyticsService:
     def get_session_analytics(self, days: int = 30) -> Dict:
         """
         Аналитика по сессиям
-        
+
         Args:
             days: Количество дней для анализа
-            
+
         Returns:
             Dict с метриками сессий
         """
@@ -143,12 +143,12 @@ class AnalyticsService:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
             start_timestamp = int(start_date.timestamp())
 
-            # Сессии за период
-            sessions = self.db.query(MentorSession).filter(
+            # Общее количество сессий
+            total_sessions = self.db.query(func.count(MentorSession.id)).filter(
                 MentorSession.created_at >= start_timestamp
-            ).all()
+            ).scalar() or 0
 
-            if not sessions:
+            if total_sessions == 0:
                 return {
                     "total": 0,
                     "by_status": {},
@@ -156,15 +156,20 @@ class AnalyticsService:
                     "top_mentors": []
                 }
 
-            # По статусам
+            # По статусам - используем агрегацию вместо загрузки всех записей
             by_status = {}
             for status in SessionStatus:
-                count = sum(1 for s in sessions if s.status == status)
+                count = self.db.query(func.count(MentorSession.id)).filter(
+                    MentorSession.created_at >= start_timestamp,
+                    MentorSession.status == status
+                ).scalar() or 0
                 by_status[status.value] = count
 
-            # Средняя длительность
-            durations = [s.duration_minutes for s in sessions if s.duration_minutes]
-            avg_duration = sum(durations) / len(durations) if durations else 0
+            # Средняя длительность - агрегация на уровне БД
+            avg_duration = self.db.query(func.avg(MentorSession.duration_minutes)).filter(
+                MentorSession.created_at >= start_timestamp,
+                MentorSession.duration_minutes.isnot(None)
+            ).scalar() or 0
 
             # Топ менторов по сессиям
             top_mentors = self.db.query(
@@ -179,9 +184,9 @@ class AnalyticsService:
             ).limit(10).all()
 
             return {
-                "total": len(sessions),
+                "total": total_sessions,
                 "by_status": by_status,
-                "avg_duration_minutes": round(avg_duration, 2),
+                "avg_duration_minutes": round(float(avg_duration), 2),
                 "top_mentors": [
                     {"mentor_id": row.mentor_id, "sessions": row.session_count}
                     for row in top_mentors
@@ -271,13 +276,18 @@ class AnalyticsService:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
             start_timestamp = int(start_date.timestamp())
 
-            # Платежи за период
-            payments = self.db.query(Payment).filter(
+            # Финансовые метрики - используем агрегацию вместо загрузки всех записей
+            total_revenue = self.db.query(func.sum(Payment.amount)).filter(
                 Payment.created_at >= start_timestamp,
                 Payment.status == "completed"
-            ).all()
+            ).scalar() or 0
 
-            if not payments:
+            transaction_count = self.db.query(func.count(Payment.id)).filter(
+                Payment.created_at >= start_timestamp,
+                Payment.status == "completed"
+            ).scalar() or 0
+
+            if transaction_count == 0:
                 return {
                     "total_revenue": 0,
                     "transaction_count": 0,
@@ -285,8 +295,7 @@ class AnalyticsService:
                     "daily_revenue": []
                 }
 
-            total_revenue = sum(p.amount for p in payments)
-            avg_transaction = total_revenue / len(payments)
+            avg_transaction = float(total_revenue) / transaction_count
 
             # По дням
             daily_revenue = self.db.query(
@@ -301,7 +310,7 @@ class AnalyticsService:
 
             return {
                 "total_revenue": float(total_revenue),
-                "transaction_count": len(payments),
+                "transaction_count": transaction_count,
                 "avg_transaction": round(avg_transaction, 2),
                 "daily_revenue": [
                     {

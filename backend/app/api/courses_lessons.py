@@ -9,7 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db, get_current_user, rate_limit_dependency
-from app.models.course import Course, Lesson
+from app.models.course import Course, Lesson, CourseEnrollment
+from app.models.progress import Progress
 from app.models.user import User
 from app.schemas.course import LessonCreate, LessonUpdate, LessonResponse
 from app.utils.cache import invalidate_cache
@@ -126,7 +127,7 @@ async def delete_lesson(
     return None
 
 
-@router.post("/lessons/{lesson_id}/complete", response_model=LessonResponse)
+@router.post("/lessons/{lesson_id}/complete", status_code=status.HTTP_200_OK)
 async def complete_lesson(
     lesson_id: int,
     db: Session = Depends(get_db),
@@ -134,11 +135,97 @@ async def complete_lesson(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Отметить урок как завершённый"""
+    # Находим урок
     lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
     if not lesson:
         raise HTTPException(status_code=404, detail="Урок не найден")
 
-    # TODO: Добавить логику отслеживания завершения урока для конкретного пользователя
-    # Сейчас просто возвращаем урок
+    # Проверяем что пользователь записан на курс
+    enrollment = (
+        db.query(CourseEnrollment)
+        .filter(
+            CourseEnrollment.user_id == current_user.id,
+            CourseEnrollment.course_id == lesson.course_id,
+        )
+        .first()
+    )
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail="Вы не записаны на этот курс. Сначала запишитесь на курс."
+        )
 
-    return lesson
+    # Создаём или обновляем запись прогресса для урока
+    lesson_progress = (
+        db.query(Progress)
+        .filter(
+            Progress.user_id == current_user.id,
+            Progress.course_id == lesson.course_id,
+            Progress.lesson_id == lesson_id,
+        )
+        .first()
+    )
+
+    if lesson_progress:
+        # Обновляем существующую запись
+        lesson_progress.completed = True
+        lesson_progress.progress_percent = 100
+    else:
+        # Создаём новую запись
+        lesson_progress = Progress(
+            user_id=current_user.id,
+            course_id=lesson.course_id,
+            lesson_id=lesson_id,
+            progress_percent=100,
+            completed=True,
+        )
+        db.add(lesson_progress)
+
+    # Считаем общее количество уроков в курсе
+    total_lessons = (
+        db.query(Lesson)
+        .filter(Lesson.course_id == lesson.course_id)
+        .count()
+    )
+
+    # Считаем количество завершённых уроков
+    completed_lessons = (
+        db.query(Progress)
+        .filter(
+            Progress.user_id == current_user.id,
+            Progress.course_id == lesson.course_id,
+            Progress.lesson_id.isnot(None),
+            Progress.completed.is_(True),
+        )
+        .distinct(Progress.lesson_id)
+        .count()
+    )
+
+    # Вычисляем общий прогресс курса
+    if total_lessons > 0:
+        course_progress = int((completed_lessons / total_lessons) * 100)
+    else:
+        course_progress = 0
+
+    # Обновляем запись записи на курс
+    enrollment.progress_percent = course_progress
+    enrollment.completed = course_progress == 100
+
+    if enrollment.completed and not enrollment.completed_at:
+        from datetime import datetime
+        enrollment.completed_at = datetime.utcnow()
+
+    db.commit()
+
+    # Инвалидируем кеш курса
+    asyncio.create_task(invalidate_cache(f"course_detail:{lesson.course_id}"))
+
+    return {
+        "lesson_id": lesson.id,
+        "lesson_title": lesson.title,
+        "course_id": lesson.course_id,
+        "course_progress": course_progress,
+        "completed_lessons": completed_lessons,
+        "total_lessons": total_lessons,
+        "course_completed": enrollment.completed,
+    }

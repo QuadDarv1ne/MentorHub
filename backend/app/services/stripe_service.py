@@ -16,6 +16,7 @@ except ImportError:
     STRIPE_AVAILABLE = False
 
 from app.config import settings
+from app.utils.retry import retry_on_exception
 
 logger = logging.getLogger(__name__)
 

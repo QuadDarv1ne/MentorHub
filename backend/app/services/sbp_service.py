@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from app.config import settings
+from app.utils.retry import retry_on_exception
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +70,15 @@ class SBPService:
         signature = hashlib.sha256(message.encode()).hexdigest()
         return signature
 
+    @retry_on_exception(
+        exceptions=(requests.exceptions.RequestException, ConnectionError, TimeoutError),
+        max_retries=3,
+        delay=1.0,
+        backoff=2.0,
+    )
     def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
         """
-        Выполнение HTTP запроса к СБП API
+        Выполнение HTTP запроса к СБП API с retry логикой
 
         Args:
             method: HTTP метод (GET, POST)

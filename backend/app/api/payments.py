@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
+from app.dependencies import get_db, get_current_user, rate_limit_dependency, webhook_rate_limit_dependency
 from app.models.user import User
 from app.schemas.payment import PaymentResponse, PaymentCreate, PaymentUpdate
 from app.api.payments_crud import (
@@ -207,7 +207,7 @@ async def refund_payment(
 async def stripe_webhook(
     request: Request,
     db: Session = Depends(get_db),
-    rate_limit: bool = Depends(rate_limit_dependency)
+    rate_limit: bool = Depends(webhook_rate_limit_dependency)
 ):
     """Handle Stripe webhook events."""
     from app.services.stripe_service import stripe_service
@@ -259,7 +259,7 @@ async def get_sbp_banks():
 async def sbp_webhook(
     request: Request,
     db: Session = Depends(get_db),
-    rate_limit: bool = Depends(rate_limit_dependency)
+    rate_limit: bool = Depends(webhook_rate_limit_dependency)
 ):
     """Handle SBP webhook events."""
     from app.services.sbp_service import sbp_service
