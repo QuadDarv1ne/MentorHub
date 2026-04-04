@@ -1,7 +1,23 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 89 — Dead Code Removal & Import Fixes)
-**Статус проекта:** ✅ HEALTHY v2.1 (код чище, баги импорта исправлены)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 90 — Backend Error Handling)
+**Статус проекта:** ✅ HEALTHY v2.2 (полная обработка ошибок)
+
+---
+
+## ✅ Исправлено (Сессия 90 — 4 апреля 2026)
+
+### Backend Error Handling (3 файла, 7 endpoints)
+
+**1. Добавлена обработка ошибок в endpoints:**
+- ✅ courses_lessons.py — create_lesson, update_lesson, delete_lesson, complete_lesson
+- ✅ progress.py — upsert_progress (обе ветки: update и create)
+- ✅ courses_enrollments.py — unenroll_from_course
+
+**2. Все обработчики включают:**
+- ✅ db.rollback() при ошибке
+- ✅ logger.error() с описательным сообщением
+- ✅ Generic HTTPException без утечки sensitive info
 
 ---
 
