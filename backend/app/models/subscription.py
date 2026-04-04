@@ -13,6 +13,7 @@ from app.database import Base
 
 class SubscriptionStatus(str, enum.Enum):
     """Статус подписки"""
+    FREE = "free"  # Бесплатная подписка
     TRIAL = "trial"  # Пробный период
     ACTIVE = "active"  # Активна
     PAST_DUE = "past_due"  # Просрочена

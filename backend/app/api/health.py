@@ -39,10 +39,20 @@ except Exception as e:
 def get_system_metrics() -> Dict[str, Any]:
     """Получает системные метрики"""
     try:
+        import platform
+        import os
+        
+        # Cross-platform disk usage
+        if platform.system() == "Windows":
+            # На Windows используем текущий диск
+            path = os.getcwd()[0] + ":/"
+        else:
+            path = "/"
+        
         return {
             "cpu_percent": psutil.cpu_percent(interval=1),
             "memory_percent": psutil.virtual_memory().percent,
-            "disk_percent": psutil.disk_usage("/").percent,
+            "disk_percent": psutil.disk_usage(path).percent,
             "uptime_seconds": time.time() - psutil.boot_time()
         }
     except Exception as e:

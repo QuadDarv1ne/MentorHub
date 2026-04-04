@@ -18,6 +18,7 @@ from app.models.notification import Notification
 from app.models.chat_room import ChatRoom, ChatMessage
 from app.models.video_call import VideoCall, CallType, CallStatus
 from app.models.calendar import CalendarSync, CalendarEvent, CalendarProvider
+from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
 
 # Импортируйте все модели здесь для автогенерации Alembic
 
@@ -48,4 +49,7 @@ __all__ = [
     "CalendarSync",
     "CalendarEvent",
     "CalendarProvider",
+    "Subscription",
+    "SubscriptionStatus",
+    "SubscriptionTier",
 ]

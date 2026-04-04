@@ -62,9 +62,14 @@ def signal_handler(signum, frame):
 
 
 # Регистрируем обработчики сигналов
-signal.signal(signal.SIGTERM, signal_handler)
+# SIGTERM не поддерживается на Windows, используем SIGINT
+import platform
+if platform.system() != "Windows":
+    signal.signal(signal.SIGTERM, signal_handler)
+    logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")
+else:
+    logger.info("✅ Signal handlers registered for SIGINT (Windows)")
 signal.signal(signal.SIGINT, signal_handler)
-logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")
 
 
 # ==================== REDIS CLIENT SETUP ====================
