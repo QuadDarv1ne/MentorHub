@@ -40,7 +40,7 @@ class NotificationService:
             query = query.filter(Notification.is_read == False)
 
         if notification_type:
-            query = query.filter(Notification.type == notification_type)
+            query = query.filter(Notification.notification_type == notification_type)
 
         query = query.options(
             joinedload(Notification.user)

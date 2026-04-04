@@ -2,7 +2,7 @@
 Модель отзыва о курсе
 """
 
-from sqlalchemy import Column, Integer, Text, ForeignKey
+from sqlalchemy import Column, Integer, Text, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
@@ -18,8 +18,13 @@ class Review(BaseModel, TimestampMixin):
     rating = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
 
-    # Отношение к пользователю
-    user = relationship("User", backref="reviews")
+    # Отношение к пользователю с cascade delete
+    user = relationship("User", back_populates="reviews")
+
+    # Уникальный constraint: один отзыв на курс от пользователя (защита от race condition)
+    __table_args__ = (
+        UniqueConstraint('user_id', 'course_id', name='uq_review_user_course'),
+    )
 
     def __repr__(self):
         return f"<Review(id={self.id}, user_id={self.user_id}, course_id={self.course_id}, rating={self.rating})>"

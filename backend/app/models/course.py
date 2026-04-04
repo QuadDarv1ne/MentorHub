@@ -80,12 +80,14 @@ class CourseEnrollment(BaseModel, TimestampMixin):
     completed = Column(Boolean, default=False, nullable=False, index=True)
     completed_at = Column(DateTime, nullable=True)
 
-    # Связи
+    # Связи с cascade delete
     user = relationship("User", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
 
+    # Уникальный constraint: одна запись на курс от пользователя (защита от race condition)
     # Составные индексы для оптимизации запросов
     __table_args__ = (
+        UniqueConstraint('user_id', 'course_id', name='uq_enrollment_user_course'),
         Index('idx_enrollment_user_completed', 'user_id', 'completed'),
         Index('idx_enrollment_course_completed', 'course_id', 'completed'),
     )

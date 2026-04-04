@@ -47,29 +47,29 @@ class NotificationType(str, enum.Enum):
 
 class Notification(BaseModel, TimestampMixin):
     """Модель уведомления"""
-    
+
     __tablename__ = "notifications"
-    
+
     # Получатель
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
     # Тип и содержание
-    type = Column(SQLEnum(NotificationType), nullable=False, index=True)
+    notification_type = Column(SQLEnum(NotificationType, name="notification_type_enum"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
-    
+
     # Дополнительные данные (JSON)
     data = Column(Text, nullable=True)  # JSON string
-    
+
     # Ссылка на связанный объект
     link = Column(String(512), nullable=True)
-    
+
     # Статус
     is_read = Column(Boolean, default=False, nullable=False, index=True)
     read_at = Column(Integer, nullable=True)  # Unix timestamp
-    
-    # Связи
+
+    # Связи с cascade delete
     user = relationship("User", back_populates="notifications")
-    
+
     def __repr__(self):
-        return f"<Notification(id={self.id}, type={self.type.value}, user_id={self.user_id}, is_read={self.is_read})>"
+        return f"<Notification(id={self.id}, type={self.notification_type.value}, user_id={self.user_id}, is_read={self.is_read})>"

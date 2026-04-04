@@ -17,6 +17,7 @@ from app.schemas.chat_room import (
     ChatMessageCreate, ChatMessageResponse, ChatMessageListResponse, AddMemberRequest, RemoveMemberRequest
 )
 from app.services.chat_room_service import ChatRoomService, format_room_response
+from app.utils.sanitization import sanitize_string, is_safe_string
 
 router = APIRouter()
 
@@ -280,10 +281,15 @@ async def send_chat_message(
         if not parent_msg:
             raise HTTPException(status_code=404, detail="Родительское сообщение не найдено")
     
+    # Санитизация контента сообщения (XSS protection)
+    sanitized_content = sanitize_string(message.content)
+    if not is_safe_string(sanitized_content):
+        raise HTTPException(status_code=400, detail="Сообщение содержит недопустимые символы")
+
     db_message = ChatMessage(
         room_id=room_id,
         sender_id=current_user.id,
-        content=message.content,
+        content=sanitized_content,
         attachment_url=message.attachment_url,
         attachment_type=message.attachment_type,
         parent_message_id=message.parent_message_id
@@ -335,8 +341,14 @@ async def edit_chat_message(
     
     if db_message.is_deleted:
         raise HTTPException(status_code=400, detail="Нельзя редактировать удалённое сообщение")
+
+    # Санитизация нового контента (XSS protection)
+    if message_data.content:
+        sanitized_content = sanitize_string(message_data.content)
+        if not is_safe_string(sanitized_content):
+            raise HTTPException(status_code=400, detail="Сообщение содержит недопустимые символы")
+        db_message.content = sanitized_content
     
-    db_message.content = message_data.content
     db_message.is_edited = True
     db_message.updated_at = datetime.now(timezone.utc)
     

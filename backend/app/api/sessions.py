@@ -19,9 +19,16 @@ router = APIRouter()
 
 @router.get("/", response_model=List[SessionResponse])
 async def get_sessions(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Получить список сессий"""
+    """Получить список сессий (только для администраторов)"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права администратора.")
+    
     if skip < 0:
         skip = 0
     if limit <= 0 or limit > 100:
@@ -64,20 +71,37 @@ async def get_my_sessions(
 
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
-    session_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить информацию о сессии по ID"""
     session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
+    
+    # Проверка доступа: студент, ментор или админ
+    if (session.student_id != current_user.id and 
+        session.mentor_id != current_user.id and 
+        current_user.role != "admin"):
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    
     return session
 
 
 @router.post("/", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
-    session: SessionCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    session: SessionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Создать сессию"""
+    """Создать сессию (только для менторов и администраторов)"""
+    # Проверяем что пользователь ментор или админ
+    if current_user.role not in ["mentor", "admin"]:
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права ментора.")
+    
     # Санитизация входных данных
     sanitized_meeting_link = sanitize_string(session.meeting_link) if session.meeting_link else None
     sanitized_notes = sanitize_string(session.notes) if session.notes else None
@@ -101,6 +125,13 @@ async def create_session(
     if not mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
 
+    # Если пользователь не админ, проверяем что он создаёт сессию как ментор
+    if current_user.role != "admin" and session.mentor_id != current_user.id:
+        # Проверяем что пользователь associated с этим ментором
+        user_mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+        if not user_mentor or user_mentor.id != session.mentor_id:
+            raise HTTPException(status_code=403, detail="Вы можете создавать сессии только от своего имени")
+
     # Создаем сессию с санитизированными данными
     db_session = DBSession(
         student_id=session.student_id,
@@ -111,9 +142,14 @@ async def create_session(
         notes=sanitized_notes,
     )
     db.add(db_session)
-    db.commit()
-    db.refresh(db_session)
-    return db_session
+    
+    try:
+        db.commit()
+        db.refresh(db_session)
+        return db_session
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при создании сессии: {str(e)}")
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
@@ -121,12 +157,19 @@ async def update_session(
     session_id: int,
     session: SessionUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Обновить сессию"""
+    """Обновить сессию (только для участников сессии или администратора)"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
+    
+    # Проверка ownership: студент, ментор или админ
+    if (db_session.student_id != current_user.id and 
+        db_session.mentor_id != current_user.id and 
+        current_user.role != "admin"):
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     # Санитизация входных данных
     sanitized_data = {}
@@ -144,20 +187,37 @@ async def update_session(
     for key, value in sanitized_data.items():
         setattr(db_session, key, value)
 
-    db.commit()
-    db.refresh(db_session)
-    return db_session
+    try:
+        db.commit()
+        db.refresh(db_session)
+        return db_session
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении сессии: {str(e)}")
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(
-    session_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Удалить сессию"""
+    """Удалить сессию (только для участников сессии или администратора)"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
+    
+    # Проверка ownership: студент, ментор или админ
+    if (db_session.student_id != current_user.id and 
+        db_session.mentor_id != current_user.id and 
+        current_user.role != "admin"):
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
-    db.delete(db_session)
-    db.commit()
-    return None
+    try:
+        db.delete(db_session)
+        db.commit()
+        return None
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при удалении сессии: {str(e)}")

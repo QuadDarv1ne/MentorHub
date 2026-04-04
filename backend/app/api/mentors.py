@@ -9,7 +9,7 @@ from typing import List
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, rate_limit_dependency
+from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.mentor import Mentor
 from app.models.user import User
 from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
@@ -58,9 +58,16 @@ async def get_mentor(mentor_id: int, db: Session = Depends(get_db), rate_limit: 
 
 @router.post("/", response_model=MentorResponse, status_code=status.HTTP_201_CREATED)
 async def create_mentor(
-    mentor: MentorCreate, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    mentor: MentorCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Создать профиль ментора"""
+    """Создать профиль ментора (только для авторизованных пользователей)"""
+    # Пользователь может создать профиль только от своего имени (или админ)
+    if mentor.user_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете создать профиль только от своего имени.")
+    
     # Санитизация входных данных
     sanitized_bio = sanitize_text_field(mentor.bio) if mentor.bio else None
     sanitized_specialization = sanitize_string(mentor.specialization) if mentor.specialization else None
@@ -94,9 +101,14 @@ async def create_mentor(
         is_available=mentor.is_available,
     )
     db.add(db_mentor)
-    db.commit()
-    db.refresh(db_mentor)
-    return db_mentor
+    
+    try:
+        db.commit()
+        db.refresh(db_mentor)
+        return db_mentor
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при создании профиля ментора: {str(e)}")
 
 
 @router.put("/{mentor_id}", response_model=MentorResponse)
@@ -104,12 +116,17 @@ async def update_mentor(
     mentor_id: int,
     mentor: MentorUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Обновить профиль ментора"""
+    """Обновить профиль ментора (только владелец или админ)"""
     db_mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
     if not db_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
+    
+    # Проверка ownership: владелец профиля или админ
+    if db_mentor.user_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете редактировать только свой профиль.")
 
     # Санитизация входных данных
     sanitized_data = {}
@@ -131,8 +148,12 @@ async def update_mentor(
     for key, value in sanitized_data.items():
         setattr(db_mentor, key, value)
 
-    db.commit()
-    db.refresh(db_mentor)
+    try:
+        db.commit()
+        db.refresh(db_mentor)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении профиля ментора: {str(e)}")
 
     # Инвалидируем кеш обновленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
@@ -143,15 +164,26 @@ async def update_mentor(
 
 @router.delete("/{mentor_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_mentor(
-    mentor_id: int, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
+    mentor_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    rate_limit: bool = Depends(rate_limit_dependency),
 ):
-    """Удалить профиль ментора"""
+    """Удалить профиль ментора (только владелец или админ)"""
     db_mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
     if not db_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
+    
+    # Проверка ownership: владелец профиля или админ
+    if db_mentor.user_id != current_user.id and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете удалить только свой профиль.")
 
-    db.delete(db_mentor)
-    db.commit()
+    try:
+        db.delete(db_mentor)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при удалении профиля ментора: {str(e)}")
 
     # Инвалидируем кеш удаленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))

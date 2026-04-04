@@ -83,7 +83,7 @@ async def get_notifications(
         query = query.filter(Notification.is_read == False)
     
     if type:
-        query = query.filter(Notification.type == type)
+        query = query.filter(Notification.notification_type == type)
     
     # Подсчет непрочитанных
     unread_count = db.query(Notification).filter(
@@ -96,14 +96,14 @@ async def get_notifications(
     notifications = query.options(
         joinedload(Notification.user)
     ).order_by(desc(Notification.created_at)).offset(skip).limit(limit).all()
-    
+
     # Преобразование
     notification_responses = []
     for notif in notifications:
         data = json.loads(notif.data) if notif.data else None
         notification_responses.append(NotificationResponse(
             id=notif.id,
-            type=notif.type.value,
+            type=notif.notification_type.value,
             title=notif.title,
             message=notif.message,
             data=data,
