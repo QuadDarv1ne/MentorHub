@@ -165,37 +165,76 @@ def refund_stripe_payment(
 def handle_stripe_webhook_event(
     db: Session,
     event_type: str,
-    event_data: dict
+    event_data: dict,
+    stripe_event_id: Optional[str] = None
 ) -> bool:
     """
-    Handle Stripe webhook event.
-    
+    Handle Stripe webhook event with idempotency.
+
+    Uses database transaction with row-level locking to prevent
+    duplicate processing of the same event.
+
+    Args:
+        db: Database session
+        event_type: Stripe event type
+        event_data: Event payload
+        stripe_event_id: Unique Stripe event ID for idempotency
+
     Returns True if event was processed successfully.
     """
-    if event_type == "payment_intent.succeeded":
-        payment_intent = event_data["data"]["object"]
-        transaction_id = payment_intent["id"]
+    try:
+        if event_type == "payment_intent.succeeded":
+            payment_intent = event_data["data"]["object"]
+            transaction_id = payment_intent["id"]
 
-        payment = db.query(DBPayment).filter(
-            DBPayment.transaction_id == transaction_id
-        ).first()
+            # Use FOR UPDATE to prevent race conditions
+            payment = db.query(DBPayment).filter(
+                DBPayment.transaction_id == transaction_id
+            ).with_for_update().first()
 
-        if payment:
-            payment.status = PaymentStatus.COMPLETED
-            db.commit()
-            return True
+            if payment:
+                # Idempotency check: only update if not already completed
+                if payment.status != PaymentStatus.COMPLETED:
+                    payment.status = PaymentStatus.COMPLETED
+                    db.commit()
+                    return True
+                # Already processed - return True for idempotency
+                return True
 
-    elif event_type == "payment_intent.payment_failed":
-        payment_intent = event_data["data"]["object"]
-        transaction_id = payment_intent["id"]
+        elif event_type == "payment_intent.payment_failed":
+            payment_intent = event_data["data"]["object"]
+            transaction_id = payment_intent["id"]
 
-        payment = db.query(DBPayment).filter(
-            DBPayment.transaction_id == transaction_id
-        ).first()
+            payment = db.query(DBPayment).filter(
+                DBPayment.transaction_id == transaction_id
+            ).with_for_update().first()
 
-        if payment:
-            payment.status = PaymentStatus.FAILED
-            db.commit()
-            return True
+            if payment:
+                # Idempotency check: only update if not already failed
+                if payment.status not in [PaymentStatus.FAILED, PaymentStatus.REFUNDED]:
+                    payment.status = PaymentStatus.FAILED
+                    db.commit()
+                    return True
+                return True
 
-    return False
+        elif event_type == "charge.refunded":
+            charge = event_data["data"]["object"]
+            payment_intent_id = charge.get("payment_intent")
+
+            if payment_intent_id:
+                payment = db.query(DBPayment).filter(
+                    DBPayment.transaction_id == payment_intent_id
+                ).with_for_update().first()
+
+                if payment and payment.status != PaymentStatus.REFUNDED:
+                    payment.status = PaymentStatus.REFUNDED
+                    db.commit()
+                    return True
+
+        return False
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Webhook processing error: {str(e)}"
+        )
