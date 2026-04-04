@@ -1,7 +1,34 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 91 — Автоматическая система портов)
-**Статус проекта:** ✅ HEALTHY v2.3 (гибкая настройка портов)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 92 — Критические исправления багов)
+**Статус проекта:** ✅ HEALTHY v2.4 (критические баги исправлены)
+
+---
+
+## ✅ Исправлено (Сессия 92 — 4 апреля 2026)
+
+### Критические исправления backend (4 файла)
+
+**1. subscription.py — Добавлен FREE статус в enum:**
+- ✅ SubscriptionStatus.FREE = "free" — добавлен недостающий статус
+- **Влияние:** Без этого статуса приложение падало при импорте моделей (AttributeError)
+- **Причина:** Модель использовала SubscriptionStatus.FREE, но enum не содержал его
+
+**2. models/__init__.py — Экспорт Subscription модели:**
+- ✅ Добавлен import: Subscription, SubscriptionStatus, SubscriptionTier
+- ✅ Добавлен в __all__ список
+- **Влияние:** Alembic auto-migrations теперь корректно обнаруживает таблицу subscriptions
+
+**3. lifespan.py — Cross-platform signal handlers:**
+- ✅ Добавлена проверка platform.system() перед регистрацией SIGTERM
+- ✅ SIGTERM только на Linux/macOS, SIGINT на всех платформах
+- **Влияние:** Приложение теперь запускается на Windows без исключений
+
+**4. health.py — Cross-platform disk usage:**
+- ✅ Проверка platform.system() для определения пути
+- ✅ Windows: используется os.getcwd()[0] + ":/"
+- ✅ Linux/macOS: используется "/"
+- **Влияние:** Health check работает корректно на всех платформах
 
 ---
 
