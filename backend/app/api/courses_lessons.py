@@ -4,6 +4,7 @@ Course Lessons API
 """
 
 import asyncio
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,6 +16,7 @@ from app.models.user import User
 from app.schemas.course import LessonCreate, LessonUpdate, LessonResponse
 from app.utils.cache import invalidate_cache
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -60,8 +62,14 @@ async def create_lesson(
     # Создаем урок
     db_lesson = Lesson(course_id=course_id, **lesson.model_dump())
     db.add(db_lesson)
-    db.commit()
-    db.refresh(db_lesson)
+
+    try:
+        db.commit()
+        db.refresh(db_lesson)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating lesson: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при создании урока")
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
@@ -91,8 +99,13 @@ async def update_lesson(
     for key, value in lesson.model_dump(exclude_unset=True).items():
         setattr(db_lesson, key, value)
 
-    db.commit()
-    db.refresh(db_lesson)
+    try:
+        db.commit()
+        db.refresh(db_lesson)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating lesson: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении урока")
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{db_lesson.course_id}"))
@@ -119,7 +132,13 @@ async def delete_lesson(
 
     course_id = db_lesson.course_id
     db.delete(db_lesson)
-    db.commit()
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting lesson: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении урока")
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
@@ -215,7 +234,12 @@ async def complete_lesson(
         from datetime import datetime
         enrollment.completed_at = datetime.utcnow()
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error completing lesson: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при завершении урока")
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{lesson.course_id}"))

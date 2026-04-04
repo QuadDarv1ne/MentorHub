@@ -2,6 +2,7 @@
 Роуты для трекинга прогресса пользователей
 """
 
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.schemas.progress import ProgressCreate, ProgressRead, ProgressAggregate
 from app.models import Progress, CourseEnrollment
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -50,8 +52,13 @@ def upsert_progress(
         existing.progress_percent = payload.progress_percent
         existing.completed = bool(payload.completed)
         db.add(existing)
-        db.commit()
-        db.refresh(existing)
+        try:
+            db.commit()
+            db.refresh(existing)
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error updating progress: {e}")
+            raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса")
         return existing
 
     new = Progress(
@@ -62,8 +69,13 @@ def upsert_progress(
         completed=bool(payload.completed or False),
     )
     db.add(new)
-    db.commit()
-    db.refresh(new)
+    try:
+        db.commit()
+        db.refresh(new)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating progress: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при создании записи прогресса")
     return new
 
 

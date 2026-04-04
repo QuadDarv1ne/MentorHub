@@ -3,6 +3,7 @@ Course Enrollments API
 Управление записями на курсы
 """
 
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -13,6 +14,7 @@ from app.models.user import User
 from app.schemas.course import CourseEnrollmentResponse, CourseWithEnrollmentResponse
 from app.services.course_service import CourseService
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -129,7 +131,12 @@ async def unenroll_from_course(
         )
 
     db.delete(enrollment)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error unenrolling from course: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка при отписке от курса")
 
     return None
 
