@@ -204,8 +204,8 @@ class CourseService:
 # Глобальная функция для инвалидации кеша (используется в API)
 async def invalidate_course_cache(db: Session, course_id: int):
     """Инвалидация кеша курса"""
-    from app.services.cache import invalidate_cache
+    from app.utils.cache import invalidate_cache
     import asyncio
-    
+
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
     asyncio.create_task(invalidate_cache("courses_list:*"))

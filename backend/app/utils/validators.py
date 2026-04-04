@@ -259,39 +259,3 @@ def validate_password_strength(password: str) -> None:
     # Проверка на наличие спецсимволов (опционально, но рекомендуется)
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
         logger.info("Password without special characters - weak but allowed")
-
-
-def validate_pagination(page: int = 1, limit: int = 10, max_limit: int = 100) -> tuple:
-    """
-    Валидация параметров пагинации
-
-    Args:
-        page: Номер страницы
-        limit: Количество элементов на странице
-        max_limit: Максимальное количество элементов
-
-    Returns:
-        Tuple[page, limit] с валидированными значениями
-
-    Raises:
-        HTTPException: Если параметры невалидны
-    """
-    if page < 1:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Page must be greater than 0",
-        )
-
-    if limit < 1:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Limit must be greater than 0",
-        )
-
-    if limit > max_limit:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Limit must not exceed {max_limit}",
-        )
-
-    return page, limit

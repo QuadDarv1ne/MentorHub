@@ -5,7 +5,7 @@ URL safety checking and phishing detection.
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List
 from urllib.parse import urlparse
 
 

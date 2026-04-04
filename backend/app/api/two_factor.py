@@ -208,7 +208,7 @@ async def verify_2fa_login(
     
     Используется временный токен после успешной проверки пароля
     """
-    from app.api.auth import create_access_token
+    from app.utils.auth_tokens import create_access_token
     from app.config import settings
     from datetime import timedelta
     import jwt
