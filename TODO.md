@@ -1,11 +1,85 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 82 — Полный аудит и создание TODO)
-**Статус проекта:** 🚧 IN DEVELOPMENT v1.5 (требуется исправление критических проблем)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 83 — Исправления критических проблем)
+**Статус проекта:** ✅ STABILIZING v1.6 (критические проблемы исправлены)
 
 ---
 
-## 📌 Актуальные пометки (4 апреля 2026 — Сессия 82 — Полный аудит проекта)
+## ✅ Исправлено (Сессия 83 — 4 апреля 2026)
+
+### Backend — Критические исправления
+
+**1. subscriptions.py — Runtime crashes исправлены**
+- ✅ Добавлены缺失ющие импорты: `stripe_service`, `SUBSCRIPTION_PLANS`
+- ✅ Исправлен `request.headers` error (теперь используется `settings.FRONTEND_URL`)
+- ✅ Добавлен `Request` как зависимость для http_request
+- ✅ Определены тарифы: basic ($9.99), pro ($29.99), premium ($59.99)
+
+**2. users.py — Публичный доступ к профилю закрыт**
+- ✅ Добавлена авторизация: `current_user = Depends(get_current_user)`
+- ✅ Добавлена проверка: пользователь видит только свой профиль, админы — все
+- ✅ Защита от утечки персональных данных
+
+**3. reviews.py — XSS предотвращен**
+- ✅ Добавлена санитизация `comment` поля через `sanitize_text_field()`
+- ✅ Импорт `from app.utils.sanitization import sanitize_text_field`
+
+**4. payments_crud.py — Ownership checks добавлены**
+- ✅ `update_payment()` — проверка что только владелец или админ может обновлять
+- ✅ `delete_payment()` — проверка что только владелец или админ может удалять
+- ✅ Проверка через `current_user_id` параметр
+
+**5. chat_room_service.py — Double commit bug исправлен**
+- ✅ `create_chat_room()` — теперь один commit вместо двух
+- ✅ Добавление создателя в участники ДО commit (атомарная операция)
+
+**6. constants.py — MINIMUM_POOL_SIZE исправлен**
+- ✅ Изменено с 1000 на 10 (очевидная опечатка)
+
+**7. dependencies.py — Double commit issue исправлен**
+- ✅ Убран авто-commit из `get_db()`
+- ✅ Теперь endpoint'ы сами управляют своими транзакциями
+
+**8. Role comparison bugs — Исправлено в 6 файлах (20+ мест)**
+- ✅ messages.py — 5 исправлений
+- ✅ sessions.py — 6 исправлений
+- ✅ payments.py — 5 исправлений
+- ✅ mentors.py — 3 исправления
+- ✅ push_notifications.py — 2 исправления
+- ✅ Все: `role != "admin"` → `role.value != "admin"`
+
+### Frontend — Критические исправления (Сессия 82)
+
+**9. Hardcoded URLs исправлены**
+- ✅ `login/page.tsx` — теперь использует `NEXT_PUBLIC_API_BASE_URL`
+- ✅ `stepik.ts` — теперь использует env var или относительный путь
+
+**10. Мертвые зависимости удалены**
+- ✅ Удалены: Redux, Zustand, React Query, SWR, react-redux (5 пакетов)
+
+**11. next.config.js исправлен**
+- ✅ Убран дублирующийся `optimizePackageImports`
+- ✅ Включен ESLint в сборке (убран `ignoreDuringBuilds`)
+
+### Backend — Зависимости (Сессия 82)
+
+**12. requirements.txt оптимизированы**
+- ✅ Удален `fastapi-cors` (заменен на встроенный CORSMiddleware)
+- ✅ Перемещены security инструменты в dev: bandit, safety, pip-audit
+- ✅ Добавлены ограничения: celery `<6.0.0`, pytest-asyncio `<1.0.0`
+
+**13. pyproject.toml улучшен**
+- ✅ Python target: 3.9 → 3.10
+- ✅ Mypy: включена строгая типизация
+- ✅ DeprecationWarning: изменен с ignore на default
+
+**14. requirements-dev.txt улучшен**
+- ✅ Добавлены type stubs: types-requests, types-PyYAML, и др.
+- ✅ Добавлен pytest-xdist для параллельных тестов
+
+---
+
+## 📌 Оставшиеся проблемы (Требуют внимания)
 
 **Текущий статус:**
 - 🚧 Ветка: `dev` (синхронизирована с `origin/dev`)
