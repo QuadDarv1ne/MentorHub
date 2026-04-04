@@ -4,6 +4,7 @@ CRUD операции для уведомлений + real-time уведомле
 """
 
 import json
+import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -15,6 +16,7 @@ from app.models.user import User
 from app.models.notification import Notification, NotificationType
 from pydantic import BaseModel, ConfigDict
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -167,20 +169,28 @@ async def mark_all_as_read(
     db: Session = Depends(get_db)
 ):
     """Отметить все уведомления как прочитанные"""
-    updated = db.query(Notification).filter(
-        Notification.user_id == current_user.id,
-        Notification.is_read == False
-    ).update({
-        "is_read": True,
-        "read_at": int(datetime.now(timezone.utc).timestamp())
-    })
-    
-    db.commit()
-    
-    return {
-        "message": "Все уведомления отмечены как прочитанные",
-        "updated_count": updated
-    }
+    try:
+        updated = db.query(Notification).filter(
+            Notification.user_id == current_user.id,
+            Notification.is_read == False
+        ).update({
+            "is_read": True,
+            "read_at": int(datetime.now(timezone.utc).timestamp())
+        })
+
+        db.commit()
+
+        return {
+            "message": "Все уведомления отмечены как прочитанные",
+            "updated_count": updated
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error marking all notifications as read: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при обновлении уведомлений"
+        )
 
 
 @router.delete("/notifications/{notification_id}", status_code=status.HTTP_204_NO_CONTENT)

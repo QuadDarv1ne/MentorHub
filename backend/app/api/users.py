@@ -3,6 +3,7 @@
 Обработка операций с профилем пользователя
 """
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -12,6 +13,7 @@ from app.schemas.user import UserResponse, UserUpdate
 from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
 from app.services.cache import cached
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -59,10 +61,17 @@ async def update_current_user_profile(
             )
         current_user.username = sanitized_username
 
-    db.commit()
-    db.refresh(current_user)
-
-    return current_user
+    try:
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating user profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при обновлении профиля",
+        )
 
 
 @router.get("/{user_id}", response_model=UserResponse)

@@ -19,10 +19,8 @@ from app.utils.sanitization import sanitize_string, is_safe_string
 
 def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPayment]:
     """Get all payments with pagination."""
-    if skip < 0:
-        skip = 0
-    if limit <= 0 or limit > 100:
-        limit = 100
+    from app.utils.pagination import validate_pagination
+    skip, limit = validate_pagination(skip, limit)
 
     payments = db.query(DBPayment).options(
         joinedload(DBPayment.student),

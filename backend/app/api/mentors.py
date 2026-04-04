@@ -35,10 +35,8 @@ async def get_mentors(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список менторов"""
-    if skip < 0:
-        skip = 0
-    if limit <= 0 or limit > 100:
-        limit = 100
+    from app.utils.pagination import validate_pagination
+    skip, limit = validate_pagination(skip, limit)
 
     # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
     mentors = db.query(Mentor).options(joinedload(Mentor.user)).offset(skip).limit(limit).all()

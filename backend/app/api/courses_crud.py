@@ -34,10 +34,8 @@ async def get_courses(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список курсов с фильтрацией"""
-    if skip < 0:
-        skip = 0
-    if limit <= 0 or limit > 100:
-        limit = 100
+    from app.utils.pagination import validate_pagination
+    skip, limit = validate_pagination(skip, limit)
 
     query = db.query(Course).options(joinedload(Course.instructor))
 

@@ -36,10 +36,8 @@ async def get_achievements(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список всех достижений"""
-    if skip < 0:
-        skip = 0
-    if limit <= 0 or limit > 100:
-        limit = 100
+    from app.utils.pagination import validate_pagination
+    skip, limit = validate_pagination(skip, limit)
 
     achievements = db.query(Achievement).options(
         joinedload(Achievement.user)

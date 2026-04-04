@@ -121,10 +121,16 @@ async def get_message_history(
         DBMessage.recipient_id == current_user.id,
         DBMessage.is_read == False
     ).all()
-    
+
     for msg in unread_messages:
         msg.is_read = True
-    db.commit()
+    
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error marking messages as read: {e}")
+        # Не прерываем запрос, просто логируем ошибку
 
     return {
         "messages": messages,
@@ -149,10 +155,8 @@ async def get_messages(
     if current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
-    if skip < 0:
-        skip = 0
-    if limit <= 0 or limit > 100:
-        limit = 100
+    from app.utils.pagination import validate_pagination
+    skip, limit = validate_pagination(skip, limit)
 
     messages = db.query(DBMessage).offset(skip).limit(limit).all()
     return messages
