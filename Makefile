@@ -21,6 +21,22 @@ setup: ## Initial project setup (create .env with auto-detected ports)
 	@echo "$(BLUE)Setting up MentorHub...$(NC)"
 	@bash scripts/auto-ports.sh
 
+config-gen: ## Generate intelligent .env configuration
+	@echo "$(BLUE)Generating intelligent configuration...$(NC)"
+	@python3 scripts/generate_env.py
+
+config-validate: ## Validate .env configuration
+	@echo "$(BLUE)Validating configuration...$(NC)"
+	@bash scripts/validate_env.sh
+
+preflight: ## Run pre-flight checks before launch
+	@echo "$(BLUE)Running pre-flight checks...$(NC)"
+	@bash scripts/preflight-checks.sh
+
+resource-profile: ## Detect and apply resource profile
+	@echo "$(BLUE)Applying resource profile...$(NC)"
+	@bash scripts/resource-profile.sh apply
+
 # ==================== INSTALLATION ====================
 
 install: ## Install all dependencies (backend + frontend)
@@ -199,6 +215,72 @@ restore: ## Restore database from backup
 	@echo "$(YELLOW)Restoring database...$(NC)"
 	@read -p "Enter backup file path: " backup_file && ./scripts/restore.sh $$backup_file
 	@echo "$(GREEN)✓ Restore completed$(NC)"
+
+# ==================== AUTOMATION & MONITORING ====================
+
+orchestrator: ## Start MentorHub with orchestrator (auto mode)
+	@echo "$(BLUE)Starting MentorHub with orchestrator...$(NC)"
+	@bash orchestrator.sh start
+
+orchestrator-prod: ## Start MentorHub in production mode
+	@echo "$(BLUE)Starting MentorHub in production mode...$(NC)"
+	@bash orchestrator.sh start --mode=production
+
+orchestrator-status: ## Show orchestrator status
+	@bash orchestrator.sh status
+
+orchestrator-logs: ## Show orchestrator logs
+	@bash orchestrator.sh logs
+
+auto-heal: ## Start auto-heal monitoring
+	@echo "$(BLUE)Starting auto-heal monitor...$(NC)"
+	@bash scripts/auto-heal.sh monitor
+
+logging: ## View and manage logs
+	@bash scripts/logging.sh view
+
+logging-monitor: ## Real-time log monitoring
+	@bash scripts/logging.sh monitor
+
+logging-analyze: ## Analyze logs for issues
+	@bash scripts/logging.sh analyze
+
+notify-test: ## Test notification system
+	@bash scripts/notifications.sh test
+
+notify-send: ## Send notification (usage: make notify-send LEVEL="INFO" TITLE="Test" MSG="Message")
+	@bash scripts/notifications.sh send "${LEVEL:-INFO}" "${TITLE:-Test}" "${MSG:-}"
+
+# ==================== BACKUP & RESTORE ====================
+
+backup-db: ## Backup database only
+	@echo "$(BLUE)Creating database backup...$(NC)"
+	@bash scripts/backup.sh backup-db
+
+backup-configs: ## Backup configurations only
+	@echo "$(BLUE)Creating configuration backup...$(NC)"
+	@bash scripts/backup.sh backup-configs
+
+backup-full: ## Create full backup
+	@echo "$(BLUE)Creating full backup...$(NC)"
+	@bash scripts/backup.sh backup-full
+
+backup-list: ## List all backups
+	@bash scripts/backup.sh list
+
+backup-validate: ## Validate backup file (usage: make backup-validate FILE=path)
+	@bash scripts/backup.sh validate "${FILE}"
+
+backup-rotate: ## Rotate old backups
+	@bash scripts/backup.sh rotate
+
+restore-db: ## Restore database from backup (usage: make restore-db FILE=path)
+	@echo "$(YELLOW)Restoring database from: $(FILE)$(NC)"
+	@bash scripts/backup.sh restore-db "${FILE}"
+
+restore-configs: ## Restore configs from backup (usage: make restore-configs FILE=path)
+	@echo "$(YELLOW)Restoring configs from: $(FILE)$(NC)"
+	@bash scripts/backup.sh restore-configs "${FILE}"
 
 # ==================== DEPLOYMENT ====================
 
