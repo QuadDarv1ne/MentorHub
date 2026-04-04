@@ -1,7 +1,47 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 84 — Type Safety, Race Conditions, Memory Leaks)
-**Статус проекта:** ✅ HEALTHY v1.7 (стабильный, качество улучшено)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 85 — Тесты утилит и Stripe Idempotency)
+**Статус проекта:** ✅ HEALTHY v1.8 (покрытие тестами улучшено, webhook стабилен)
+
+---
+
+## ✅ Исправлено (Сессия 85 — 4 апреля 2026)
+
+### Frontend Tests (3 новых файла, 74 теста)
+
+**1. validation.test.ts — 22 тестовых кейса:**
+- ✅ isValidEmail — валидные/невалидные email
+- ✅ isValidPhone — российские номера телефонов
+- ✅ validatePassword — сила пароля, требования
+- ✅ isValidUrl, isValidUsername, isValidCreditCard (Luhn algorithm)
+- ✅ isValidBirthDate, isValidZipCode, isEmpty
+- ✅ isAlpha, isNumeric, isAlphanumeric
+- ✅ isValidINN, formatPhone, formatCardNumber
+
+**2. format.test.ts — 28 тестовых кейсов:**
+- ✅ formatNumber, formatCurrency, abbreviateNumber
+- ✅ formatPercent, toKebabCase, toCamelCase, toPascalCase
+- ✅ truncate, capitalize, capitalizeWords, getInitials
+- ✅ randomColor, hexToRgb, rgbToHex
+- ✅ formatBytes, createSlug, pluralize, maskEmail
+- ✅ chunk, shuffle, unique, groupBy, sortBy
+
+**3. date.test.ts — 24 тестовых кейса:**
+- ✅ formatDate (short/long/full), formatTime, formatDateTime
+- ✅ getRelativeTime (только что, минуты, вчера)
+- ✅ addDays, subtractDays, startOfDay, endOfDay
+- ✅ isToday, isYesterday, isTomorrow
+- ✅ getWeekRange, getMonthRange, daysDifference
+- ✅ formatDuration, isWeekend, getMonthName, getDayName
+
+### Backend Webhook Idempotency
+
+**4. payments_stripe.py — Stripe webhook idempotency:**
+- ✅ Добавлен `with_for_update()` для row-level locking
+- ✅ Idempotency checks: не обновлять если статус уже правильный
+- ✅ Добавлена обработка `charge.refunded` события
+- ✅ Proper error handling с rollback
+- ✅ Защита от duplicate webhook delivery
 
 ---
 
