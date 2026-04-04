@@ -37,7 +37,7 @@ requests>=2.32.3
 urllib3>=2.0.0,<3.0.0
 
 # ==================== BACKGROUND TASKS ====================
-celery>=5.3.0
+celery>=5.3.0,<6.0.0
 
 # ==================== WEBSOCKET ====================
 websockets>=12.0
@@ -57,11 +57,6 @@ prometheus-client>=0.21.0
 sentry-sdk[fastapi]>=2.20.0
 psutil>=6.1.0
 python-json-logger>=3.3.0
-
-# ==================== SECURITY SCANNING ====================
-bandit>=1.7.0
-safety>=2.3.0
-pip-audit>=2.6.0
 
 # ==================== TELEGRAM ====================
 aiogram>=3.4.0
@@ -94,13 +89,13 @@ msal>=1.31.0
 requests-oauthlib>=2.0.0
 icalendar>=6.0.0
 
-# ==================== CORS & RATE LIMITING ====================
-fastapi-cors>=0.0.6
+# ==================== RATE LIMITING ====================
+# NOTE: fastapi-cors removed - use built-in fastapi.middleware.cors.CORSMiddleware
 slowapi>=0.1.9
 
 # ==================== TESTING ====================
 pytest>=8.3.0
-pytest-asyncio>=0.24.0
+pytest-asyncio>=0.24.0,<1.0.0
 pytest-cov>=6.0.0
 pytest-mock>=3.14.0
 

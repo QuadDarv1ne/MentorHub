@@ -1,7 +1,9 @@
 import { cache } from '../cache';
 
-// Use internal API routes with absolute URL for server-side rendering
-const API_BASE = 'http://localhost:3000/api/stepik';
+// Use Next.js API route as proxy for server-side rendering
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL 
+  ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/stepik`
+  : '/api/stepik';
 
 const CACHE_KEYS = {
   course: (id: number) => `stepik:course:${id}`,

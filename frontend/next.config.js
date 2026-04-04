@@ -16,9 +16,8 @@ const nextConfig = {
     keepAlive: true,
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // ESLint - enabled for quality checks during builds
+  // Run `npm run lint` separately for performance
 
   // Security headers for Lighthouse best-practices
   headers: async () => [
@@ -89,13 +88,18 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react', 'react-hook-form', 'axios'],
+    // Package imports optimization
+    optimizePackageImports: [
+      'lucide-react',
+      'react-hook-form',
+      'axios',
+      '@heroicons/react',
+      '@headlessui/react',
+    ],
     // Additional performance features
     scrollRestoration: true,
     // Reduce JavaScript bundle
     webpackBuildWorker: true,
-    // Bundle size optimization
-    optimizePackageImports: ['@heroicons/react', '@headlessui/react'],
     // Font optimization
     optimizeFonts: true,
     // Modern image formats
