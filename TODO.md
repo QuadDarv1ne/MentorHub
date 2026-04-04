@@ -1,7 +1,36 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 88 — Error Handling & Code Dedup)
-**Статус проекта:** ✅ HEALTHY v2.0 (стабильный, код чище)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 89 — Dead Code Removal & Import Fixes)
+**Статус проекта:** ✅ HEALTHY v2.1 (код чище, баги импорта исправлены)
+
+---
+
+## ✅ Исправлено (Сессия 89 — 4 апреля 2026)
+
+### Critical Import Bugs (3 файла)
+
+**1. Исправлены критические баги импорта:**
+- ✅ email_verification.py — create_access_token import (app.api.auth → app.utils.auth_tokens)
+- ✅ two_factor.py — create_access_token import (app.api.auth → app.utils.auth_tokens)
+- ✅ course_service.py — invalidate_cache import (app.services.cache → app.utils.cache)
+- **Влияние:** Эти баги вызывали бы ImportError при запуске production
+
+### Dead Code Removal (9 файлов удалено, ~1,438 строк)
+
+**2. Удален полностью неиспользуемый код:**
+- ✅ utils/health.py (82 строки) — не импортировался
+- ✅ utils/profiling.py (225 строк) — не импортировался
+- ✅ utils/query_optimization.py (270+ строк) — учебный код
+- ✅ utils/sanitizers.py (107 строк) — InputSanitizer не использовался
+- ✅ utils/telegram_alerter.py (110 строк) — TelegramAlerter не использовался
+- ✅ services/mock_stripe_service.py (261 строка) — только для тестов
+- ✅ services/notifications.py (134 строки) — не импортировался
+- ✅ services/notification_service.py (223 строки) — не импортировался
+- ✅ services/two_factor_service.py (226 строк) — не импортировался
+
+**3. Cleanup:**
+- ✅ antiphishing.py — удален unused Optional import
+- ✅ validators.py — удалена дублирующая validate_pagination функция
 
 ---
 
