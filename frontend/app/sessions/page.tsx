@@ -80,7 +80,7 @@ const stats = {
 
 export default function SessionsPage() {
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming')
@@ -91,13 +91,16 @@ export default function SessionsPage() {
 
   // Проверка авторизации
   useEffect(() => {
+    // Ждём завершения загрузки перед проверкой авторизации
+    if (loading) return
+    
     if (!isAuthenticated) {
       router.push('/auth/login?redirect=/sessions')
     } else {
       setIsLoading(true)
       setTimeout(() => setIsLoading(false), 300)
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, loading, router])
 
   if (isLoading) {
     return (

@@ -35,6 +35,30 @@ function LoginForm() {
     }
   }, [router])
 
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    // OAuth redirect handled by OAuthButtons component
+    // Backend will handle the OAuth flow and redirect back
+  }
+
+  // Перемещено выше чтобы избежать Temporal Dead Zone
+  const getCurrentUser = async (token: string) => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.detail || 'Failed to fetch user profile')
+    }
+
+    return response.json()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -72,12 +96,12 @@ function LoginForm() {
 
       // Store tokens and user data using improved authLogin
       authLogin(
-        authResponse.access_token, 
-        user, 
+        authResponse.access_token,
+        user,
         authResponse.expires_in,
         formData.rememberMe ? authResponse.refresh_token : undefined
       )
-      
+
       localStorage.setItem('user_name', user.full_name || user.email)
       localStorage.setItem('user_role', user.role)
       setSuccess('Вход выполнен успешно!')
@@ -94,29 +118,6 @@ function LoginForm() {
       }
       setLoading(false)
     }
-  }
-
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    // OAuth redirect handled by OAuthButtons component
-    // Backend will handle the OAuth flow and redirect back
-  }
-
-  const getCurrentUser = async (token: string) => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || 'Failed to fetch user profile')
-    }
-
-    return response.json()
   }
 
   return (

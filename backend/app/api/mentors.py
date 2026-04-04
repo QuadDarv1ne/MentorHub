@@ -160,7 +160,7 @@ async def update_mentor(
 
     # Инвалидируем кеш обновленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
-    asyncio.create_task(invalidate_cache("mentors_list:*"))
+    asyncio.create_task(invalidate_cache("mentors_list:"))
 
     return db_mentor
 
@@ -191,5 +191,5 @@ async def delete_mentor(
 
     # Инвалидируем кеш удаленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))
-    asyncio.create_task(invalidate_cache("mentors_list:*"))
+    asyncio.create_task(invalidate_cache("mentors_list:"))
     return None

@@ -117,17 +117,22 @@ export async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  
+  // Используем API base URL из environment variables
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+                       process.env.NEXT_PUBLIC_API_URL || 
+                       'http://localhost:8000'
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers as Record<string, string>,
+    ...(options.headers as Record<string, string> || {}),
   }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetchWithRetry(`/api/v1${endpoint}`, {
+  const response = await fetchWithRetry(`${API_BASE_URL}/api/v1${endpoint}`, {
     ...options,
     headers,
   })

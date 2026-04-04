@@ -47,7 +47,7 @@ async def get_platform_stats(db: Session = Depends(get_db)):
 
     # Try to get session and course stats if models exist
     try:
-        from app.api.sessions import Session as MentoringSession
+        from app.models.session import Session as MentoringSession
 
         total_sessions = db.query(func.count(MentoringSession.id)).scalar() or 0
         stats["total_sessions"] = total_sessions
@@ -76,7 +76,7 @@ async def get_user_stats(current_user: User = Depends(get_current_user), db: Ses
     # Add mentor-specific stats
     if current_user.is_mentor:
         try:
-            from app.api.sessions import Session as MentoringSession
+            from app.models.session import Session as MentoringSession
 
             total_sessions = (
                 db.query(func.count(MentoringSession.id)).filter(MentoringSession.mentor_id == current_user.id).scalar()
@@ -140,7 +140,7 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user), db
 
     # Try to get session stats
     try:
-        from app.api.sessions import Session as MentoringSession
+        from app.models.session import Session as MentoringSession
 
         total_sessions = (
             db.query(func.count(MentoringSession.id)).filter(MentoringSession.student_id == current_user.id).scalar()

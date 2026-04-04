@@ -165,15 +165,7 @@ async def shutdown_database():
     """Close database connections gracefully"""
     logger.info("🔄 Closing database connections...")
 
-    # Close any active sessions
-    try:
-        from app.database import SessionLocal
-        SessionLocal.close_all()
-        logger.info("✅ All database sessions closed")
-    except Exception as e:
-        logger.error(f"❌ Error closing database sessions: {e}")
-
-    # Close database engine
+    # Close database engine (disposing engine closes all connections)
     try:
         engine.dispose()
         logger.info("✅ Database engine disposed")

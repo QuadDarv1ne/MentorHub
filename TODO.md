@@ -1,7 +1,85 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 92 — Критические исправления багов)
-**Статус проекта:** ✅ HEALTHY v2.4 (критические баги исправлены)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 93 — Масштабный аудит и исправления)
+**Статус проекта:** ✅ HEALTHY v2.5 (полный аудит, критические баги исправлены)
+
+---
+
+## ✅ Исправлено (Сессия 93 — 4 апреля 2026)
+
+### Backend критические баги (6 файлов)
+
+**1. messages.py — Добавлен отсутствующий logger:**
+- ✅ Добавлены импорты: `import logging`, `logger = logging.getLogger(__name__)`
+- **Влияние:** NameError при любой ошибке в mark-messages-read endpoint
+
+**2. stats.py — Исправлен неправильный импорт Session:**
+- ✅ Заменено: `from app.api.sessions import Session` → `from app.models.session import Session`
+- **Влияние:** ImportError при загрузке модуля статистики (3 места)
+
+**3. config.py — Добавлены Microsoft OAuth поля:**
+- ✅ Добавлены: MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, MICROSOFT_TENANT_ID
+- **Влияние:** AttributeError при использовании Microsoft OAuth в calendar.py и calendar_service.py
+
+**4. mentors.py — Исправлена cache invalidation:**
+- ✅ Убран wildcard `*`: `"mentors_list:*"` → `"mentors_list:"`
+- **Влияние:** Кеш не инвалидировался при изменении менторов (2 места)
+
+**5. email_verification.py — Убрано двойное JSON кодирование:**
+- ✅ Убран `json.dumps()` перед `cache_service.set()` (2 места)
+- **Влияние:** Данные двойного кодирования могли сломаться при смене бэкенда кеша
+
+**6. lifespan.py — Убран несуществующий метод close_all():**
+- ✅ Удалён вызов `SessionLocal.close_all()` (не существует в SQLAlchemy)
+- **Влияние:** AttributeError при graceful shutdown
+
+### Frontend критические баги (6 файлов)
+
+**7. hooks/useToast.ts — Создан отсутствующий файл:**
+- ✅ Реэкспорт из `@/components/ui/ToastContext`
+- **Влияние:** Module not found error в 12+ компонентах (build failure)
+
+**8. app/auth/login/page.tsx — Исправлен Temporal Dead Zone:**
+- ✅ Перемещена `getCurrentUser` declaration перед использованием в `handleSubmit`
+- **Влияние:** ReferenceError при каждой попытке входа (login всегда падал)
+
+**9. app/sessions/page.tsx — Добавлена проверка loading:**
+- ✅ Добавлена проверка `if (loading) return` перед редиректом
+- **Влияние:** Пользователи редиректились на login во время загрузки, даже будучи авторизованными
+
+**10. lib/api/client.ts — Исправлены относительные URL:**
+- ✅ Добавлен API_BASE_URL из environment variables вместо `/api/v1${endpoint}`
+- **Влияние:** API вызовы шли на localhost:3000 вместо backend:8000 (404 ошибки)
+
+**11. tsconfig.json — Обновлён target:**
+- ✅ Изменено: `target: "es5"` → `target: "ES2017"`
+- **Влияние:** Устаревшая компиляция, большие бандлы, возможные проблемы с современными фичами
+
+**12. next.config.js — Убран sideEffects: true:**
+- ✅ Удалена настройка `sideEffects: true` (предотвращала tree-shaking)
+- **Влияние:** Увеличенный размер бандла из-за отсутствия tree-shaking
+
+### Docker и CI/CD исправления (4 файла)
+
+**13. Dockerfile.production — Создан отсутствующий файл:**
+- ✅ Скопирован из Dockerfile.optimized
+- **Влияние:** CI/CD пайплайны падали при попытке сборки образа
+
+**14. Dockerfile.optimized и Dockerfile.production — Исправлена сборка frontend:**
+- ✅ Заменено: `npm install --only=production` → `npm ci` (убран --only=production)
+- **Влияние:** Frontend сборка падала из-за отсутствующих devDependencies
+
+**15. frontend/Dockerfile.frontend — Исправлены COPY пути:**
+- ✅ Заменено: `COPY frontend/package*.json` → `COPY package*.json` (контекст уже в frontend/)
+- **Влияние:** Docker build падал с ошибкой копирования
+
+**16. docker-compose.dev.yml — Исправлен API URL:**
+- ✅ Заменено: `http://localhost:8000` → `http://backend:8000`
+- **Влияние:** Frontend в Docker не мог достучаться до backend (incorrect networking)
+
+**17. .github/workflows/notifications.yml — Убраны дублирующиеся with: блоки:**
+- ✅ Объединены два `with:` блока в один с полной payload конфигурацией
+- **Влияние:** Второй with блок перезаписывал первый, терялась payload конфигурация
 
 ---
 
