@@ -1,7 +1,39 @@
 # MentorHub TODO
 
-**Дата обновления:** 4 апреля 2026 г. (Сессия 85 — Тесты утилит и Stripe Idempotency)
-**Статус проекта:** ✅ HEALTHY v1.8 (покрытие тестами улучшено, webhook стабилен)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 86 — Null Safety & Runtime Error Prevention)
+**Статус проекта:** ✅ HEALTHY v1.9 (runtime ошибки предотвращены)
+
+---
+
+## ✅ Исправлено (Сессия 86 — 4 апреля 2026)
+
+### Frontend Null/Undefined Safety (10 файлов)
+
+**1. format.ts — Защита утилит от null/undefined:**
+- ✅ formatNumber — проверка `if (num == null) return '0'`
+- ✅ formatCurrency — проверка `if (amount == null) return '0 ${currency}'`
+- ✅ capitalize — проверка `if (!str) return ''`
+- ✅ getInitials — проверка `if (!name || typeof name !== 'string') return ''`
+
+**2. EnhancedChat.tsx — Защита от runtime ошибок:**
+- ✅ Array.isArray check перед доступом к data[0]
+- ✅ Optional chaining для participants: `participants?.[0]?.avatar`
+- ✅ JSON.parse обернут в try-catch для user из localStorage
+
+**3. AuthGuard.tsx — Валидация JWT структуры:**
+- ✅ Проверка `parts.length < 3` перед парсингом payload
+- ✅ Защита от malformed JWT tokens
+
+**4. Rating displays — Optional chaining для toFixed:**
+- ✅ AdvancedSearch.tsx — `result.rating?.toFixed(1) ?? 'N/A'`
+- ✅ MentorSearchResults.tsx — `mentor.rating?.toFixed(1) ?? 'N/A'`
+- ✅ SimilarCourses.tsx — `average_rating?.toFixed(1) ?? 'N/A'`
+- ✅ profile/page.tsx — `profile.rating?.toFixed(1) ?? 'N/A'` (2 места)
+- ✅ courses/stepik/page.client.tsx — `aggregate?.average_rating?.toFixed(1)` и `review_summary?.average?.toFixed(1)`
+
+**5. User displays — Защита от undefined:**
+- ✅ ChatList.tsx — `username?.charAt(0)?.toUpperCase() || '?'`
+- ✅ booking/page.tsx — `mentor.name?.charAt(0) || '?'`
 
 ---
 
