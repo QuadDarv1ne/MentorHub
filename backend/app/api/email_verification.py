@@ -95,15 +95,20 @@ async def verify_email(
     db: Session = Depends(get_db)
 ):
     """Подтверждение email по токену"""
-    token_data_str = cache_service.get(f"verification:{request.token}")
+    token_data = cache_service.get(f"verification:{request.token}")
 
-    if not token_data_str:
+    if not token_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный или истекший токен"
         )
 
-    token_data = json.loads(token_data_str)
+    # cache_service.get уже возвращает десериализованный dict
+    if not isinstance(token_data, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный формат токена"
+        )
 
     # Находим пользователя
     user = db.query(User).filter(User.email == token_data["email"]).first()
@@ -171,15 +176,20 @@ async def reset_password(
     db: Session = Depends(get_db)
 ):
     """Сброс пароля по токену"""
-    token_data_str = cache_service.get(f"reset:{request.token}")
+    token_data = cache_service.get(f"reset:{request.token}")
 
-    if not token_data_str:
+    if not token_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный или истекший токен"
         )
 
-    token_data = json.loads(token_data_str)
+    # cache_service.get уже возвращает десериализованный dict
+    if not isinstance(token_data, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный формат токена"
+        )
 
     # Находим пользователя
     user = db.query(User).filter(User.email == token_data["email"]).first()

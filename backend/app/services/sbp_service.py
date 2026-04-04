@@ -71,7 +71,7 @@ class SBPService:
         return signature
 
     @retry_on_exception(
-        exceptions=(requests.exceptions.RequestException, ConnectionError, TimeoutError),
+        exceptions=(ConnectionError, TimeoutError),
         max_retries=3,
         delay=1.0,
         backoff=2.0,
@@ -109,8 +109,11 @@ class SBPService:
             response.raise_for_status()
             return response.json()
 
-        except requests.exceptions.RequestException as e:
+        except (ConnectionError, TimeoutError) as e:
             logger.error(f"SBP API request failed: {str(e)}")
+            return {"error": str(e)}
+        except Exception as e:
+            logger.error(f"SBP API unexpected error: {str(e)}")
             return {"error": str(e)}
 
     def create_qr_code(

@@ -14,12 +14,15 @@ class Review(BaseModel, TimestampMixin):
     __tablename__ = "reviews"
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    reviewed_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # ID ментора, о котором отзыв
     course_id = Column(Integer, nullable=False, index=True)  # stepik course id
     rating = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
 
     # Отношение к пользователю с cascade delete
-    user = relationship("User", back_populates="reviews")
+    # Review может быть связано как reviewer (оставивший отзыв) или reviewed (получивший отзыв)
+    reviewer = relationship("User", foreign_keys=[user_id], back_populates="reviews_given")
+    reviewed = relationship("User", foreign_keys="Review.reviewed_id", back_populates="reviews_received")
 
     # Уникальный constraint: один отзыв на курс от пользователя (защита от race condition)
     __table_args__ = (
@@ -32,6 +35,6 @@ class Review(BaseModel, TimestampMixin):
     @property
     def user_name(self) -> str | None:
         """Возвращает читаемое имя пользователя (full_name или username)."""
-        if hasattr(self, "user") and self.user is not None:
-            return getattr(self.user, "full_name", None) or getattr(self.user, "username", None)
+        if hasattr(self, "reviewer") and self.reviewer is not None:
+            return getattr(self.reviewer, "full_name", None) or getattr(self.reviewer, "username", None)
         return None

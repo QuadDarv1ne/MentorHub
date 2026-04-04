@@ -68,7 +68,7 @@ async def get_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     # Пользователь может видеть только свои платежи
-    if current_user.role.value != "admin" and payment.user_id != current_user.id:
+    if current_user.role.value != "admin" and payment.student_id != current_user.id:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     return payment

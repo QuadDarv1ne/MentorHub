@@ -79,11 +79,11 @@ async def create_course(
 ):
     """Создать новый курс"""
     service = _get_course_service(db)
-    new_course = service.create_course(course, current_user.id)
-    
+    new_course = service.create_course(current_user, course)
+
     # Инвалидируем кеш списка курсов
-    asyncio.create_task(invalidate_cache("courses_list:*"))
-    
+    asyncio.create_task(invalidate_cache("courses_list:"))
+
     return new_course
 
 
@@ -97,12 +97,12 @@ async def update_course(
 ):
     """Обновить курс"""
     service = _get_course_service(db)
-    updated_course = service.update_course(course_id, course, current_user.id)
-    
+    updated_course = service.update_course(course_id, current_user, course)
+
     # Инвалидируем кеш
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-    asyncio.create_task(invalidate_cache("courses_list:*"))
-    
+    asyncio.create_task(invalidate_cache("courses_list:"))
+
     return updated_course
 
 
@@ -115,12 +115,28 @@ async def delete_course(
 ):
     """Удалить курс"""
     service = _get_course_service(db)
-    service.delete_course(course_id, current_user.id)
     
+    # Проверяем существование курса
+    existing_course = db.query(Course).filter(Course.id == course_id).first()
+    if not existing_course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+    
+    # Проверяем права (ментор или админ)
+    from app.models.mentor import Mentor
+    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+    is_instructor = mentor and existing_course.instructor_id == mentor.id
+    is_admin = current_user.role.value == "admin"
+    
+    if not is_instructor and not is_admin:
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    
+    db.delete(existing_course)
+    db.commit()
+
     # Инвалидируем кеш
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-    asyncio.create_task(invalidate_cache("courses_list:*"))
-    
+    asyncio.create_task(invalidate_cache("courses_list:"))
+
     return None
 
 
