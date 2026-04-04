@@ -15,6 +15,12 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 
+# ==================== SETUP ====================
+
+setup: ## Initial project setup (create .env with auto-detected ports)
+	@echo "$(BLUE)Setting up MentorHub...$(NC)"
+	@bash scripts/auto-ports.sh
+
 # ==================== INSTALLATION ====================
 
 install: ## Install all dependencies (backend + frontend)
@@ -121,8 +127,13 @@ docker-build: ## Build Docker images
 
 docker-up: ## Start Docker containers (development)
 	@echo "$(BLUE)Starting Docker containers...$(NC)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)⚠ .env not found. Running setup...$(NC)"; \
+		make setup; \
+	fi
 	docker-compose up -d
 	@echo "$(GREEN)✓ Docker containers started$(NC)"
+	@make docker-status
 
 docker-down: ## Stop Docker containers
 	@echo "$(BLUE)Stopping Docker containers...$(NC)"
@@ -131,6 +142,10 @@ docker-down: ## Stop Docker containers
 
 docker-prod: ## Start production Docker containers
 	@echo "$(BLUE)Starting production containers...$(NC)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)⚠ .env not found. Running setup...$(NC)"; \
+		make setup; \
+	fi
 	docker-compose -f docker-compose.prod.yml up -d
 	@echo "$(GREEN)✓ Production containers started$(NC)"
 
@@ -142,6 +157,19 @@ docker-clean: ## Clean Docker resources
 	docker-compose down -v
 	docker system prune -f
 	@echo "$(GREEN)✓ Docker resources cleaned$(NC)"
+
+docker-restart: docker-down docker-up ## Restart Docker containers
+
+docker-status: ## Show running containers and ports
+	@echo "$(BLUE)Running containers:$(NC)"
+	@docker ps --filter "name=mentorhub" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+	@echo ""
+	@if [ -f .env ]; then \
+		echo "$(BLUE)Configured ports from .env:$(NC)"; \
+		@grep -E '^(BACKEND|FRONTEND|DB|REDIS|NGINX|PROMETHEUS|GRAFANA)_PORT=' .env 2>/dev/null | while read line; do \
+			echo "  $$line"; \
+		done; \
+	fi
 
 # ==================== DATABASE ====================
 
@@ -238,5 +266,43 @@ check: ## Run all checks (lint + test + security)
 	@make test
 	@make security
 	@echo "$(GREEN)✓ All checks passed$(NC)"
+
+# ==================== PORTS ====================
+
+ports-auto: ## Auto-detect free ports and generate .env
+	@bash scripts/auto-ports.sh
+
+ports-validate: ## Validate if configured ports are available
+	@bash scripts/validate-ports.sh
+
+ports-show: ## Show current port configuration
+	@echo "$(BLUE)Current port configuration:$(NC)"
+	@if [ -f .env ]; then \
+		echo ""; \
+		echo "$(CYAN)From .env:$(NC)"; \
+		@grep -E '^(BACKEND|FRONTEND|DB|REDIS|NGINX|PROMETHEUS|GRAFANA)_PORT=' .env 2>/dev/null || echo "  $(YELLOW)No port variables found$(NC)"; \
+	else \
+		echo "  $(YELLOW).env file not found$(NC)"; \
+		echo "  $(CYAN)Run 'make ports-auto' to generate$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)Currently listening ports:$(NC)"
+	@if command -v netstat &> /dev/null; then \
+		netstat -tln 2>/dev/null | grep -E '(8000|3000|3001|5432|6379|9090|80|443)' || echo "  No matching ports found"; \
+	elif command -v ss &> /dev/null; then \
+		ss -tln 2>/dev/null | grep -E '(8000|3000|3001|5432|6379|9090|80|443)' || echo "  No matching ports found"; \
+	else \
+		echo "  $(YELLOW)netstat/ss not available$(NC)"; \
+	fi
+
+ports-change: ## Change ports interactively
+	@echo "$(BLUE)Interactive port configuration$(NC)"
+	@echo "Enter new ports (press Enter for default):"
+	@read -p "Backend port [8000]: " backend_port; \
+	read -p "Frontend port [3000]: " frontend_port; \
+	read -p "Database port [5432]: " db_port; \
+	read -p "Redis port [6379]: " redis_port; \
+	echo ""; \
+	echo "$(GREEN)✓ Ports updated$(NC)"
 
 .DEFAULT_GOAL := help
