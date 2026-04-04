@@ -3,6 +3,8 @@ Cache service using in-memory cache or Redis
 """
 
 import logging
+import time
+from dataclasses import dataclass
 from typing import Any, Optional
 import json
 from functools import wraps
@@ -17,12 +19,19 @@ except ImportError:
     REDIS_AVAILABLE = False
 
 
+@dataclass
+class CacheEntry:
+    """Wrapper for cache entries with expiration time"""
+    value: Any
+    expires_at: float  # Unix timestamp when the entry expires
+
+
 class CacheService:
     """Simple cache service with optional Redis backend"""
 
     def __init__(self):
         self.redis_client = None
-        self.memory_cache: dict = {}
+        self.memory_cache: dict[str, CacheEntry] = {}
         self._redis_connected = False
 
         # Try to connect to Redis if available
@@ -60,7 +69,15 @@ class CacheService:
                 if value:
                     return json.loads(value)
             else:
-                return self.memory_cache.get(key)
+                entry = self.memory_cache.get(key)
+                if entry:
+                    # Проверяем, не истёк ли TTL
+                    if time.time() < entry.expires_at:
+                        return entry.value
+                    else:
+                        # Удаляем протухшую запись
+                        del self.memory_cache[key]
+                        logger.debug(f"Cache entry expired: {key}")
         except Exception as e:
             logger.error(f"Cache get error for key {key}: {e}")
 
@@ -80,7 +97,8 @@ class CacheService:
                 serialized = json.dumps(value)
                 self.redis_client.setex(key, ttl, serialized)
             else:
-                self.memory_cache[key] = value
+                expires_at = time.time() + ttl
+                self.memory_cache[key] = CacheEntry(value=value, expires_at=expires_at)
 
             return True
         except Exception as e:
@@ -100,6 +118,44 @@ class CacheService:
             logger.error(f"Cache delete error for key {key}: {e}")
             return False
 
+    def exists(self, key: str) -> bool:
+        """Check if key exists in cache and is not expired"""
+        try:
+            if self.redis_client:
+                return bool(self.redis_client.exists(key))
+            else:
+                entry = self.memory_cache.get(key)
+                if entry:
+                    if time.time() < entry.expires_at:
+                        return True
+                    else:
+                        # Удаляем протухшую запись
+                        del self.memory_cache[key]
+                        logger.debug(f"Cache entry expired (exists check): {key}")
+                return False
+        except Exception as e:
+            logger.error(f"Cache exists error for key {key}: {e}")
+            return False
+
+    def cleanup_expired(self) -> int:
+        """Remove all expired entries from memory cache. Returns count of removed entries."""
+        if self.redis_client:
+            return 0  # Redis handles TTL automatically
+
+        now = time.time()
+        expired_keys = [
+            key for key, entry in self.memory_cache.items()
+            if now >= entry.expires_at
+        ]
+        
+        for key in expired_keys:
+            del self.memory_cache[key]
+        
+        if expired_keys:
+            logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+        
+        return len(expired_keys)
+
     def clear(self) -> bool:
         """Clear all cache"""
         try:
@@ -112,17 +168,6 @@ class CacheService:
             return True
         except Exception as e:
             logger.error(f"Cache clear error: {e}")
-            return False
-
-    def exists(self, key: str) -> bool:
-        """Check if key exists in cache"""
-        try:
-            if self.redis_client:
-                return bool(self.redis_client.exists(key))
-            else:
-                return key in self.memory_cache
-        except Exception as e:
-            logger.error(f"Cache exists error for key {key}: {e}")
             return False
 
 

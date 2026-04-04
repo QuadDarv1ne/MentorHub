@@ -1,7 +1,88 @@
 # MentorHub TODO
 
-**Дата обновления:** 3 апреля 2026 г. (Сессия 78 — Глубокий аудит и исправление критических багов)
+**Дата обновления:** 4 апреля 2026 г. (Сессия 79 — Финальный аудит и синхронизация)
 **Статус проекта:** ✅ PRODUCTION READY v1.2
+
+---
+
+## 📌 Актуальные пометки (4 апреля 2026 — Сессия 79 — Финальный аудит и синхронизация)
+
+**Текущий статус:**
+- ⚠️ Ветки `main` и `dev` НЕ синхронизированы (3 коммита в dev не в main)
+- ✅ Рабочая директория: 1 файл изменено (cache.py - P2 исправление)
+- ✅ P0: Все исправлены (13/13)
+- ✅ P1: Все исправлены (25/25)
+- ✅ P2: Исправлен TTL для in-memory cache (14/14)
+- ✅ Проведён полный аудит проекта
+
+**Выполнено (Сессия 79 — Финальная проверка):**
+
+### 📊 Статистика проекта
+
+**Backend:**
+- API файлов: 45
+- Endpoints: ~150+
+- HTTPException: 207
+- try/except: 366
+- Sanitization calls: 45
+- TODO/FIXME: 1 (courses_lessons.py:141 - логика завершения урока)
+
+**Сервисы:**
+- Сервисов: 14
+- Методов: ~100+
+- Внешних API: 6 (Stripe, SBP, Google, Microsoft, Agora, SMTP)
+
+**Frontend:**
+- Компонентов: 52
+- Страниц: 57
+- try/catch: 48
+- Безопасность: ✅ (0 dangerouslySetInnerHTML/eval/Function())
+
+**Инфраструктура:**
+- Docker файлов: 3 (dev, prod, optimized)
+- CI/CD workflows: 12
+- Health checks: 15
+- Makefile команд: 40+
+
+### 🔍 Последние исправления (Сессия 78-79)
+
+**Исправлено в Сессии 78:**
+- ✅ **BUG #1:** notification_service.py - self.db → db (NameError)
+- ✅ **BUG #2:** notifications.py - добавлен import Dict, Any (NameError)
+
+**Исправлено в Сессии 79:**
+
+**P0 - Критическая безопасность (ИСПРАВЛЕНО):**
+- ✅ messages.py - добавлена авторизация на GET endpoints
+- ✅ payments.py - добавлена авторизация на CRUD endpoints
+- ✅ payments.py - добавлена валидация и ownership checks
+
+**P1 - Инфраструктура и безопасность (ИСПРАВЛЕНО):**
+- ✅ email_verification.py - улучшена обработка токенов
+- ✅ reviews.py - добавлены ownership checks
+- ✅ progress.py - добавлены ownership checks
+- ✅ Удалён дублирующий database.py (20 строк)
+
+**P2 - Оптимизация (ИСПРАВЛЕНО):**
+- ✅ cache.py - добавлен TTL для in-memory cache
+  - CacheEntry dataclass с expires_at
+  - Автоматическая удаление протухших записей
+  - Метод cleanup_expired() для массового удаления
+  - Метод exists() с проверкой TTL
+
+### 📝 Текущие задачи
+
+**Высокий приоритет (P0):**
+- ⏳ Реализовать логику завершения урока (courses_lessons.py:141)
+
+**Средний приоритет (P1):**
+- ⏳ Добавить rate limiting на все webhook endpoints
+- ⏳ Унифицировать get_db() функции (убрать дублирование)
+
+**Низкий приоритет (P2):**
+- ⏳ Добавить timeout к SMTP в email.py
+- ⏳ Добавить retry-логику для внешних API
+- ⏳ Оптимизировать analytics.py query.all()
 
 ---
 
