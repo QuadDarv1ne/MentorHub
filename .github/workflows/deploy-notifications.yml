@@ -71,7 +71,6 @@ jobs:
                 }
               ]
             }
-        with:
           webhook-url: ${{ env.SLACK_WEBHOOK_URL }}
 
       - name: Send Telegram notification

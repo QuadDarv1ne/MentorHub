@@ -119,7 +119,7 @@ export function useChat({
 
     setConnectionStatus('connecting')
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'}/ws/chat`
+    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace('http', 'ws') || 'ws://localhost:8000'}/ws/chat`
     const socket = new WebSocket(wsUrl)
 
     socket.onopen = () => {
