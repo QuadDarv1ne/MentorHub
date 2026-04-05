@@ -11,6 +11,20 @@ jobs:
   backend-tests:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mentorhub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       matrix:
         python-version: [3.11]
@@ -54,7 +68,7 @@ jobs:
       - name: Run backend tests
         env:
           ENVIRONMENT: testing
-          DATABASE_URL: sqlite:///./test.db
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mentorhub_test
         run: |
           cd backend
           pytest -q

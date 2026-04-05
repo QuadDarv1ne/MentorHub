@@ -235,7 +235,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.frontend
       args:
         NODE_ENV: production
     container_name: mentorhub-frontend

@@ -3,7 +3,7 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "alert_rules.yml"
+  - "alerts.yml"
 
 scrape_configs:
   - job_name: 'prometheus'
@@ -27,17 +27,10 @@ scrape_configs:
 
   - job_name: 'postgres'
     static_configs:
-      - targets: ['postgres:9187']
+      - targets: ['postgres-exporter:9187']
     scrape_interval: 30s
-
-  - job_name: 'pgbouncer'
-    static_configs:
-      - targets: ['pgbouncer_exporter:9187']
-    scrape_interval: 30s
-    metrics_path: '/metrics'
 
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          - alertmanager:9093
+        - targets: []
