@@ -4,7 +4,7 @@
 # =====================================================
 
 # ==================== STAGE 1: Frontend Build ====================
-FROM node:18-alpine AS frontend-builder
+FROM node:25-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
