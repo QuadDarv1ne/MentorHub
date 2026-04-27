@@ -9,7 +9,7 @@ pytest-xdist>=3.5.0
 # Security Scanning (moved from production requirements)
 bandit>=1.7.0
 safety>=2.3.0
-pip-audit>=2.6.0
+pip-audit>=2.10.0
 
 # Database Migrations
 alembic>=1.13.0
