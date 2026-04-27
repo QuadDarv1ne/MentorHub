@@ -3,7 +3,7 @@
 
 # Testing
 coverage>=7.0.0
-pytest-httpx>=0.30.0
+pytest-httpx>=0.36.2
 pytest-xdist>=3.5.0
 
 # Security Scanning (moved from production requirements)
