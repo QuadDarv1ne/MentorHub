@@ -14,7 +14,7 @@ from app.models.user import User
 from app.models.chat_room import ChatRoom, ChatMessage, chat_room_members
 from app.schemas.chat_room import (
     ChatRoomCreate, ChatRoomUpdate, ChatRoomResponse, ChatRoomWithMembersResponse,
-    ChatMessageCreate, ChatMessageResponse, ChatMessageListResponse, AddMemberRequest, RemoveMemberRequest
+    ChatMessageCreate, ChatMessageUpdate, ChatMessageResponse, ChatMessageListResponse, AddMemberRequest, RemoveMemberRequest
 )
 from app.services.chat_room_service import ChatRoomService, format_room_response
 from app.utils.sanitization import sanitize_string, is_safe_string
@@ -22,7 +22,7 @@ from app.utils.sanitization import sanitize_string, is_safe_string
 router = APIRouter()
 
 
-def _get_chat_room_service(db: Session) -> ChatRoomService:
+def _get_chat_room_service(db: Session = Depends(get_db)) -> ChatRoomService:
     """Получить сервис чат-комнат"""
     return ChatRoomService(db)
 
