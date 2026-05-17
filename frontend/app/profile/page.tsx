@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
 
@@ -22,8 +23,10 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const { user, token } = useAuth()
   const toast = useToast()
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     fullName: '',
@@ -37,19 +40,50 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/profile')
+      const response = await fetch('/api/profile', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       if (response.ok) {
         const data = await response.json()
         setProfile(data)
+        setError(null)
         setFormData({
           fullName: data.fullName || '',
           bio: data.bio || '',
           skills: data.skills?.join(', ') || ''
         })
+        return
       }
     } catch (error) {
       logger.error('Fetch profile error', error)
-      toast.error('Ошибка загрузки профиля')
+    }
+
+    // Fallback: use data from auth hook if API is unavailable
+    if (user) {
+      setProfile({
+        id: user.id || 0,
+        username: user.email?.split('@')[0] || '',
+        email: user.email || '',
+        fullName: user.fullName || user.email || '',
+        avatar: user.avatar,
+        role: user.role || 'student',
+        bio: user.bio,
+        skills: user.skills || [],
+        rating: user.rating || 0,
+        totalSessions: user.totalSessions || 0,
+        completedSessions: user.completedSessions || 0,
+        joinDate: user.joinDate || '',
+        isOnline: user.isOnline ?? true,
+        lastSeen: user.lastSeen,
+      })
+      setFormData({
+        fullName: user.fullName || '',
+        bio: user.bio || '',
+        skills: user.skills?.join(', ') || ''
+      })
+      setError('Не удалось загрузить профиль с сервера. Показаны локальные данные.')
+    } else {
+      setError('Не удалось загрузить профиль')
     }
   }
 
@@ -57,7 +91,10 @@ export default function ProfilePage() {
     try {
       const response = await fetch('/api/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           full_name: formData.fullName,
           bio: formData.bio,
@@ -78,6 +115,26 @@ export default function ProfilePage() {
     }
   }
 
+  const completionPercent = profile && profile.totalSessions > 0
+    ? Math.round((profile.completedSessions / profile.totalSessions) * 100)
+    : 0
+
+  if (error && !profile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <button
+            onClick={fetchProfile}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Повторить
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -96,14 +153,22 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
           {/* Cover */}
           <div className="h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-          
+
           {/* Profile Info */}
           <div className="px-6 pb-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 gap-4">
               {/* Avatar */}
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-4xl border-4 border-white dark:border-gray-800 shadow-lg">
-                  {profile.avatar || profile.fullName?.charAt(0) || '👤'}
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-4xl border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden">
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={profile.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{profile.fullName?.charAt(0).toUpperCase() || '👤'}</span>
+                  )}
                 </div>
                 {profile.isOnline && (
                   <span className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></span>
@@ -118,7 +183,7 @@ export default function ProfilePage() {
                 <p className="text-gray-600 dark:text-gray-400 capitalize">{profile.role}</p>
                 <div className="flex items-center justify-center sm:justify-start gap-4 mt-2">
                   <span className="text-yellow-600 dark:text-yellow-400 font-semibold">
-                    ⭐ {profile.rating?.toFixed(1) ?? 'N/A'}
+                    ⭐ {profile.rating > 0 ? profile.rating.toFixed(1) : 'N/A'}
                   </span>
                   <span className="text-gray-600 dark:text-gray-400">
                     {profile.totalSessions} сессий
@@ -140,6 +205,13 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6">
+            <p className="text-yellow-800 dark:text-yellow-300 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 text-center">
@@ -151,12 +223,12 @@ export default function ProfilePage() {
             <p className="text-gray-600 dark:text-gray-400 text-sm">Завершено</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{profile.rating?.toFixed(1) ?? 'N/A'}</p>
+            <p className="text-3xl font-bold text-yellow-600">{profile.rating > 0 ? profile.rating.toFixed(1) : 'N/A'}</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Рейтинг</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 text-center">
             <p className="text-3xl font-bold text-purple-600">
-              {Math.round((profile.completedSessions / profile.totalSessions) * 100)}%
+              {completionPercent}%
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">Успех</p>
           </div>
@@ -260,20 +332,27 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Save/Cancel Buttons - Inline */}
         {isEditing && (
-          <div className="fixed bottom-6 right-6 flex gap-4">
+          <div className="flex justify-end gap-4 mt-6">
             <button
-              onClick={() => setIsEditing(false)}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors shadow-lg"
+              onClick={() => {
+                setIsEditing(false)
+                setFormData({
+                  fullName: profile.fullName || '',
+                  bio: profile.bio || '',
+                  skills: profile.skills?.join(', ') || ''
+                })
+              }}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors"
             >
               Отмена
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg"
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors"
             >
-              💾 Сохранить
+              Сохранить
             </button>
           </div>
         )}

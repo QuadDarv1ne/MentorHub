@@ -169,7 +169,7 @@ export default function UserStatistics() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Заголовок */}
       <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -286,7 +286,7 @@ export default function UserStatistics() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all progress-dynamic"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all progress-width"
                     style={{ '--progress-width': `${(stat.hoursLearned / maxHours) * 100}%` } as React.CSSProperties}
                   />
                 </div>
@@ -337,7 +337,7 @@ export default function UserStatistics() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-indigo-600 h-2 rounded-full transition-all progress-dynamic"
+                      className="bg-indigo-600 h-2 rounded-full transition-all progress-width"
                       style={{ '--progress-width': `${course.progress}%` } as React.CSSProperties}
                     />
                   </div>

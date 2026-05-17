@@ -121,7 +121,8 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-10">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <main className="max-w-4xl mx-auto px-4 py-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -295,6 +296,7 @@ export default function NotificationsPage() {
           Перейти в настройки уведомлений
         </Button>
       </Card>
-    </main>
+      </main>
+    </div>
   )
 }

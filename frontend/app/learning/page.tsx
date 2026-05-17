@@ -9,7 +9,6 @@ import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
-import Tabs from '@/components/ui/Tabs'
 
 interface Module {
   id: number
@@ -34,6 +33,7 @@ interface Course {
 
 export default function LearningPage() {
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null)
+  const [courseTab, setCourseTab] = useState<'active' | 'completed'>('active')
 
   const mockCourses: Course[] = [
     {
@@ -84,10 +84,10 @@ export default function LearningPage() {
   const completedCourses = mockCourses.filter(c => c.progress === 100)
   const activeCourses = mockCourses.filter(c => c.progress < 100)
 
-  const displayCourses = activeCourses
+  const displayCourses = courseTab === 'completed' ? completedCourses : activeCourses
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Заголовок */}
       <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -159,14 +159,29 @@ export default function LearningPage() {
         </div>
 
         {/* Табы */}
-        <div className="mb-8">
-          <Tabs
-            tabs={[
-              { id: 'active', label: `Активные (${activeCourses.length})`, content: null },
-              { id: 'completed', label: `Завершенные (${completedCourses.length})`, content: null }
-            ]}
-            defaultTab="active"
-          />
+        <div className="mb-8 border-b border-gray-200">
+          <div className="flex space-x-8">
+            <button
+              onClick={() => setCourseTab('active')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                courseTab === 'active'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Активные ({activeCourses.length})
+            </button>
+            <button
+              onClick={() => setCourseTab('completed')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                courseTab === 'completed'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Завершенные ({completedCourses.length})
+            </button>
+          </div>
         </div>
 
         {/* Курсы */}
