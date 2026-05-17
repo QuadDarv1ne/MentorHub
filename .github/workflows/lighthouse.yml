@@ -42,7 +42,7 @@ jobs:
       run: npm run lighthouse
 
     - name: Upload Lighthouse reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: lighthouse-reports
