@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 interface Notification {
   id: number
@@ -51,7 +52,7 @@ export default function NotificationsPanel() {
       wsRef.current = new WebSocket(wsUrl)
 
       wsRef.current.onopen = () => {
-        console.log('✅ Notifications WebSocket connected')
+        logger.info('Notifications WebSocket connected')
       }
 
       wsRef.current.onmessage = (event) => {
@@ -70,7 +71,7 @@ export default function NotificationsPanel() {
       }
 
       wsRef.current.onclose = () => {
-        console.log('❌ Notifications WebSocket disconnected')
+        logger.warn('Notifications WebSocket disconnected')
         // Reconnect after 5 seconds
         setTimeout(connectWebSocket, 5000)
       }

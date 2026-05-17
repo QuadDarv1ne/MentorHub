@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 interface VideoCallProps {
   channelId?: string
@@ -89,7 +90,7 @@ export default function VideoCall({
       })
 
       client.on('user-left', (user: any) => {
-        console.log('User left:', user)
+        logger.info('User left call:', user)
       })
 
       // Подключаемся к каналу

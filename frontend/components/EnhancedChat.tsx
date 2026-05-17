@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/lib/utils/logger'
 
 interface Message {
   id: number
@@ -102,7 +103,7 @@ export default function EnhancedChat() {
       wsRef.current = new WebSocket(wsUrl)
 
       wsRef.current.onopen = () => {
-        console.log('✅ Chat WebSocket connected')
+        logger.info('Chat WebSocket connected')
       }
 
       wsRef.current.onmessage = (event) => {
@@ -150,7 +151,7 @@ export default function EnhancedChat() {
       }
 
       wsRef.current.onclose = () => {
-        console.log('❌ Chat WebSocket disconnected')
+        logger.warn('Chat WebSocket disconnected')
         reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000)
       }
     } catch (error) {
