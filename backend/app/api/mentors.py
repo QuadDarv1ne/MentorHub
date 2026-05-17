@@ -4,7 +4,7 @@ Mentors API Router
 """
 
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 import asyncio
 from typing import List
 from fastapi import Depends, HTTPException, status
@@ -13,7 +13,9 @@ from sqlalchemy.orm import Session, joinedload
 from app.dependencies import get_db, rate_limit_dependency, get_current_user
 from app.models.mentor import Mentor
 from app.models.user import User
+from app.models.review import Review
 from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
+from app.schemas.common import PaginatedResponse
 from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe_string
 from app.services.cache import cached
 from app.utils.cache import invalidate_cache
@@ -190,3 +192,31 @@ async def delete_mentor(
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))
     asyncio.create_task(invalidate_cache("mentors_list:"))
     return None
+
+
+@router.get("/{mentor_id}/reviews", response_model=PaginatedResponse)
+async def get_mentor_reviews(
+    mentor_id: int,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    db: Session = Depends(get_db),
+    rate_limit: bool = Depends(rate_limit_dependency),
+):
+    """Получить отзывы о менторе"""
+    mentor = db.query(Mentor).options(joinedload(Mentor.user)).filter(Mentor.id == mentor_id).first()
+    if not mentor:
+        raise HTTPException(status_code=404, detail="Ментор не найден")
+
+    # reviewed_id = mentor.user_id (the user who IS the mentor)
+    total = db.query(Review).filter(Review.reviewed_id == mentor.user_id).count()
+    items = (
+        db.query(Review)
+        .options(joinedload(Review.reviewer))
+        .filter(Review.reviewed_id == mentor.user_id)
+        .order_by(Review.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return PaginatedResponse.create(items, total, page, page_size)

@@ -101,3 +101,28 @@ export async function getAllMentors(
 ): Promise<Mentor[]> {
   return publicRequest<Mentor[]>(`/mentors?skip=${skip}&limit=${limit}`);
 }
+
+export interface MentorReview {
+  id: number
+  user_id: number
+  user_name: string | null
+  course_id: number | null
+  reviewed_id: number | null
+  rating: number
+  comment: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+/**
+ * Получить отзывы о менторе по ID ментора
+ */
+export async function getMentorReviews(
+  mentorId: number,
+  page = 1,
+  pageSize = 20
+): Promise<PaginatedResponse<MentorReview>> {
+  return publicRequest<PaginatedResponse<MentorReview>>(
+    `/mentors/${mentorId}/reviews?page=${page}&page_size=${pageSize}`
+  );
+}

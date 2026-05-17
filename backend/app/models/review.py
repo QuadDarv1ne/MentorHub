@@ -15,7 +15,7 @@ class Review(BaseModel, TimestampMixin):
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     reviewed_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # ID ментора, о котором отзыв
-    course_id = Column(Integer, nullable=False, index=True)  # stepik course id
+    course_id = Column(Integer, nullable=True, index=True)  # stepik course id (nullable for mentor reviews)
     rating = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
 

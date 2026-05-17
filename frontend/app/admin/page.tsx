@@ -19,6 +19,12 @@ import {
   type AdminUserListResponse,
   type PlatformStats,
 } from '@/lib/api/admin'
+import {
+  getUserGrowth,
+  getRevenueAnalytics,
+  type UserGrowthPoint,
+  type RevenueAnalytics,
+} from '@/lib/api/analytics'
 
 function DynamicProgressBar({ percentage, className }: { percentage: number; className: string }) {
   return (
@@ -83,6 +89,10 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  const [userGrowth, setUserGrowth] = useState<{ period_days: number; data: UserGrowthPoint[] } | null>(null)
+  const [revenueData, setRevenueData] = useState<{ period_days: number; analytics: RevenueAnalytics } | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
+
   const pageSize = 10
 
   const fetchStats = useCallback(async () => {
@@ -117,8 +127,28 @@ export default function AdminDashboard() {
     }
   }, [page, roleFilter, statusFilter, searchQuery])
 
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true)
+    try {
+      const [growth, revenue] = await Promise.all([
+        getUserGrowth(30),
+        getRevenueAnalytics(30),
+      ])
+      setUserGrowth(growth)
+      setRevenueData(revenue)
+    } catch {
+      setUserGrowth(null)
+      setRevenueData(null)
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }, [])
+
   useEffect(() => { fetchStats() }, [fetchStats])
   useEffect(() => { fetchUsers() }, [fetchUsers])
+  useEffect(() => {
+    if (activeTab === 'analytics') fetchAnalytics()
+  }, [activeTab, fetchAnalytics])
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     setActionLoading(userId)
@@ -255,6 +285,7 @@ export default function AdminDashboard() {
               { id: 'overview', label: 'Обзор' },
               { id: 'users', label: 'Пользователи' },
               { id: 'monitoring', label: 'Мониторинг' },
+              { id: 'analytics', label: 'Аналитика' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -401,6 +432,103 @@ export default function AdminDashboard() {
             <Suspense fallback={<div className="text-center py-8">Загрузка мониторинга...</div>}>
               <MonitoringDashboard />
             </Suspense>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="space-y-8">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="text-center bg-blue-50 border-blue-200">
+                <div className="text-3xl font-bold text-blue-600">
+                  {analyticsLoading ? '—' : userGrowth?.data.reduce((sum, d) => sum + d.new_users, 0).toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Новых за 30 дней</div>
+              </Card>
+              <Card className="text-center bg-green-50 border-green-200">
+                <div className="text-3xl font-bold text-green-600">
+                  {analyticsLoading ? '—' : `₽${(revenueData?.analytics.total_revenue || 0).toLocaleString()}`}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Доход за 30 дней</div>
+              </Card>
+              <Card className="text-center bg-purple-50 border-purple-200">
+                <div className="text-3xl font-bold text-purple-600">
+                  {analyticsLoading ? '—' : `₽${Math.round(revenueData?.analytics.avg_transaction || 0).toLocaleString()}`}
+                </div>
+                <div className="text-sm text-gray-600 mt-1">Средний чек</div>
+              </Card>
+            </div>
+
+            {/* User Growth Chart */}
+            <Card>
+              <h3 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <TrendingUp size={20} className="text-indigo-600" />
+                <span>Рост пользователей (30 дней)</span>
+              </h3>
+              {analyticsLoading ? (
+                <div className="h-48 bg-gray-100 animate-pulse rounded" />
+              ) : userGrowth && userGrowth.data.length > 0 ? (
+                <div className="space-y-3">
+                  {(() => {
+                    const maxVal = Math.max(...userGrowth.data.map(d => d.new_users), 1)
+                    return userGrowth.data.slice(-14).map((d, i) => (
+                      <div key={i} className="flex items-center space-x-3">
+                        <span className="text-xs text-gray-500 w-16 text-right">
+                          {new Date(d.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                          <div
+                            className="h-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all"
+                            style={{ width: `${(d.new_users / maxVal) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-700 w-8">{d.new_users}</span>
+                      </div>
+                    ))
+                  })()}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Нет данных</p>
+              )}
+            </Card>
+
+            {/* Revenue Chart */}
+            <Card>
+              <h3 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <BarChart size={20} className="text-indigo-600" />
+                <span>Доход (30 дней)</span>
+              </h3>
+              {analyticsLoading ? (
+                <div className="h-48 bg-gray-100 animate-pulse rounded" />
+              ) : revenueData && revenueData.analytics.daily_revenue.length > 0 ? (
+                <div className="space-y-3">
+                  {(() => {
+                    const maxRev = Math.max(...revenueData.analytics.daily_revenue.map(d => d.revenue), 1)
+                    return revenueData.analytics.daily_revenue.slice(-14).map((d, i) => (
+                      <div key={i} className="flex items-center space-x-3">
+                        <span className="text-xs text-gray-500 w-16 text-right">
+                          {new Date(d.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                          <div
+                            className="h-4 rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all"
+                            style={{ width: `${(d.revenue / maxRev) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-700 w-12">₽{Math.round(d.revenue).toLocaleString()}</span>
+                      </div>
+                    ))
+                  })()}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Нет данных о доходах</p>
+                  <p className="text-2xl font-bold text-green-600 mt-2">
+                    ₽{(revenueData?.analytics.total_revenue || 0).toLocaleString()} всего
+                  </p>
+                </div>
+              )}
+            </Card>
           </div>
         )}
 

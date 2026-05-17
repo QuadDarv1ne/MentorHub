@@ -13,7 +13,7 @@ import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
 import { ChatButton } from '@/components/ChatButton'
-import { getMentorById, Mentor } from '@/lib/api/mentors'
+import { getMentorById, getMentorReviews, Mentor, MentorReview } from '@/lib/api/mentors'
 
 interface Review {
   id: number
@@ -35,6 +35,7 @@ export default function MentorProfilePage() {
   useEffect(() => {
     if (!mentorId) return
     loadMentor()
+    loadReviews()
   }, [mentorId])
 
   const loadMentor = async () => {
@@ -50,27 +51,20 @@ export default function MentorProfilePage() {
     }
   }
 
-  // Generate mock reviews (until backend provides reviews API)
-  useEffect(() => {
-    if (mentor) {
-      setReviews([
-        {
-          id: 1,
-          author_name: 'Алексей М.',
-          rating: 5,
-          comment: 'Отличный ментор! Очень помогло в подготовке к собеседованию. Объясняет сложные вещи простым языком.',
-          created_at: '2025-04-10',
-        },
-        {
-          id: 2,
-          author_name: 'Мария К.',
-          rating: 5,
-          comment: 'Профессиональный подход к обучению. Помог разобраться с архитектурой React-приложений.',
-          created_at: '2025-03-28',
-        },
-      ])
+  const loadReviews = async () => {
+    try {
+      const data = await getMentorReviews(mentorId)
+      setReviews(data.items.map((r: MentorReview) => ({
+        id: r.id,
+        author_name: r.user_name || 'Аноним',
+        rating: r.rating,
+        comment: r.comment || '',
+        created_at: r.created_at,
+      })))
+    } catch {
+      setReviews([])
     }
-  }, [mentor])
+  }
 
   if (loading) {
     return (

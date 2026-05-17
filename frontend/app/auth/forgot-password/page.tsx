@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Mail, AlertCircle, CheckCircle, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { publicRequest } from '@/lib/api/client'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -15,7 +16,6 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
 
-    // Валидация
     if (!email) {
       setError('Пожалуйста, введите email адрес')
       setLoading(false)
@@ -28,11 +28,17 @@ export default function ForgotPasswordPage() {
       return
     }
 
-    // Mock отправка email (в production заменить на API запрос)
-    setTimeout(() => {
+    try {
+      await publicRequest('/email/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      })
       setSuccess(true)
+    } catch {
+      setError('Не удалось отправить письмо. Попробуйте ещё раз.')
+    } finally {
       setLoading(false)
-    }, 2000)
+    }
   }
 
   if (success) {
@@ -82,13 +88,6 @@ export default function ForgotPasswordPage() {
                   Вернуться к входу
                 </Link>
               </div>
-            </div>
-
-            {/* Demo note */}
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-xs text-yellow-800">
-                <strong>Демо-режим:</strong> Email не был фактически отправлен. В production версии на указанный адрес придет письмо с ссылкой для сброса пароля.
-              </p>
             </div>
           </div>
         </div>
@@ -180,13 +179,6 @@ export default function ForgotPasswordPage() {
               <li>Перейдите по ссылке в письме</li>
               <li>Создайте новый пароль</li>
             </ul>
-          </div>
-
-          {/* Demo note */}
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              <strong>Демо-режим:</strong> Email не будет фактически отправлен. Это имитация функционала восстановления пароля.
-            </p>
           </div>
         </div>
       </div>

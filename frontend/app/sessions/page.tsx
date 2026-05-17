@@ -9,7 +9,7 @@ import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/lib/hooks/useNotifications'
-import { getMySessions, cancelSession, type Session } from '@/lib/api/sessions'
+import { getMySessions, cancelSession, submitSessionRating, type Session } from '@/lib/api/sessions'
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso)
@@ -37,7 +37,7 @@ export default function SessionsPage() {
   const [rating, setRating] = useState(5)
   const [feedback, setFeedback] = useState('')
   const [actionLoading, setActionLoading] = useState<number | null>(null)
-  const { success } = useToast()
+  const { success, error } = useToast()
 
   const fetchSessions = useCallback(async () => {
     setIsLoading(true)
@@ -91,11 +91,26 @@ export default function SessionsPage() {
     }
   }
 
-  const handleSubmitRating = () => {
-    success(`Спасибо за рейтинг ${rating}⭐! Ваш отзыв отправлен`)
-    setRating(5)
-    setFeedback('')
-    setShowRatingModal(false)
+  const handleSubmitRating = async () => {
+    if (!selectedSession) return
+    setActionLoading(-1)
+    try {
+      await submitSessionRating({
+        reviewed_id: selectedSession.mentor_id,
+        rating,
+        comment: feedback || undefined,
+        session_id: selectedSession.id,
+      })
+      success('Спасибо! Ваш отзыв отправлен')
+      setRating(5)
+      setFeedback('')
+      setShowRatingModal(false)
+      setSelectedSession(null)
+    } catch {
+      error('Не удалось отправить отзыв')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   if (authLoading || isLoading) {
