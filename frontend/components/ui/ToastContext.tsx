@@ -1,10 +1,14 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode } from 'react'
-import Toast, { ToastType } from './Toast'
+import Toast, { type ToastType } from './Toast'
 
 interface ToastContextType {
   showToast: (message: string, type?: ToastType, duration?: number) => void
+  success: (message: string, duration?: number) => void
+  error: (message: string, duration?: number) => void
+  info: (message: string, duration?: number) => void
+  warning: (message: string, duration?: number) => void
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined)
@@ -21,8 +25,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }
 
+  const success = (message: string, duration?: number) => showToast(message, 'success', duration)
+  const error = (message: string, duration?: number) => showToast(message, 'error', duration)
+  const info = (message: string, duration?: number) => showToast(message, 'info', duration)
+  const warning = (message: string, duration?: number) => showToast(message, 'warning', duration)
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
       {toasts.map((toast) => (
         <Toast
@@ -44,3 +53,5 @@ export function useToast() {
   }
   return context
 }
+
+export { type ToastType }

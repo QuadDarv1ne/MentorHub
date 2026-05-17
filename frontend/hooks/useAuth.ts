@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { User } from '@/lib/api/auth';
 import { logger } from '@/lib/utils/logger';
 
-interface UseAuthReturn {
+export interface UseAuthReturn {
   user: User | null;
   token: string | null;
   loading: boolean;
@@ -17,7 +17,7 @@ interface UseAuthReturn {
   getUserData: () => User | null;
 }
 
-interface UseAuthOptions {
+export interface UseAuthOptions {
   redirectTo?: string;
   redirectOnAuth?: boolean;
 }
