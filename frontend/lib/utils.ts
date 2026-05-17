@@ -129,27 +129,6 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
- * Генерация случайного цвета для аватара
- */
-export function getAvatarColor(str: string): string {
-  const colors = [
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-yellow-500',
-    'bg-red-500',
-  ];
-  
-  const hash = str.split('').reduce((acc, char) => {
-    return char.charCodeAt(0) + ((acc << 5) - acc);
-  }, 0);
-  
-  return colors[Math.abs(hash) % colors.length];
-}
-
-/**
  * Debounce функция
  */
 export function debounce<T extends (...args: unknown[]) => unknown>(
