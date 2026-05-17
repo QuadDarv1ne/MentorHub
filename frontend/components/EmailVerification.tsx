@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CheckCircle, XCircle, Loader, Mail, Shield } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/useNotifications'
+import { publicRequest } from '@/lib/api/client'
 
 interface VerificationResult {
   success: boolean
@@ -38,71 +39,49 @@ export function EmailVerification() {
 
   const verifyEmail = useCallback(async (verificationToken: string) => {
     setStatus('verifying')
-    
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/email/verify-email`, {
+      await publicRequest('/email/verify-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ token: verificationToken }),
       })
 
-      const data = await response.json()
+      setStatus('success')
+      setResult({
+        success: true,
+        message: 'Email успешно подтвержден! Теперь вы можете войти в систему.'
+      })
+      success('Email подтвержден! Теперь вы можете войти в свой аккаунт')
 
-      if (response.ok) {
-        setStatus('success')
-        setResult({
-          success: true,
-          message: 'Email успешно подтвержден! Теперь вы можете войти в систему.'
-        })
-        success('Email подтвержден! Теперь вы можете войти в свой аккаунт')
-        
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          router.push('/auth/login')
-        }, 3000)
-      } else {
-        setStatus('error')
-        setResult({
-          success: false,
-          message: data.detail || 'Ошибка при подтверждении email'
-        })
-        error('Ошибка верификации: ' + (data.detail || 'Неверный или просроченный токен'))
-      }
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        router.push('/auth/login')
+      }, 3000)
     } catch {
       setStatus('error')
       setResult({
         success: false,
-        message: 'Ошибка сети. Пожалуйста, попробуйте позже.'
+        message: 'Ошибка при подтверждении email. Неверный или просроченный токен.'
       })
-      error('Ошибка сети: Проверьте подключение к интернету')
+      error('Ошибка верификации: Неверный или просроченный токен')
     }
   }, [router, success, error])
 
-  const resendVerification= async () => {
+  const resendVerification = async () => {
     try {
       const email = localStorage.getItem('pending_verification_email')
-      
+
       if (!email) {
         error('Ошибка: Email не найден')
         return
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/email/send-verification`, {
+      await publicRequest('/email/send-verification', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email }),
       })
 
-      if (response.ok) {
-        success('Письмо отправлено! Проверьте вашу почту для подтверждения')
-      } else {
-        const data = await response.json()
-        error('Ошибка: ' + (data.detail || 'Не удалось отправить письмо'))
-      }
+      success('Письмо отправлено! Проверьте вашу почту для подтверждения')
     } catch {
       error('Ошибка сети: Проверьте подключение к интернету')
     }

@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
 import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
-import { apiRequest, getAccessToken } from '@/lib/api/client'
+import { apiRequest, getAccessToken, getBaseUrl } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
 export interface Message {
@@ -98,7 +98,8 @@ export function useChat({
 
     setConnectionStatus('connecting')
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL?.replace('http', 'ws') || 'ws://localhost:8000'}/ws/chat`
+    const baseUrl = getBaseUrl().replace('http', 'ws')
+    const wsUrl = `${baseUrl}/ws/chat`
     const socket = new WebSocket(wsUrl)
 
     socket.onopen = () => {

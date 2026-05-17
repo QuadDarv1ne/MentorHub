@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Send, X, MessageCircle, User, Check, CheckCheck } from 'lucide-react'
+import { getBaseUrl } from '@/lib/api/client'
 
 interface Message {
   id: number
@@ -60,7 +61,8 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
     const token = localStorage.getItem('access_token')
     if (!isOpen || !token) return
 
-    const websocketUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'}/ws/chat?token=${token}`
+    const baseUrl = getBaseUrl().replace('http', 'ws')
+    const websocketUrl = `${baseUrl}/ws/chat?token=${token}`
     const socket = new WebSocket(websocketUrl)
 
     socket.onopen = () => {

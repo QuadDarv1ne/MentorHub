@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/useNotifications'
+import { publicRequest } from '@/lib/api/client'
 
 export function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -19,7 +20,7 @@ export function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email) {
       error('Введите email адрес')
       return
@@ -28,24 +29,16 @@ export function ForgotPassword() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/email/forgot-password`, {
+      await publicRequest('/email/forgot-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email }),
       })
 
-      if (response.ok) {
-        setIsSent(true)
-        success('Письмо отправлено! Проверьте вашу почту.')
-        localStorage.setItem('reset_password_email', email)
-      } else {
-        const data = await response.json()
-        error(data.detail || 'Ошибка при отправке письма')
-      }
-    } catch {
-      error('Ошибка сети. Проверьте подключение к интернету.')
+      setIsSent(true)
+      success('Письмо отправлено! Проверьте вашу почту.')
+      localStorage.setItem('reset_password_email', email)
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'Ошибка сети. Проверьте подключение к интернету.')
     } finally {
       setIsLoading(false)
     }

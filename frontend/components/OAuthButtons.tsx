@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getBaseUrl } from '@/lib/api/client'
 
 interface OAuthButtonsProps {
   onOAuthStart?: () => void
@@ -16,11 +17,11 @@ export default function OAuthButtons({ onOAuthStart, onOAuthComplete }: OAuthBut
     try {
       setIsLoading(provider)
       onOAuthStart?.()
-      
+
       // Перенаправляем на backend OAuth endpoint
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      window.location.href = `${apiUrl}/api/v1/auth/oauth/${provider}`
-      
+      const baseUrl = getBaseUrl()
+      window.location.href = `${baseUrl}/api/v1/auth/oauth/${provider}`
+
     } catch (error) {
       console.error(`OAuth ${provider} error:`, error)
       setIsLoading(null)
