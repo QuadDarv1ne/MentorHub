@@ -107,14 +107,14 @@ class AnalyticsService:
         try:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
             
-            # Группируем по дням
+            # Группируем по дням - created_at is already a datetime column
             growth_data = self.db.query(
-                func.date(func.from_unixtime(User.created_at)).label('date'),
+                func.date(User.created_at).label('date'),
                 func.count(User.id).label('count')
             ).filter(
-                User.created_at >= int(start_date.timestamp())
+                User.created_at >= start_date
             ).group_by(
-                func.date(func.from_unixtime(User.created_at))
+                func.date(User.created_at)
             ).order_by('date').all()
 
             return [
@@ -141,11 +141,10 @@ class AnalyticsService:
         """
         try:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
-            start_timestamp = int(start_date.timestamp())
 
-            # Общее количество сессий
+            # Общее количество сессий - created_at is already a datetime column
             total_sessions = self.db.query(func.count(MentorSession.id)).filter(
-                MentorSession.created_at >= start_timestamp
+                MentorSession.created_at >= start_date
             ).scalar() or 0
 
             if total_sessions == 0:
@@ -160,14 +159,14 @@ class AnalyticsService:
             by_status = {}
             for status in SessionStatus:
                 count = self.db.query(func.count(MentorSession.id)).filter(
-                    MentorSession.created_at >= start_timestamp,
+                    MentorSession.created_at >= start_date,
                     MentorSession.status == status
                 ).scalar() or 0
                 by_status[status.value] = count
 
             # Средняя длительность - агрегация на уровне БД
             avg_duration = self.db.query(func.avg(MentorSession.duration_minutes)).filter(
-                MentorSession.created_at >= start_timestamp,
+                MentorSession.created_at >= start_date,
                 MentorSession.duration_minutes.isnot(None)
             ).scalar() or 0
 
@@ -176,7 +175,7 @@ class AnalyticsService:
                 MentorSession.mentor_id,
                 func.count(MentorSession.id).label('session_count')
             ).filter(
-                MentorSession.created_at >= start_timestamp
+                MentorSession.created_at >= start_date
             ).group_by(
                 MentorSession.mentor_id
             ).order_by(
@@ -274,16 +273,15 @@ class AnalyticsService:
         """
         try:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
-            start_timestamp = int(start_date.timestamp())
 
-            # Финансовые метрики - используем агрегацию вместо загрузки всех записей
+            # Финансовые метрики - created_at is already a datetime column
             total_revenue = self.db.query(func.sum(Payment.amount)).filter(
-                Payment.created_at >= start_timestamp,
+                Payment.created_at >= start_date,
                 Payment.status == "completed"
             ).scalar() or 0
 
             transaction_count = self.db.query(func.count(Payment.id)).filter(
-                Payment.created_at >= start_timestamp,
+                Payment.created_at >= start_date,
                 Payment.status == "completed"
             ).scalar() or 0
 
@@ -297,15 +295,15 @@ class AnalyticsService:
 
             avg_transaction = float(total_revenue) / transaction_count
 
-            # По дням
+            # По дням - use func.date directly on datetime column
             daily_revenue = self.db.query(
-                func.date(func.from_unixtime(Payment.created_at)).label('date'),
+                func.date(Payment.created_at).label('date'),
                 func.sum(Payment.amount).label('revenue')
             ).filter(
-                Payment.created_at >= start_timestamp,
+                Payment.created_at >= start_date,
                 Payment.status == "completed"
             ).group_by(
-                func.date(func.from_unixtime(Payment.created_at))
+                func.date(Payment.created_at)
             ).order_by('date').all()
 
             return {
@@ -369,7 +367,7 @@ class AnalyticsService:
 
             last_activity = None
             if last_session:
-                last_activity = datetime.fromtimestamp(last_session.created_at).isoformat()
+                last_activity = last_session.created_at.isoformat()
 
             return {
                 "user_id": user_id,

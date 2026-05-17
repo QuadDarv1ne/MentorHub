@@ -170,7 +170,7 @@ class ChatRoomService:
         ).options(
             joinedload(ChatMessage.sender)
         ).order_by(
-            ChatMessage.sent_at
+            ChatMessage.created_at
         ).offset(skip).limit(limit).all()
 
 

@@ -15,6 +15,7 @@ from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.notification import Notification, NotificationType
 from pydantic import BaseModel, ConfigDict
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -50,7 +51,7 @@ class NotificationResponse(BaseModel):
     link: Optional[str] = None
     is_read: bool
     read_at: Optional[int] = None
-    created_at: int
+    created_at: datetime
 
 
 class NotificationListResponse(BaseModel):

@@ -13,6 +13,7 @@ from app.dependencies import get_db, get_current_user, rate_limit_dependency
 from app.models.course import Course, Lesson, CourseEnrollment
 from app.models.progress import Progress
 from app.models.user import User
+from app.models.mentor import Mentor
 from app.schemas.course import LessonCreate, LessonUpdate, LessonResponse
 from app.utils.cache import invalidate_cache
 
@@ -56,7 +57,8 @@ async def create_lesson(
         raise HTTPException(status_code=404, detail="Курс не найден")
 
     # Проверяем права (только инструктор курса может создавать уроки)
-    if course.instructor_id != current_user.id:
+    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+    if not mentor or course.instructor_id != mentor.id:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
     # Создаем урок
@@ -92,7 +94,8 @@ async def update_lesson(
 
     # Проверяем права
     course = db.query(Course).filter(Course.id == db_lesson.course_id).first()
-    if course.instructor_id != current_user.id:
+    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+    if not course or not mentor or course.instructor_id != mentor.id:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
     # Обновляем поля
@@ -127,7 +130,8 @@ async def delete_lesson(
 
     # Проверяем права
     course = db.query(Course).filter(Course.id == db_lesson.course_id).first()
-    if course.instructor_id != current_user.id:
+    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+    if not course or not mentor or course.instructor_id != mentor.id:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
     course_id = db_lesson.course_id
@@ -231,8 +235,8 @@ async def complete_lesson(
     enrollment.completed = course_progress == 100
 
     if enrollment.completed and not enrollment.completed_at:
-        from datetime import datetime
-        enrollment.completed_at = datetime.utcnow()
+        from datetime import datetime, timezone
+        enrollment.completed_at = datetime.now(timezone.utc)
 
     try:
         db.commit()
