@@ -10,7 +10,7 @@ gunicorn>=23.0.0
 # ==================== DATABASE ====================
 sqlalchemy>=2.0.35
 sqlmodel>=0.0.38
-alembic>=1.13.0
+alembic>=1.18.4
 psycopg2-binary>=2.9.12
 
 # ==================== PYDANTIC ====================
