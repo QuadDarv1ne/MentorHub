@@ -60,26 +60,27 @@ export default function ProfilePage() {
 
     // Fallback: use data from auth hook if API is unavailable
     if (user) {
+      const u = user as Record<string, unknown>
       setProfile({
         id: user.id || 0,
         username: user.email?.split('@')[0] || '',
         email: user.email || '',
-        fullName: user.fullName || user.email || '',
-        avatar: user.avatar,
+        fullName: (u.fullName as string) || user.email || '',
+        avatar: u.avatar as string | undefined,
         role: user.role || 'student',
-        bio: user.bio,
-        skills: user.skills || [],
-        rating: user.rating || 0,
-        totalSessions: user.totalSessions || 0,
-        completedSessions: user.completedSessions || 0,
-        joinDate: user.joinDate || '',
-        isOnline: user.isOnline ?? true,
-        lastSeen: user.lastSeen,
+        bio: u.bio as string | undefined,
+        skills: (u.skills as string[]) || [],
+        rating: (u.rating as number) || 0,
+        totalSessions: (u.totalSessions as number) || 0,
+        completedSessions: (u.completedSessions as number) || 0,
+        joinDate: (u.joinDate as string) || '',
+        isOnline: (u.isOnline as boolean) ?? true,
+        lastSeen: u.lastSeen as string | undefined,
       })
       setFormData({
-        fullName: user.fullName || '',
-        bio: user.bio || '',
-        skills: user.skills?.join(', ') || ''
+        fullName: (u.fullName as string) || '',
+        bio: (u.bio as string) || '',
+        skills: ((u.skills as string[])?.join(', ')) || ''
       })
       setError('Не удалось загрузить профиль с сервера. Показаны локальные данные.')
     } else {

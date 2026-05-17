@@ -7,6 +7,7 @@ import { logger } from '@/lib/utils/logger';
 
 interface UseAuthReturn {
   user: User | null;
+  token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (token: string, user: User) => Promise<void>;
@@ -152,6 +153,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
 
   return {
     user,
+    token: typeof window !== 'undefined' ? localStorage.getItem('access_token') : null,
     loading,
     isAuthenticated: !!user,
     login,
