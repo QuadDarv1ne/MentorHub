@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.dependencies import get_current_admin, get_pagination
+from app.dependencies import get_current_admin, get_db, get_pagination
 from app.models.user import User, UserRole
 from app.schemas.admin import (
     AdminUserResponse,

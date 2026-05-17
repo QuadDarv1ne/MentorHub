@@ -1,8 +1,7 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
-import Head from 'next/head'
+import Link from 'next/link'
 
 type Consent = {
   necessary: boolean
@@ -31,12 +30,15 @@ export default function ConsentPage() {
 
   return (
     <>
-      <Head>
-        <title>Настройки cookie — MentorHub</title>
-      </Head>
       <div className="prose max-w-none">
         <h2>Настройки cookie</h2>
         <p>Управляйте категориями cookie. Необходимые cookie включены всегда.</p>
+        <p className="text-sm text-gray-500">
+          Подробное «Согласие на обработку персональных данных» (ст. 9 152-ФЗ) —{' '}
+          <Link href="/legal/data-consent" className="text-indigo-600 hover:underline">
+            отдельный документ
+          </Link>
+        </p>
         <div className="not-prose mt-4 space-y-3">
           <label className="flex items-center gap-3">
             <input type="checkbox" checked disabled className="h-4 w-4" />

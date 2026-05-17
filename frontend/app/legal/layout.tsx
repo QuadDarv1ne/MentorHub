@@ -15,11 +15,13 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           <li><a className="hover:underline" href="/legal/privacy">Политика конфиденциальности</a></li>
           <li><a className="hover:underline" href="/legal/cookies">Файлы cookie</a></li>
           <li><a className="hover:underline" href="/legal/dpa">Обработка данных (DPA)</a></li>
+          <li><a className="hover:underline" href="/legal/data-consent">Согласие на обработку ПДн</a></li>
           <li><a className="hover:underline" href="/legal/refund">Политика возвратов</a></li>
           <li><a className="hover:underline" href="/legal/aup">Политика допустимого использования</a></li>
           <li><a className="hover:underline" href="/legal/community">Правила сообщества</a></li>
           <li><a className="hover:underline" href="/legal/license">Лицензия</a></li>
           <li><a className="hover:underline" href="/legal/consent">Настройки cookie</a></li>
+          <li><a className="hover:underline" href="/offer">Публичная оферта</a></li>
         </ul>
       </nav>
     </section>
