@@ -5,7 +5,7 @@ Admin API endpoints for user management and platform administration.
 import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, desc
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_admin, get_db, get_pagination
@@ -16,6 +16,8 @@ from app.schemas.admin import (
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
     PlatformStatsResponse,
+    AdminUserStatsResponse,
+    CourseStatItem,
 )
 from app.schemas.common import PaginationParams, MessageResponse
 from app.services.analytics import AnalyticsService
@@ -160,4 +162,95 @@ async def get_platform_stats(
         total_revenue=float(stats.get("total_revenue", 0.0)),
         new_users_today=new_users_today,
         active_sessions_now=active_sessions_now,
+    )
+
+
+@router.get("/users/{user_id}/stats", response_model=AdminUserStatsResponse)
+async def get_user_stats(
+    user_id: int,
+    current_user: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Get detailed statistics for a specific user (admin only)"""
+    from app.models.session import Session as MentorSession, SessionStatus
+    from app.models.course import Course, CourseEnrollment
+    from app.models.progress import Progress
+    from app.models.review import Review
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Session stats
+    total_sessions = db.query(MentorSession).filter(
+        MentorSession.student_id == user_id
+    ).count()
+    completed_sessions = db.query(MentorSession).filter(
+        MentorSession.student_id == user_id,
+        MentorSession.status == SessionStatus.COMPLETED,
+    ).count()
+    upcoming_sessions = db.query(MentorSession).filter(
+        MentorSession.student_id == user_id,
+        MentorSession.status.in_([SessionStatus.SCHEDULED, SessionStatus.CONFIRMED]),
+    ).count()
+
+    # Last activity
+    last_session = db.query(MentorSession).filter(
+        MentorSession.student_id == user_id
+    ).order_by(func.desc(MentorSession.created_at)).first()
+    last_activity = last_session.created_at.isoformat() if last_session and last_session.created_at else None
+
+    # Course stats
+    enrollments = db.query(CourseEnrollment).filter(
+        CourseEnrollment.user_id == user_id
+    ).all()
+    course_stats = []
+    for enrollment in enrollments:
+        progress = db.query(Progress).filter(
+            Progress.user_id == user_id,
+            Progress.course_id == enrollment.course_id,
+        ).first()
+        course = db.query(Course).filter(Course.id == enrollment.course_id).first()
+        if course:
+            course_stats.append(CourseStatItem(
+                course_id=course.id,
+                course_title=course.title,
+                progress_percent=float(progress.progress_percent) if progress else 0.0,
+                completed=bool(progress.completed) if progress else False,
+            ))
+
+    # Review stats
+    avg_rating_given = db.query(func.avg(Review.rating)).filter(
+        Review.user_id == user_id
+    ).scalar() or 0.0
+
+    avg_rating_received = db.query(func.avg(Review.rating)).filter(
+        Review.reviewed_id == user_id
+    ).scalar() or 0.0
+
+    # Engagement score
+    sessions_count = total_sessions
+    enrollments_count = len(enrollments)
+    avg_progress = sum(c.progress_percent for c in course_stats) / len(course_stats) if course_stats else 0.0
+    reviews_count = db.query(Review).filter(Review.user_id == user_id).count()
+
+    # Calculate engagement score (same logic as AnalyticsService)
+    engagement_score = 0
+    engagement_score += min(sessions_count * 3, 30)
+    engagement_score += min(enrollments_count * 5, 25)
+    engagement_score += min(avg_progress * 0.3, 30)
+    engagement_score += min(reviews_count * 5, 15)
+    engagement_score = min(int(engagement_score), 100)
+
+    return AdminUserStatsResponse(
+        user=AdminUserResponse.model_validate(user),
+        total_sessions=total_sessions,
+        completed_sessions=completed_sessions,
+        upcoming_sessions=upcoming_sessions,
+        courses_enrolled=len(enrollments),
+        course_stats=course_stats,
+        avg_rating_given=float(avg_rating_given),
+        avg_rating_received=float(avg_rating_received),
+        engagement_score=engagement_score,
+        last_activity=last_activity,
     )

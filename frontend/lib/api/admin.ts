@@ -117,3 +117,27 @@ export async function getMonitoringMetrics(): Promise<MonitoringMetrics> {
 export async function getAlerts(): Promise<Alert[]> {
   return apiRequest<Alert[]>('/admin/alerts')
 }
+
+export interface CourseStatItem {
+  course_id: number
+  course_title: string
+  progress_percent: number
+  completed: boolean
+}
+
+export interface AdminUserStats {
+  user: AdminUser
+  total_sessions: number
+  completed_sessions: number
+  upcoming_sessions: number
+  courses_enrolled: number
+  course_stats: CourseStatItem[]
+  avg_rating_given: number
+  avg_rating_received: number
+  engagement_score: number
+  last_activity: string | null
+}
+
+export async function getAdminUserStats(userId: number): Promise<AdminUserStats> {
+  return apiRequest<AdminUserStats>(`/admin/users/${userId}/stats`)
+}

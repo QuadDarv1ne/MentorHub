@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, Suspense, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   BarChart, Users, BookOpen, TrendingUp, AlertCircle,
   Filter, Download, Search, ChevronLeft, ChevronRight,
-  Shield, UserCheck, UserX, RefreshCw, Loader2
+  Shield, UserCheck, UserX, RefreshCw, Loader2, Eye
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -67,6 +68,7 @@ function formatNumber(n: number): string {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [showFilters, setShowFilters] = useState(false)
   const [statsLoading, setStatsLoading] = useState(true)
@@ -517,6 +519,14 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 text-sm">
                               <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => router.push(`/admin/users/${user.id}`)}
+                                  className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                  title="Посмотреть статистику"
+                                >
+                                  <Eye size={14} />
+                                  <span>Статистика</span>
+                                </button>
                                 <button
                                   onClick={() => handleStatusToggle(user.id, user.is_active)}
                                   disabled={actionLoading === user.id}

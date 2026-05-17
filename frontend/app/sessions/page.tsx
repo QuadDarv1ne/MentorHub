@@ -1,108 +1,104 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Clock, Video, MessageSquare } from 'lucide-react'
+import { Calendar, Clock, Video, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/lib/hooks/useNotifications'
+import { getMySessions, cancelSession, type Session } from '@/lib/api/sessions'
 
-const sessions = [
-  {
-    id: 1,
-    mentorName: 'Иван Петров',
-    mentorPhoto: '👨‍💼',
-    specialty: 'JavaScript / React',
-    date: '21 ноября 2025',
-    time: '14:00',
-    duration: '60 минут',
-    status: 'upcoming',
-    price: 1500,
-    topic: 'React Hooks в деталях',
-    format: 'Видеозвонок',
-    notes: 'Будем разбирать useState, useEffect, useContext с примерами'
-  },
-  {
-    id: 2,
-    mentorName: 'Мария Сидорова',
-    mentorPhoto: '👩‍💼',
-    specialty: 'Node.js / Backend',
-    date: '18 ноября 2025',
-    time: '16:00',
-    duration: '90 минут',
-    status: 'completed',
-    price: 2250,
-    topic: 'Архитектура REST API',
-    format: 'Видеозвонок',
-    rating: 5,
-    feedback: 'Отличная сессия! Очень помогла разобраться с микросервисами.'
-  },
-  {
-    id: 3,
-    mentorName: 'Сергей Новиков',
-    mentorPhoto: '👨‍🏫',
-    specialty: 'TypeScript / Fullstack',
-    date: '15 ноября 2025',
-    time: '10:00',
-    duration: '60 минут',
-    status: 'completed',
-    price: 1500,
-    topic: 'Advanced TypeScript',
-    format: 'Видеозвонок',
-    rating: 4,
-    feedback: 'Хороший ментор, но хотелось бы больше практики.'
-  },
-  {
-    id: 4,
-    mentorName: 'Иван Петров',
-    mentorPhoto: '👨‍💼',
-    specialty: 'JavaScript / React',
-    date: '25 ноября 2025',
-    time: '18:00',
-    duration: '60 минут',
-    status: 'upcoming',
-    price: 1500,
-    topic: 'Next.js и SSR',
-    format: 'Видеозвонок',
-    notes: 'Обсудим Server-Side Rendering и оптимизацию'
-  }
-]
+function formatDateTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+}
 
-const stats = {
-  totalSessions: 12,
-  completedSessions: 10,
-  totalSpent: 15000,
-  nextSession: '21 ноября 2025 в 14:00'
+function formatTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+}
+
+function isUpcomingStatus(status: string): boolean {
+  return ['scheduled', 'confirmed', 'pending'].includes(status)
 }
 
 export default function SessionsPage() {
   const router = useRouter()
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming')
-  const [selectedSession, setSelectedSession] = useState<typeof sessions[0] | null>(null)
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [rating, setRating] = useState(5)
   const [feedback, setFeedback] = useState('')
+  const [actionLoading, setActionLoading] = useState<number | null>(null)
   const { success } = useToast()
+
+  const fetchSessions = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await getMySessions()
+      setSessions(data)
+    } catch {
+      setError('Не удалось загрузить сессии')
+      setSessions([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   // Проверка авторизации
   useEffect(() => {
-    // Ждём завершения загрузки перед проверкой авторизации
-    if (loading) return
-    
+    if (authLoading) return
     if (!isAuthenticated) {
       router.push('/auth/login?redirect=/sessions')
     } else {
-      setIsLoading(true)
-      setTimeout(() => setIsLoading(false), 300)
+      fetchSessions()
     }
-  }, [isAuthenticated, loading, router])
+  }, [isAuthenticated, authLoading, router, fetchSessions])
 
-  if (isLoading) {
+  const upcomingSessions = useMemo(
+    () => sessions.filter(s => isUpcomingStatus(s.status)),
+    [sessions]
+  )
+  const completedSessions = useMemo(
+    () => sessions.filter(s => s.status === 'completed'),
+    [sessions]
+  )
+
+  const nextSession = useMemo(() => {
+    return upcomingSessions
+      .slice()
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+  }, [upcomingSessions])
+
+  const handleCancelSession = async (id: number) => {
+    setActionLoading(id)
+    try {
+      await cancelSession(id)
+      success('Сессия отменена')
+      await fetchSessions()
+    } catch {
+      setError('Не удалось отменить сессию')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleSubmitRating = () => {
+    success(`Спасибо за рейтинг ${rating}⭐! Ваш отзыв отправлен`)
+    setRating(5)
+    setFeedback('')
+    setShowRatingModal(false)
+  }
+
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -113,126 +109,101 @@ export default function SessionsPage() {
     )
   }
 
-  const upcomingSessions = sessions.filter(s => s.status === 'upcoming')
-  const completedSessions = sessions.filter(s => s.status === 'completed')
+  const SessionCard = ({ session, isUpcoming }: { session: Session; isUpcoming: boolean }) => {
+    const mentorName = session.mentor?.full_name || 'Ментор'
+    const mentorPhoto = session.mentor?.avatar_url || ''
 
-  const handleSubmitRating = () => {
-    success(`Спасибо за рейтинг ${rating}⭐! Ваш отзыв отправлен`)
-    setRating(5)
-    setFeedback('')
-    setShowRatingModal(false)
-  }
+    return (
+      <Card padding="lg" className="mb-4">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex gap-4 flex-1">
+            {mentorPhoto ? (
+              <img src={mentorPhoto} alt={mentorName} className="w-14 h-14 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg font-bold text-indigo-600">{mentorName[0]}</span>
+              </div>
+            )}
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{mentorName}</h3>
 
-  const handleCancelSession = (id: number) => {
-    success(`Сессия #${id} отменена`)
-  }
+              <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-indigo-600" />
+                  <span>{formatDateTime(session.scheduled_at)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-indigo-600" />
+                  <span>{formatTime(session.scheduled_at)} ({session.duration_minutes} мин)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Video className="h-4 w-4 text-indigo-600" />
+                  <span>{session.meeting_link ? 'Видеозвонок' : 'Не определено'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-indigo-600" />
+                  <span className="text-gray-900 font-semibold">{session.topic || 'Без темы'}</span>
+                </div>
+              </div>
 
-  const SessionCard = ({ session, isUpcoming }: { session: typeof sessions[0]; isUpcoming: boolean }) => (
-    <Card padding="lg" className="mb-4">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Mentor Info */}
-        <div className="flex gap-4 flex-1">
-          <div className="text-5xl flex-shrink-0">{session.mentorPhoto}</div>
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-1">{session.mentorName}</h3>
-            <p className="text-indigo-600 font-semibold mb-3">{session.specialty}</p>
+              {isUpcoming && session.notes && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
+                  📝 {session.notes}
+                </div>
+              )}
 
-            {/* Details Grid */}
-            <div className="space-y-2 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-600" />
-                <span>{session.date}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
-                <span>{session.time} ({session.duration})</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Video className="h-4 w-4 text-indigo-600" />
-                <span>{session.format}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-indigo-600" />
-                <span className="text-gray-900 font-semibold">{session.topic}</span>
-              </div>
+              {isUpcoming && session.meeting_link && (
+                <a
+                  href={session.meeting_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  Присоединиться к сессии
+                </a>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end justify-between md:w-48">
+            <div className="text-right">
+              <Badge variant={isUpcoming ? 'success' : 'info'}>
+                {isUpcoming ? 'Предстоящая' : 'Завершена'}
+              </Badge>
             </div>
 
-            {/* Notes or Feedback */}
-            {isUpcoming && session.notes && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
-                📝 {session.notes}
-              </div>
-            )}
-
-            {!isUpcoming && session.feedback && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-900">
-                ✓ {session.feedback}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Price and Actions */}
-        <div className="flex flex-col items-end justify-between md:w-48">
-          <div className="text-right">
-            <div className="text-2xl font-bold text-indigo-600 mb-1">{session.price}₽</div>
-            {isUpcoming && <Badge variant="success">Предстоящая</Badge>}
-            {!isUpcoming && session.rating && (
-              <div className="flex items-center justify-end gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className={i < session.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                    ⭐
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 w-full">
-            {isUpcoming ? (
-              <>
-                <Button variant="secondary" fullWidth size="sm">
-                  Присоединиться
-                </Button>
+            <div className="flex gap-2 w-full mt-4">
+              {isUpcoming ? (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleCancelSession(session.id)}
+                  disabled={actionLoading === session.id}
                 >
-                  Отмена
+                  {actionLoading === session.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Отмена'
+                  )}
                 </Button>
-              </>
-            ) : (
-              <>
-                {!session.rating && (
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    size="sm"
-                    onClick={() => {
-                      setSelectedSession(session)
-                      setShowRatingModal(true)
-                    }}
-                  >
-                    Оценить
-                  </Button>
-                )}
-                {session.rating && (
-                  <Button variant="outline" fullWidth size="sm" disabled>
-                    Уже оценено
-                  </Button>
-                )}
-                <Button variant="outline" size="sm">
-                  Ещё раз
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedSession(session)
+                    setShowRatingModal(true)
+                  }}
+                >
+                  Оценить
                 </Button>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
-  )
+      </Card>
+    )
+  }
 
   return (
     <main className="container mx-auto max-w-6xl px-4 py-10">
@@ -242,23 +213,32 @@ export default function SessionsPage() {
         <p className="text-gray-600 text-lg">Управляйте вашими занятиями с менторами</p>
       </div>
 
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
+          <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
         <Card padding="md" className="text-center">
-          <div className="text-3xl font-bold text-indigo-600 mb-1">{stats.totalSessions}</div>
+          <div className="text-3xl font-bold text-indigo-600 mb-1">{sessions.length}</div>
           <div className="text-sm text-gray-600">Всего сессий</div>
         </Card>
         <Card padding="md" className="text-center">
-          <div className="text-3xl font-bold text-green-600 mb-1">{stats.completedSessions}</div>
+          <div className="text-3xl font-bold text-green-600 mb-1">{completedSessions.length}</div>
           <div className="text-sm text-gray-600">Завершено</div>
         </Card>
         <Card padding="md" className="text-center">
-          <div className="text-3xl font-bold text-blue-600 mb-1">{stats.totalSpent}₽</div>
-          <div className="text-sm text-gray-600">Потрачено</div>
+          <div className="text-3xl font-bold text-blue-600 mb-1">{upcomingSessions.length}</div>
+          <div className="text-sm text-gray-600">Предстоящие</div>
         </Card>
         <Card padding="md" className="text-center">
           <div className="text-lg font-bold text-purple-600 mb-1">Следующая</div>
-          <div className="text-sm text-gray-600">{stats.nextSession}</div>
+          <div className="text-sm text-gray-600">
+            {nextSession ? `${formatDateTime(nextSession.scheduled_at)} в ${formatTime(nextSession.scheduled_at)}` : '—'}
+          </div>
         </Card>
       </div>
 
@@ -272,7 +252,7 @@ export default function SessionsPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          📅 Предстоящие ({upcomingSessions.length})
+          Предстоящие ({upcomingSessions.length})
         </button>
         <button
           onClick={() => setActiveTab('completed')}
@@ -282,7 +262,7 @@ export default function SessionsPage() {
               : 'border-transparent text-gray-600 hover:text-gray-900'
           }`}
         >
-          ✅ Завершенные ({completedSessions.length})
+          Завершенные ({completedSessions.length})
         </button>
       </div>
 
@@ -296,7 +276,6 @@ export default function SessionsPage() {
           ) : (
             <Card padding="lg" className="text-center">
               <p className="text-gray-600 mb-4">У вас нет предстоящих сессий</p>
-              <Button variant="secondary">Забронировать сессию</Button>
             </Card>
           )}
         </div>
@@ -320,11 +299,10 @@ export default function SessionsPage() {
       <Modal
         isOpen={showRatingModal}
         onClose={() => setShowRatingModal(false)}
-        title={`Оценить сессию с ${selectedSession?.mentorName}`}
+        title={`Оценить сессию с ${selectedSession?.mentor?.full_name || 'Ментором'}`}
         size="md"
       >
         <div className="space-y-6">
-          {/* Rating */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Как вам сессия?
@@ -352,7 +330,6 @@ export default function SessionsPage() {
             </p>
           </div>
 
-          {/* Feedback */}
           <div>
             <label htmlFor="feedback" className="block text-sm font-semibold text-gray-900 mb-3">
               Ваши комментарии
@@ -367,7 +344,6 @@ export default function SessionsPage() {
             />
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3">
             <Button variant="secondary" fullWidth onClick={handleSubmitRating}>
               Отправить оценку
