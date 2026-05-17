@@ -179,7 +179,7 @@ export default function MentorSearchFilters({ onSearch, specializations }: Mento
             </label>
             <select
               value={filters.sortBy}
-              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value as 'name' | 'rating' | 'price' | 'experience')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="rating">По рейтингу</option>
@@ -196,7 +196,7 @@ export default function MentorSearchFilters({ onSearch, specializations }: Mento
             </label>
             <select
               value={filters.sortOrder}
-              onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+              onChange={(e) => handleFilterChange('sortOrder', e.target.value as 'desc' | 'asc')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="desc">По убыванию</option>

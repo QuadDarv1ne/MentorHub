@@ -45,7 +45,7 @@ export default function VideoCall({
 
   useEffect(() => {
     initCall()
-    return () => cleanup()
+    return () => { cleanup() }
   }, [])
 
   const initCall = async () => {
@@ -98,7 +98,7 @@ export default function VideoCall({
       setIsConnected(true)
 
       // Создаем и публикуем локальные треки
-      const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({ enabled: true })
+      const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack()
       const localVideoTrack = await AgoraRTC.createCameraVideoTrack({
         encoderConfig: {
           width: 640,

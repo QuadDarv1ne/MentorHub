@@ -84,9 +84,9 @@ export default function MentorSearchResults({
               </div>
               
               {mentor.is_available ? (
-                <CheckCircle className="w-6 h-6 text-green-500" title="Доступен" />
+                <CheckCircle className="w-6 h-6 text-green-500" aria-label="Доступен" />
               ) : (
-                <XCircle className="w-6 h-6 text-gray-400" title="Недоступен" />
+                <XCircle className="w-6 h-6 text-gray-400" aria-label="Недоступен" />
               )}
             </div>
 
