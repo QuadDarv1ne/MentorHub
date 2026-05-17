@@ -95,12 +95,10 @@ function LoginForm() {
       const user = await getCurrentUser(authResponse.access_token)
 
       // Store tokens and user data using improved authLogin
-      authLogin(
-        authResponse.access_token,
-        user,
-        authResponse.expires_in,
-        formData.rememberMe ? authResponse.refresh_token : undefined
-      )
+      if (formData.rememberMe && authResponse.refresh_token) {
+        localStorage.setItem('refresh_token', authResponse.refresh_token)
+      }
+      authLogin(authResponse.access_token, user)
 
       localStorage.setItem('user_name', user.full_name || user.email)
       localStorage.setItem('user_role', user.role)

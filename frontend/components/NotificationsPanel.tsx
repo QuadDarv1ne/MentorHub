@@ -103,7 +103,7 @@ export default function NotificationsPanel() {
   }
 
   const getIcon = (type: string) => {
-    const icons = {
+    const icons: Record<string, string> = {
       message: '💬',
       session: '📅',
       payment: '💰',

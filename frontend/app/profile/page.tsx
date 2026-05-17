@@ -60,7 +60,7 @@ export default function ProfilePage() {
 
     // Fallback: use data from auth hook if API is unavailable
     if (user) {
-      const u = user as Record<string, unknown>
+      const u = user as unknown as Record<string, unknown>
       setProfile({
         id: user.id || 0,
         username: user.email?.split('@')[0] || '',
