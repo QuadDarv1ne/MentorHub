@@ -12,7 +12,7 @@ safety>=2.3.0
 pip-audit>=2.10.0
 
 # Database Migrations
-alembic>=1.13.0
+alembic>=1.18.4
 
 # Code Quality
 black>=24.10.0
