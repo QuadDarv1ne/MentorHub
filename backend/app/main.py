@@ -24,10 +24,24 @@ from app.utils.error_handlers import register_error_handlers
 from app.utils.prometheus import metrics_endpoint
 
 # ==================== LOGGING SETUP ====================
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+from pythonjsonlogger import jsonlogger
+
+if settings.LOG_FORMAT == "json":
+    log_handler = logging.StreamHandler()
+    formatter = jsonlogger.JsonFormatter(
+        fmt="%(asctime)s %(name)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+    )
+    log_handler.setFormatter(formatter)
+    logging.basicConfig(
+        level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+        handlers=[log_handler],
+    )
+else:
+    logging.basicConfig(
+        level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 logger = logging.getLogger(__name__)
 
 
