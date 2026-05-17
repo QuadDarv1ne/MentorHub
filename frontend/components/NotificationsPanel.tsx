@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { apiRequest } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
 interface Notification {
@@ -34,20 +35,17 @@ export default function NotificationsPanel() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/notifications')
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(data)
-        setUnreadCount(data.filter((n: Notification) => !n.read).length)
-      }
+      const data = await apiRequest<Notification[]>('/notifications')
+      setNotifications(data)
+      setUnreadCount(data.filter((n) => !n.read).length)
     } catch (error) {
-      console.error('Fetch notifications error:', error)
+      logger.error('Fetch notifications error', error)
     }
   }
 
   const connectWebSocket = () => {
     const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/notifications`
-    
+
     try {
       wsRef.current = new WebSocket(wsUrl)
 
@@ -62,12 +60,12 @@ export default function NotificationsPanel() {
           setUnreadCount(prev => prev + 1)
           toast.success(newNotification.title, newNotification.message)
         } catch (error) {
-          console.error('Parse notification error:', error)
+          logger.error('Parse notification error', error)
         }
       }
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        logger.error('WebSocket error', error)
       }
 
       wsRef.current.onclose = () => {
@@ -76,30 +74,30 @@ export default function NotificationsPanel() {
         setTimeout(connectWebSocket, 5000)
       }
     } catch (error) {
-      console.error('WebSocket connection error:', error)
+      logger.error('WebSocket connection error', error)
     }
   }
 
   const markAsRead = async (id: number) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: 'POST' })
+      await apiRequest(`/notifications/${id}/read`, { method: 'POST' })
       setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, read: true } : n)
       )
       setUnreadCount(prev => Math.max(0, prev - 1))
     } catch (error) {
-      console.error('Mark as read error:', error)
+      logger.error('Mark as read error', error)
     }
   }
 
   const markAllAsRead = async () => {
     try {
-      await fetch('/api/notifications/read-all', { method: 'POST' })
+      await apiRequest('/notifications/read-all', { method: 'POST' })
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
       setUnreadCount(0)
       toast.success('Все уведомления прочитаны')
     } catch (error) {
-      console.error('Mark all as read error:', error)
+      logger.error('Mark all as read error', error)
     }
   }
 

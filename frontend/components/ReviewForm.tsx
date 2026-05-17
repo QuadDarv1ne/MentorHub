@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { apiRequest } from '@/lib/api/client';
 
 export default function ReviewForm({ courseId, onSuccess }: { courseId: number; onSuccess?: () => void }) {
   const [rating, setRating] = useState(5);
@@ -14,33 +15,20 @@ export default function ReviewForm({ courseId, onSuccess }: { courseId: number; 
     setError(null);
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-      const res = await fetch(`/api/v1/courses/${courseId}/reviews`, {
+      await apiRequest(`/courses/${courseId}/reviews`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({ rating, comment }),
       });
-
-      if (res.status === 401) {
-        setError('Требуется авторизация. Пожалуйста, войдите.');
-        return;
-      }
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.detail || 'Ошибка при отправке отзыва');
-        return;
-      }
 
       setComment('');
       setRating(5);
       onSuccess?.();
     } catch (err) {
-      console.error(err);
-      setError('Ошибка сети');
+      if (err instanceof Error && err.message.includes('401')) {
+        setError('Требуется авторизация. Пожалуйста, войдите.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Ошибка сети');
+      }
     } finally {
       setIsSubmitting(false);
     }

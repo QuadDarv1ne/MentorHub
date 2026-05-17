@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/useToast'
+import { apiRequest } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
 interface VideoCallProps {
@@ -51,21 +52,14 @@ export default function VideoCall({
   const initCall = async () => {
     try {
       // Получаем токен Agora с бэкенда
-      const tokenResponse = await fetch('/api/calls/token', {
+      const { token, channel, uid } = await apiRequest<{ token: string; channel: string; uid: number }>('/calls/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           channel_id: channelId,
           participant_id: participantId,
           room_id: roomId
         })
       })
-
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get Agora token')
-      }
-
-      const { token, channel, uid } = await tokenResponse.json()
 
       // Импортируем Agora SDK динамически
       const AgoraRTC = (await import('agora-rtc-react')).default

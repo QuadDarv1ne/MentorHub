@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
 import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
+import { apiRequest, getAccessToken } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
 export interface Message {
@@ -64,18 +65,7 @@ export function useChat({
     setError(null)
 
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`/api/messages/history/${userId}?limit=${limit}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load message history')
-      }
-
-      const data = await response.json()
+      const data = await apiRequest<{ messages: Message[] }>(`/messages/history/${userId}?limit=${limit}`)
       setMessages(data.messages || [])
       return data
     } catch (err) {
@@ -89,18 +79,7 @@ export function useChat({
   // Load conversations list
   const loadConversations = useCallback(async () => {
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('/api/messages/conversations', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load conversations')
-      }
-
-      const data = await response.json()
+      const data = await apiRequest<any[]>('/messages/conversations')
       setConversations(data)
       return data
     } catch (err) {

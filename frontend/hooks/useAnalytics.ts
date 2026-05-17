@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { publicRequest } from '@/lib/api/client'
 
 interface UserEvent {
   event_type: string
@@ -128,10 +129,8 @@ export function useAnalytics() {
 
   const sendEvent = async (event: UserEvent) => {
     try {
-      // Send to backend analytics endpoint
-      await fetch('/api/analytics/track', {
+      await publicRequest<void>('/analytics/track', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(event)
       })
     } catch (error) {

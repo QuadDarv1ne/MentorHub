@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import VideoCall from '@/components/VideoCall'
 import { useToast } from '@/hooks/useToast'
+import { apiRequest } from '@/lib/api/client'
 
 export default function VideoCallPage() {
   const toast = useToast()
@@ -14,45 +15,31 @@ export default function VideoCallPage() {
 
   const startOneOnOneCall = async (participantId: number) => {
     try {
-      const response = await fetch('/api/calls/', {
+      const call = await apiRequest<any>('/calls/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participant_id: participantId })
       })
-
-      if (response.ok) {
-        const call = await response.json()
-        setActiveCall({
-          type: 'one-on-one',
-          participantId: call.participant_id
-        })
-      } else {
-        toast.error('Не удалось начать звонок')
-      }
+      setActiveCall({
+        type: 'one-on-one',
+        participantId: call.participant_id
+      })
     } catch (error) {
-      toast.error('Ошибка подключения')
+      toast.error('Не удалось начать звонок')
     }
   }
 
   const startGroupCall = async (roomId: number) => {
     try {
-      const response = await fetch('/api/calls/', {
+      const call = await apiRequest<any>('/calls/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ room_id: roomId })
       })
-
-      if (response.ok) {
-        const call = await response.json()
-        setActiveCall({
-          type: 'group',
-          roomId: call.room_id
-        })
-      } else {
-        toast.error('Не удалось начать групповой звонок')
-      }
+      setActiveCall({
+        type: 'group',
+        roomId: call.room_id
+      })
     } catch (error) {
-      toast.error('Ошибка подключения')
+      toast.error('Не удалось начать групповой звонок')
     }
   }
 

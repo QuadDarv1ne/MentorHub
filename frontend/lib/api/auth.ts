@@ -2,7 +2,7 @@
  * Auth API — login, register, token refresh, user profile.
  */
 
-import { publicRequest, apiRequest } from './client'
+import { publicRequest, apiRequest, setRefreshTokenCallback, getAccessToken, STORAGE_KEYS } from './client'
 
 export interface LoginCredentials {
   email: string
@@ -35,12 +35,17 @@ export interface User {
   created_at: string
 }
 
-/** Login user */
+/** Login user — stores tokens in localStorage */
 export async function login(credentials: LoginCredentials): Promise<TokenResponse> {
-  return publicRequest<TokenResponse>('/auth/login', {
+  const data = await publicRequest<TokenResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
   })
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token)
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token)
+  }
+  return data
 }
 
 /** Register new user */
@@ -52,19 +57,53 @@ export async function register(userData: RegisterData): Promise<User> {
 }
 
 /** Refresh access token */
-export async function refreshToken(refreshToken: string): Promise<TokenResponse> {
+export async function refreshToken(refreshTokenValue: string): Promise<TokenResponse> {
   return publicRequest<TokenResponse>('/auth/refresh', {
     method: 'POST',
-    body: JSON.stringify({ refresh_token: refreshToken }),
+    body: JSON.stringify({ refresh_token: refreshTokenValue }),
   })
 }
 
-/** Logout user */
+/** Logout user — call backend and clear local tokens */
 export async function logout(): Promise<void> {
-  return Promise.resolve()
+  const token = getAccessToken()
+  try {
+    await apiRequest<void>('/auth/logout', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  } catch {
+    // Ignore errors — we still want to clear local tokens
+  }
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    localStorage.removeItem('user_name')
+    localStorage.removeItem('user_role')
+  }
 }
 
 /** Get current user profile */
 export async function getCurrentUser(): Promise<User> {
   return apiRequest<User>('/users/me')
+}
+
+/**
+ * Register the token refresh callback with the API client.
+ * This enables automatic 401 handling (token refresh + retry).
+ * Called once during app initialization.
+ */
+export function initAuthClient(): void {
+  setRefreshTokenCallback(async (storedRefreshToken: string): Promise<string | null> => {
+    try {
+      const data = await refreshToken(storedRefreshToken)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token)
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token)
+      }
+      return data.access_token
+    } catch {
+      return null
+    }
+  })
 }

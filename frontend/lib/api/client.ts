@@ -7,6 +7,8 @@
 
 import { TIMEOUTS, RETRY, STORAGE_KEYS } from '@/lib/constants'
 
+export { STORAGE_KEYS }
+
 /* ------------------------------------------------------------------ */
 /*  Error types                                                       */
 /* ------------------------------------------------------------------ */
@@ -70,6 +72,11 @@ export function getAccessToken(): string | null {
   return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
 }
 
+export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+}
+
 /**
  * Requires a valid access token or throws AuthError.
  */
@@ -77,6 +84,33 @@ export function requireToken(): string {
   const token = getAccessToken()
   if (!token) throw new AuthError('Authentication required')
   return token
+}
+
+/* ------------------------------------------------------------------ */
+/*  Token refresh interceptor                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Lazy reference to the token refresh function to avoid circular imports.
+ * Set by auth.ts during module initialization.
+ */
+let _refreshTokenCallback: ((refreshToken: string) => Promise<string | null>) | null = null
+
+export function setRefreshTokenCallback(fn: (refreshToken: string) => Promise<string | null>): void {
+  _refreshTokenCallback = fn
+}
+
+/**
+ * Clear stored tokens and redirect to login page.
+ */
+function clearAuthAndRedirect(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
+    localStorage.removeItem('user_name')
+    localStorage.removeItem('user_role')
+    window.location.href = '/auth/login'
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -186,16 +220,46 @@ export async function apiRequest<T>(
     if (token) headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
-    ...options,
-    headers,
-  })
+  try {
+    const response = await fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
+      ...options,
+      headers,
+    })
 
-  // 204 No Content
-  if (response.status === 204) return null as T
+    // 204 No Content
+    if (response.status === 204) return null as T
 
-  const data = await response.json()
-  return data as T
+    const data = await response.json()
+    return data as T
+  } catch (error) {
+    // Handle 401 with automatic token refresh
+    if (error instanceof ApiError && error.status === 401 && _refreshTokenCallback) {
+      const storedRefreshToken = getRefreshToken()
+      if (storedRefreshToken) {
+        try {
+          const newToken = await _refreshTokenCallback(storedRefreshToken)
+          if (newToken) {
+            // Retry with new token
+            headers['Authorization'] = `Bearer ${newToken}`
+            const response = await fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
+              ...options,
+              headers,
+            })
+            if (response.status === 204) return null as T
+            const data = await response.json()
+            return data as T
+          }
+        } catch {
+          // Refresh failed — clear auth and redirect
+          clearAuthAndRedirect()
+          throw new AuthError('Session expired, please login again')
+        }
+      }
+      clearAuthAndRedirect()
+      throw new AuthError('Session expired, please login again')
+    }
+    throw error
+  }
 }
 
 /**

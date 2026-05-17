@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { publicRequest } from '@/lib/api/client';
 
 interface Review {
   id: number;
@@ -28,9 +29,7 @@ export default function ReviewList({ courseId }: { courseId: number }) {
     const fetchReviews = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/v1/courses/${courseId}/reviews?page=${page}&page_size=10`);
-        if (!res.ok) throw new Error('Failed to load reviews');
-        const data: Paginated<Review> = await res.json();
+        const data = await publicRequest<Paginated<Review>>(`/courses/${courseId}/reviews?page=${page}&page_size=10`);
         setReviews(data.data);
       } catch (err) {
         console.error(err);

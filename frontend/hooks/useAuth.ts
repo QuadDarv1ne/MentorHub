@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/lib/api/auth';
+import { User, login as apiLogin, register as apiRegister, logout as apiLogout, getCurrentUser, refreshToken as apiRefreshToken } from '@/lib/api/auth';
+import { STORAGE_KEYS } from '@/lib/api/client';
 import { logger } from '@/lib/utils/logger';
 
 export interface UseAuthReturn {
@@ -10,8 +11,8 @@ export interface UseAuthReturn {
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (token: string, user: User) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   error: string | null;
   getUserData: () => User | null;
@@ -24,10 +25,9 @@ export interface UseAuthOptions {
 
 /**
  * Улучшенный hook для аутентификации
- * - Кэширование данных пользователя
+ * - Использует единый API клиент
  * - Автоматический refresh токена
  * - Обработка ошибок
- * - Оптимистичные обновления
  */
 export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
   const { redirectTo = '/auth/login', redirectOnAuth = true } = options;
@@ -36,11 +36,20 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_role');
+    setUser(null);
+    router.push('/auth/login');
+  }, [router]);
+
   // Проверка токена и загрузка пользователя
   const checkAuth = useCallback(async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -55,25 +64,12 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       const isExpired = tokenData.exp * 1000 < Date.now();
 
       if (isExpired) {
-        // Попытка refresh токена
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
+        const storedRefreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+        if (storedRefreshToken) {
           try {
-            const response = await fetch('/api/v1/auth/refresh', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refresh_token: refreshToken }),
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              localStorage.setItem('access_token', data.access_token);
-              // Продолжаем с новым токеном
-            } else {
-              // Refresh не удался - logout
-              logout();
-              return;
-            }
+            const data = await apiRefreshToken(storedRefreshToken);
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
           } catch (refreshError) {
             logger.error('Token refresh failed', refreshError);
             logout();
@@ -87,23 +83,16 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
 
       // Загрузка данных пользователя
       try {
-        const response = await fetch('/api/v1/users/me', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-          setError(null);
-        } else if (response.status === 401) {
-          logout();
-          return;
-        }
+        const userData = await getCurrentUser();
+        setUser(userData);
+        setError(null);
       } catch (apiError) {
         logger.error('Failed to fetch user', apiError);
-        setError('Не удалось загрузить данные пользователя');
+        if (apiError instanceof Error && apiError.message.includes('401')) {
+          logout();
+        } else {
+          setError('Не удалось загрузить данные пользователя');
+        }
       }
     } catch (err) {
       logger.error('Auth check failed', err);
@@ -111,21 +100,23 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     } finally {
       setLoading(false);
     }
-  }, [router, redirectTo, redirectOnAuth]);
+  }, [router, redirectTo, redirectOnAuth, logout]);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  const login = async (token: string, userData: User) => {
+  const login = async (email: string, password: string) => {
     try {
-      localStorage.setItem('access_token', token);
+      const data = await apiLogin({ email, password });
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
+
+      const userData = await getCurrentUser();
       localStorage.setItem('user_name', userData.full_name || userData.email);
       localStorage.setItem('user_role', userData.role);
       setUser(userData);
       setError(null);
-      
-      // Перенаправление после успешного входа
       router.push('/dashboard');
     } catch (err) {
       logger.error('Login failed', err);
@@ -134,14 +125,14 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     }
   };
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_role');
-    setUser(null);
-    router.push('/auth/login');
-  }, [router]);
+  const handleLogout = async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Ignore errors — still clear local state
+    }
+    logout();
+  };
 
   const refreshUser = async () => {
     await checkAuth();
@@ -153,11 +144,11 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
 
   return {
     user,
-    token: typeof window !== 'undefined' ? localStorage.getItem('access_token') : null,
+    token: typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) : null,
     loading,
     isAuthenticated: !!user,
     login,
-    logout,
+    logout: handleLogout,
     refreshUser,
     error,
     getUserData,
@@ -180,21 +171,13 @@ export function useOptionalAuth(): {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       setIsAuthenticated(!!token);
 
       if (token) {
         try {
-          const response = await fetch('/api/v1/users/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-          }
+          const userData = await getCurrentUser();
+          setUser(userData);
         } catch (err) {
           logger.error('Optional auth check failed', err);
         }
@@ -206,7 +189,7 @@ export function useOptionalAuth(): {
     initAuth();
   }, []);
 
-  const getToken = () => localStorage.getItem('access_token');
+  const getToken = () => localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
   return {
     user,
@@ -225,7 +208,7 @@ export function useRole(requiredRoles: string[]): {
 } {
   const { user, loading, isAuthenticated } = useOptionalAuth();
 
-  const hasRole = isAuthenticated && user ? 
+  const hasRole = isAuthenticated && user ?
     requiredRoles.includes(user.role) : false;
 
   return {
@@ -245,9 +228,8 @@ export function useOwnership(resourceOwnerId: number | string | undefined): {
 } {
   const { user, loading } = useOptionalAuth();
 
-  // Сравнение как строки для универсальности
-  const isOwner = user && resourceOwnerId !== undefined 
-    ? String(user.id) === String(resourceOwnerId) 
+  const isOwner = user && resourceOwnerId !== undefined
+    ? String(user.id) === String(resourceOwnerId)
     : false;
   const isAdmin = user ? user.role === 'admin' : false;
   const canEdit = isOwner || isAdmin;
