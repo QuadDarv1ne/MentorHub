@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import StepikCourseCard from '@/components/StepikCourseCard';
 import { Search, BarChart3, Users, Award, DollarSign, X } from 'lucide-react';
-import { getCourses, type StepikCourse } from '@/lib/api/stepik';
+import { getInstructorCourses, type StepikCourse } from '@/lib/api/stepik';
 
 interface Course {
   id: string;
@@ -94,8 +94,7 @@ export default function StepikCoursesPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await getCourses(1);
-        const stepikCourses = response.courses || [];
+        const stepikCourses = await getInstructorCourses();
         const mappedCourses = stepikCourses.map(mapStepikCourse);
         setAllCourses(mappedCourses);
         setCourses(mappedCourses);

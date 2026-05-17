@@ -30,7 +30,7 @@ export default function SessionsPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming')
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
@@ -41,12 +41,12 @@ export default function SessionsPage() {
 
   const fetchSessions = useCallback(async () => {
     setIsLoading(true)
-    setError(null)
+    setFormError(null)
     try {
       const data = await getMySessions()
       setSessions(data)
     } catch {
-      setError('Не удалось загрузить сессии')
+      setFormError('Не удалось загрузить сессии')
       setSessions([])
     } finally {
       setIsLoading(false)
@@ -85,7 +85,7 @@ export default function SessionsPage() {
       success('Сессия отменена')
       await fetchSessions()
     } catch {
-      setError('Не удалось отменить сессию')
+      setFormError('Не удалось отменить сессию')
     } finally {
       setActionLoading(null)
     }
@@ -228,10 +228,10 @@ export default function SessionsPage() {
         <p className="text-gray-600 text-lg">Управляйте вашими занятиями с менторами</p>
       </div>
 
-      {error && (
+      {formError && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
           <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{formError}</p>
         </div>
       )}
 

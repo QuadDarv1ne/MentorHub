@@ -5,6 +5,13 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
   ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/stepik`
   : '/api/stepik';
 
+// Course IDs taught by Дуплей Максим Игоревич (instructor ID 150943726)
+const INSTRUCTOR_COURSE_IDS = [
+  207061, 210134, 212445, 253456, 205094,
+  222859, 221029, 238534, 240000, 252698,
+  240384, 206417, 208571,
+];
+
 const CACHE_KEYS = {
   course: (id: number) => `stepik:course:${id}`,
   courseList: (page: number) => `stepik:courses:page:${page}`,
@@ -115,6 +122,31 @@ export async function getCourses(page: number = 1): Promise<ApiResponse<StepikCo
   
   cache.set(cacheKey, data);
   return data;
+}
+
+/**
+ * Получает все курсы конкретного инструктора (Дуплей Максим Игоревич)
+ */
+export async function getInstructorCourses(): Promise<StepikCourse[]> {
+  const cacheKey = 'stepik:instructor:courses';
+  const cachedData = cache.get<StepikCourse[]>(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  const courses = await Promise.all(
+    INSTRUCTOR_COURSE_IDS.map(async (id) => {
+      try {
+        return await getCourse(id);
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  const result = courses.filter((c): c is StepikCourse => c !== null);
+  cache.set(cacheKey, result);
+  return result;
 }
 
 /**
