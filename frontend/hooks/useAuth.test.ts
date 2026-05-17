@@ -2,9 +2,10 @@
  * Тесты для useAuth hook
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAuth, useOptionalAuth, useRole, useOwnership } from './useAuth'
+import * as authApi from '@/lib/api/auth'
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -16,9 +17,19 @@ jest.mock('next/navigation', () => ({
   }),
 }))
 
-// Mock fetch
-const mockFetch = jest.fn()
-global.fetch = mockFetch as any
+// Mock auth API
+jest.mock('@/lib/api/auth', () => ({
+  getCurrentUser: jest.fn(),
+  login: jest.fn(),
+  register: jest.fn(),
+  logout: jest.fn(),
+  refreshToken: jest.fn(),
+}))
+
+const mockGetCurrentUser = authApi.getCurrentUser as jest.MockedFunction<typeof authApi.getCurrentUser>
+const mockLogin = authApi.login as jest.MockedFunction<typeof authApi.login>
+const mockLogout = authApi.logout as jest.MockedFunction<typeof authApi.logout>
+const mockRefreshToken = authApi.refreshToken as jest.MockedFunction<typeof authApi.refreshToken>
 
 describe('useAuth Hook', () => {
   beforeEach(() => {
@@ -41,33 +52,26 @@ describe('useAuth Hook', () => {
     expect(result.current.user).toBeNull()
   })
 
-  it.skip('должен вернуть isAuthenticated=true когда есть токен', async () => {
-    // Setup mock token
+  it('должен вернуть isAuthenticated=true когда есть токен', async () => {
     const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjo5OTk5OTk5OTk5fQ.dozjgO2hcLh4K442R99999'
-    
-    // Setup mock FIRST
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'student',
-        full_name: 'Test User',
-        is_active: true,
-        is_verified: true,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-      }),
-    })
-    
     localStorage.setItem('access_token', mockToken)
+
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'student',
+      full_name: 'Test User',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
+    })
 
     const { result } = renderHook(() => useAuth({ redirectOnAuth: false }))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
-    }, { timeout: 2000 })
+    })
 
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.user).toEqual({
@@ -78,11 +82,11 @@ describe('useAuth Hook', () => {
       full_name: 'Test User',
       is_active: true,
       is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
   })
 
   it('должен сделать logout при истёкшем токене без refresh', async () => {
-    // Setup expired token
     const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.expired'
     localStorage.setItem('access_token', expiredToken)
 
@@ -97,30 +101,26 @@ describe('useAuth Hook', () => {
   })
 
   it('должен попробовать refresh токена при истёкшем access token', async () => {
-    // Setup expired token and refresh token
     const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZXhwIjoxfQ.expired'
-    const refreshToken = 'refresh_token_123'
+    const refreshTokenValue = 'refresh_token_123'
     localStorage.setItem('access_token', expiredToken)
-    localStorage.setItem('refresh_token', refreshToken)
+    localStorage.setItem('refresh_token', refreshTokenValue)
 
-    // Mock successful refresh
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          access_token: 'new_access_token',
-          refresh_token: 'new_refresh_token',
-        }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 1,
-          email: 'test@example.com',
-          username: 'testuser',
-          role: 'student',
-        }),
-      })
+    mockRefreshToken.mockResolvedValueOnce({
+      access_token: 'new_access_token',
+      refresh_token: 'new_refresh_token',
+      expires_in: 3600,
+    })
+
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'student',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
+    })
 
     const { result } = renderHook(() => useAuth({ redirectOnAuth: false }))
 
@@ -128,14 +128,7 @@ describe('useAuth Hook', () => {
       expect(result.current.loading).toBe(false)
     })
 
-    // Check that refresh was called
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/auth/refresh',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      })
-    )
+    expect(mockRefreshToken).toHaveBeenCalledWith(refreshTokenValue)
   })
 
   it('должен выполнить login и сохранить данные', async () => {
@@ -152,8 +145,16 @@ describe('useAuth Hook', () => {
       created_at: '2024-01-01T00:00:00Z',
     }
 
+    mockLogin.mockResolvedValueOnce({
+      access_token: 'test_token',
+      refresh_token: 'test_refresh',
+      expires_in: 3600,
+    })
+
+    mockGetCurrentUser.mockResolvedValueOnce(mockUser)
+
     await act(async () => {
-      await result.current.login('test_token', mockUser)
+      await result.current.login('test@example.com', 'password')
     })
 
     expect(localStorage.getItem('access_token')).toBe('test_token')
@@ -181,16 +182,15 @@ describe('useAuth Hook', () => {
     expect(result.current.user).toBeNull()
   })
 
-  it.skip('должен обновить данные пользователя через refreshUser', async () => {
-    // Setup initial mock
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'old@example.com',
-        username: 'olduser',
-        role: 'student',
-      }),
+  it('должен обновить данные пользователя через refreshUser', async () => {
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'old@example.com',
+      username: 'olduser',
+      role: 'student',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
     localStorage.setItem('access_token', 'valid_token')
@@ -199,17 +199,16 @@ describe('useAuth Hook', () => {
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
-    }, { timeout: 2000 })
+    })
 
-    // Change mock for refresh
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'new@example.com',
-        username: 'newuser',
-        role: 'mentor',
-      }),
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'new@example.com',
+      username: 'newuser',
+      role: 'mentor',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
     await act(async () => {
@@ -241,14 +240,14 @@ describe('useOptionalAuth Hook', () => {
   it('должен вернуть isAuthenticated=true с токеном', async () => {
     localStorage.setItem('access_token', 'valid_token')
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'student',
-      }),
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'student',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
     const { result } = renderHook(() => useOptionalAuth())
@@ -281,14 +280,14 @@ describe('useRole Hook', () => {
   it('должен вернуть hasRole=true когда роль совпадает', async () => {
     localStorage.setItem('access_token', 'valid_token')
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'admin',
-      }),
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'admin',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
     const { result } = renderHook(() => useRole(['admin', 'mentor']))
@@ -303,14 +302,14 @@ describe('useRole Hook', () => {
   it('должен вернуть hasRole=false когда роль не совпадает', async () => {
     localStorage.setItem('access_token', 'valid_token')
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'student',
-      }),
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 1,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'student',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
     const { result } = renderHook(() => useRole(['admin', 'mentor']))
@@ -329,53 +328,48 @@ describe('useOwnership Hook', () => {
     localStorage.clear()
   })
 
-  // Skip tests due to async timing issues in test environment
-  it.skip('должен вернуть isOwner=true когда user.id === resourceOwnerId', async () => {
-    // Setup mock FIRST, before setting localStorage
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 5,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'student',
-      }),
+  it('должен вернуть isOwner=true когда user.id === resourceOwnerId', async () => {
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 5,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'student',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
-    // Set token AFTER mock is ready
     localStorage.setItem('access_token', 'valid_token')
 
     const { result } = renderHook(() => useOwnership(5))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
-    }, { timeout: 2000 })
+    })
 
     expect(result.current.isOwner).toBe(true)
     expect(result.current.canEdit).toBe(true)
     expect(result.current.isAdmin).toBe(false)
   })
 
-  it.skip('должен вернуть isAdmin=true когда роль admin', async () => {
-    // Setup mock FIRST
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 5,
-        email: 'test@example.com',
-        username: 'testuser',
-        role: 'admin',
-      }),
+  it('должен вернуть isAdmin=true когда роль admin', async () => {
+    mockGetCurrentUser.mockResolvedValueOnce({
+      id: 5,
+      email: 'test@example.com',
+      username: 'testuser',
+      role: 'admin',
+      is_active: true,
+      is_verified: true,
+      created_at: '2024-01-01T00:00:00Z',
     })
 
-    // Set token AFTER mock is ready
     localStorage.setItem('access_token', 'valid_token')
 
     const { result } = renderHook(() => useOwnership(10))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
-    }, { timeout: 2000 })
+    })
 
     expect(result.current.isOwner).toBe(false)
     expect(result.current.isAdmin).toBe(true)

@@ -61,14 +61,18 @@ describe('API Client', () => {
       expect(response.ok).toBe(true)
     })
 
-    it.skip('должен выбросить ошибку после максимального количества попыток', async () => {
+    it('должен выбросить ошибку после максимального количества попыток', async () => {
       const errorResponse = {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
+        json: async () => ({ detail: 'Server error' }),
       }
 
-      mockFetch.mockResolvedValue(errorResponse)
+      mockFetch
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
+        .mockResolvedValueOnce(errorResponse)
 
       await expect(
         fetchWithRetry('/api/test', {}, {
@@ -81,11 +85,12 @@ describe('API Client', () => {
       expect(mockFetch).toHaveBeenCalledTimes(3) // 1 + 2 retries
     })
 
-    it.skip('не должен повторять запрос при 400 ошибке', async () => {
+    it('не должен повторять запрос при 400 ошибке', async () => {
       const errorResponse = {
         ok: false,
         status: 400,
         statusText: 'Bad Request',
+        json: async () => ({ detail: 'Bad request' }),
       }
 
       mockFetch.mockResolvedValueOnce(errorResponse)
