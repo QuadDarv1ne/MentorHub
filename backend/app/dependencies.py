@@ -26,6 +26,7 @@ except ImportError:
 from app.config import settings
 from app.database import SessionLocal
 from app.models import User
+from app.models.user import UserRole
 from app.schemas import PaginationParams
 
 
@@ -127,14 +128,14 @@ def get_current_user(
 
 def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     """Get current user and verify admin role"""
-    if current_user.role.value != "admin":
+    if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can access this resource")
     return current_user
 
 
 def get_current_mentor(current_user: User = Depends(get_current_user)) -> User:
     """Get current user and verify mentor role"""
-    if current_user.role.value not in ["mentor", "admin"]:
+    if current_user.role not in (UserRole.MENTOR, UserRole.ADMIN):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only mentors can access this resource")
 
     if not current_user.mentor_profile:
@@ -145,7 +146,7 @@ def get_current_mentor(current_user: User = Depends(get_current_user)) -> User:
 
 def get_current_student(current_user: User = Depends(get_current_user)) -> User:
     """Get current user and verify student role"""
-    if current_user.role.value not in ["student", "admin"]:
+    if current_user.role not in (UserRole.STUDENT, UserRole.ADMIN):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students can access this resource")
     return current_user
 
@@ -219,7 +220,7 @@ def verify_user_ownership(
     current_user: User = Depends(get_current_user),
 ) -> bool:
     """Verify that current user owns the resource"""
-    if current_user.id != user_id and current_user.role.value != "admin":
+    if current_user.id != user_id and not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to access this resource")
     return True
 
@@ -258,7 +259,7 @@ def verify_session_access(
 
     is_mentor = session.mentor_id == current_user.id
     is_student = session.student_id == current_user.id
-    is_admin = current_user.role.value == "admin"
+    is_admin = current_user.is_admin
 
     if not (is_mentor or is_student or is_admin):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have access to this session")
