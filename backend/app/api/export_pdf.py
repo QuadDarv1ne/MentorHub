@@ -5,7 +5,7 @@ Converts user data to PDF format using ReportLab.
 """
 
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 from fastapi import HTTPException, Response
@@ -99,7 +99,7 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
     doc.build(story)
     buffer.seek(0)
     
-    filename = f"mentorhub_export_{data['user']['username']}_{datetime.utcnow().strftime('%Y%m%d')}.pdf"
+    filename = f"mentorhub_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
     
     return Response(
         content=buffer.getvalue(),

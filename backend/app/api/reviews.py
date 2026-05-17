@@ -46,8 +46,6 @@ def create_review(
         )
         db.add(review)
         db.commit()
-        # Attach user relationship so returned object includes user_name
-        review.user = current_user
         db.refresh(review)
         return review
     except Exception as e:
@@ -77,7 +75,7 @@ def list_reviews(
     total = db.query(Review).filter(Review.course_id == course_id).count()
     items = (
         db.query(Review)
-        .options(joinedload(Review.user))
+        .options(joinedload(Review.reviewer))
         .filter(Review.course_id == course_id)
         .order_by(Review.created_at.desc())
         .offset((page - 1) * page_size)

@@ -4,7 +4,7 @@ Courses CRUD Operations
 """
 
 import asyncio
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -29,7 +29,7 @@ def _get_course_service(db: Session) -> CourseService:
 async def get_courses(
     skip: int = 0,
     limit: int = 100,
-    category: str = None,
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):

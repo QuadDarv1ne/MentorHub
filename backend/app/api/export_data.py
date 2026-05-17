@@ -4,7 +4,7 @@ User Data Collection for Export
 Collects all user data for GDPR compliance export.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 from sqlalchemy.orm import Session
@@ -38,7 +38,7 @@ def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
         Dictionary with all user data
     """
     user_data = {
-        "export_date": datetime.utcnow().isoformat(),
+        "export_date": datetime.now(timezone.utc).isoformat(),
         "user": {
             "id": current_user.id,
             "username": current_user.username,

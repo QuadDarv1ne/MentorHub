@@ -6,7 +6,7 @@ Converts user data to CSV format.
 
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 from fastapi import StreamingResponse
@@ -64,7 +64,7 @@ def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
     
     output.seek(0)
     
-    filename = f"mentorhub_data_export_{data['user']['username']}_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    filename = f"mentorhub_data_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
     
     return StreamingResponse(
         iter([output.getvalue()]),

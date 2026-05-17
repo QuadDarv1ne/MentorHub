@@ -47,7 +47,7 @@ class User(BaseModel, TimestampMixin):
     sessions_as_student = relationship("Session", foreign_keys="Session.student_id", back_populates="student")
     enrollments = relationship("CourseEnrollment", back_populates="user")
     progress_records = relationship("Progress", back_populates="user")
-    reviews_given = relationship("Review", foreign_keys="Review.reviewer_id", back_populates="reviewer")
+    reviews_given = relationship("Review", foreign_keys="Review.user_id", back_populates="reviewer")
     reviews_received = relationship("Review", foreign_keys="Review.reviewed_id", back_populates="reviewed")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     device_tokens = relationship("DeviceToken", back_populates="user", cascade="all, delete-orphan")

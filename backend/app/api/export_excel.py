@@ -5,7 +5,7 @@ Converts user data to Excel format using openpyxl.
 """
 
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 from fastapi import HTTPException, Response
@@ -117,7 +117,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
     wb.save(buffer)
     buffer.seek(0)
     
-    filename = f"mentorhub_export_{data['user']['username']}_{datetime.utcnow().strftime('%Y%m%d')}.xlsx"
+    filename = f"mentorhub_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
     
     return Response(
         content=buffer.getvalue(),

@@ -32,9 +32,23 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
   const [isTyping, setIsTyping] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting')
   const [ws, setWs] = useState<WebSocket | null>(null)
-  
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
+
+  // Get current user ID from stored user data
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        setCurrentUserId(user?.id ?? null)
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -187,11 +201,11 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender_id === 1 ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}
             >
               <div className={`max-w-[80%] rounded-lg p-3 ${
-                message.sender_id === 1 
-                  ? 'bg-blue-600 text-white' 
+                message.sender_id === currentUserId
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-900'
               }`}>
                 <p className="text-sm">{message.content}</p>
@@ -199,7 +213,7 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
                   <span className="text-xs opacity-70">
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  {message.sender_id === 1 && (
+                  {message.sender_id === currentUserId && (
                     message.is_read ? (
                       <CheckCheck className="w-3 h-3 opacity-70" />
                     ) : (
@@ -235,7 +249,7 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
                 setNewMessage(e.target.value)
                 sendTypingIndicator()
               }}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Type a message..."
               className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={2}
