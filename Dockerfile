@@ -68,7 +68,7 @@ ENV PYTHONUNBUFFERED=1 \
     MALLOC_ARENA_MAX=2
 
 # Копируем зависимости backend
-COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=backend-builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
 # Копируем backend код

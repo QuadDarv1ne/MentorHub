@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { login } from '@/lib/api/auth'
+import { login, getCurrentUser } from '@/lib/api/auth'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthButtons from '@/components/OAuthButtons'
 import { InlineLoader } from '@/components/LoadingSpinner'
@@ -41,23 +41,6 @@ function LoginForm() {
   }
 
   // Перемещено выше чтобы избежать Temporal Dead Zone
-  const getCurrentUser = async (token: string) => {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || 'Failed to fetch user profile')
-    }
-
-    return response.json()
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,13 +74,16 @@ function LoginForm() {
         password: formData.password
       })
 
-      // Get user profile
-      const user = await getCurrentUser(authResponse.access_token)
-
-      // Store tokens and user data using improved authLogin
+      // Store access token so getCurrentUser can use it
+      localStorage.setItem('access_token', authResponse.access_token)
       if (formData.rememberMe && authResponse.refresh_token) {
         localStorage.setItem('refresh_token', authResponse.refresh_token)
       }
+
+      // Get user profile via API client
+      const user = await getCurrentUser()
+
+      // Store tokens and user data using improved authLogin
       authLogin(authResponse.access_token, user)
 
       localStorage.setItem('user_name', user.full_name || user.email)
