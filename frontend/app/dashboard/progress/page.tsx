@@ -13,7 +13,7 @@ export default function ProgressDashboardPage() {
     if (!isAuthenticated) return;
     setLoading(true);
     getMyProgress()
-      .then((data: ProgressItem[]) => setItems(data))
+      .then((data) => setItems(data as ProgressItem[]))
       .catch((e) => setError(e instanceof Error ? e.message : 'Не удалось загрузить прогресс'))
       .finally(() => setLoading(false));
   }, [isAuthenticated]);

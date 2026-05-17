@@ -9,7 +9,7 @@ import io
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-from fastapi import StreamingResponse
+from starlette.responses import StreamingResponse
 
 
 def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:

@@ -37,6 +37,7 @@ from app.api import (
     video_calls,
     calendar,
     subscriptions,
+    admin,
 )
 
 
@@ -247,5 +248,13 @@ def register_routes(app: FastAPI) -> None:
         tags=["Subscriptions"],
     )
     logger.info("✅ Subscription routes loaded")
+
+    # Admin routes (admin panel API)
+    app.include_router(
+        admin.router,
+        prefix=f"{api_prefix}/admin",
+        tags=["Admin"],
+    )
+    logger.info("✅ Admin routes loaded")
 
     logger.info("✅ All API routes registered successfully")
