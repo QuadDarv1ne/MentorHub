@@ -63,7 +63,7 @@ aiogram>=3.4.0
 
 # ==================== UTILITIES ====================
 python-dateutil>=2.9.0
-python-slugify>=8.0.0
+python-slugify>=8.0.4
 pyyaml>=6.0.0
 Pillow>=11.0.0
 chardet>=5.2.0
