@@ -83,7 +83,7 @@ agora-token-builder>=1.0.0
 # ==================== CALENDAR INTEGRATION ====================
 google-auth>=2.38.0
 google-auth-oauthlib>=1.2.0
-google-auth-httplib2>=0.2.0
+google-auth-httplib2>=0.4.0
 google-api-python-client>=2.160.0
 msal>=1.31.0
 requests-oauthlib>=2.0.0
