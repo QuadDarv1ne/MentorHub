@@ -87,7 +87,7 @@ google-auth-httplib2>=0.2.0
 google-api-python-client>=2.160.0
 msal>=1.31.0
 requests-oauthlib>=2.0.0
-icalendar>=6.0.0
+icalendar>=6.3.2
 
 # ==================== RATE LIMITING ====================
 # NOTE: fastapi-cors removed - use built-in fastapi.middleware.cors.CORSMiddleware
