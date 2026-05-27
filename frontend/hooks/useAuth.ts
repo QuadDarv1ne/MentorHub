@@ -68,6 +68,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
         if (storedRefreshToken) {
           try {
             const data = await apiRefreshToken(storedRefreshToken);
+            // SECURITY: JWT stored in localStorage is vulnerable to XSS attacks.
             localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
             localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
           } catch (refreshError) {
@@ -109,6 +110,8 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
   const login = async (email: string, password: string) => {
     try {
       const data = await apiLogin({ email, password });
+      // SECURITY: JWT stored in localStorage is vulnerable to XSS attacks.
+      // TODO: migrate to httpOnly cookies when backend supports secure cookie-based auth.
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
 
@@ -144,6 +147,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
 
   return {
     user,
+    // SECURITY: Reading JWT from localStorage is vulnerable to XSS attacks.
     token: typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) : null,
     loading,
     isAuthenticated: !!user,
@@ -189,6 +193,7 @@ export function useOptionalAuth(): {
     initAuth();
   }, []);
 
+  // SECURITY: JWT stored in localStorage is vulnerable to XSS attacks.
   const getToken = () => localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
   return {

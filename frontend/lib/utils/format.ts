@@ -99,11 +99,19 @@ export function capitalizeWords(str: string): string {
 
 /**
  * Удаление HTML тегов из строки
+ * Uses regex instead of innerHTML to prevent XSS from event handlers
  */
 export function stripHtml(html: string): string {
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent || div.innerText || ''
+  // Strip all HTML tags (including self-closing) without parsing in DOM
+  const withoutTags = html.replace(/<[^>]*>/g, '')
+  // Decode common HTML entities
+  return withoutTags
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
 }
 
 /**
