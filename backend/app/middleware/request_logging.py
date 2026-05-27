@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Middleware для логирования HTTP запросов и ответов
-    
+
     Логирует:
     - Метод и путь
     - Query параметры

@@ -69,7 +69,7 @@ async def setup_2fa(
 ):
     """
     Настройка двухфакторной аутентификации
-    
+
     Возвращает QR код и секрет для настройки в приложении аутентификации
     """
     if not setup_data.enabled:
@@ -192,7 +192,7 @@ async def get_2fa_status(
 ):
     """
     Получение статуса 2FA
-    
+
     Возвращает включена ли двухфакторная аутентификация
     """
     return TwoFactorResponse(enabled=current_user.two_factor_enabled or False)
@@ -206,7 +206,7 @@ async def verify_2fa_login(
 ):
     """
     Верификация 2FA при входе
-    
+
     Используется временный токен после успешной проверки пароля
     """
     from datetime import timedelta

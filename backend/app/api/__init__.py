@@ -45,7 +45,7 @@ from app.api import (
 def register_routes(app: FastAPI) -> None:
     """
     Register all API routes for the application.
-    
+
     Args:
         app: FastAPI application instance
     """

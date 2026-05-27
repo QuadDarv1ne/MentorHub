@@ -94,7 +94,7 @@ class SecurityDetector:
     def check_json_values(self, obj: Any) -> None:
         """
         Recursively check JSON values for attacks.
-        
+
         Raises:
             HTTPException: If attack is detected
         """
@@ -143,7 +143,7 @@ class SecurityDetector:
     def check_user_agent(self, user_agent: str, endpoint: str) -> None:
         """
         Check User-Agent header for malicious agents.
-        
+
         Raises:
             HTTPException: If malicious user agent is detected
         """
@@ -169,7 +169,7 @@ class SecurityDetector:
     def check_referer(self, referer: str) -> None:
         """
         Check Referer header for suspicious domains.
-        
+
         Raises:
             HTTPException: If suspicious referer is detected
         """

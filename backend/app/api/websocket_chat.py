@@ -145,7 +145,7 @@ async def websocket_chat_handler(
 ):
     """
     WebSocket handler for 1-on-1 chat.
-    
+
     Authentication: send token in first message:
     {"type": "auth", "token": "your_jwt_token"}
     """

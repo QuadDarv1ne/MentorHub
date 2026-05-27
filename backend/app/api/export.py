@@ -27,7 +27,7 @@ async def export_user_data(
 ):
     """
     Export all user data in JSON, CSV, PDF, or Excel format.
-    
+
     Includes:
     - User profile
     - Session history
@@ -37,7 +37,7 @@ async def export_user_data(
     - Achievements
     - Messages
     - Course enrollments
-    
+
     GDPR compliance: users can request a copy of their data.
     """
     # Collect all user data

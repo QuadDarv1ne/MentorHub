@@ -14,10 +14,10 @@ from fastapi import HTTPException, Response
 def export_as_excel(data: Dict[str, Any]) -> Response:
     """
     Export user data to Excel format.
-    
+
     Args:
         data: User data dictionary from collect_user_data()
-    
+
     Returns:
         Response with Excel file
     """
@@ -129,7 +129,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
 def _write_excel_sheet(ws, data: List[List], header_font, header_fill, header_alignment, thin_border):
     """
     Helper function to write Excel sheet with styling.
-    
+
     Args:
         ws: Worksheet object
         data: 2D list of data to write

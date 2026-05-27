@@ -33,14 +33,14 @@ class FCMService:
     ) -> Dict[str, Any]:
         """
         Отправка push-уведомления пользователю
-        
+
         Args:
             user_id: ID пользователя
             title: Заголовок уведомления
             body: Тело уведомления
             data: Дополнительные данные
             db: Сессия базы данных
-            
+
         Returns:
             Результат отправки
         """
@@ -211,14 +211,14 @@ class FCMService:
     ) -> DeviceToken:
         """
         Регистрация токена устройства
-        
+
         Args:
             user_id: ID пользователя
             token: Токен устройства
             platform: Платформа (ios/android/web)
             device_name: Название устройства
             db: Сессия базы данных
-            
+
         Returns:
             Объект DeviceToken
         """
@@ -262,12 +262,12 @@ class FCMService:
     ) -> bool:
         """
         Удаление токена устройства
-        
+
         Args:
             user_id: ID пользователя
             token: Токен устройства
             db: Сессия базы данных
-            
+
         Returns:
             Успешность операции
         """

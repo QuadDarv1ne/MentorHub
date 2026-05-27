@@ -23,7 +23,7 @@ from app.models.user import User
 def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
     """
     Collect all user data for export.
-    
+
     Includes:
     - User profile
     - Session history
@@ -33,7 +33,7 @@ def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
     - Achievements
     - Messages
     - Course enrollments
-    
+
     Returns:
         Dictionary with all user data
     """

@@ -43,7 +43,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def send_verification_email_task(email: str, username: str, token: str):
     """
     Асинхронная отправка email с подтверждением
-    
+
     Args:
         email: Email получателя
         username: Имя пользователя
@@ -65,7 +65,7 @@ def send_verification_email_task(email: str, username: str, token: str):
 def send_password_reset_email_task(email: str, username: str, token: str):
     """
     Асинхронная отправка email для сброса пароля
-    
+
     Args:
         email: Email получателя
         username: Имя пользователя
@@ -93,7 +93,7 @@ def send_session_reminder_task(
 ):
     """
     Отправка напоминания о предстоящей сессии
-    
+
     Args:
         email: Email студента
         username: Имя студента

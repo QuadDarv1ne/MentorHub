@@ -109,7 +109,7 @@ class MemoryCache(CacheBackend):
 def init_cache_backend(redis_client=None):
     """
     Инициализация кэш backend
-    
+
     Args:
         redis_client: Redis клиент (опционально)
     """
@@ -126,11 +126,11 @@ def init_cache_backend(redis_client=None):
 def cache_key(*args, **kwargs) -> str:
     """
     Генерация ключа кэша из аргументов
-    
+
     Args:
         *args: Позиционные аргументы
         **kwargs: Именованные аргументы
-        
+
     Returns:
         str: Хэш ключ
     """
@@ -151,12 +151,12 @@ def cache_response(
 ):
     """
     Декоратор для кэширования ответов API
-    
+
     Args:
         ttl: Time to live в секундах (по умолчанию 5 минут)
         key_prefix: Префикс ключа кэша
         include_user: Включать ли user_id в ключ кэша
-        
+
     Example:
         @router.get("/stats")
         @cache_response(ttl=600, key_prefix="stats")
@@ -219,7 +219,7 @@ def cache_response(
 async def invalidate_cache(pattern: str):
     """
     Инвалидация кэша по паттерну
-    
+
     Args:
         pattern: Паттерн ключей для удаления (например "stats:*")
     """
@@ -234,10 +234,10 @@ async def invalidate_cache(pattern: str):
 async def get_cached(key: str) -> Optional[Any]:
     """
     Получить значение из кэша
-    
+
     Args:
         key: Ключ кэша
-        
+
     Returns:
         Значение из кэша или None
     """
@@ -254,7 +254,7 @@ async def get_cached(key: str) -> Optional[Any]:
 async def set_cached(key: str, value: Any, ttl: int = 300):
     """
     Сохранить значение в кэш
-    
+
     Args:
         key: Ключ кэша
         value: Значение для сохранения

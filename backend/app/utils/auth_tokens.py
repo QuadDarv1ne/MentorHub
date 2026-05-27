@@ -18,12 +18,12 @@ def create_access_token(
 ) -> str:
     """
     Создание JWT access токена с audience и issuer validation
-    
+
     Args:
         data: Данные для кодирования (sub, email, role)
         expires_delta: Время жизни токена
         token_type: Тип токена (access/refresh)
-    
+
     Returns:
         Закодированный JWT токен
     """
@@ -58,11 +58,11 @@ def create_refresh_token(
 ) -> str:
     """
     Создание JWT refresh токена
-    
+
     Args:
         data: Данные для кодирования (sub)
         expires_delta: Время жизни токена
-    
+
     Returns:
         Закодированный JWT refresh токен
     """
@@ -79,14 +79,14 @@ def create_refresh_token(
 def decode_token(token: str, token_type: str = "access") -> dict:
     """
     Декодирование и валидация JWT токена
-    
+
     Args:
         token: JWT токен
         token_type: Ожидаемый тип токена
-    
+
     Returns:
         Декодированный payload токена
-    
+
     Raises:
         HTTPException: Если токен невалиден или истек
     """

@@ -36,7 +36,7 @@ def create_sbp_qr_payment(
 ) -> dict:
     """
     Create SBP QR-code payment.
-    
+
     Returns QR-code data and payment URL.
     """
     # Verify session exists
@@ -149,7 +149,7 @@ def handle_sbp_webhook_event(
 ) -> bool:
     """
     Handle SBP webhook event.
-    
+
     Returns True if event was processed successfully.
     """
     if event_type == "payment.completed":

@@ -32,7 +32,7 @@ def create_stripe_payment_intent(
 ) -> dict:
     """
     Create Stripe Payment Intent.
-    
+
     Returns client_secret for payment confirmation on client side.
     """
     # Verify session exists

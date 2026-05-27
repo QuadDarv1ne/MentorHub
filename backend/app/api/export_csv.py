@@ -15,10 +15,10 @@ from starlette.responses import StreamingResponse
 def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
     """
     Export user data to CSV format.
-    
+
     Args:
         data: User data dictionary from collect_user_data()
-    
+
     Returns:
         StreamingResponse with CSV file
     """

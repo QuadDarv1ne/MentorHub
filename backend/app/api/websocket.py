@@ -28,10 +28,10 @@ async def websocket_chat_endpoint(
 ):
     """
     WebSocket endpoint for 1-on-1 chat.
-    
+
     Authentication: send token in first message:
     {"type": "auth", "token": "your_jwt_token"}
-    
+
     Message types:
     - message: send private message
     - typing: typing indicator
@@ -49,10 +49,10 @@ async def websocket_room_endpoint(
 ):
     """
     WebSocket endpoint for group chat room.
-    
+
     Authentication: send token in first message:
     {"type": "auth", "token": "your_jwt_token"}
-    
+
     Message types:
     - message: send room message
     - typing: typing indicator

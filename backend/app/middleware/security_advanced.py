@@ -31,7 +31,7 @@ DEFAULT_TRUNCATE_LOG_LENGTH = 100  # characters for logging
 class SecurityMiddleware(BaseHTTPMiddleware):
     """
     Security middleware for protection against various attacks.
-    
+
     Protects against:
     - SQL Injection
     - XSS (Cross-Site Scripting)

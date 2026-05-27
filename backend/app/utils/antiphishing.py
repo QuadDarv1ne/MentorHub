@@ -59,10 +59,10 @@ class AntiPhishingValidator:
     def check_url_safety(cls, url: str) -> Dict:
         """
         Check URL safety for phishing indicators.
-        
+
         Args:
             url: URL to check
-            
+
         Returns:
             Dictionary with safety analysis
         """
@@ -135,11 +135,11 @@ class AntiPhishingValidator:
     def is_safe_url(cls, url: str, max_risk_score: int = 40) -> bool:
         """
         Quick check if URL is safe.
-        
+
         Args:
             url: URL to check
             max_risk_score: Maximum acceptable risk score
-            
+
         Returns:
             True if URL is safe, False otherwise
         """
@@ -150,10 +150,10 @@ class AntiPhishingValidator:
     def check_email_subject(cls, subject: str) -> Dict:
         """
         Check email subject for phishing indicators.
-        
+
         Args:
             subject: Email subject line
-            
+
         Returns:
             Dictionary with analysis
         """

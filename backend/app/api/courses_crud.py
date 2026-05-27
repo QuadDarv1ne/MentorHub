@@ -115,8 +115,6 @@ async def delete_course(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Удалить курс"""
-    service = _get_course_service(db)
-
     # Проверяем существование курса
     existing_course = db.query(Course).filter(Course.id == course_id).first()
     if not existing_course:

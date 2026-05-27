@@ -34,13 +34,13 @@ class AgoraService:
     ) -> str:
         """
         Генерация RTC токена для видеозвонка
-        
+
         Args:
             channel_name: Имя канала (обычно call_id)
             uid: User ID (0 для автоматического назначения)
             role: Роль пользователя (1 = Publisher, 2 = Subscriber)
             expiration_seconds: Время жизни токена в секундах
-        
+
         Returns:
             str: Agora RTC токен
         """
@@ -77,12 +77,12 @@ class AgoraService:
     ) -> Dict[str, Any]:
         """
         Генерация токена для конкретного видеозвонка
-        
+
         Args:
             call_id: ID видеозвонка
             user_id: ID пользователя
             is_host: Является ли пользователь хостом (создателем звонка)
-        
+
         Returns:
             Dict с токеном и метаданными
         """
@@ -107,10 +107,10 @@ class AgoraService:
     def validate_channel_name(self, channel_name: str) -> bool:
         """
         Валидация имени канала
-        
+
         Args:
             channel_name: Имя канала
-        
+
         Returns:
             bool: True если валидно
         """
@@ -136,10 +136,10 @@ class AgoraService:
     def get_recording_config(self, call_id: int) -> Dict[str, Any]:
         """
         Получить конфигурацию для записи видеозвонка
-        
+
         Args:
             call_id: ID видеозвонка
-        
+
         Returns:
             Dict с конфигурацией записи
         """

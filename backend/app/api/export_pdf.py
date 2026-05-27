@@ -14,10 +14,10 @@ from fastapi import HTTPException, Response
 def export_as_pdf(data: Dict[str, Any]) -> Response:
     """
     Export user data to PDF format.
-    
+
     Args:
         data: User data dictionary from collect_user_data()
-    
+
     Returns:
         Response with PDF file
     """

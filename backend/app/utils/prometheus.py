@@ -229,7 +229,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 def track_cache_hit(cache_type: str = "redis"):
     """
     Декоратор для отслеживания попаданий в кэш.
-    
+
     Args:
         cache_type: Тип кэша (redis, memory)
     """
@@ -254,7 +254,7 @@ def track_cache_hit(cache_type: str = "redis"):
 async def metrics_endpoint() -> Response:
     """
     Endpoint для экспорта метрик в формате Prometheus.
-    
+
     Returns:
         Response с метриками
     """
@@ -265,7 +265,7 @@ async def metrics_endpoint() -> Response:
 def update_db_pool_metrics(pool_size: int, overflow: int, used: int) -> None:
     """
     Обновление метрик пула подключений к БД.
-    
+
     Args:
         pool_size: Размер пула
         overflow: Overflow размер
@@ -279,7 +279,7 @@ def update_db_pool_metrics(pool_size: int, overflow: int, used: int) -> None:
 def update_active_users_count(count: int) -> None:
     """
     Обновление метрики активных пользователей.
-    
+
     Args:
         count: Количество активных пользователей
     """
@@ -289,7 +289,7 @@ def update_active_users_count(count: int) -> None:
 def record_security_incident(incident_type: str, endpoint: str = "unknown") -> None:
     """
     Запись инцидента безопасности.
-    
+
     Args:
         incident_type: Тип инцидента
         endpoint: Endpoint, где произошел инцидент
@@ -300,7 +300,7 @@ def record_security_incident(incident_type: str, endpoint: str = "unknown") -> N
 def record_user_role_access(role: str, endpoint: str) -> None:
     """
     Запись доступа по роли пользователя.
-    
+
     Args:
         role: Роль пользователя
         endpoint: Endpoint, к которому был доступ
@@ -311,7 +311,7 @@ def record_user_role_access(role: str, endpoint: str) -> None:
 def record_database_query(query_type: str, table: str, duration: float = 0.0) -> None:
     """
     Запись метрик запроса к БД.
-    
+
     Args:
         query_type: Тип запроса (select, insert, update, delete)
         table: Таблица
@@ -325,7 +325,7 @@ def record_database_query(query_type: str, table: str, duration: float = 0.0) ->
 def record_cache_operation(operation: str, cache_type: str = "redis") -> None:
     """
     Запись операции с кэшем.
-    
+
     Args:
         operation: Тип операции (get, set, delete, clear)
         cache_type: Тип кэша (redis, memory)
@@ -341,7 +341,7 @@ def record_external_api_call(
 ) -> None:
     """
     Запись вызова внешнего API.
-    
+
     Args:
         service: Сервис (stripe, agora, aws)
         endpoint: Endpoint
@@ -356,7 +356,7 @@ def record_external_api_call(
 def record_background_task(task_type: str, status: str) -> None:
     """
     Запись фоновой задачи.
-    
+
     Args:
         task_type: Тип задачи
         status: Статус (success, failed)
@@ -367,7 +367,7 @@ def record_background_task(task_type: str, status: str) -> None:
 def record_payment_transaction(status: str, payment_method: str) -> None:
     """
     Запись транзакции оплаты.
-    
+
     Args:
         status: Статус (success, failed, pending)
         payment_method: Метод оплаты (card, stripe, paypal)
@@ -378,7 +378,7 @@ def record_payment_transaction(status: str, payment_method: str) -> None:
 def record_message_sent(message_type: str) -> None:
     """
     Запись отправленного сообщения.
-    
+
     Args:
         message_type: Тип сообщения (email, sms, notification)
     """
@@ -388,7 +388,7 @@ def record_message_sent(message_type: str) -> None:
 def record_video_session(status: str, duration: float = 0.0) -> None:
     """
     Запись видеосессии.
-    
+
     Args:
         status: Статус (started, ended, failed)
         duration: Длительность в секундах

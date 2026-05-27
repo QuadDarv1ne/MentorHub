@@ -132,7 +132,7 @@ async def websocket_room_handler(
 ):
     """
     WebSocket handler for group chat room.
-    
+
     Authentication: send token in first message:
     {"type": "auth", "token": "your_jwt_token"}
     """

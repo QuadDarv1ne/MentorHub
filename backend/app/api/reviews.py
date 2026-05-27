@@ -164,7 +164,6 @@ def create_review_generic(
     mentor = db.query(Mentor).filter(Mentor.user_id == payload.reviewed_id).first()
     if mentor:
         avg = db.query(func.avg(Review.rating)).filter(Review.reviewed_id == payload.reviewed_id).scalar() or 0.0
-        total = db.query(func.count(Review.id)).filter(Review.reviewed_id == payload.reviewed_id).scalar() or 0
         mentor.rating = float(avg)
         db.commit()
 

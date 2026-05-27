@@ -30,7 +30,7 @@ class AnalyticsService:
     def get_platform_stats(self) -> Dict:
         """
         Общая статистика платформы
-        
+
         Returns:
             Dict с ключевыми метриками
         """
@@ -99,10 +99,10 @@ class AnalyticsService:
     def get_user_growth(self, days: int = 30) -> List[Dict]:
         """
         График роста пользователей
-        
+
         Args:
             days: Количество дней для анализа
-            
+
         Returns:
             List[Dict] с датами и количеством новых пользователей
         """
@@ -201,10 +201,10 @@ class AnalyticsService:
     def get_course_performance(self, course_id: Optional[int] = None) -> Dict:
         """
         Анализ производительности курсов
-        
+
         Args:
             course_id: ID курса (опционально, для конкретного курса)
-            
+
         Returns:
             Dict с метриками курса/курсов
         """
@@ -266,10 +266,10 @@ class AnalyticsService:
     def get_revenue_analytics(self, days: int = 30) -> Dict:
         """
         Аналитика по доходам
-        
+
         Args:
             days: Количество дней для анализа
-            
+
         Returns:
             Dict с финансовыми метриками
         """
@@ -328,10 +328,10 @@ class AnalyticsService:
     def get_user_engagement(self, user_id: int) -> Dict:
         """
         Анализ вовлеченности пользователя
-        
+
         Args:
             user_id: ID пользователя
-            
+
         Returns:
             Dict с метриками активности
         """
@@ -397,13 +397,13 @@ class AnalyticsService:
     ) -> int:
         """
         Вычисление engagement score (0-100)
-        
+
         Args:
             sessions: Количество сессий
             enrollments: Количество курсов
             avg_progress: Средний прогресс
             reviews: Количество отзывов
-            
+
         Returns:
             int: Engagement score
         """

@@ -9,12 +9,12 @@ from typing import Tuple
 def validate_pagination(skip: int, limit: int, max_limit: int = 100) -> Tuple[int, int]:
     """
     Validate and normalize pagination parameters.
-    
+
     Args:
         skip: Number of records to skip (must be >= 0)
         limit: Number of records to return (must be 1-max_limit)
         max_limit: Maximum allowed limit (default 100)
-    
+
     Returns:
         Tuple of (validated_skip, validated_limit)
     """

@@ -246,7 +246,7 @@ async def create_sbp_qr_code(
 
 
 @router.get("/sbp/check-status/{payment_id}")
-async def check_sbp_payment_status(
+async def check_sbp_payment(
     payment_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
