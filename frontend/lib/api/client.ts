@@ -94,6 +94,12 @@ export function requireToken(): string {
  * Lazy reference to the token refresh function to avoid circular imports.
  * Set by auth.ts during module initialization.
  */
+/**
+ * Pending refresh promise to prevent race conditions.
+ * When multiple requests get 401 simultaneously, only one refresh will happen.
+ */
+let _pendingRefresh: Promise<string | null> | null = null
+
 let _refreshTokenCallback: ((refreshToken: string) => Promise<string | null>) | null = null
 
 export function setRefreshTokenCallback(fn: (refreshToken: string) => Promise<string | null>): void {
@@ -126,7 +132,7 @@ interface RetryConfig {
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: RETRY.MAX_ATTEMPTS > 3 ? 3 : RETRY.MAX_ATTEMPTS,
   retryDelay: RETRY.DELAY,
-  retryStatusCodes: [408, 429, 500, 502, 503, 504],
+  retryStatusCodes: [401, 408, 429, 500, 502, 503, 504],
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -237,7 +243,15 @@ export async function apiRequest<T>(
       const storedRefreshToken = getRefreshToken()
       if (storedRefreshToken) {
         try {
-          const newToken = await _refreshTokenCallback(storedRefreshToken)
+          // Reuse pending refresh promise to prevent race conditions
+          if (!_pendingRefresh) {
+            _pendingRefresh = _refreshTokenCallback(storedRefreshToken)
+              .catch((): null => null)
+              .finally((): void => {
+                _pendingRefresh = null
+              })
+          }
+          const newToken = await _pendingRefresh
           if (newToken) {
             // Retry with new token
             headers['Authorization'] = `Bearer ${newToken}`
