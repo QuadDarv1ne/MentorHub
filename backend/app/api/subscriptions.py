@@ -4,18 +4,19 @@ API для управления подписками пользователей
 """
 
 from decimal import Decimal
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session, joinedload
+from typing import Any, Dict, Optional
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.dependencies import get_current_user, get_db
 from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
-from app.services.subscription_service import get_subscription_service, SubscriptionService
+from app.models.user import User
 from app.services.cache import cached
 from app.services.stripe_service import stripe_service
-from app.config import settings
-from pydantic import BaseModel, Field
+from app.services.subscription_service import SubscriptionService, get_subscription_service
 
 router = APIRouter()
 
@@ -138,7 +139,6 @@ async def create_subscription(
         )
 
     plan = SUBSCRIPTION_PLANS[tier]
-    stripe_service = stripe_service
 
     # Проверяем существующую подписку
     existing_subscription = db.query(Subscription).filter(
@@ -173,11 +173,11 @@ async def create_subscription(
     frontend_url = settings.FRONTEND_URL or "http://localhost:3000"
     success_url = f"{frontend_url}/billing/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{frontend_url}/billing/cancel"
-    
+
     # Price ID должен быть получен из Stripe (в production используем реальные ID)
     # Для demo используем заглушку
     price_id = f"price_{tier}_mock"  # В production: реальный price_id из Stripe
-    
+
     checkout_result = stripe_service.create_checkout_session(
         customer_id=customer_id,
         price_id=price_id,
@@ -231,7 +231,6 @@ async def cancel_subscription(
 
     Подписка остаётся активной до конца оплаченного периода
     """
-    stripe_service = stripe_service
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()
@@ -282,7 +281,6 @@ async def cancel_subscription_now(
 
     Возвращает пропорциональную сумму за неиспользованный период
     """
-    stripe_service = stripe_service
     subscription = db.query(Subscription).filter(
         Subscription.user_id == current_user.id
     ).first()

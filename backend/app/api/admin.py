@@ -4,22 +4,22 @@ Admin API endpoints for user management and platform administration.
 
 import logging
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy import func, or_, desc
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_current_admin, get_db, get_pagination
+from app.dependencies import get_current_admin, get_db
 from app.models.user import User, UserRole
 from app.schemas.admin import (
-    AdminUserResponse,
     AdminUserListResponse,
-    UpdateUserRoleRequest,
-    UpdateUserStatusRequest,
-    PlatformStatsResponse,
+    AdminUserResponse,
     AdminUserStatsResponse,
     CourseStatItem,
+    PlatformStatsResponse,
+    UpdateUserRoleRequest,
+    UpdateUserStatusRequest,
 )
-from app.schemas.common import PaginationParams, MessageResponse
 from app.services.analytics import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -44,9 +44,9 @@ async def list_users(
         query = query.filter(User.role == UserRole(role))
 
     if status == "active":
-        query = query.filter(User.is_active == True)
+        query = query.filter(User.is_active.is_(True))
     elif status == "inactive":
-        query = query.filter(User.is_active == False)
+        query = query.filter(User.is_active.is_(False))
 
     if search:
         search_filter = or_(
@@ -134,12 +134,13 @@ async def get_platform_stats(
 
     total_users = db.query(User).count()
     total_admins = db.query(User).filter(User.role == UserRole.ADMIN).count()
-    active_users = db.query(User).filter(User.is_active == True).count()
+    active_users = db.query(User).filter(User.is_active.is_(True)).count()
     new_users_today = db.query(User).filter(
         func.date(User.created_at) == func.current_date()
     ).count()
 
-    from app.models.session import Session as MentorSession, SessionStatus
+    from app.models.session import Session as MentorSession
+    from app.models.session import SessionStatus
     active_sessions_now = db.query(MentorSession).filter(
         MentorSession.status == SessionStatus.IN_PROGRESS
     ).count()
@@ -172,10 +173,11 @@ async def get_user_stats(
     db: Session = Depends(get_db),
 ):
     """Get detailed statistics for a specific user (admin only)"""
-    from app.models.session import Session as MentorSession, SessionStatus
     from app.models.course import Course, CourseEnrollment
     from app.models.progress import Progress
     from app.models.review import Review
+    from app.models.session import Session as MentorSession
+    from app.models.session import SessionStatus
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
