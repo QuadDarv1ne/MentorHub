@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient as StarletteTestClient
 from app.models.user import User, UserRole
 from app.models.message import Message
 from app.utils.security import get_password_hash
-from app.api.auth import create_access_token
+from app.utils.auth_tokens import create_access_token
 
 
 @pytest.fixture

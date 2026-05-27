@@ -46,22 +46,26 @@ if hasattr(config_module.get_settings, 'cache_clear'):
 importlib.reload(config_module)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_database():
-    """Setup test database once per session"""
+@pytest.fixture(scope="session")
+def test_engine():
+    """Shared test engine for all tests - avoids recreating engine per test"""
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-    Base.metadata.create_all(bind=engine)
+    return engine
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database(test_engine):
+    """Setup test database once per session using shared engine"""
+    Base.metadata.create_all(bind=test_engine)
     yield
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=test_engine)
 
 
 @pytest.fixture(scope="function")
-def db_session():
-    """Создание сессии тестовой базы данных"""
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def db_session(test_engine):
+    """Создание сессии тестовой базы данных с использованием общего engine"""
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-    # Создание сессии
     session = TestingSessionLocal()
 
     try:
@@ -69,7 +73,7 @@ def db_session():
     except Exception:
         session.rollback()
     finally:
-        session.rollback()  # Rollback instead of commit to preserve data for cleanup
+        session.rollback()
         session.close()
 
 
@@ -199,62 +203,6 @@ def test_client_with_websocket(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
-async def async_authenticated_client(async_client):
-    """Фикстура для авторизованного асинхронного клиента - возвращает кортеж (client, headers)"""
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-
-    user_data = {
-        "email": f"test_{unique_id}@test.com",
-        "username": f"testuser_{unique_id}",
-        "password": "SecurePass123!",
-        "full_name": "Test User"
-    }
-
-    # Регистрация (201 Created)
-    register_response = await async_client.post("/api/v1/auth/register", json=user_data)
-    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
-
-    # Вход
-    login_response = await async_client.post(
-        "/api/v1/auth/login",
-        json={"email": user_data["email"], "password": user_data["password"]},
-    )
-    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
-    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
-    token = login_response.json()["access_token"]
-    return async_client, {"Authorization": f"Bearer {token}"}
-
-
-@pytest_asyncio.fixture
-async def authenticated_client(async_client):
-    """Фикстура для авторизованного клиента (async) - возвращает кортеж (client, headers)"""
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-
-    user_data = {
-        "email": f"test_{unique_id}@test.com",
-        "username": f"testuser_{unique_id}",
-        "password": "SecurePass123!",
-        "full_name": "Test User"
-    }
-
-    # Регистрация (201 Created)
-    register_response = await async_client.post("/api/v1/auth/register", json=user_data)
-    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
-
-    # Вход
-    login_response = await async_client.post(
-        "/api/v1/auth/login",
-        json={"email": user_data["email"], "password": user_data["password"]},
-    )
-    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
-    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
-    token = login_response.json()["access_token"]
-    return async_client, {"Authorization": f"Bearer {token}"}
-
-
 @pytest.fixture
 def sync_authenticated_client(client):
     """Фикстура для синхронных тестов с авторизацией - возвращает кортеж (client, headers)"""
@@ -309,34 +257,6 @@ def authenticated_headers(client):
     assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
     token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
-
-
-@pytest_asyncio.fixture
-async def second_async_authenticated_client(async_client):
-    """Фикстура для второго авторизованного асинхронного клиента - возвращает кортеж (client, headers)"""
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-
-    user2_data = {
-        "email": f"user2_{unique_id}@test.com",
-        "username": f"user2test_{unique_id}",
-        "password": "SecurePass123!",
-        "full_name": "User Two"
-    }
-
-    # Регистрация (201 Created)
-    register_response = await async_client.post("/api/v1/auth/register", json=user2_data)
-    assert register_response.status_code in [200, 201], f"Registration failed: {register_response.text}"
-
-    # Вход
-    login_response = await async_client.post(
-        "/api/v1/auth/login",
-        json={"email": user2_data["email"], "password": user2_data["password"]},
-    )
-    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
-    assert "access_token" in login_response.json(), f"access_token not in response: {login_response.json()}"
-    token = login_response.json()["access_token"]
-    return async_client, {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture

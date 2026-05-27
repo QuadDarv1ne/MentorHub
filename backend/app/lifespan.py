@@ -137,6 +137,8 @@ def initialize_sentry():
 # ==================== DATABASE STARTUP/SHUTDOWN ====================
 async def startup_database():
     """Initialize database connection and create tables"""
+    import asyncio
+
     logger.info(f"📊 Database URL: {settings.DATABASE_URL[:50]}...")
 
     # Create tables (with retry logic for Amvera)
@@ -145,11 +147,9 @@ async def startup_database():
 
     for attempt in range(max_retries):
         try:
-            import time
-
             if attempt > 0:
                 logger.info(f"⏳ Retrying database connection (attempt {attempt + 1}/{max_retries})...")
-                time.sleep(retry_delay)
+                await asyncio.sleep(retry_delay)
 
             Base.metadata.create_all(bind=engine)
             logger.info("✅ Database tables created/verified")
@@ -158,8 +158,6 @@ async def startup_database():
             logger.error(f"❌ Error creating database tables (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 logger.error("❌ Failed to connect to database after all retries - starting anyway")
-                # Don't crash on startup - database might not be ready yet
-                pass
 
 
 async def shutdown_database():

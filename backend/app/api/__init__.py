@@ -229,7 +229,7 @@ def register_routes(app: FastAPI) -> None:
     # Video Calls routes
     app.include_router(
         video_calls.router,
-        prefix=api_prefix,
+        prefix=f"{api_prefix}/video-calls",
         tags=["Video Calls"],
     )
     logger.info("✅ Video Calls routes loaded")

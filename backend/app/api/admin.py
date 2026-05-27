@@ -33,8 +33,8 @@ async def list_users(
     role: Optional[str] = Query(default=None, description="Filter by role: student, mentor, admin"),
     status: Optional[str] = Query(default=None, description="Filter by status: active, inactive"),
     search: Optional[str] = Query(default=None, min_length=1, max_length=100, description="Search by name or email"),
-    sort_by: str = Query(default="created_at", regex="^(created_at|email|role|full_name)$"),
-    sort_order: str = Query(default="desc", regex="^(asc|desc)$"),
+    sort_by: str = Query(default="created_at", pattern="^(created_at|email|role|full_name)$"),
+    sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
     current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
