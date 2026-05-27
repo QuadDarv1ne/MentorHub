@@ -143,12 +143,13 @@ export function isValidZipCode(zip: string): boolean {
 }
 
 /**
- * Санитизация HTML (базовая защита от XSS)
+ * Санитизация HTML - удаляет все теги и возвращает безопасный текст (защита от XSS)
+ * Внимание: результат не содержит HTML-разметки, только текстовое содержимое
  */
 export function sanitizeHtml(html: string): string {
   const div = document.createElement('div')
-  div.textContent = html
-  return div.innerHTML
+  div.innerHTML = html
+  return div.textContent || div.innerText || ''
 }
 
 /**

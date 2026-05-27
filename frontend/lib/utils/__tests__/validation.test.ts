@@ -155,16 +155,28 @@ describe('isValidZipCode', () => {
 });
 
 describe('sanitizeHtml', () => {
-  it('escapes HTML tags', () => {
+  it('strips HTML tags and returns text content', () => {
     const input = '<script>alert("xss")</script>';
     const result = sanitizeHtml(input);
-    expect(result).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;');
+    expect(result).toBe('alert("xss")');
   });
 
-  it('preserves text content', () => {
+  it('preserves text content without HTML tags', () => {
     const input = 'Hello <b>World</b>';
     const result = sanitizeHtml(input);
-    expect(result).toBe('Hello &lt;b&gt;World&lt;/b&gt;');
+    expect(result).toBe('Hello World');
+  });
+
+  it('handles nested HTML tags', () => {
+    const input = '<div><p>Nested <span>content</span></p></div>';
+    const result = sanitizeHtml(input);
+    expect(result).toBe('Nested content');
+  });
+
+  it('returns empty string for HTML-only input', () => {
+    const input = '<br/><hr/>';
+    const result = sanitizeHtml(input);
+    expect(result).toBe('');
   });
 });
 

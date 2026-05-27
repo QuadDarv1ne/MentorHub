@@ -6,7 +6,7 @@ OAuth handlers для MentorHub
 import logging
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
@@ -196,6 +196,7 @@ async def oauth_callback(
     provider: str,
     code: str,
     state: str,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db)
 ):
@@ -203,8 +204,8 @@ async def oauth_callback(
     OAuth callback endpoint
     Обрабатывает callback от Google или GitHub
     """
-    # Проверяем state token
-    oauth_state = response.cookies.get("oauth_state")
+    # Проверяем state token (читаем из входящего Request, а не из исходящего Response)
+    oauth_state = request.cookies.get("oauth_state")
     if not oauth_state or oauth_state != state:
         raise HTTPException(status_code=400, detail="Invalid state parameter")
 
