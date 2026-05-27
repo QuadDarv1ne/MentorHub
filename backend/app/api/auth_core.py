@@ -4,7 +4,7 @@ Authentication API
 """
 
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 import logging
@@ -194,16 +194,24 @@ async def login(
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(
-    refresh_token: str,
+    request: Request,
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
-    """Обновление токена доступа с помощью refresh токена"""
+    """Обновление токена доступа с помощью refresh токена из httpOnly cookie"""
 
     from app.utils.auth_tokens import decode_token
-    
+
+    # Read refresh token from httpOnly cookie for security
+    token_value = request.cookies.get("refresh_token")
+    if not token_value:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Отсутствует refresh токен",
+        )
+
     # Декодируем токен
-    payload = decode_token(refresh_token, token_type="refresh")
+    payload = decode_token(token_value, token_type="refresh")
 
     # Преобразуем sub из строки в int с проверкой на None
     sub_value = payload.get("sub")
@@ -243,7 +251,7 @@ async def refresh_token(
 
     return TokenResponse(
         access_token=access_token,
-        refresh_token=refresh_token,
+        refresh_token=token_value,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 

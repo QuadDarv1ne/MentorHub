@@ -56,11 +56,14 @@ export async function register(userData: RegisterData): Promise<User> {
   })
 }
 
-/** Refresh access token */
+/** Refresh access token — backend reads refresh token from httpOnly cookie */
 export async function refreshToken(refreshTokenValue: string): Promise<TokenResponse> {
+  // The refresh_token is now stored in an httpOnly cookie on the backend.
+  // The refreshTokenValue parameter is kept for backward compatibility but
+  // is no longer sent in the request body for security.
   return publicRequest<TokenResponse>('/auth/refresh', {
     method: 'POST',
-    body: JSON.stringify({ refresh_token: refreshTokenValue }),
+    credentials: 'include',
   })
 }
 

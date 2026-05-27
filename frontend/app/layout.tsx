@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { ToastProvider } from '@/components/ui/ToastContext'
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
+import AuthClientInitializer from '@/components/AuthClientInitializer'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
@@ -42,6 +43,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider defaultTheme="system">
+          <AuthClientInitializer />
           <SkipLinks />
           <RouteAnnouncer />
           <GlobalLoadingProvider>
