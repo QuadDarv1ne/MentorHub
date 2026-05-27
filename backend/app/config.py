@@ -129,9 +129,7 @@ class Settings(BaseSettings):
     # Development origins - only for local development
     _dev_cors_origins: List[str] = [
         "http://localhost:3000",
-        "http://localhost:8000",
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:8000",
     ]
 
     # CORS_ORIGINS is constructed from:

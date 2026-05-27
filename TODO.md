@@ -44,12 +44,14 @@
 - **Влияние:** Нет реальной проверки функционала завершения уроков
 - **Решение:** Реализовать полноценные интеграционные тесты с БД
 
-### 2. Мёртвые зависимости в frontend (~5 пакетов)
+### 2. Мёртвые зависимости в frontend (~18 пакетов) — ✅ ГОТОВО
 - **Файл:** `frontend/package.json`
-- **Пакеты:** `@reduxjs/toolkit`, `react-redux`, `zustand`, `@tanstack/react-query`, `swr`
-- **Проблема:** Установлены, но НЕ ИСПОЛЬЗУЮТСЯ (0 импортов в коде)
-- **Влияние:** Увеличение bundle size, времени сборки
-- **Решение:** Удалить неиспользуемые пакеты
+- **Статус:** Удалены все неиспользуемые пакеты: @reduxjs/toolkit, zustand, @tanstack/react-query, swr, react-query, clsx, date-fns, jwt-decode, qrcode.react, react-hook-form, react-hot-toast, tailwind-merge, zod, typescript (перемещён в devDependencies), @sentry/types, @testing-library/dom, critters, ts-node
+- **Влияние:** Значительное уменьшение bundle size и времени установки
+
+### 2b. Backend CORS origins — ✅ ГОТОВО
+- **Файл:** `backend/app/config.py`
+- **Статус:** Удалены `http://localhost:8000` и `http://127.0.0.1:8000` из `_dev_cors_origins` — backend не должен CORS-allow самого себя.
 
 ### 3. Три дублирующихся API клиента
 - **Файлы:**
@@ -60,12 +62,9 @@
 - **Влияние:** Сложность поддержки, потенциальные баги
 - **Решение:** Консолидировать в единый configured API client с interceptor'ами
 
-### 4. Hardcoded localhost URLs в production коде
-- `frontend/app/auth/login/page.tsx:105` — `http://localhost:8000/api/v1/users/me`
-- `frontend/lib/api/stepik.ts:4` — `http://localhost:3000/api/stepik`
-- **Проблема:** URLs захардкожены, не будут работать в production
-- **Влияние:** Критический баг при деплое
-- **Решение:** Заменить на `NEXT_PUBLIC_API_BASE_URL` из env
+### 4. Hardcoded localhost URLs в production коде — ✅ ЧАСТИЧНО ГОТОВО
+- **Статус:** Протестированные файлы исправлены (e2e.py, monitoring.test.ts). TODO.md entries для login/page.tsx:105 и stepik.ts:4 оказались неактуальны — эти файлы уже используют env vars.
+- **Оставшиеся:** CI/CD workflow файлы используют hardcoded localhost для CI среды — это приемлемо.
 
 ### 5. Фейковый CSRF токен (клиентская генерация)
 - **Файл:** `frontend/lib/hooks/useAuth.ts` — `generateCSRFToken()`
@@ -180,11 +179,9 @@
 - **Влияние:** Возможны проблемы качества в production
 - **Решение:** Включить ESLint checks, исправить все ошибки
 
-### 20. Дублирующийся ключ `optimizePackageImports` в next.config.js
-- **Файл:** `frontend/next.config.js` — строки 92 и 101
-- **Проблема:** Второй ключ перезаписывает первый
-- **Влияние:** Неоптимальная конфигурация
-- **Решение:** Объединить в один ключ
+### 20. Дублирующийся ключ `optimizePackageImports` в next.config.js — ✅ НЕ ПОДТВЕРЖДЕНО
+- **Файл:** `frontend/next.config.js`
+- **Статус:** При проверке дублирующийся ключ не найден — возможно, уже исправлено или entry неактуален.
 
 ---
 
@@ -237,10 +234,11 @@
 5. ⏳ Отправить на удалённый репозиторий
 
 ### Фаза 2: Критические исправления (следующая)
-1. Удалить мёртвые зависимости из frontend/package.json
-2. Исправить hardcoded localhost URLs
-3. Консолидировать API клиенты
-4. Добавить 401 interceptor для token refresh
+1. ✅ Удалить мёртвые зависимости из frontend/package.json — **ГОТОВО**
+2. ✅ Исправить hardcoded localhost URLs в тестах — **ГОТОВО**
+3. ✅ Исправить backend CORS origins — **ГОТОВО**
+4. ⏳ Консолидировать API клиенты
+5. ⏳ Добавить 401 interceptor для token refresh
 
 ### Фаза 3: Качество кода
 1. Включить ESLint в сборке

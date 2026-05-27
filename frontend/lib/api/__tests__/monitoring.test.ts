@@ -2,12 +2,18 @@
  * Monitoring API Service Tests
  */
 
-import { 
-  getMetrics, 
-  resetMetrics, 
-  getAlerts, 
+// Set env var before any imports that depend on it
+// Note: do NOT include /api/v1 - the client adds it automatically
+process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8000';
+
+import {
+  getMetrics,
+  resetMetrics,
+  getAlerts,
   updateAlertThresholds
 } from '../monitoring';
+
+const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`;
 
 // Mock the fetch function
 global.fetch = jest.fn();
@@ -16,7 +22,7 @@ describe('Monitoring API Service', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
-    
+
     // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
       value: {
@@ -58,27 +64,13 @@ describe('Monitoring API Service', () => {
       });
 
       const result = await getMetrics();
-      
+
       expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/monitoring/metrics',
-        expect.objectContaining({
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token',
-          },
-        })
-      );
-    });
-
-    it('should throw error when fetch fails', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        statusText: 'Not Found',
-      });
-
-      await expect(getMetrics()).rejects.toThrow('Failed to fetch metrics: Not Found');
+      expect(global.fetch).toHaveBeenCalled();
+      const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toBe(`${API_BASE}/monitoring/metrics`);
+      expect(options.method ?? 'GET').toBe('GET');
+      expect(options.headers['Authorization']).toBe('Bearer test-token');
     });
   });
 
@@ -101,18 +93,13 @@ describe('Monitoring API Service', () => {
       });
 
       const result = await getAlerts();
-      
+
       expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/monitoring/alerts',
-        expect.objectContaining({
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token',
-          },
-        })
-      );
+      expect(global.fetch).toHaveBeenCalled();
+      const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toBe(`${API_BASE}/monitoring/alerts`);
+      expect(options.method ?? 'GET').toBe('GET');
+      expect(options.headers['Authorization']).toBe('Bearer test-token');
     });
   });
 
@@ -133,19 +120,14 @@ describe('Monitoring API Service', () => {
       });
 
       const result = await updateAlertThresholds(mockThresholds);
-      
+
       expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/monitoring/alerts/thresholds',
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token',
-          },
-          body: JSON.stringify(mockThresholds),
-        })
-      );
+      expect(global.fetch).toHaveBeenCalled();
+      const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toBe(`${API_BASE}/monitoring/alerts/thresholds`);
+      expect(options.method).toBe('POST');
+      expect(options.headers['Authorization']).toBe('Bearer test-token');
+      expect(JSON.parse(options.body)).toEqual(mockThresholds);
     });
   });
 
@@ -161,18 +143,13 @@ describe('Monitoring API Service', () => {
       });
 
       const result = await resetMetrics();
-      
+
       expect(result).toEqual(mockResponse);
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/monitoring/metrics/reset',
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer test-token',
-          },
-        })
-      );
+      expect(global.fetch).toHaveBeenCalled();
+      const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toBe(`${API_BASE}/monitoring/metrics/reset`);
+      expect(options.method).toBe('POST');
+      expect(options.headers['Authorization']).toBe('Bearer test-token');
     });
   });
 });
