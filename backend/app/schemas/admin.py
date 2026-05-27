@@ -54,3 +54,27 @@ class PlatformStatsResponse(BaseModel):
     total_revenue: float
     new_users_today: int
     active_sessions_now: int
+
+
+class CourseStatItem(BaseModel):
+    course_id: int
+    course_title: str
+    progress_percent: float
+    completed: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminUserStatsResponse(BaseModel):
+    user: AdminUserResponse
+    total_sessions: int
+    completed_sessions: int
+    upcoming_sessions: int
+    courses_enrolled: int
+    course_stats: List[CourseStatItem]
+    avg_rating_given: float
+    avg_rating_received: float
+    engagement_score: int
+    last_activity: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
