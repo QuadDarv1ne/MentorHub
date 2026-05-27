@@ -3,10 +3,11 @@
 Модель для записи на сессии менторства
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Enum, Index
-from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
 import enum
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
 

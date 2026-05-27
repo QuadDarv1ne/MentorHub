@@ -4,14 +4,15 @@
 """
 
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
-from app.utils.sanitization import sanitize_string, sanitize_username, is_safe_string
 from app.services.cache import cached
+from app.utils.sanitization import is_safe_string, sanitize_string, sanitize_username
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

@@ -3,15 +3,16 @@ Courses Service
 Бизнес-логика для работы с курсами
 """
 
-from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from typing import Any, Dict, List, Optional
 
-from app.models.course import Course, Lesson, CourseEnrollment
-from app.models.user import User
+from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload
+
+from app.models.course import Course, CourseEnrollment, Lesson
 from app.models.mentor import Mentor
+from app.models.user import User
 from app.schemas.course import CourseCreate, CourseUpdate, LessonCreate, LessonUpdate
-from app.utils.sanitization import sanitize_text_field, is_safe_string
+from app.utils.sanitization import is_safe_string, sanitize_text_field
 
 
 class CourseService:
@@ -80,7 +81,7 @@ class CourseService:
         """Получить похожие курсы"""
         return self.db.query(Course).filter(
             Course.id != course.id,
-            Course.is_active == True,
+            Course.is_active is True,
             or_(
                 Course.category == course.category,
                 Course.difficulty == course.difficulty,
@@ -204,8 +205,9 @@ class CourseService:
 # Глобальная функция для инвалидации кеша (используется в API)
 async def invalidate_course_cache(db: Session, course_id: int):
     """Инвалидация кеша курса"""
-    from app.utils.cache import invalidate_cache
     import asyncio
+
+    from app.utils.cache import invalidate_cache
 
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
     asyncio.create_task(invalidate_cache("courses_list:*"))

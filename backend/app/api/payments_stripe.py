@@ -11,10 +11,11 @@ from typing import Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.payment import Payment as DBPayment, PaymentStatus
-from app.models.user import User
 from app.models.mentor import Mentor
+from app.models.payment import Payment as DBPayment
+from app.models.payment import PaymentStatus
 from app.models.session import Session as DBSession
+from app.models.user import User
 from app.services.stripe_service import stripe_service
 
 logger = logging.getLogger(__name__)

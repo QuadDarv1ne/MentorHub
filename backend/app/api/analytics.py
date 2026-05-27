@@ -5,10 +5,11 @@ Analytics API endpoints
 
 import logging
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.services.analytics import AnalyticsService
 from app.utils.cache import cached
@@ -190,12 +191,12 @@ async def get_user_engagement(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для просмотра статистики"
         )
-    
+
     try:
         analytics = AnalyticsService(db)
         engagement_data = analytics.get_user_engagement(user_id)
         return engagement_data
-    except ValueError as e:
+    except ValueError:
         logger.error(f"User not found for engagement: {user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

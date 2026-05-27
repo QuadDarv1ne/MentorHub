@@ -3,14 +3,14 @@ Subscriptions Service
 Бизнес-логика для управления подписками
 """
 
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session, joinedload
 
+from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
-from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
-from app.services.cache import cached
 
 
 class SubscriptionService:

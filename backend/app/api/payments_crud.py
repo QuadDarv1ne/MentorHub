@@ -9,12 +9,13 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.payment import Payment as DBPayment, PaymentStatus
-from app.models.user import User
 from app.models.mentor import Mentor
+from app.models.payment import Payment as DBPayment
+from app.models.payment import PaymentStatus
 from app.models.session import Session as DBSession
-from app.schemas.payment import PaymentCreate, PaymentUpdate
-from app.utils.sanitization import sanitize_string, is_safe_string
+from app.models.user import User
+from app.schemas.payment import PaymentUpdate
+from app.utils.sanitization import is_safe_string, sanitize_string
 
 
 def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPayment]:
@@ -126,7 +127,6 @@ def update_payment(
         # Ownership check: only student or admin can update
         if current_user_id and db_payment.student_id != current_user_id:
             # Check if user is admin (need to query user)
-            from app.models.user import UserRole
             user = db.query(User).filter(User.id == current_user_id).first()
             if not user or user.role.value != "admin":
                 raise ValueError("You don't have permission to update this payment")
@@ -162,7 +162,6 @@ def delete_payment(
 
         # Ownership check: only student or admin can delete
         if current_user_id and db_payment.student_id != current_user_id:
-            from app.models.user import UserRole
             user = db.query(User).filter(User.id == current_user_id).first()
             if not user or user.role.value != "admin":
                 raise ValueError("You don't have permission to delete this payment")

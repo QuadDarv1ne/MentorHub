@@ -4,9 +4,9 @@ Stripe Payment Service
 """
 
 import logging
-from typing import Optional, Dict, Any
-from decimal import Decimal
 import os
+from decimal import Decimal
+from typing import Any, Dict, Optional
 
 try:
     import stripe
@@ -16,7 +16,6 @@ except ImportError:
     STRIPE_AVAILABLE = False
 
 from app.config import settings
-from app.utils.retry import retry_on_exception
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class StripeService:
         # Mock mode для тестирования
         self.mock_mode = getattr(settings, 'STRIPE_MOCK_MODE', False) or \
                          os.environ.get('STRIPE_MOCK_MODE', '').lower() == 'true'
-        
+
         if self.mock_mode:
             self.enabled = False
             self.mock_mode = True

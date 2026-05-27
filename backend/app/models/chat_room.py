@@ -3,12 +3,12 @@
 Групповые чаты для курсов и проектов
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Boolean, Table
-from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
-from app.models.base import BaseModel
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy.orm import relationship
 
+from app.models.base import BaseModel
 
 # Association table для участников чат-комнаты
 chat_room_members = Table(
@@ -29,7 +29,7 @@ class ChatRoom(BaseModel):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     is_private = Column(Boolean, default=False, nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=True, index=True)  # Для курсовых чатов
-    
+
     # Timestamp fields
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = Column(
@@ -58,14 +58,14 @@ class ChatMessage(BaseModel):
     content = Column(Text, nullable=False)
     is_edited = Column(Boolean, default=False, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
-    
+
     # Вложения
     attachment_url = Column(String(512), nullable=True)
     attachment_type = Column(String(50), nullable=True)  # image, document, video
-    
+
     # Для тредов
     parent_message_id = Column(Integer, ForeignKey("chat_messages.id"), nullable=True, index=True)
-    
+
     # Timestamp fields
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = Column(

@@ -5,21 +5,17 @@ Main security middleware for protecting against various attacks.
 Uses modular security components for detection and sanitization.
 """
 
-import logging
-import os
 import json
-from datetime import datetime, timedelta, timezone
+import logging
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional
-from urllib.parse import unquote_plus
+from datetime import datetime, timedelta, timezone
+from typing import Callable, Dict, List
 
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.middleware.security_patterns import SecurityPatterns
 from app.middleware.security_detectors import SecurityDetector
-from app.utils.antiphishing import AntiPhishingValidator
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +55,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self.rate_limit_window = rate_limit_window
         self.request_counts: Dict[str, List[datetime]] = defaultdict(list)
         self.max_body_size = max_body_size
-        
+
         # Initialize security detector
         self.detector = SecurityDetector(
             truncate_log_length=DEFAULT_TRUNCATE_LOG_LENGTH
@@ -67,7 +63,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable):
         """Process each request through security checks."""
-        
+
         # Skip security checks for documentation and health endpoints
         if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health", "/metrics"]:
             return await call_next(request)
@@ -132,7 +128,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     def _check_query_params(self, request: Request):
         """Check query parameters for attacks."""
         query_string = str(request.query_params)
-        
+
         if self.detector.detect_path_traversal(query_string):
             try:
                 from app.utils.prometheus import record_security_incident

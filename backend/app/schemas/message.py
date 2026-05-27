@@ -4,8 +4,9 @@ Pydantic схемы для операций с сообщениями
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MessageBase(BaseModel):

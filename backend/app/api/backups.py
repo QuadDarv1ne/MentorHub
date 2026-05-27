@@ -3,13 +3,13 @@ API endpoints для управления резервными копиями
 """
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any, Dict
 
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from app.dependencies import get_current_user
-from app.config import settings
+from app.models.user import User
 
 # Conditional import to avoid issues when backup module is not available
 try:
@@ -59,11 +59,11 @@ async def create_backup(current_user: User = Depends(get_current_user)):
     try:
         backup_manager = DatabaseBackup()
         backup_file = backup_manager.create_backup()
-        
+
         # Upload to S3 if configured
         if backup_manager.s3_enabled:
             backup_manager.upload_to_s3(backup_file)
-            
+
         return {"message": f"Резервная копия создана: {backup_file.name}", "filename": backup_file.name}
     except Exception as e:
         logger.error(f"Error creating backup: {e}")
@@ -106,10 +106,10 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
     try:
         backup_manager = DatabaseBackup()
         backup_file = Path("backups") / filename
-        
+
         if not backup_file.exists():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Backup файл не найден")
-            
+
         # Проверяем целостность
         if filename in backup_manager.backup_metadata:
             expected_hash = backup_manager.backup_metadata[filename].get("hash")
@@ -126,7 +126,7 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Хеш не найден в метаданных")
         else:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Метаданные backup'а не найдены")
-            
+
     except HTTPException:
         raise
     except Exception as e:

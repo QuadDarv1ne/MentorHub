@@ -8,13 +8,14 @@ Real-time communication endpoints:
 """
 
 import logging
-from fastapi import APIRouter, WebSocket, Depends
+
+from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
-from app.api.websocket_manager import manager
 from app.api.websocket_chat import websocket_chat_handler
+from app.api.websocket_manager import manager
 from app.api.websocket_room import websocket_room_handler
+from app.dependencies import get_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

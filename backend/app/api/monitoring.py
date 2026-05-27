@@ -3,13 +3,14 @@ API endpoints для мониторинга и метрик
 """
 
 import logging
-from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from typing import Any, Dict
 
-from app.models.user import User, UserRole
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+
 from app.dependencies import get_current_user
-from app.utils.monitoring import performance_monitor
+from app.models.user import User, UserRole
 from app.utils.cache import get_cache_stats, reset_cache_stats
+from app.utils.monitoring import performance_monitor
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

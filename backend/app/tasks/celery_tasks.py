@@ -5,6 +5,7 @@ Background tasks using Celery
 
 import logging
 from datetime import datetime, timedelta, timezone
+
 from celery import Celery
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -120,11 +121,11 @@ def cleanup_expired_tokens():
     Периодическая очистка истекших токенов
     Выполняется каждый день в 3:00
     """
-    from app.api.email_verification import verification_tokens, reset_tokens
-    
+    from app.api.email_verification import reset_tokens, verification_tokens
+
     try:
         current_time = datetime.now(timezone.utc)
-        
+
         # Очистка verification tokens
         expired_verification = [
             token for token, data in verification_tokens.items()
@@ -132,7 +133,7 @@ def cleanup_expired_tokens():
         ]
         for token in expired_verification:
             del verification_tokens[token]
-        
+
         # Очистка reset tokens
         expired_reset = [
             token for token, data in reset_tokens.items()
@@ -140,12 +141,12 @@ def cleanup_expired_tokens():
         ]
         for token in expired_reset:
             del reset_tokens[token]
-        
+
         logger.info(
             f"✅ Cleaned up {len(expired_verification)} verification tokens "
             f"and {len(expired_reset)} reset tokens"
         )
-        
+
         return {
             "verification_tokens_cleaned": len(expired_verification),
             "reset_tokens_cleaned": len(expired_reset)
@@ -161,40 +162,40 @@ def generate_daily_stats():
     Генерация ежедневной статистики
     Выполняется каждый день в 1:00
     """
-    from app.models.user import User
-    from app.models.session import Session
     from app.models.course import Course
-    
+    from app.models.session import Session
+    from app.models.user import User
+
     db = SessionLocal()
     try:
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)
-        
+
         # Подсчет новых пользователей
         new_users = db.query(User).filter(
             User.created_at >= yesterday
         ).count()
-        
+
         # Подсчет проведенных сессий
         completed_sessions = db.query(Session).filter(
             Session.status == "completed",
             Session.updated_at >= yesterday
         ).count()
-        
+
         # Подсчет новых курсов
         new_courses = db.query(Course).filter(
             Course.created_at >= yesterday
         ).count()
-        
+
         stats = {
             "date": yesterday.date().isoformat(),
             "new_users": new_users,
             "completed_sessions": completed_sessions,
             "new_courses": new_courses
         }
-        
+
         logger.info(f"✅ Daily stats generated: {stats}")
         return stats
-        
+
     except Exception as e:
         logger.error(f"❌ Error generating daily stats: {e}")
         raise

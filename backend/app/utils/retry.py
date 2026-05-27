@@ -2,10 +2,10 @@
 Retry utilityies for external API calls
 """
 
-import time
 import logging
+import time
 from functools import wraps
-from typing import Tuple, Type, Optional
+from typing import Optional, Tuple, Type
 
 logger = logging.getLogger(__name__)
 

@@ -3,11 +3,12 @@ OAuth handlers для MentorHub
 Обработка OAuth аутентификации через Google и GitHub
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Response
-from starlette.responses import RedirectResponse
-from sqlalchemy.orm import Session
-import httpx
 import logging
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
 
 from app.config import settings
 from app.dependencies import get_db
@@ -50,7 +51,7 @@ def _create_oauth_response(
         f"token_type=bearer&"
         f"expires_in={settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60}"
     )
-    
+
     return RedirectResponse(url=frontend_url)
 
 

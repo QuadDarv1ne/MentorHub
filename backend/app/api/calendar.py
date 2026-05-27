@@ -3,25 +3,20 @@ Calendar Integration API
 Google Calendar + Outlook Calendar + ICS Export
 """
 
-import json
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
-from fastapi.responses import Response
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_, and_
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Optional
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.calendar import CalendarSync, CalendarEvent, CalendarProvider
-from app.models.session import Session as SessionModel
-from app.models.video_call import VideoCall
-from app.services.calendar_service import (
-    create_google_service,
-    create_microsoft_service,
-    CalendarService
-)
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
+from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload
+
 from app.config import settings
+from app.dependencies import get_current_user, get_db
+from app.models.calendar import CalendarEvent, CalendarProvider, CalendarSync
+from app.models.session import Session as SessionModel
+from app.models.user import User
+from app.services.calendar_service import CalendarService
 
 router = APIRouter(prefix="/calendar", tags=["Calendar Integration"])
 
@@ -142,7 +137,7 @@ async def get_calendar_sync_status(
 ):
     """Получить статус синхронизации календарей"""
     syncs = db.query(CalendarSync).filter(CalendarSync.user_id == current_user.id).all()
-    
+
     result = []
     for sync in syncs:
         result.append({
@@ -153,7 +148,7 @@ async def get_calendar_sync_status(
             "auto_sync": sync.auto_sync,
             "token_expiry": sync.token_expiry.isoformat() if sync.token_expiry else None
         })
-    
+
     return {"syncs": result}
 
 
@@ -168,18 +163,18 @@ async def disconnect_calendar(
         calendar_provider = CalendarProvider(provider)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid provider. Use 'google' or 'outlook'")
-    
+
     sync = db.query(CalendarSync).filter(
         CalendarSync.user_id == current_user.id,
         CalendarSync.provider == calendar_provider
     ).first()
-    
+
     if not sync:
         raise HTTPException(status_code=404, detail="Calendar sync not found")
-    
+
     db.delete(sync)
     db.commit()
-    
+
     return {"message": f"{provider.capitalize()} Calendar disconnected"}
 
 
@@ -195,7 +190,7 @@ async def get_calendar_events(
         start = datetime.now(timezone.utc)
     if not end:
         end = start + timedelta(days=30)
-    
+
     query = db.query(CalendarEvent).filter(
         CalendarEvent.user_id == current_user.id,
         CalendarEvent.start_time >= start,
@@ -204,9 +199,9 @@ async def get_calendar_events(
         joinedload(CalendarEvent.session),
         joinedload(CalendarEvent.video_call)
     ).order_by(CalendarEvent.start_time)
-    
+
     events = query.all()
-    
+
     result = []
     for event in events:
         result.append({
@@ -222,7 +217,7 @@ async def get_calendar_events(
             "session_id": event.session_id,
             "video_call_id": event.video_call_id
         })
-    
+
     return {"events": result, "total": len(events)}
 
 
@@ -234,21 +229,22 @@ async def export_calendar_ics(
 ):
     """Экспорт календаря в ICS формат"""
     try:
-        from icalendar import Calendar, Event as IcalEvent
-        from icalendar.prop import vText, vDDDTypes
+        from icalendar import Calendar
+        from icalendar import Event as IcalEvent
+        from icalendar.prop import vDDDTypes, vText  # noqa: F401
     except ImportError:
         raise HTTPException(status_code=503, detail="ICS export not available (icalendar not installed)")
-    
+
     start = datetime.now(timezone.utc)
     end = start + timedelta(days=days)
-    
+
     # Получаем события
     events = db.query(CalendarEvent).filter(
         CalendarEvent.user_id == current_user.id,
         CalendarEvent.start_time >= start,
         CalendarEvent.end_time <= end
     ).all()
-    
+
     # Получаем сессии
     sessions = db.query(SessionModel).filter(
         or_(
@@ -258,14 +254,14 @@ async def export_calendar_ics(
         SessionModel.scheduled_at >= start,
         SessionModel.scheduled_at <= end
     ).all()
-    
+
     # Создаем календарь
     cal = Calendar()
     cal.add('prodid', '-//MentorHub//Calendar//EN')
     cal.add('version', '2.0')
     cal.add('calscale', 'GREGORIAN')
     cal.add('method', 'PUBLISH')
-    
+
     # Добавляем события календаря
     for event in events:
         ical_event = IcalEvent()
@@ -274,14 +270,14 @@ async def export_calendar_ics(
         ical_event.add('dtend', event.end_time)
         ical_event.add('dtstamp', datetime.now(timezone.utc))
         ical_event.add('uid', f"event-{event.id}@mentorhub")
-        
+
         if event.description:
             ical_event.add('description', event.description)
         if event.location:
             ical_event.add('location', event.location)
-        
+
         cal.add_component(ical_event)
-    
+
     # Добавляем сессии
     for session in sessions:
         ical_event = IcalEvent()
@@ -290,14 +286,14 @@ async def export_calendar_ics(
         ical_event.add('dtend', session.scheduled_at + timedelta(minutes=session.duration_minutes))
         ical_event.add('dtstamp', datetime.now(timezone.utc))
         ical_event.add('uid', f"session-{session.id}@mentorhub")
-        
+
         if session.notes:
             ical_event.add('description', session.notes)
         if session.meeting_link:
             ical_event.add('location', session.meeting_link)
-        
+
         cal.add_component(ical_event)
-    
+
     # Формируем ответ
     return Response(
         content=cal.to_ical(),
@@ -319,20 +315,20 @@ async def sync_calendar_now(
         calendar_provider = CalendarProvider(provider)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid provider")
-    
+
     sync = db.query(CalendarSync).filter(
         CalendarSync.user_id == current_user.id,
         CalendarSync.provider == calendar_provider,
-        CalendarSync.is_active == True
+        CalendarSync.is_active is True
     ).first()
-    
+
     if not sync:
         raise HTTPException(status_code=404, detail="Calendar sync not found or inactive")
-    
+
     # Здесь должна быть логика синхронизации с API провайдера
     # Для краткости просто обновляем last_sync_at
-    
+
     sync.last_sync_at = datetime.now(timezone.utc)
     db.commit()
-    
+
     return {"message": f"{provider.capitalize()} Calendar synced", "last_sync_at": sync.last_sync_at.isoformat()}

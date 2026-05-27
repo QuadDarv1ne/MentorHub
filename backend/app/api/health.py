@@ -3,14 +3,15 @@ Health check endpoint для мониторинга состояния прил�
 """
 
 import logging
+import time
 from typing import Any, Dict
+
+import psutil
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-import psutil
-import time
 
 try:
     import redis
@@ -19,8 +20,8 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.getLogger(__name__).warning("redis-py not installed, health checks limited")
 
-from app.dependencies import get_db
 from app.config import settings
+from app.dependencies import get_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/health", tags=["Health"])
@@ -39,16 +40,16 @@ except Exception as e:
 def get_system_metrics() -> Dict[str, Any]:
     """Получает системные метрики"""
     try:
-        import platform
         import os
-        
+        import platform
+
         # Cross-platform disk usage
         if platform.system() == "Windows":
             # На Windows используем текущий диск
             path = os.getcwd()[0] + ":/"
         else:
             path = "/"
-        
+
         return {
             "cpu_percent": psutil.cpu_percent(interval=1),
             "memory_percent": psutil.virtual_memory().percent,
@@ -124,7 +125,7 @@ async def detailed_health_check(
             "error": str(e)
         }
         health_status["status"] = "unhealthy"
-    
+
     # Проверка Redis с детальной информацией
     if redis_client:
         try:
@@ -154,12 +155,12 @@ async def detailed_health_check(
             "status": "not_configured",
             "message": "Redis URL not configured"
         }
-    
+
     # Проверка внешних сервисов (если есть)
     external_services = []
     if hasattr(settings, 'EXTERNAL_SERVICES'):
         external_services = settings.EXTERNAL_SERVICES
-    
+
     for service in external_services:
         try:
             # Здесь можно добавить проверки для внешних сервисов
@@ -169,7 +170,7 @@ async def detailed_health_check(
                 "status": "error",
                 "error": str(e)
             }
-    
+
     status_code = status.HTTP_200_OK if health_status["status"] == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(status_code=status_code, content=health_status)
 
@@ -214,7 +215,7 @@ async def database_health(db = Depends(get_db)) -> JSONResponse:
         start_time = time.time()
         result = db.execute(text("SELECT version(), now()")).fetchone()
         response_time = (time.time() - start_time) * 1000
-        
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={

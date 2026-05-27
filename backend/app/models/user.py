@@ -3,9 +3,11 @@
 Модель учетной записи и аутентификации пользователя
 """
 
-from sqlalchemy import Column, String, Boolean, Enum as SQLEnum, Index
-from sqlalchemy.orm import relationship
 import enum
+
+from sqlalchemy import Boolean, Column, Index, String
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 

@@ -3,8 +3,9 @@ Pydantic схемы для отзывов
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, conint, ConfigDict
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field, conint
 
 
 class ReviewCreate(BaseModel):
@@ -14,7 +15,7 @@ class ReviewCreate(BaseModel):
 
 class ReviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     user_id: int
     user_name: Optional[str] = None

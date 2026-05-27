@@ -3,39 +3,34 @@ Configuration module for MentorHub Backend
 Handles all environment variables and app settings
 """
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, model_validator, PrivateAttr
-from typing import Optional, List
-from functools import lru_cache
-import os
 import logging
+import os
+from functools import lru_cache
+from typing import List, Optional
+
+from pydantic import PrivateAttr, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .constants import (
-    SESSION_EXPIRE_SECONDS,
-    HSTS_MAX_AGE,
-    RATE_LIMIT_DEFAULT_REQUESTS,
-    RATE_LIMIT_DEFAULT_WINDOW,
+    ALLOWED_EXTENSIONS as ALLOWED_EXTENSIONS_LIST,
+)
+from .constants import (
+    DB_POOL_RECYCLE,
+    DEFAULT_BACKEND_PORT,
     DEFAULT_PAGE_SIZE,
+    HSTS_MAX_AGE,
     MAX_PAGE_SIZE,
     MAX_UPLOAD_SIZE,
-    ALLOWED_EXTENSIONS as ALLOWED_EXTENSIONS_LIST,
-    DB_POOL_RECYCLE,
-    REDIS_DEFAULT_PORT,
-    DEFAULT_BACKEND_PORT,
-    EXCLUDE_PORTS,
-    MAX_LOGIN_ATTEMPTS,
-    LOCKOUT_DURATION_SECONDS,
-    CLEANUP_INTERVAL,
-    DEFAULT_RATE_LIMIT_REQUESTS,
-    DEFAULT_RATE_LIMIT_PERIOD,
-    DEFAULT_MAX_BODY_SIZE,
     OAUTH_SECRET_MIN_LENGTH,
+    RATE_LIMIT_DEFAULT_REQUESTS,
+    RATE_LIMIT_DEFAULT_WINDOW,
+    REDIS_DEFAULT_PORT,
 )
 
 
 class Settings(BaseSettings):
     """Main application settings"""
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -127,10 +122,10 @@ class Settings(BaseSettings):
     # Raw CORS string from environment (comma-separated)
     # Using str type to avoid JSON parsing - we parse it manually
     CORS_ORIGINS_RAW: str = ""
-    
+
     # Base CORS origins - always included
     _base_cors_origins: List[str] = []
-    
+
     # Development origins - only for local development
     _dev_cors_origins: List[str] = [
         "http://localhost:3000",
@@ -138,7 +133,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ]
-    
+
     # CORS_ORIGINS is constructed from:
     # 1. Environment variable CORS_ORIGINS (comma-separated) - highest priority
     # 2. Default origins based on environment
@@ -147,7 +142,7 @@ class Settings(BaseSettings):
         """Setup CORS origins based on environment"""
         # Get CORS_ORIGINS directly from environment (bypassing pydantic)
         env_cors = os.environ.get("CORS_ORIGINS", "").strip()
-        
+
         if env_cors:
             # Use explicitly set CORS_ORIGINS from environment (comma-separated)
             cors_list = [origin.strip() for origin in env_cors.split(",") if origin.strip()]
@@ -157,7 +152,7 @@ class Settings(BaseSettings):
         else:
             # Development: include localhost origins
             cors_list = self._base_cors_origins + self._dev_cors_origins
-        
+
         # Validate CORS origins in production
         if os.environ.get("ENVIRONMENT") == "production":
             if "*" in cors_list or any(origin == "*" for origin in cors_list):
@@ -168,23 +163,23 @@ class Settings(BaseSettings):
                     logging.getLogger("config").warning(
                         f"⚠️ CORS origin '{origin}' does not use HTTPS in production!"
                     )
-        
+
         self._cors_origins = cors_list
         return self
 
     # Private attribute - not a pydantic field
     _cors_origins: List[str] = PrivateAttr(default_factory=list)
-    
+
     @property
     def CORS_ORIGINS(self) -> List[str]:
         """Get CORS origins"""
         return self._cors_origins
-    
+
     @CORS_ORIGINS.setter
     def CORS_ORIGINS(self, value: List[str]):
         """Set CORS origins"""
         self._cors_origins = value
-    
+
     CORS_CREDENTIALS: bool = True
     CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
@@ -235,7 +230,7 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "noreply@mentorhub.com"
     SMTP_FROM_NAME: str = "MentorHub"
     FRONTEND_URL: str = "http://localhost:3001"
-    
+
     # ==================== FIREBASE CLOUD MESSAGING ====================
     FCM_SERVER_KEY: str = ""
     FCM_PROJECT_ID: str = ""

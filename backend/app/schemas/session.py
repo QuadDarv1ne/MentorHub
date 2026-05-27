@@ -4,13 +4,14 @@ Pydantic схемы для операций с сессиями менторст
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
 from enum import Enum
+from typing import List, Optional
 
-from app.schemas.user import UserResponse
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.schemas.mentor import MentorResponse
 from app.schemas.payment import PaymentResponse
+from app.schemas.user import UserResponse
 
 
 class SessionStatus(str, Enum):

@@ -5,10 +5,11 @@ API для работы с достижениями пользователей
 
 import logging
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.achievement import Achievement
 from app.models.user import User
 from app.schemas.achievement import AchievementCreate, AchievementRead, AchievementUpdate

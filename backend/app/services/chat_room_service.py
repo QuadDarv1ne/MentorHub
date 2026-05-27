@@ -3,14 +3,14 @@ Chat Rooms Service
 Бизнес-логика для управления чат-комнатами
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc
+from typing import Any, Dict, List, Optional
 
+from sqlalchemy import desc, func
+from sqlalchemy.orm import Session, joinedload
+
+from app.models.chat_room import ChatMessage, ChatRoom, chat_room_members
 from app.models.user import User
-from app.models.chat_room import ChatRoom, ChatMessage, chat_room_members
-from app.schemas.chat_room import ChatRoomCreate, ChatRoomUpdate, ChatMessageCreate
+from app.schemas.chat_room import ChatMessageCreate, ChatRoomCreate
 
 
 class ChatRoomService:

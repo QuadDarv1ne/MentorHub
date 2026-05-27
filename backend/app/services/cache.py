@@ -2,12 +2,12 @@
 Cache service using in-memory cache or Redis
 """
 
+import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Optional
-import json
 from functools import wraps
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class CacheService:
                         import os
                         if not any(os.environ.get(key) for key in ["RENDER", "RAILWAY", "FLY", "KUBERNETES_SERVICE_HOST"]):
                             logger.debug(f"Redis URL uses local hostname: {redis_url}")
-                    
+
                     self.redis_client = redis.from_url(redis_url, decode_responses=True)
                     self.redis_client.ping()
                     self._redis_connected = True
@@ -147,13 +147,13 @@ class CacheService:
             key for key, entry in self.memory_cache.items()
             if now >= entry.expires_at
         ]
-        
+
         for key in expired_keys:
             del self.memory_cache[key]
-        
+
         if expired_keys:
             logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
-        
+
         return len(expired_keys)
 
     def clear(self) -> bool:

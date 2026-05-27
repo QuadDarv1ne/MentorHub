@@ -6,13 +6,14 @@ Multi-user chat rooms.
 
 import logging
 from datetime import datetime, timezone
-from fastapi import WebSocket, WebSocketDisconnect, Depends, status
+
+from fastapi import Depends, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
-from app.models.user import User
-from app.models.chat_room import ChatRoom, ChatMessage
 from app.api.websocket_manager import manager
+from app.dependencies import get_db
+from app.models.chat_room import ChatMessage, ChatRoom
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ async def authenticate_and_join_room(
     """Authenticate user and join room."""
     # Authenticate
     from app.utils.security import decode_access_token
-    
+
     payload = decode_access_token(token)
     user_id = payload.get("sub")
     if not user_id:
@@ -137,7 +138,7 @@ async def websocket_room_handler(
     """
     user = None
     room = None
-    
+
     try:
         # Get token from first message
         data = await websocket.receive_json()

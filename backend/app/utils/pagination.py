@@ -22,5 +22,5 @@ def validate_pagination(skip: int, limit: int, max_limit: int = 100) -> Tuple[in
         skip = 0
     if limit <= 0 or limit > max_limit:
         limit = max_limit
-    
+
     return skip, limit

@@ -6,15 +6,16 @@ Course Lessons API
 import asyncio
 import logging
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
-from app.models.course import Course, Lesson, CourseEnrollment
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
+from app.models.course import Course, CourseEnrollment, Lesson
+from app.models.mentor import Mentor
 from app.models.progress import Progress
 from app.models.user import User
-from app.models.mentor import Mentor
-from app.schemas.course import LessonCreate, LessonUpdate, LessonResponse
+from app.schemas.course import LessonCreate, LessonResponse, LessonUpdate
 from app.utils.cache import invalidate_cache
 
 logger = logging.getLogger(__name__)

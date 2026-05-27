@@ -4,11 +4,12 @@ Pydantic схемы для операций с курсами
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
+from typing import List, Optional
 
-from app.schemas.user import UserResponse
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.schemas.mentor import MentorResponse
+from app.schemas.user import UserResponse
 
 
 class CourseBase(BaseModel):

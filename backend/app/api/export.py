@@ -4,17 +4,17 @@ User Data Export API Router
 GDPR compliance data export endpoints.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user
+from app.api.export_csv import export_as_csv
+from app.api.export_data import collect_user_data, get_user_data_counts
+from app.api.export_excel import export_as_excel
+from app.api.export_pdf import export_as_pdf
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.utils.cache import cached
-from app.api.export_data import collect_user_data, get_user_data_counts
-from app.api.export_csv import export_as_csv
-from app.api.export_pdf import export_as_pdf
-from app.api.export_excel import export_as_excel
 
 router = APIRouter(prefix="/export", tags=["Data Export"])
 
@@ -42,10 +42,10 @@ async def export_user_data(
     """
     # Collect all user data
     user_data = collect_user_data(db, current_user)
-    
+
     # Return in requested format
     format_lower = format.lower()
-    
+
     if format_lower == "csv":
         return export_as_csv(user_data)
     elif format_lower == "pdf":
@@ -72,7 +72,7 @@ async def get_data_summary(
     Get summary statistics of user data without details.
     """
     counts = get_user_data_counts(db, current_user.id)
-    
+
     return {
         "user_id": current_user.id,
         "username": current_user.username,

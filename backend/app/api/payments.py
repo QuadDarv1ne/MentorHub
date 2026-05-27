@@ -7,34 +7,40 @@ Payment processing endpoints (Stripe, SBP).
 from decimal import Decimal
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency, webhook_rate_limit_dependency
-from app.models.user import User
-from app.schemas.payment import PaymentResponse, PaymentCreate, PaymentUpdate
+from app.api.payments_crud import (
+    create_payment as create_payment_crud,
+)
+from app.api.payments_crud import (
+    delete_payment as delete_payment_crud,
+)
 from app.api.payments_crud import (
     get_all_payments,
     get_payment_by_id,
     get_payments_by_user,
-    create_payment as create_payment_crud,
-    update_payment as update_payment_crud,
-    delete_payment as delete_payment_crud,
 )
-from app.api.payments_stripe import (
-    create_stripe_payment_intent,
-    confirm_stripe_payment,
-    refund_stripe_payment,
-    handle_stripe_webhook_event,
+from app.api.payments_crud import (
+    update_payment as update_payment_crud,
 )
 from app.api.payments_sbp import (
-    create_sbp_qr_payment,
+    SBPPaymentCreate,
     check_sbp_payment_status,
+    create_sbp_qr_payment,
     get_sbp_available_banks,
     handle_sbp_webhook_event,
-    SBPPaymentCreate,
 )
+from app.api.payments_stripe import (
+    confirm_stripe_payment,
+    create_stripe_payment_intent,
+    handle_stripe_webhook_event,
+    refund_stripe_payment,
+)
+from app.dependencies import get_current_user, get_db, rate_limit_dependency, webhook_rate_limit_dependency
+from app.models.user import User
+from app.schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 
 router = APIRouter()
 

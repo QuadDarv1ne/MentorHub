@@ -4,25 +4,25 @@ Firebase Cloud Messaging service
 """
 
 import logging
-import json
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
+
 import httpx
 from sqlalchemy.orm import Session
 
-from app.models.device_token import DeviceToken
 from app.config import settings
+from app.models.device_token import DeviceToken
 
 logger = logging.getLogger(__name__)
 
 
 class FCMService:
     """Сервис для работы с Firebase Cloud Messaging"""
-    
+
     def __init__(self):
         self.fcm_url = "https://fcm.googleapis.com/fcm/send"
         self.server_key = settings.FCM_SERVER_KEY
         self.project_id = settings.FCM_PROJECT_ID
-        
+
     async def send_notification(
         self,
         user_id: int,
@@ -47,21 +47,21 @@ class FCMService:
         if not db:
             logger.error("Database session required for sending notifications")
             return {"success": False, "error": "Database session required"}
-            
+
         if not self.server_key:
             logger.warning("FCM_SERVER_KEY not configured")
             return {"success": False, "error": "FCM not configured"}
-        
+
         # Получаем активные токены пользователя
         device_tokens = db.query(DeviceToken).filter(
             DeviceToken.user_id == user_id,
-            DeviceToken.is_active == True
+            DeviceToken.is_active is True
         ).all()
-        
+
         if not device_tokens:
             logger.info(f"No active device tokens found for user {user_id}")
             return {"success": True, "message": "No devices registered"}
-        
+
         # Формируем payload для каждого токена
         results = []
         for device_token in device_tokens:
@@ -74,13 +74,13 @@ class FCMService:
                     "success": result.get("success", False),
                     "error": result.get("error")
                 })
-                
+
                 # Если токен недействителен, деактивируем его
                 if result.get("error") == "InvalidRegistration":
                     device_token.is_active = False
                     db.commit()
                     logger.warning(f"Deactivated invalid token {device_token.id}")
-                    
+
             except Exception as e:
                 logger.error(f"Error sending notification to device {device_token.id}: {e}")
                 results.append({
@@ -89,7 +89,7 @@ class FCMService:
                     "success": False,
                     "error": str(e)
                 })
-        
+
         success_count = sum(1 for r in results if r["success"])
         return {
             "success": success_count > 0,
@@ -97,7 +97,7 @@ class FCMService:
             "successful_sends": success_count,
             "results": results
         }
-    
+
     async def send_bulk_notification(
         self,
         user_ids: List[int],
@@ -111,12 +111,12 @@ class FCMService:
         """
         if not db:
             return {"success": False, "error": "Database session required"}
-            
+
         results = []
         for user_id in user_ids:
             result = await self.send_notification(user_id, title, body, data, db)
             results.append({"user_id": user_id, **result})
-        
+
         total_success = sum(1 for r in results if r["success"])
         return {
             "success": total_success > 0,
@@ -124,7 +124,7 @@ class FCMService:
             "successful_users": total_success,
             "results": results
         }
-    
+
     def _build_payload(
         self,
         token: str,
@@ -166,14 +166,14 @@ class FCMService:
             }
         }
         return payload
-    
+
     async def _send_to_fcm(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Отправка payload в FCM"""
         headers = {
             "Authorization": f"key={self.server_key}",
             "Content-Type": "application/json"
         }
-        
+
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -182,7 +182,7 @@ class FCMService:
                     json=payload,
                     timeout=10.0
                 )
-                
+
                 if response.status_code == 200:
                     result = response.json()
                     success = result.get("success", 0) > 0
@@ -196,11 +196,11 @@ class FCMService:
                         logger.debug(f"Failed to parse FCM error response: {parse_error}")
                         error_msg += f" - {response.text}"
                     return {"success": False, "error": error_msg}
-                    
+
         except Exception as e:
             logger.error(f"Error sending to FCM: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def register_device_token(
         self,
         user_id: int,
@@ -224,12 +224,12 @@ class FCMService:
         """
         if not db:
             raise ValueError("Database session required")
-            
+
         # Проверяем, существует ли уже такой токен
         existing_token = db.query(DeviceToken).filter(
             DeviceToken.token == token
         ).first()
-        
+
         if existing_token:
             # Если токен принадлежит другому пользователю, обновляем владельца
             if existing_token.user_id != user_id:
@@ -239,7 +239,7 @@ class FCMService:
                 existing_token.device_name = device_name
                 db.commit()
             return existing_token
-        
+
         # Создаем новый токен
         device_token = DeviceToken(
             user_id=user_id,
@@ -251,9 +251,9 @@ class FCMService:
         db.add(device_token)
         db.commit()
         db.refresh(device_token)
-        
+
         return device_token
-    
+
     async def unregister_device_token(
         self,
         user_id: int,
@@ -273,12 +273,12 @@ class FCMService:
         """
         if not db:
             return False
-            
+
         device_token = db.query(DeviceToken).filter(
             DeviceToken.user_id == user_id,
             DeviceToken.token == token
         ).first()
-        
+
         if device_token:
             db.delete(device_token)
             db.commit()

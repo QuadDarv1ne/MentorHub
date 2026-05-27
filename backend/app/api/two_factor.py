@@ -3,17 +3,18 @@ Two-Factor Authentication (2FA) routes
 TOTP (Time-based One-Time Password) implementation
 """
 
-import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-import pyotp
-import qrcode
 import base64
+import logging
 from io import BytesIO
 
-from app.dependencies import get_db, get_current_user
+import pyotp
+import qrcode
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.schemas.user import TwoFactorSetup, TwoFactorVerify, TwoFactorResponse
+from app.schemas.user import TwoFactorResponse, TwoFactorSetup, TwoFactorVerify
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/2fa", tags=["2FA"])
@@ -52,7 +53,7 @@ def generate_backup_codes(count: int = 10) -> list[str]:
     """Генерация backup кодов"""
     import secrets
     import string
-    
+
     codes = []
     for _ in range(count):
         code = ''.join(secrets.choice(string.digits) for _ in range(8))
@@ -76,24 +77,24 @@ async def setup_2fa(
         current_user.two_factor_enabled = False
         current_user.two_factor_secret = None
         db.commit()
-        
+
         logger.info(f"2FA disabled for user {current_user.id}")
         return TwoFactorResponse(enabled=False)
-    
+
     # Генерация нового секрета
     secret = generate_totp_secret()
     current_user.two_factor_secret = secret
     db.commit()
-    
+
     # Генерация QR кода
     uri = get_provisioning_uri(current_user.email, secret)
     qr_code = generate_qr_code(uri)
-    
+
     # Генерация backup кодов (не сохраняем, показываем только один раз)
     backup_codes = generate_backup_codes()
-    
+
     logger.info(f"2FA setup initiated for user {current_user.id}")
-    
+
     return TwoFactorResponse(
         enabled=True,
         qr_code=qr_code,
@@ -208,45 +209,47 @@ async def verify_2fa_login(
     
     Используется временный токен после успешной проверки пароля
     """
-    from app.utils.auth_tokens import create_access_token
-    from app.config import settings
     from datetime import timedelta
+
     import jwt
-    
+
+    from app.config import settings
+    from app.utils.auth_tokens import create_access_token
+
     try:
         # Декодируем временный токен
         payload = jwt.decode(temp_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id = payload.get("sub")
-        
+
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid temporary token"
             )
-        
+
         user = db.query(User).filter(User.id == int(user_id)).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-        
+
         if not user.two_factor_enabled:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="2FA is not enabled for this user"
             )
-        
+
         # Верификация 2FA кода
         totp = pyotp.TOTP(user.two_factor_secret)
-        
+
         if not totp.verify(verify_data.code, valid_window=1):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid 2FA code"
             )
-        
+
         # Создаём финальные токены
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -258,7 +261,7 @@ async def verify_2fa_login(
             expires_delta=access_token_expires,
             token_type="access",
         )
-        
+
         refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         refresh_token = create_access_token(
             data={
@@ -269,16 +272,16 @@ async def verify_2fa_login(
             expires_delta=refresh_token_expires,
             token_type="refresh",
         )
-        
+
         logger.info(f"2FA login successful for user {user.id}")
-        
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         }
-        
+
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

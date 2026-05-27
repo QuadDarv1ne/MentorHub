@@ -5,8 +5,9 @@ SQLAlchemy setup and session management
 
 import logging
 from contextlib import contextmanager
-from sqlalchemy import create_engine, event, Engine
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
+
+from sqlalchemy import Engine, create_engine, event
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
 
 from app.config import settings
@@ -48,10 +49,10 @@ def _create_engine_for_postgresql():
     # PgBouncer is used in Docker production environment
     # The DATABASE_URL should already point to pgbouncer:6432 in production
     db_url = settings.DATABASE_URL
-    
+
     # Detect if using PgBouncer based on host or port
     is_pgbouncer = "pgbouncer" in db_url.lower() or ":6432" in db_url
-    
+
     if is_pgbouncer:
         # PgBouncer transaction pooling mode - use smaller pool
         # PgBouncer handles connection multiplexing

@@ -5,17 +5,17 @@ Startup and shutdown event handlers for FastAPI application.
 Manages database connections, Redis, cache, and graceful shutdown.
 """
 
-import logging
 import asyncio
+import logging
 import signal
-from typing import Optional
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI
-from sqlalchemy import engine
 from redis.asyncio import Redis
+from sqlalchemy import engine
 
-from app.config import settings, is_production
+from app.config import is_production, settings
 from app.database import Base
 from app.utils.cache import init_cache
 from app.utils.cache_advanced import init_cache_backend
@@ -64,6 +64,7 @@ def signal_handler(signum, frame):
 # Регистрируем обработчики сигналов
 # SIGTERM не поддерживается на Windows, используем SIGINT
 import platform
+
 if platform.system() != "Windows":
     signal.signal(signal.SIGTERM, signal_handler)
     logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")
@@ -84,10 +85,10 @@ def get_redis_client() -> Optional[Redis]:
 def initialize_redis_client() -> Optional[Redis]:
     """Initialize Redis client if configured"""
     global redis_client
-    
+
     try:
         from redis.asyncio import Redis
-        
+
         # Initialize Redis if URL is configured (even localhost)
         if settings.REDIS_URL and settings.REDIS_URL.strip():
             redis_client = Redis.from_url(settings.REDIS_URL)
@@ -99,7 +100,7 @@ def initialize_redis_client() -> Optional[Redis]:
     except Exception as e:
         logger.warning(f"⚠️ Redis client initialization failed: {e}")
         redis_client = None
-    
+
     return redis_client
 
 
@@ -109,8 +110,8 @@ def initialize_sentry():
     try:
         import sentry_sdk
         from sentry_sdk.integrations.fastapi import FastApiIntegration
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
         from sentry_sdk.integrations.redis import RedisIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
         SENTRY_AVAILABLE = True
     except ImportError:
@@ -176,7 +177,7 @@ async def shutdown_database():
 async def shutdown_redis():
     """Close Redis connection gracefully"""
     global redis_client
-    
+
     if redis_client:
         try:
             await redis_client.aclose()

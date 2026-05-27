@@ -12,26 +12,23 @@ Features:
 - Returns proper 429 responses with retry-after headers
 """
 
-import time
 import hashlib
-from datetime import datetime, timedelta
-from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Any
 import logging
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import Request, HTTPException, status
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 from redis.asyncio import Redis
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.config import settings
 from app.constants import (
+    RATE_LIMIT_ANONYMOUS_REQUESTS,
+    RATE_LIMIT_AUTHENTICATED_REQUESTS,
     RATE_LIMIT_DEFAULT_REQUESTS,
     RATE_LIMIT_DEFAULT_WINDOW,
-    RATE_LIMIT_AUTHENTICATED_REQUESTS,
-    RATE_LIMIT_AUTHENTICATED_WINDOW,
-    RATE_LIMIT_ANONYMOUS_REQUESTS,
-    RATE_LIMIT_ANONYMOUS_WINDOW,
 )
 
 logger = logging.getLogger(__name__)

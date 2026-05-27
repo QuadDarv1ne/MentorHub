@@ -3,8 +3,9 @@ Pydantic схемы для достижений
 """
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class AchievementCreate(BaseModel):
@@ -15,7 +16,7 @@ class AchievementCreate(BaseModel):
 
 class AchievementRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     user_id: int
     title: str

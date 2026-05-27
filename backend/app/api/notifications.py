@@ -7,15 +7,15 @@ import json
 import logging
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import desc
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.notification import Notification, NotificationType
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict
-from datetime import datetime
+from sqlalchemy import desc
+from sqlalchemy.orm import Session, joinedload
+
+from app.dependencies import get_current_user, get_db
+from app.models.notification import Notification, NotificationType
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -42,7 +42,7 @@ class NotificationCreate(BaseModel):
 class NotificationResponse(BaseModel):
     """Ответ с уведомлением"""
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     type: str
     title: str
@@ -80,18 +80,18 @@ async def get_notifications(
     - type: Фильтр по типу
     """
     query = db.query(Notification).filter(Notification.user_id == current_user.id)
-    
+
     # Фильтры
     if unread_only:
-        query = query.filter(Notification.is_read == False)
-    
+        query = query.filter(Notification.is_read is False)
+
     if type:
         query = query.filter(Notification.notification_type == type)
-    
+
     # Подсчет непрочитанных
     unread_count = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read == False
+        Notification.is_read is False
     ).count()
 
     # Сортировка и пагинация с joinedload для оптимизации
@@ -115,7 +115,7 @@ async def get_notifications(
             read_at=notif.read_at,
             created_at=notif.created_at
         ))
-    
+
     return NotificationListResponse(
         notifications=notification_responses,
         total=total,
@@ -131,9 +131,9 @@ async def get_unread_count(
     """Получить количество непрочитанных уведомлений"""
     count = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read == False
+        Notification.is_read is False
     ).count()
-    
+
     return {"unread_count": count}
 
 
@@ -148,19 +148,19 @@ async def mark_notification_as_read(
         Notification.id == notification_id,
         Notification.user_id == current_user.id
     ).first()
-    
+
     if not notification:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Уведомление не найдено"
         )
-    
+
     if not notification.is_read:
         notification.is_read = True
         notification.read_at = int(datetime.now(timezone.utc).timestamp())
         db.commit()
         db.refresh(notification)
-    
+
     return {"message": "Уведомление отмечено как прочитанное"}
 
 
@@ -173,7 +173,7 @@ async def mark_all_as_read(
     try:
         updated = db.query(Notification).filter(
             Notification.user_id == current_user.id,
-            Notification.is_read == False
+            Notification.is_read is False
         ).update({
             "is_read": True,
             "read_at": int(datetime.now(timezone.utc).timestamp())
@@ -205,16 +205,16 @@ async def delete_notification(
         Notification.id == notification_id,
         Notification.user_id == current_user.id
     ).first()
-    
+
     if not notification:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Уведомление не найдено"
         )
-    
+
     db.delete(notification)
     db.commit()
-    
+
     return None
 
 
@@ -226,11 +226,11 @@ async def clear_all_notifications(
     """Удалить все прочитанные уведомления"""
     deleted = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read == True
+        Notification.is_read is True
     ).delete()
-    
+
     db.commit()
-    
+
     return {
         "message": "Прочитанные уведомления удалены",
         "deleted_count": deleted
@@ -275,7 +275,7 @@ async def create_notification(
     db.add(notification)
     db.commit()
     db.refresh(notification)
-    
+
     # Отправляем real-time уведомление если пользователь онлайн
     if WEBSOCKET_AVAILABLE and manager.is_user_online(user_id):
         await manager.send_notification(user_id, {

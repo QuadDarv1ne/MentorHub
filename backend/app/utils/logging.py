@@ -3,9 +3,9 @@ Logging Configuration
 Structured logging with file rotation and JSON formatting
 """
 
+import json
 import logging
 import logging.handlers
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict

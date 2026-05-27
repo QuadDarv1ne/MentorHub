@@ -4,15 +4,14 @@
 Type hints added for better IDE support and type checking.
 """
 
-import time
-import psutil
 import logging
-from typing import Dict, Any, List, Callable
-from datetime import datetime, timezone
+import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
-from functools import wraps
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, List
 
+import psutil
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -131,10 +130,10 @@ class PerformanceMonitor:
             ],
             "popular_endpoints": [
                 {
-                    "endpoint": endpoint, 
-                    "calls": count, 
+                    "endpoint": endpoint,
+                    "calls": count,
                     "error_count": self.error_counts.get(endpoint, 0)
-                } 
+                }
                 for endpoint, count in popular_endpoints
             ],
             "slow_requests_details": dict(self.slow_requests),
@@ -160,7 +159,7 @@ class PerformanceMonitor:
     ) -> List[Dict[str, Any]]:
         """Проверка наличия алертов"""
         alerts: List[Dict[str, Any]] = []
-        
+
         # Проверка высокого уровня ошибок
         if error_rate > self.alert_thresholds["error_rate"]:
             alerts.append({
@@ -169,7 +168,7 @@ class PerformanceMonitor:
                 "message": f"Высокий уровень ошибок: {error_rate:.2f}%",
                 "threshold": self.alert_thresholds["error_rate"]
             })
-        
+
         # Проверка высокой нагрузки на CPU
         if cpu_percent > self.alert_thresholds["cpu_usage"]:
             alerts.append({
@@ -178,7 +177,7 @@ class PerformanceMonitor:
                 "message": f"Высокая нагрузка на CPU: {cpu_percent:.2f}%",
                 "threshold": self.alert_thresholds["cpu_usage"]
             })
-            
+
         # Проверка высокого использования памяти
         if memory_percent > self.alert_thresholds["memory_usage"]:
             alerts.append({
@@ -187,7 +186,7 @@ class PerformanceMonitor:
                 "message": f"Высокое использование памяти: {memory_percent:.2f}%",
                 "threshold": self.alert_thresholds["memory_usage"]
             })
-            
+
         # Проверка медленных endpoints
         for endpoint, data in avg_response_times.items():
             avg_time = data["avg"]
@@ -199,7 +198,7 @@ class PerformanceMonitor:
                     "threshold": self.alert_thresholds["response_time"],
                     "endpoint": endpoint
                 })
-                
+
         return alerts
 
     def set_alert_thresholds(self, thresholds: Dict[str, float]) -> None:
@@ -237,7 +236,7 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
+        except Exception:
             duration = time.time() - start_time
             self.monitor.record_request(endpoint=request.url.path, duration=duration, status_code=500)
             raise

@@ -4,17 +4,17 @@ API для управления push-уведомлениями через Fireb
 """
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.dependencies import get_db, get_current_user
-from app.models.user import User
-from app.models.device_token import DeviceToken
-from app.utils.fcm import fcm_service
-from app.config import settings
-
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.dependencies import get_current_user, get_db
+from app.models.device_token import DeviceToken
+from app.models.user import User
+from app.utils.fcm import fcm_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/push-notifications", tags=["Push Notifications"])
@@ -57,7 +57,7 @@ async def register_device_token(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Push notifications are disabled"
         )
-    
+
     if not settings.FCM_SERVER_KEY:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -77,7 +77,7 @@ async def register_device_token(
         logger.info(f"Device token registered for user {current_user.id}")
 
         return {"success": True, "message": "Device token registered successfully"}
-        
+
     except Exception as e:
         logger.error(f"Error registering device token: {e}")
         raise HTTPException(
@@ -109,7 +109,7 @@ async def unregister_device_token(
             token=token,
             db=db
         )
-        
+
         if success:
             logger.info(f"Device token unregistered for user {current_user.id}")
             return {"success": True, "message": "Device token unregistered successfully"}
@@ -118,7 +118,7 @@ async def unregister_device_token(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Device token not found"
             )
-            
+
     except Exception as e:
         logger.error(f"Error unregistering device token: {e}")
         raise HTTPException(
@@ -146,7 +146,7 @@ async def get_user_devices(
         devices = db.query(DeviceToken).filter(
             DeviceToken.user_id == current_user.id
         ).all()
-        
+
         return {
             "success": True,
             "devices": [
@@ -160,7 +160,7 @@ async def get_user_devices(
                 for device in devices
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Error fetching user devices: {e}")
         raise HTTPException(
@@ -192,13 +192,13 @@ async def send_push_notification(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administrators can send push notifications"
         )
-    
+
     if not settings.PUSH_NOTIFICATIONS_ENABLED:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Push notifications are disabled"
         )
-    
+
     try:
         if request.user_ids:
             # Массовая отправка группе пользователей
@@ -211,9 +211,9 @@ async def send_push_notification(
             )
         else:
             # Отправка всем пользователям (можно добавить пагинацию)
-            all_users = db.query(User).filter(User.is_active == True).all()
+            all_users = db.query(User).filter(User.is_active is True).all()
             user_ids = [user.id for user in all_users]
-            
+
             result = await fcm_service.send_bulk_notification(
                 user_ids=user_ids,
                 title=request.title,
@@ -221,15 +221,15 @@ async def send_push_notification(
                 data=request.data,
                 db=db
             )
-        
+
         logger.info(f"Push notification sent by admin {current_user.id}")
-        
+
         return {
             "success": result["success"],
             "message": "Push notifications sent",
             "details": result
         }
-        
+
     except Exception as e:
         logger.error(f"Error sending push notification: {e}")
         raise HTTPException(
@@ -263,7 +263,7 @@ async def send_push_to_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administrators can send push notifications"
         )
-    
+
     # Проверяем существование пользователя
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -271,7 +271,7 @@ async def send_push_to_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     try:
         result = await fcm_service.send_notification(
             user_id=user_id,
@@ -280,15 +280,15 @@ async def send_push_to_user(
             data=request.data,
             db=db
         )
-        
+
         logger.info(f"Push notification sent to user {user_id} by admin {current_user.id}")
-        
+
         return {
             "success": result["success"],
             "message": "Push notification sent",
             "details": result
         }
-        
+
     except Exception as e:
         logger.error(f"Error sending push notification to user {user_id}: {e}")
         raise HTTPException(

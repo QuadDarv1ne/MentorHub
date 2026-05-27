@@ -5,11 +5,11 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 
 import logging
 from collections import defaultdict
-from typing import Generator, Optional
 from datetime import datetime, timedelta, timezone
+from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status, Query, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, Query, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 try:
@@ -28,7 +28,6 @@ from app.database import SessionLocal
 from app.models import User
 from app.models.user import UserRole
 from app.schemas import PaginationParams
-
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer(auto_error=False)

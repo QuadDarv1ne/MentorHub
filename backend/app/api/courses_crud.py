@@ -5,16 +5,17 @@ Courses CRUD Operations
 
 import asyncio
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.course import Course
 from app.models.user import User
-from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, CourseWithLessonsResponse
+from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, CourseWithLessonsResponse
 from app.services.cache import cached
-from app.utils.cache import invalidate_cache
 from app.services.course_service import CourseService
+from app.utils.cache import invalidate_cache
 
 router = APIRouter()
 
@@ -115,21 +116,21 @@ async def delete_course(
 ):
     """Удалить курс"""
     service = _get_course_service(db)
-    
+
     # Проверяем существование курса
     existing_course = db.query(Course).filter(Course.id == course_id).first()
     if not existing_course:
         raise HTTPException(status_code=404, detail="Курс не найден")
-    
+
     # Проверяем права (ментор или админ)
     from app.models.mentor import Mentor
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     is_instructor = mentor and existing_course.instructor_id == mentor.id
     is_admin = current_user.role.value == "admin"
-    
+
     if not is_instructor and not is_admin:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
-    
+
     db.delete(existing_course)
     db.commit()
 
@@ -157,7 +158,7 @@ async def get_similar_courses(
         .filter(
             Course.category == course.category,
             Course.id != course_id,
-            Course.is_active == True
+            Course.is_active is True
         )
         .limit(5)
         .all()

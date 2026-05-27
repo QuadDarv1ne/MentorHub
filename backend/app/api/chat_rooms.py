@@ -3,21 +3,28 @@ Chat rooms API endpoints
 Групповые чаты для курсов и проектов
 """
 
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, desc
 from datetime import datetime, timezone
+from typing import Any, Dict, List
 
-from app.dependencies import get_db, get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import desc, func
+from sqlalchemy.orm import Session, joinedload
+
+from app.dependencies import get_current_user, get_db
+from app.models.chat_room import ChatMessage, ChatRoom
 from app.models.user import User
-from app.models.chat_room import ChatRoom, ChatMessage, chat_room_members
 from app.schemas.chat_room import (
-    ChatRoomCreate, ChatRoomUpdate, ChatRoomResponse, ChatRoomWithMembersResponse,
-    ChatMessageCreate, ChatMessageUpdate, ChatMessageResponse, ChatMessageListResponse, AddMemberRequest, RemoveMemberRequest
+    AddMemberRequest,
+    ChatMessageCreate,
+    ChatMessageListResponse,
+    ChatMessageResponse,
+    ChatMessageUpdate,
+    ChatRoomCreate,
+    ChatRoomResponse,
+    ChatRoomWithMembersResponse,
 )
 from app.services.chat_room_service import ChatRoomService, format_room_response
-from app.utils.sanitization import sanitize_string, is_safe_string
+from app.utils.sanitization import is_safe_string, sanitize_string
 
 router = APIRouter()
 
@@ -46,12 +53,12 @@ async def get_chat_rooms(
 ) -> List[Dict[str, Any]]:
     """Получить список чат-комнат, где пользователь является участником"""
     rooms = service.get_user_rooms(current_user.id, skip, limit)
-    
+
     result = []
     for room in rooms:
         member_count = service.get_room_member_count(room.id)
         result.append(format_room_response(room, member_count))
-    
+
     return result
 
 
@@ -69,10 +76,10 @@ async def get_chat_room(
         joinedload(ChatRoom.creator),
         joinedload(ChatRoom.members)
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден или вы не являетесь участником")
-    
+
     members_data = []
     for member in room.members:
         members_data.append({
@@ -81,7 +88,7 @@ async def get_chat_room(
             "avatar_url": member.avatar_url,
             "role": member.role.value
         })
-    
+
     return {
         "id": room.id,
         "name": room.name,
@@ -109,26 +116,26 @@ async def add_member_to_chat(
         ChatRoom.id == room_id,
         ChatRoom.members.any(User.id == current_user.id)
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден")
-    
+
     # Проверка: только создатель может добавлять участников в приватный чат
     if room.is_private and room.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Только создатель может добавлять участников в приватный чат")
-    
+
     # Проверяем существует ли пользователь
     new_member = db.query(User).filter(User.id == member_data.user_id).first()
     if not new_member:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    
+
     # Проверяем, не является ли он уже участником
     if new_member in room.members:
         raise HTTPException(status_code=400, detail="Пользователь уже является участником чата")
-    
+
     room.members.append(new_member)
     db.commit()
-    
+
     return {"message": "Участник добавлен", "member_count": len(room.members)}
 
 
@@ -144,24 +151,24 @@ async def remove_member_from_chat(
         ChatRoom.id == room_id,
         ChatRoom.members.any(User.id == current_user.id)
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден")
-    
+
     # Только создатель может удалять участников
     if room.created_by != current_user.id and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Только создатель может удалять участников")
-    
+
     member_to_remove = db.query(User).filter(User.id == user_id).first()
     if not member_to_remove:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    
+
     if member_to_remove not in room.members:
         raise HTTPException(status_code=400, detail="Пользователь не является участником чата")
-    
+
     room.members.remove(member_to_remove)
     db.commit()
-    
+
     return {"message": "Участник удалён", "member_count": len(room.members)}
 
 
@@ -176,13 +183,13 @@ async def delete_chat_room(
         ChatRoom.id == room_id,
         ChatRoom.created_by == current_user.id
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден или у вас нет прав на удаление")
-    
+
     db.delete(room)
     db.commit()
-    
+
     return None
 
 
@@ -200,16 +207,16 @@ async def get_chat_messages(
         ChatRoom.id == room_id,
         ChatRoom.members.any(User.id == current_user.id)
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден или вы не являетесь участником")
-    
+
     # Получаем сообщения
     query = db.query(ChatMessage).options(
         joinedload(ChatMessage.sender)
     ).filter(
         ChatMessage.room_id == room_id,
-        ChatMessage.is_deleted == False
+        ChatMessage.is_deleted is False
     ).order_by(desc(ChatMessage.created_at))
 
     total = query.count()
@@ -226,7 +233,7 @@ async def get_chat_messages(
     ).filter(
         ChatMessage.parent_message_id.in_(message_ids)
     ).group_by(ChatMessage.parent_message_id)
-    
+
     replies_map = {row.parent_message_id: row.replies_count for row in replies_query}
 
     # Формируем ответ
@@ -268,10 +275,10 @@ async def send_chat_message(
         ChatRoom.id == room_id,
         ChatRoom.members.any(User.id == current_user.id)
     ).first()
-    
+
     if not room:
         raise HTTPException(status_code=404, detail="Чат не найден или вы не являетесь участником")
-    
+
     # Проверяем родительское сообщение если это тред
     if message.parent_message_id:
         parent_msg = db.query(ChatMessage).filter(
@@ -280,7 +287,7 @@ async def send_chat_message(
         ).first()
         if not parent_msg:
             raise HTTPException(status_code=404, detail="Родительское сообщение не найдено")
-    
+
     # Санитизация контента сообщения (XSS protection)
     sanitized_content = sanitize_string(message.content)
     if not is_safe_string(sanitized_content):
@@ -295,16 +302,16 @@ async def send_chat_message(
         parent_message_id=message.parent_message_id
     )
     db.add(db_message)
-    
+
     # Обновляем updated_at у комнаты
     room.updated_at = datetime.now(timezone.utc)
-    
+
     db.commit()
     db.refresh(db_message)
-    
+
     # Получаем данные отправителя
     sender = db.query(User).filter(User.id == current_user.id).first()
-    
+
     return {
         "id": db_message.id,
         "room_id": db_message.room_id,
@@ -335,10 +342,10 @@ async def edit_chat_message(
         ChatMessage.id == message_id,
         ChatMessage.sender_id == current_user.id
     ).first()
-    
+
     if not db_message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено или у вас нет прав на редактирование")
-    
+
     if db_message.is_deleted:
         raise HTTPException(status_code=400, detail="Нельзя редактировать удалённое сообщение")
 
@@ -348,15 +355,15 @@ async def edit_chat_message(
         if not is_safe_string(sanitized_content):
             raise HTTPException(status_code=400, detail="Сообщение содержит недопустимые символы")
         db_message.content = sanitized_content
-    
+
     db_message.is_edited = True
     db_message.updated_at = datetime.now(timezone.utc)
-    
+
     db.commit()
     db.refresh(db_message)
-    
+
     sender = db.query(User).filter(User.id == current_user.id).first()
-    
+
     return {
         "id": db_message.id,
         "room_id": db_message.room_id,
@@ -386,14 +393,14 @@ async def delete_chat_message(
         ChatMessage.id == message_id,
         ChatMessage.sender_id == current_user.id
     ).first()
-    
+
     if not db_message:
         raise HTTPException(status_code=404, detail="Сообщение не найдено или у вас нет прав на удаление")
-    
+
     db_message.is_deleted = True
     db_message.content = "[Сообщение удалено]"
     db_message.updated_at = datetime.now(timezone.utc)
-    
+
     db.commit()
-    
+
     return None

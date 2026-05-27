@@ -5,15 +5,16 @@ API для работы с сессиями менторства
 
 import logging
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload, selectinload
 
-from app.dependencies import get_db, rate_limit_dependency, get_current_user
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
+from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
 from app.models.user import User
-from app.models.mentor import Mentor
-from app.schemas.session import SessionCreate, SessionUpdate, SessionResponse
-from app.utils.sanitization import sanitize_string, is_safe_string
+from app.schemas.session import SessionCreate, SessionResponse, SessionUpdate
+from app.utils.sanitization import is_safe_string, sanitize_string
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -85,17 +86,17 @@ async def get_session(
     session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-    
+
     # Get user's mentor ID for comparison
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     mentor_id = mentor.id if mentor else None
-    
+
     # Проверка доступа: студент, ментор или админ
-    if (session.student_id != current_user.id and 
-        session.mentor_id != mentor_id and 
+    if (session.student_id != current_user.id and
+        session.mentor_id != mentor_id and
         current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен")
-    
+
     return session
 
 
@@ -110,7 +111,7 @@ async def create_session(
     # Проверяем что пользователь ментор или админ
     if current_user.role.value not in ["mentor", "admin"]:
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права ментора.")
-    
+
     # Санитизация входных данных
     sanitized_meeting_link = sanitize_string(session.meeting_link) if session.meeting_link else None
     sanitized_notes = sanitize_string(session.notes) if session.notes else None
@@ -151,7 +152,7 @@ async def create_session(
         notes=sanitized_notes,
     )
     db.add(db_session)
-    
+
     try:
         db.commit()
         db.refresh(db_session)
@@ -174,14 +175,14 @@ async def update_session(
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-    
+
     # Get user's mentor ID for comparison
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     mentor_id = mentor.id if mentor else None
-    
+
     # Проверка ownership: студент, ментор или админ
-    if (db_session.student_id != current_user.id and 
-        db_session.mentor_id != mentor_id and 
+    if (db_session.student_id != current_user.id and
+        db_session.mentor_id != mentor_id and
         current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
@@ -222,14 +223,14 @@ async def delete_session(
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-    
+
     # Get user's mentor ID for comparison
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     mentor_id = mentor.id if mentor else None
-    
+
     # Проверка ownership: студент, ментор или админ
-    if (db_session.student_id != current_user.id and 
-        db_session.mentor_id != mentor_id and 
+    if (db_session.student_id != current_user.id and
+        db_session.mentor_id != mentor_id and
         current_user.role.value != "admin"):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 

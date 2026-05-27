@@ -3,22 +3,22 @@ Mentors API Router
 Объединяет все роуты для работы с менторами
 """
 
-import logging
-from fastapi import APIRouter, Query
 import asyncio
+import logging
 from typing import List
-from fastapi import Depends, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, rate_limit_dependency, get_current_user
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.mentor import Mentor
-from app.models.user import User
 from app.models.review import Review
-from app.schemas.mentor import MentorCreate, MentorUpdate, MentorResponse
+from app.models.user import User
 from app.schemas.common import PaginatedResponse
-from app.utils.sanitization import sanitize_text_field, sanitize_string, is_safe_string
+from app.schemas.mentor import MentorCreate, MentorResponse, MentorUpdate
 from app.services.cache import cached
 from app.utils.cache import invalidate_cache
+from app.utils.sanitization import is_safe_string, sanitize_string, sanitize_text_field
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ async def create_mentor(
     # Пользователь может создать профиль только от своего имени (или админ)
     if mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете создать профиль только от своего имени.")
-    
+
     # Санитизация входных данных
     sanitized_bio = sanitize_text_field(mentor.bio) if mentor.bio else None
     sanitized_specialization = sanitize_string(mentor.specialization) if mentor.specialization else None
@@ -101,7 +101,7 @@ async def create_mentor(
         is_available=mentor.is_available,
     )
     db.add(db_mentor)
-    
+
     try:
         db.commit()
         db.refresh(db_mentor)
@@ -124,7 +124,7 @@ async def update_mentor(
     db_mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
     if not db_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
-    
+
     # Проверка ownership: владелец профиля или админ
     if db_mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете редактировать только свой профиль.")
@@ -175,7 +175,7 @@ async def delete_mentor(
     db_mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
     if not db_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
-    
+
     # Проверка ownership: владелец профиля или админ
     if db_mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете удалить только свой профиль.")

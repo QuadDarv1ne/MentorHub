@@ -4,6 +4,7 @@ API роуты
 """
 
 import logging
+
 from fastapi import FastAPI
 
 from app.config import settings
@@ -12,32 +13,32 @@ logger = logging.getLogger(__name__)
 
 # Импорт всех роутов
 from app.api import (
-    auth,
-    users,
-    mentors,
-    sessions,
-    messages,
-    payments,
-    courses,
-    reviews,
-    progress,
-    stats,
-    monitoring,
-    health,
     achievements,
-    backups,
-    email_verification,
-    websocket,
-    notifications,
-    analytics,
-    push_notifications,
-    two_factor,
-    export,
-    chat_rooms,
-    video_calls,
-    calendar,
-    subscriptions,
     admin,
+    analytics,
+    auth,
+    backups,
+    calendar,
+    chat_rooms,
+    courses,
+    email_verification,
+    export,
+    health,
+    mentors,
+    messages,
+    monitoring,
+    notifications,
+    payments,
+    progress,
+    push_notifications,
+    reviews,
+    sessions,
+    stats,
+    subscriptions,
+    two_factor,
+    users,
+    video_calls,
+    websocket,
 )
 
 

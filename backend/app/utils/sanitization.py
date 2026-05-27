@@ -3,8 +3,8 @@
 Функции для очистки и проверки пользовательского ввода
 """
 
-import re
 import html
+import re
 from typing import Union
 
 

@@ -4,13 +4,14 @@
 
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 
-from app.dependencies import get_db, get_current_user, rate_limit_dependency
-from app.schemas.progress import ProgressCreate, ProgressRead, ProgressAggregate
-from app.models import Progress, CourseEnrollment
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from app.dependencies import get_current_user, get_db, rate_limit_dependency
+from app.models import CourseEnrollment, Progress
+from app.schemas.progress import ProgressAggregate, ProgressCreate, ProgressRead
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

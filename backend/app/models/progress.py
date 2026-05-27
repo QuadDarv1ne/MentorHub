@@ -2,10 +2,11 @@
 Модель трекинга прогресса пользователя по курсам/урокам
 """
 
-from sqlalchemy import Column, Integer, Boolean, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
+
 
 class Progress(BaseModel, TimestampMixin):
     """Модель для хранения прогресса пользователя по курсам и урокам."""

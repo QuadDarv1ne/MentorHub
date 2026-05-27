@@ -6,7 +6,7 @@ Converts user data to PDF format using ReportLab.
 
 import io
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import HTTPException, Response
 
@@ -23,17 +23,17 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
     """
     try:
         from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import inch
         from reportlab.lib.enums import TA_CENTER
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     except ImportError:
         raise HTTPException(status_code=503, detail="PDF export not available (reportlab not installed)")
-    
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch)
-    
+
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'CustomTitle',
@@ -43,13 +43,13 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
         spaceAfter=12,
         alignment=TA_CENTER
     )
-    
+
     story = []
-    
+
     # Title
     story.append(Paragraph("MentorHub Data Export", title_style))
     story.append(Spacer(1, 0.2*inch))
-    
+
     # User information table
     user_info = [
         ["Username", data["user"]["username"]],
@@ -58,7 +58,7 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
         ["Role", data["user"]["role"]],
         ["Export Date", data["export_date"]]
     ]
-    
+
     user_table = Table(user_info, colWidths=[2*inch, 4*inch])
     user_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4a90d9')),
@@ -72,7 +72,7 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
     ]))
     story.append(user_table)
     story.append(Spacer(1, 0.3*inch))
-    
+
     # Statistics table
     stats_data = [
         ["Category", "Count"],
@@ -84,7 +84,7 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
         ["Messages", len(data["messages"])],
         ["Course Enrollments", len(data["enrollments"])]
     ]
-    
+
     stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
     stats_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4a90d9')),
@@ -95,12 +95,12 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f7ff')])
     ]))
     story.append(stats_table)
-    
+
     doc.build(story)
     buffer.seek(0)
-    
+
     filename = f"mentorhub_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.pdf"
-    
+
     return Response(
         content=buffer.getvalue(),
         media_type="application/pdf",

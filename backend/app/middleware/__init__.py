@@ -6,13 +6,13 @@ Consolidated middleware to avoid duplication.
 """
 
 from .rate_limiter_unified import (
-    UnifiedRateLimitMiddleware,
     RateLimiter,
+    UnifiedRateLimitMiddleware,
     create_rate_limiter,
 )
-from .security_advanced import SecurityMiddleware
 from .request_id import RequestIDMiddleware
 from .request_logging import RequestLoggingMiddleware
+from .security_advanced import SecurityMiddleware
 from .setup import register_middleware
 
 __all__ = [

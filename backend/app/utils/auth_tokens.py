@@ -5,6 +5,7 @@ JWT токены для аутентификации
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
 import jwt
 
 from app.config import settings
@@ -42,7 +43,7 @@ def create_access_token(
         "iss": "mentorhub-api",
         "type": token_type,
     })
-    
+
     encoded_jwt = jwt.encode(
         to_encode,
         settings.SECRET_KEY,
@@ -67,7 +68,7 @@ def create_refresh_token(
     """
     if expires_delta is None:
         expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    
+
     return create_access_token(
         data=data,
         expires_delta=expires_delta,
@@ -90,7 +91,7 @@ def decode_token(token: str, token_type: str = "access") -> dict:
         HTTPException: Если токен невалиден или истек
     """
     from fastapi import HTTPException, status
-    
+
     try:
         payload = jwt.decode(
             token,

@@ -3,9 +3,10 @@ Agora Video Service
 Сервис для работы с Agora SDK (видеозвонки)
 """
 
-import time
 import logging
-from typing import Optional, Dict, Any
+import time
+from typing import Any, Dict, Optional
+
 from agora_token_builder import RtcTokenBuilder
 
 from app.config import settings
@@ -17,13 +18,13 @@ class AgoraService:
     """
     Сервис для генерации токенов Agora и управления видеозвонками
     """
-    
+
     def __init__(self):
         self.app_id = settings.AGORA_APP_ID
         self.app_certificate = settings.AGORA_APP_CERTIFICATE
         self.token_expiration_seconds = 3600  # 1 hour
         self.privilege_expiration_seconds = 3600  # 1 hour
-    
+
     def generate_rtc_token(
         self,
         channel_name: str,
@@ -46,11 +47,11 @@ class AgoraService:
         if not self.app_id or not self.app_certificate:
             logger.error("Agora credentials not configured")
             raise ValueError("Agora credentials not configured")
-        
+
         expiration = expiration_seconds or self.token_expiration_seconds
         current_timestamp = int(time.time())
         privilege_expired_ts = current_timestamp + expiration
-        
+
         try:
             token = RtcTokenBuilder.buildTokenWithUid(
                 self.app_id,
@@ -60,14 +61,14 @@ class AgoraService:
                 role,
                 privilege_expired_ts
             )
-            
+
             logger.info(f"Generated Agora token for channel: {channel_name}, uid: {uid}")
             return token
-            
+
         except Exception as e:
             logger.error(f"Failed to generate Agora token: {e}")
             raise ValueError(f"Failed to generate Agora token: {str(e)}")
-    
+
     def generate_token_for_call(
         self,
         call_id: int,
@@ -87,13 +88,13 @@ class AgoraService:
         """
         channel_name = f"call_{call_id}"
         role = 1  # Publisher (может публиковать видео/аудио)
-        
+
         token = self.generate_rtc_token(
             channel_name=channel_name,
             uid=user_id,
             role=role
         )
-        
+
         return {
             "token": token,
             "channel_name": channel_name,
@@ -102,7 +103,7 @@ class AgoraService:
             "expires_at": int(time.time()) + self.token_expiration_seconds,
             "is_host": is_host
         }
-    
+
     def validate_channel_name(self, channel_name: str) -> bool:
         """
         Валидация имени канала
@@ -117,21 +118,21 @@ class AgoraService:
         # - ASCII characters only
         # - Max 64 characters
         # - Can contain: a-z, A-Z, 0-9, !, #, $, %, &, (, ), +, -, :, ;, <, =, ., >, ?, @, [, ], ^, _, {, }, |, ~, ,
-        
+
         if not channel_name:
             return False
-        
+
         if len(channel_name) > 64:
             return False
-        
+
         # Check ASCII
         try:
             channel_name.encode('ascii')
         except UnicodeEncodeError:
             return False
-        
+
         return True
-    
+
     def get_recording_config(self, call_id: int) -> Dict[str, Any]:
         """
         Получить конфигурацию для записи видеозвонка

@@ -3,7 +3,7 @@
 Модель профиля ментора с информацией о специализации и опыте
 """
 
-from sqlalchemy import Column, String, Text, Integer, Boolean, ForeignKey, DateTime, Float
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin

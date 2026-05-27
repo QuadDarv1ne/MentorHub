@@ -3,42 +3,44 @@ Notification system
 Система уведомлений для пользователей
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, Text, Enum as SQLEnum, ForeignKey
-from sqlalchemy.orm import relationship
 import enum
+
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
 
 class NotificationType(str, enum.Enum):
     """Типы уведомлений"""
-    
+
     # Сессии
     SESSION_SCHEDULED = "session_scheduled"
     SESSION_REMINDER = "session_reminder"
     SESSION_CANCELLED = "session_cancelled"
     SESSION_COMPLETED = "session_completed"
-    
+
     # Сообщения
     NEW_MESSAGE = "new_message"
-    
+
     # Курсы
     COURSE_ENROLLED = "course_enrolled"
     LESSON_COMPLETED = "lesson_completed"
     COURSE_UPDATED = "course_updated"
-    
+
     # Платежи
     PAYMENT_SUCCESS = "payment_success"
     PAYMENT_FAILED = "payment_failed"
     SUBSCRIPTION_EXPIRING = "subscription_expiring"
-    
+
     # Достижения
     ACHIEVEMENT_UNLOCKED = "achievement_unlocked"
-    
+
     # Отзывы
     NEW_REVIEW = "new_review"
     REVIEW_REPLY = "review_reply"
-    
+
     # Система
     ACCOUNT_VERIFIED = "account_verified"
     PASSWORD_CHANGED = "password_changed"

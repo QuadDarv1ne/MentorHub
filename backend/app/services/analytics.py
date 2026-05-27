@@ -6,15 +6,17 @@ Analytics Service
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
-from sqlalchemy import func, desc, and_
+
+from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
-from app.models.user import User, UserRole
-from app.models.session import Session as MentorSession, SessionStatus
 from app.models.course import Course, CourseEnrollment
+from app.models.payment import Payment
 from app.models.progress import Progress
 from app.models.review import Review
-from app.models.payment import Payment
+from app.models.session import Session as MentorSession
+from app.models.session import SessionStatus
+from app.models.user import User, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class AnalyticsService:
             total_users = self.db.query(User).count()
             total_students = self.db.query(User).filter(User.role == UserRole.STUDENT).count()
             total_mentors = self.db.query(User).filter(User.role == UserRole.MENTOR).count()
-            verified_users = self.db.query(User).filter(User.is_verified == True).count()
+            verified_users = self.db.query(User).filter(User.is_verified is True).count()
 
             # Сессии
             total_sessions = self.db.query(MentorSession).count()
@@ -50,7 +52,7 @@ class AnalyticsService:
 
             # Курсы
             total_courses = self.db.query(Course).count()
-            active_courses = self.db.query(Course).filter(Course.is_active == True).count()
+            active_courses = self.db.query(Course).filter(Course.is_active is True).count()
             total_enrollments = self.db.query(CourseEnrollment).count()
 
             # Отзывы
@@ -106,7 +108,7 @@ class AnalyticsService:
         """
         try:
             start_date = datetime.now(timezone.utc) - timedelta(days=days)
-            
+
             # Группируем по дням - created_at is already a datetime column
             growth_data = self.db.query(
                 func.date(User.created_at).label('date'),
@@ -387,10 +389,10 @@ class AnalyticsService:
             raise
 
     def _calculate_engagement_score(
-        self, 
-        sessions: int, 
-        enrollments: int, 
-        avg_progress: float, 
+        self,
+        sessions: int,
+        enrollments: int,
+        avg_progress: float,
         reviews: int
     ) -> int:
         """
@@ -406,17 +408,17 @@ class AnalyticsService:
             int: Engagement score
         """
         score = 0
-        
+
         # Сессии (до 30 баллов)
         score += min(sessions * 3, 30)
-        
+
         # Курсы (до 25 баллов)
         score += min(enrollments * 5, 25)
-        
+
         # Прогресс (до 30 баллов)
         score += min(avg_progress * 0.3, 30)
-        
+
         # Отзывы (до 15 баллов)
         score += min(reviews * 5, 15)
-        
+
         return min(int(score), 100)

@@ -4,14 +4,14 @@ Prometheus метрики для мониторинга приложения
 Type hints added for better IDE support and type checking.
 """
 
-import time
 import logging
-from typing import Callable, Dict, Any, Optional, List
+import time
 from functools import wraps
+from typing import Any, Callable, List, Optional
 
 from fastapi import Request, Response
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 from starlette.middleware.base import BaseHTTPMiddleware
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 logger = logging.getLogger(__name__)
 

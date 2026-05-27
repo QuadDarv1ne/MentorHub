@@ -3,9 +3,10 @@
 Модель для отслеживания достижений пользователей
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 

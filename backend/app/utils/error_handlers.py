@@ -6,14 +6,14 @@ Type hints added for better IDE support and type checking.
 
 import logging
 import traceback
-from typing import Optional, Any, Dict, List
 from datetime import datetime, timezone
-from fastapi import Request, status
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, Optional
+
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 

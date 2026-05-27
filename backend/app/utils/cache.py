@@ -7,11 +7,11 @@ Type hints added for better IDE support and type checking.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
-import hashlib
-from typing import Any, Optional, Callable, Dict, List, Tuple
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     from redis.asyncio import Redis
@@ -19,18 +19,17 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
 
-from app.config import settings
 from app.constants import (
-    CACHE_TTL_DEFAULT,
-    CACHE_TTL_USER,
-    CACHE_TTL_MENTOR,
+    CACHE_TTL_ANALYTICS,
     CACHE_TTL_COURSE,
+    CACHE_TTL_DEFAULT,
+    CACHE_TTL_MENTOR,
     CACHE_TTL_REVIEW,
     CACHE_TTL_STATS,
-    CACHE_TTL_ANALYTICS,
     CACHE_TTL_SUBSCRIPTION,
-    MAX_MEMORY_CACHE_ITEMS,
+    CACHE_TTL_USER,
     MAX_CACHE_TTL,
+    MAX_MEMORY_CACHE_ITEMS,
 )
 
 logger = logging.getLogger(__name__)
@@ -222,7 +221,7 @@ def cached(
                 if result is not None or cache_none:
                     await cache_manager.set(cache_key, result, ttl)
                 return result
-            except Exception as e:
+            except Exception:
                 if invalidate_on_error:
                     await cache_manager.delete(cache_key)
                 raise

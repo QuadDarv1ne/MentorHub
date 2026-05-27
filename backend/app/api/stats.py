@@ -4,13 +4,13 @@ Provides platform statistics and analytics
 """
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
 
-from app.dependencies import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import and_, func
+from sqlalchemy.orm import Session
+
+from app.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.dependencies import get_current_user
 from app.services.cache import cache_service
 from app.utils.cache import cached
 
@@ -107,10 +107,10 @@ async def get_dashboard_for_user(current_user: User = Depends(get_current_user),
     Get dashboard statistics for current user with upcoming sessions and recent activities
     """
     try:
-        from app.models.session import Session as MentoringSession
+        from app.models.course import Course
         from app.models.progress import Progress
         from app.models.review import Review
-        from app.models.course import Course
+        from app.models.session import Session as MentoringSession
 
         # Course stats
         total_courses = (

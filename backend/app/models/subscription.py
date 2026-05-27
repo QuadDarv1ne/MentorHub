@@ -3,10 +3,11 @@ Subscription model for recurring payments
 Модель подписки для регулярных платежей
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Boolean, DECIMAL
-from sqlalchemy.orm import relationship
 import enum
+from datetime import datetime, timezone
+
+from sqlalchemy import DECIMAL, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -35,33 +36,33 @@ class Subscription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
-    
+
     # Stripe информация
     stripe_subscription_id = Column(String(255), unique=True, index=True, nullable=True)
     stripe_customer_id = Column(String(255), index=True, nullable=True)
     stripe_price_id = Column(String(255), nullable=True)
-    
+
     # Информация о подписке
     tier = Column(Enum(SubscriptionTier), nullable=False, default=SubscriptionTier.FREE)
     status = Column(Enum(SubscriptionStatus), nullable=False, default=SubscriptionStatus.FREE)
-    
+
     # Даты
     trial_start = Column(DateTime, nullable=True)
     trial_end = Column(DateTime, nullable=True)
     current_period_start = Column(DateTime, nullable=True)
     current_period_end = Column(DateTime, nullable=True)
     cancelled_at = Column(DateTime, nullable=True)
-    
+
     # Оплата
     amount = Column(DECIMAL(10, 2), nullable=True)  # Сумма в месяц
     currency = Column(String(10), default="USD")
-    
+
     # Методы оплаты
     default_payment_method = Column(String(255), nullable=True)  # Stripe payment method ID
-    
+
     # Флаги
     cancel_at_period_end = Column(Boolean, default=False)  # Отменена в конце периода
-    
+
     # Timestamps
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

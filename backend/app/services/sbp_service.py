@@ -3,12 +3,13 @@
 Поддерживает создание QR-кодов, проверку статуса платежей и возвраты
 """
 
-import logging
-from typing import Dict, Optional
-from decimal import Decimal
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import logging
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from typing import Dict, Optional
+
 from app.config import settings
 from app.utils.retry import retry_on_exception
 
@@ -147,7 +148,7 @@ class SBPService:
             return {
                 "qr_id": mock_qr_id,
                 "qr_url": f"https://qr.nspk.ru/{mock_qr_id}",
-                "qr_image": f"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                "qr_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 "amount": float(amount),
                 "status": "pending",
                 "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)).isoformat(),

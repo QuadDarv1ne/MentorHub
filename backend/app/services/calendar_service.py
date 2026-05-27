@@ -3,15 +3,15 @@ Calendar Service
 Бизнес-логика для календаря и OAuth интеграций
 """
 
-import os
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_, and_
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from app.models.user import User
-from app.models.calendar import CalendarSync, CalendarEvent, CalendarProvider
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
+from app.models.calendar import CalendarEvent, CalendarProvider, CalendarSync
 from app.models.session import Session as SessionModel
+from app.models.user import User
 from app.models.video_call import VideoCall
 
 
@@ -229,7 +229,7 @@ class CalendarService:
                 VideoCall.creator_id == self.user.id,
                 VideoCall.participant_id == self.user.id
             ),
-            VideoCall.scheduled_at != None
+            VideoCall.scheduled_at is not None
         ).all()
 
         synced = 0

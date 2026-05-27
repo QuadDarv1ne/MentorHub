@@ -3,11 +3,11 @@ Advanced caching utilities
 Продвинутое кэширование с поддержкой Redis и декораторов
 """
 
-import logging
-import json
 import hashlib
-from typing import Optional, Callable, Any
+import json
+import logging
 from functools import wraps
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -17,26 +17,26 @@ cache_backend = None
 
 class CacheBackend:
     """Абстрактный backend для кэширования"""
-    
+
     async def get(self, key: str) -> Optional[str]:
         raise NotImplementedError
-    
+
     async def set(self, key: str, value: str, ttl: int):
         raise NotImplementedError
-    
+
     async def delete(self, key: str):
         raise NotImplementedError
-    
+
     async def clear(self, pattern: str = "*"):
         raise NotImplementedError
 
 
 class RedisCache(CacheBackend):
     """Redis кэш backend"""
-    
+
     def __init__(self, redis_client):
         self.redis = redis_client
-    
+
     async def get(self, key: str) -> Optional[str]:
         try:
             value = await self.redis.get(key)
@@ -44,19 +44,19 @@ class RedisCache(CacheBackend):
         except Exception as e:
             logger.warning(f"Redis get error: {e}")
             return None
-    
+
     async def set(self, key: str, value: str, ttl: int):
         try:
             await self.redis.setex(key, ttl, value)
         except Exception as e:
             logger.warning(f"Redis set error: {e}")
-    
+
     async def delete(self, key: str):
         try:
             await self.redis.delete(key)
         except Exception as e:
             logger.warning(f"Redis delete error: {e}")
-    
+
     async def clear(self, pattern: str = "*"):
         try:
             keys = await self.redis.keys(pattern)
@@ -68,11 +68,11 @@ class RedisCache(CacheBackend):
 
 class MemoryCache(CacheBackend):
     """In-memory кэш backend (fallback)"""
-    
+
     def __init__(self):
         self._cache = {}
         self._ttl = {}
-    
+
     async def get(self, key: str) -> Optional[str]:
         import time
         if key in self._cache:
@@ -83,16 +83,16 @@ class MemoryCache(CacheBackend):
                 return None
             return self._cache[key]
         return None
-    
+
     async def set(self, key: str, value: str, ttl: int):
         import time
         self._cache[key] = value
         self._ttl[key] = time.time() + ttl
-    
+
     async def delete(self, key: str):
         self._cache.pop(key, None)
         self._ttl.pop(key, None)
-    
+
     async def clear(self, pattern: str = "*"):
         if pattern == "*":
             self._cache.clear()
@@ -114,7 +114,7 @@ def init_cache_backend(redis_client=None):
         redis_client: Redis клиент (опционально)
     """
     global cache_backend
-    
+
     if redis_client:
         cache_backend = RedisCache(redis_client)
         logger.info("✅ Redis cache backend initialized")
@@ -139,7 +139,7 @@ def cache_key(*args, **kwargs) -> str:
         "args": args,
         "kwargs": sorted(kwargs.items())
     }, sort_keys=True, default=str)
-    
+
     # Создаем хэш
     return hashlib.md5(key_data.encode()).hexdigest()
 
@@ -169,24 +169,24 @@ def cache_response(
             # Если кэш не инициализирован, просто вызываем функцию
             if cache_backend is None:
                 return await func(*args, **kwargs)
-            
+
             # Генерируем ключ кэша
             cache_key_parts = [key_prefix, func.__name__]
-            
+
             # Добавляем user_id если нужно
             if include_user and 'current_user' in kwargs:
                 user = kwargs['current_user']
                 cache_key_parts.append(f"user_{user.id}")
-            
+
             # Добавляем хэш аргументов
             args_hash = cache_key(
                 *[arg for arg in args if not hasattr(arg, '__dict__')],
                 **{k: v for k, v in kwargs.items() if k != 'current_user' and k != 'db'}
             )
             cache_key_parts.append(args_hash)
-            
+
             full_cache_key = ":".join(cache_key_parts)
-            
+
             # Пытаемся получить из кэша
             try:
                 cached_value = await cache_backend.get(full_cache_key)
@@ -195,11 +195,11 @@ def cache_response(
                     return json.loads(cached_value)
             except Exception as e:
                 logger.warning(f"Cache get error: {e}")
-            
+
             # Вызываем функцию
             logger.debug(f"❌ Cache miss: {full_cache_key}")
             result = await func(*args, **kwargs)
-            
+
             # Сохраняем в кэш
             try:
                 await cache_backend.set(
@@ -209,9 +209,9 @@ def cache_response(
                 )
             except Exception as e:
                 logger.warning(f"Cache set error: {e}")
-            
+
             return result
-        
+
         return wrapper
     return decorator
 

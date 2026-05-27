@@ -6,20 +6,21 @@ Order matters: middleware is executed in the order it's added.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
-from app.config import settings, is_production
+from app.config import is_production, settings
+from app.constants import DEFAULT_MAX_BODY_SIZE, RATE_LIMIT_DEFAULT_WINDOW
+from app.middleware.rate_limiter_unified import UnifiedRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
-from app.middleware.rate_limiter_unified import UnifiedRateLimitMiddleware
 from app.middleware.security_advanced import SecurityMiddleware
-from app.utils.prometheus import PrometheusMiddleware
 from app.utils.monitoring import PerformanceMiddleware, performance_monitor
-from app.constants import RATE_LIMIT_DEFAULT_WINDOW, DEFAULT_MAX_BODY_SIZE
+from app.utils.prometheus import PrometheusMiddleware
 
 logger = logging.getLogger(__name__)
 

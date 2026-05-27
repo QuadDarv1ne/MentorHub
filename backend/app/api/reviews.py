@@ -3,14 +3,13 @@
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
 from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
 
-from app.dependencies import get_db, get_current_user, get_current_user_optional, rate_limit_dependency
-from app.schemas.review import ReviewCreate, ReviewRead, ReviewAggregate, ReviewCreateGeneric
+from app.dependencies import get_current_user, get_current_user_optional, get_db, rate_limit_dependency
+from app.models import CourseEnrollment, Review, User
 from app.schemas.common import PaginatedResponse
-from app.models import Review, User, CourseEnrollment
+from app.schemas.review import ReviewAggregate, ReviewCreate, ReviewCreateGeneric, ReviewRead
 from app.utils.sanitization import sanitize_text_field
 
 router = APIRouter()
@@ -111,8 +110,9 @@ def create_review_generic(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Create a review for a mentor (optionally tied to a completed session)"""
-    from app.models.session import Session as MentorSession, SessionStatus
     from app.models.mentor import Mentor
+    from app.models.session import Session as MentorSession
+    from app.models.session import SessionStatus
 
     if not payload.reviewed_id:
         raise HTTPException(

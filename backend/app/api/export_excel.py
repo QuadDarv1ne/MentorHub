@@ -6,7 +6,7 @@ Converts user data to Excel format using openpyxl.
 
 import io
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from fastapi import HTTPException, Response
 
@@ -23,28 +23,28 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
     """
     try:
         from openpyxl import Workbook
-        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     except ImportError:
         raise HTTPException(status_code=503, detail="Excel export not available (openpyxl not installed)")
-    
+
     wb = Workbook()
-    
+
     # Styles
     header_font = Font(bold=True, color="FFFFFF", size=11)
     header_fill = PatternFill(start_color="4A90D9", end_color="4A90D9", fill_type="solid")
     header_alignment = Alignment(horizontal="center", vertical="center")
-    
+
     thin_border = Border(
         left_side=Side(style='thin'),
         right_side=Side(style='thin'),
         top_side=Side(style='thin'),
         bottom_side=Side(style='thin')
     )
-    
+
     # Sheet 1: User Profile
     ws_user = wb.active
     ws_user.title = "User Profile"
-    
+
     user_data_rows = [
         ["Field", "Value"],
         ["Username", data["user"]["username"]],
@@ -55,11 +55,11 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
         ["Is Verified", str(data["user"]["is_verified"])],
         ["Export Date", data["export_date"]]
     ]
-    
+
     _write_excel_sheet(ws_user, user_data_rows, header_font, header_fill, header_alignment, thin_border)
     ws_user.column_dimensions['A'].width = 20
     ws_user.column_dimensions['B'].width = 40
-    
+
     # Sheet 2: Sessions
     ws_sessions = wb.create_sheet(title="Sessions")
     sessions_data = [["ID", "Student ID", "Mentor ID", "Scheduled At", "Duration", "Status"]]
@@ -73,7 +73,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
             session["status"]
         ])
     _write_excel_sheet(ws_sessions, sessions_data, header_font, header_fill, header_alignment, thin_border)
-    
+
     # Sheet 3: Payments
     ws_payments = wb.create_sheet(title="Payments")
     payments_data = [["ID", "Student ID", "Mentor ID", "Amount", "Currency", "Status", "Created At"]]
@@ -88,7 +88,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
             payment["created_at"]
         ])
     _write_excel_sheet(ws_payments, payments_data, header_font, header_fill, header_alignment, thin_border)
-    
+
     # Sheet 4: Statistics
     ws_stats = wb.create_sheet(title="Statistics")
     stats_data = [
@@ -111,14 +111,14 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
         ])]
     ]
     _write_excel_sheet(ws_stats, stats_data, header_font, header_fill, header_alignment, thin_border)
-    
+
     # Save
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
-    
+
     filename = f"mentorhub_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.xlsx"
-    
+
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -139,7 +139,7 @@ def _write_excel_sheet(ws, data: List[List], header_font, header_fill, header_al
         thin_border: Border style for cells
     """
     from openpyxl.utils import get_column_letter
-    
+
     for row_idx, row in enumerate(data, 1):
         for col_idx, value in enumerate(row, 1):
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
@@ -150,7 +150,7 @@ def _write_excel_sheet(ws, data: List[List], header_font, header_fill, header_al
                 cell.border = thin_border
             else:
                 cell.border = thin_border
-    
+
     # Adjust column widths
     for col_idx in range(1, len(data[0]) + 1):
         ws.column_dimensions[get_column_letter(col_idx)].width = 15

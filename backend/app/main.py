@@ -11,20 +11,17 @@ import socket
 from typing import List, Optional
 
 from fastapi import FastAPI, Request, Response, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
-
-from app.config import settings, is_production
-from app.lifespan import lifespan, get_shutdown_event, initialize_redis_client
-from app.middleware.setup import register_middleware
-from app.api import register_routes
-from app.utils.error_handlers import register_error_handlers
-from app.utils.prometheus import metrics_endpoint
 
 # ==================== LOGGING SETUP ====================
 from pythonjsonlogger import jsonlogger
+
+from app.api import register_routes
+from app.config import is_production, settings
+from app.lifespan import get_shutdown_event, initialize_redis_client, lifespan
+from app.middleware.setup import register_middleware
+from app.utils.error_handlers import register_error_handlers
+from app.utils.prometheus import metrics_endpoint
 
 if settings.LOG_FORMAT == "json":
     log_handler = logging.StreamHandler()

@@ -7,7 +7,7 @@ Converts user data to CSV format.
 import csv
 import io
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any, Dict
 
 from starlette.responses import StreamingResponse
 
@@ -24,7 +24,7 @@ def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
     """
     output = io.StringIO()
     writer = csv.writer(output)
-    
+
     # Export user profile information
     writer.writerow(["Field", "Value"])
     writer.writerow(["Username", data["user"]["username"]])
@@ -33,7 +33,7 @@ def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
     writer.writerow(["Role", data["user"]["role"]])
     writer.writerow(["Export Date", data["export_date"]])
     writer.writerow([])
-    
+
     # Sessions
     writer.writerow(["Sessions"])
     writer.writerow(["ID", "Student ID", "Mentor ID", "Scheduled At", "Duration", "Status"])
@@ -47,7 +47,7 @@ def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
             session["status"]
         ])
     writer.writerow([])
-    
+
     # Payments
     writer.writerow(["Payments"])
     writer.writerow(["ID", "Student ID", "Mentor ID", "Amount", "Currency", "Status", "Created At"])
@@ -61,11 +61,11 @@ def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
             payment["status"],
             payment["created_at"]
         ])
-    
+
     output.seek(0)
-    
+
     filename = f"mentorhub_data_export_{data['user']['username']}_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
-    
+
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",

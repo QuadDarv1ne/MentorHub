@@ -4,7 +4,8 @@
 """
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, DateTime
+
+from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.ext.declarative import declared_attr
 
 from app.database import Base

@@ -3,24 +3,26 @@
 Хеширование паролей, валидация, защита от brute-force, токены
 """
 
-import bcrypt
-import re
 import hashlib
-import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict
-from collections import defaultdict
 import logging
+import re
+import secrets
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Optional
+
+import bcrypt
 import jwt
+
 from app.config import settings
 from app.constants import (
-    PASSWORD_MIN_LENGTH,
-    PASSWORD_MAX_LENGTH,
-    COMMON_PASSWORDS,
-    PASSWORD_ALPHABET,
-    MAX_LOGIN_ATTEMPTS,
-    LOCKOUT_DURATION_SECONDS,
     CLEANUP_INTERVAL,
+    COMMON_PASSWORDS,
+    LOCKOUT_DURATION_SECONDS,
+    MAX_LOGIN_ATTEMPTS,
+    PASSWORD_ALPHABET,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
 )
 
 logger = logging.getLogger(__name__)
@@ -39,9 +41,9 @@ def decode_access_token(token: str) -> Dict:
         )
         return payload
     except jwt.ExpiredSignatureError:
-        raise ValueError("Token expired")
+        raise ValueError("Token expired") from None
     except jwt.InvalidTokenError:
-        raise ValueError("Invalid token")
+        raise ValueError("Invalid token") from None
 
 
 def get_password_hash(password: str) -> str:

@@ -2,8 +2,9 @@
 Request ID Middleware для отслеживания запросов
 """
 
-import uuid
 import logging
+import uuid
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 

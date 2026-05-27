@@ -4,8 +4,9 @@ Pydantic схемы для операций с менторами
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.user import UserResponse
 

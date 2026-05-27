@@ -3,9 +3,9 @@
 Модель для обмена сообщениями между пользователями
 """
 
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, DateTime, Boolean
-from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Text
 
 from app.models.base import BaseModel
 

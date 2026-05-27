@@ -4,20 +4,18 @@ Email verification endpoints
 """
 
 import logging
-import json
-from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 import secrets
+from datetime import datetime, timezone
 
-from app.config import settings
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
+
 from app.dependencies import get_db
 from app.models.user import User
-from app.utils.email import email_service
-from app.utils.auth_tokens import create_access_token
-from app.utils.security import get_password_hash
 from app.services.cache import cache_service
-from pydantic import BaseModel, EmailStr
+from app.utils.email import email_service
+from app.utils.security import get_password_hash
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -56,17 +54,17 @@ async def send_verification_email(
 ):
     """Отправка письма с подтверждением email"""
     user = db.query(User).filter(User.email == request.email).first()
-    
+
     if not user:
         # Не раскрываем, существует ли пользователь
         return {"message": "Если email существует в системе, письмо отправлено"}
-    
+
     if user.is_verified:
         return {"message": "Email уже подтвержден"}
-    
+
     # Генерируем токен
     token = secrets.token_urlsafe(32)
-    
+
     # Сохраняем токен в Redis с TTL 24 часа
     token_data = {
         "email": user.email,
@@ -80,12 +78,12 @@ async def send_verification_email(
         username=user.username,
         token=token
     )
-    
+
     if success:
         logger.info(f"✅ Verification email sent to {user.email}")
     else:
         logger.warning(f"⚠️ Failed to send verification email to {user.email}")
-    
+
     return {"message": "Письмо с подтверждением отправлено"}
 
 
@@ -140,33 +138,33 @@ async def forgot_password(
 ):
     """Запрос на сброс пароля"""
     user = db.query(User).filter(User.email == request.email).first()
-    
+
     if not user:
         # Не раскрываем, существует ли пользователь
         return {"message": "Если email существует в системе, письмо отправлено"}
-    
+
     # Генерируем токен
     token = secrets.token_urlsafe(32)
-    
+
     # Сохраняем токен в Redis с TTL 1 час
     token_data = {
         "email": user.email,
         "expires_at": datetime.now(timezone.utc).isoformat()
     }
     cache_service.set(f"reset:{token}", token_data, ttl=RESET_TOKEN_TTL)
-    
+
     # Отправляем email
     success = email_service.send_password_reset_email(
         to_email=user.email,
         username=user.username,
         token=token
     )
-    
+
     if success:
         logger.info(f"✅ Password reset email sent to {user.email}")
     else:
         logger.warning(f"⚠️ Failed to send password reset email to {user.email}")
-    
+
     return {"message": "Письмо для сброса пароля отправлено"}
 
 

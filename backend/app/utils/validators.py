@@ -2,16 +2,17 @@
 Дополнительные валидаторы для повышения безопасности
 """
 
-import re
 import logging
+import re
+
 from fastapi import HTTPException, status
 
 from app.constants import (
     EMAIL_MAX_LENGTH,
-    USERNAME_MIN_LENGTH,
-    USERNAME_MAX_LENGTH,
-    URL_MAX_LENGTH,
     SANITIZE_TEXT_MAX_LENGTH,
+    URL_MAX_LENGTH,
+    USERNAME_MAX_LENGTH,
+    USERNAME_MIN_LENGTH,
 )
 
 logger = logging.getLogger(__name__)
@@ -228,8 +229,8 @@ def validate_password_strength(password: str) -> None:
     Raises:
         HTTPException: Если пароль слабый
     """
-    from app.constants import PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH
-    
+    from app.constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH
+
     if len(password) < PASSWORD_MIN_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

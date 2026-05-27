@@ -4,8 +4,8 @@ Email сервис для отправки писем
 
 import logging
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Optional
 
 from app.config import settings

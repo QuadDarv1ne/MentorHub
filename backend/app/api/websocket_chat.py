@@ -5,15 +5,16 @@ Private messaging between users.
 """
 
 import logging
-from fastapi import WebSocket, WebSocketDisconnect, Depends, status
+
+from fastapi import Depends, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
+from app.api.websocket_manager import manager
 from app.dependencies import get_db
-from app.models.user import User
 from app.models.message import Message
 from app.models.notification import NotificationType
+from app.models.user import User
 from app.utils.security import decode_access_token
-from app.api.websocket_manager import manager
 
 logger = logging.getLogger(__name__)
 

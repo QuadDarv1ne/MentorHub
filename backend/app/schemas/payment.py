@@ -4,9 +4,10 @@ Pydantic схемы для операций с платежами
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PaymentStatus(str, Enum):

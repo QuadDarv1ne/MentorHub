@@ -3,30 +3,21 @@ Authentication API
 Обработка регистрации, входа, выхода и обновления токенов
 """
 
+import logging
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
-import logging
 
 from app.config import settings
 from app.dependencies import get_db, rate_limit_dependency
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, TokenResponse, UserResponse
-from app.utils.security import (
-    verify_password,
-    get_password_hash,
-    brute_force_protection,
-    password_validator
-)
-from app.utils.sanitization import (
-    sanitize_email,
-    sanitize_username,
-    sanitize_string,
-    is_safe_string
-)
-from app.utils.auth_tokens import create_access_token, create_refresh_token
+from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
 from app.tasks.celery_tasks import send_welcome_email_task
+from app.utils.auth_tokens import create_access_token, create_refresh_token
+from app.utils.sanitization import is_safe_string, sanitize_email, sanitize_string, sanitize_username
+from app.utils.security import brute_force_protection, get_password_hash, password_validator, verify_password
 
 logger = logging.getLogger(__name__)
 

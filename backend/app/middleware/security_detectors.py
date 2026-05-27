@@ -5,9 +5,8 @@ Detection logic for various security attacks.
 """
 
 import logging
-import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import HTTPException, status
 
