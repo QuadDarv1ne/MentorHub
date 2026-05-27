@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!backendUrl) {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is required for messages API')
+    }
     const response = await fetch(`${backendUrl}/api/messages/conversations`, {
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from 'next-auth/react'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+if (!BACKEND_URL) {
+  throw new Error('NEXT_PUBLIC_BACKEND_URL environment variable is required for calls token API')
+}
 
 export async function POST(request: NextRequest) {
   try {

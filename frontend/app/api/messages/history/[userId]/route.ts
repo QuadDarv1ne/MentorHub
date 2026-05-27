@@ -20,7 +20,10 @@ export async function GET(
     const limit = searchParams.get('limit') || '50'
     const before = searchParams.get('before') || ''
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!backendUrl) {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is required for messages history API')
+    }
     let url = `${backendUrl}/api/messages/history/${params.userId}?limit=${limit}`
     
     if (before) {
