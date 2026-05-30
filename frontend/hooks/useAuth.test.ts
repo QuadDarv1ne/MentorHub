@@ -30,7 +30,8 @@ const mockLogout = authApi.logout as jest.MockedFunction<typeof authApi.logout>
 const mockRefreshToken = authApi.refreshToken as jest.MockedFunction<typeof authApi.refreshToken>
 
 // Mock global fetch for API calls
-global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: async () => ({}) })) as jest.Mock;
+global.fetch = jest.fn() as unknown as typeof global.fetch;
+jest.mocked(global.fetch).mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
 
 describe('useAuth Hook', () => {
   beforeEach(() => {

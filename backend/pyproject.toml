@@ -117,11 +117,19 @@ select = [
     "I",  # isort
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
+    "SIM",  # code simplification
+    "PERF",  # performance
 ]
 ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "S104",  # possible binding to all interfaces — intentional for dev
+    "S105",  # possible hardcoded password — false positives for URLs/constants
+    "S106",  # possible hardcoded password assigned to argument — token_type, not a password
+    "S107",  # possible hardcoded password default — token_type param default
+    "PERF203",  # try-except within a loop — intentional in retry/send patterns
+    "PERF401",  # use list comprehension — complex dict-building is more readable as loops
 ]
 
 [tool.ruff.lint.per-file-ignores]
