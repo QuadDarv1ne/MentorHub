@@ -90,25 +90,25 @@ export default function SettingsPage() {
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
-    fetchSettings()
-  }, [])
-
-  const fetchSettings = async () => {
-    try {
-      const response = await fetch('/api/settings', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data)
-        return
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setSettings(data)
+          return
+        }
+      } catch (error) {
+        logger.error('Fetch settings error', error)
       }
-    } catch (error) {
-      logger.error('Fetch settings error', error)
+      // Fallback: keep defaults, show error
+      toast.error('Не удалось загрузить настройки с сервера')
     }
-    // Fallback: keep defaults, show error
-    toast.error('Не удалось загрузить настройки с сервера')
-  }
+
+    fetchSettings()
+  }, [token, toast])
 
   const handleSave = useCallback(async () => {
     setIsSaving(true)

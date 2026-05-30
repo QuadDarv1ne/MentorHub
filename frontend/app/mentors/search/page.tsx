@@ -56,7 +56,7 @@ export default function MentorSearchPage() {
 
     setCurrentFilters(filters);
     searchMentors(filters, 1);
-  }, [searchParams]);
+  }, [searchParams, searchMentors]);
 
   const handleSearch = (filters: SearchFilters) => {
     setCurrentFilters(filters);

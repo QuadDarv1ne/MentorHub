@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
@@ -34,11 +34,7 @@ export default function ProfilePage() {
     skills: ''
   })
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/profile', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -86,7 +82,11 @@ export default function ProfilePage() {
     } else {
       setError('Не удалось загрузить профиль')
     }
-  }
+  }, [token, user])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const handleSave = async () => {
     try {

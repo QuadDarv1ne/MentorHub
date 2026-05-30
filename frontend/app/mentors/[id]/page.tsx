@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Star, Clock, DollarSign, Calendar, CheckCircle, MessageCircle, ArrowLeft } from 'lucide-react'
 import Card from '@/components/ui/Card'
@@ -32,13 +32,7 @@ export default function MentorProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [showChat, setShowChat] = useState(false)
 
-  useEffect(() => {
-    if (!mentorId) return
-    loadMentor()
-    loadReviews()
-  }, [mentorId])
-
-  const loadMentor = async () => {
+  const loadMentor = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getMentorById(mentorId)
@@ -49,9 +43,9 @@ export default function MentorProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [mentorId])
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       const data = await getMentorReviews(mentorId)
       setReviews(data.items.map((r: MentorReview) => ({
@@ -64,7 +58,13 @@ export default function MentorProfilePage() {
     } catch {
       setReviews([])
     }
-  }
+  }, [mentorId])
+
+  useEffect(() => {
+    if (!mentorId) return
+    loadMentor()
+    loadReviews()
+  }, [mentorId, loadMentor, loadReviews])
 
   if (loading) {
     return (
