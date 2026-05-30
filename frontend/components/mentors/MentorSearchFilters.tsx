@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 
 interface MentorSearchFiltersProps {
@@ -34,9 +34,9 @@ export default function MentorSearchFilters({ onSearch, specializations }: Mento
     }));
   };
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     onSearch(filters);
-  };
+  }, [onSearch, filters]);
 
   const handleReset = () => {
     const resetFilters: SearchFilters = {
@@ -54,7 +54,7 @@ export default function MentorSearchFilters({ onSearch, specializations }: Mento
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [filters]);
+  }, [filters, handleSearch]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">

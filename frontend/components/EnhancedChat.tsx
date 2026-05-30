@@ -45,6 +45,7 @@ export default function EnhancedChat() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchRooms()
     connectWebSocket()
@@ -58,13 +59,16 @@ export default function EnhancedChat() {
       // Закрываем WebSocket
       wsRef.current?.close()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedRoom) {
       fetchMessages(selectedRoom)
       markAsRead(selectedRoom)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom])
 
   const fetchRooms = async () => {

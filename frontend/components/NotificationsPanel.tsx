@@ -31,6 +31,7 @@ export default function NotificationsPanel() {
       clearInterval(interval)
       wsRef.current?.close()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchNotifications = async () => {

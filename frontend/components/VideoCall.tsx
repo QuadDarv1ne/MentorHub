@@ -47,6 +47,7 @@ export default function VideoCall({
   useEffect(() => {
     initCall()
     return () => { cleanup() }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const initCall = async () => {
