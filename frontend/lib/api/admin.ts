@@ -1,4 +1,4 @@
-import { apiRequest, publicRequest } from './client'
+import { apiRequest } from './client'
 
 export interface AdminUser {
   id: number

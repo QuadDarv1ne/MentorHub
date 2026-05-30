@@ -83,7 +83,7 @@ async def register_device_token(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to register device token"
-        )
+        ) from e
 
 
 @router.delete("/devices/unregister")
@@ -124,7 +124,7 @@ async def unregister_device_token(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to unregister device token"
-        )
+        ) from e
 
 
 @router.get("/devices", response_model=dict)
@@ -166,7 +166,7 @@ async def get_user_devices(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch devices"
-        )
+        ) from e
 
 
 @router.post("/send", response_model=dict)
@@ -235,7 +235,7 @@ async def send_push_notification(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send push notification"
-        )
+        ) from e
 
 
 @router.post("/send-to-user/{user_id}", response_model=dict)
@@ -294,7 +294,7 @@ async def send_push_to_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send push notification"
-        )
+        ) from e
 
 
 @router.get("/status", response_model=dict)

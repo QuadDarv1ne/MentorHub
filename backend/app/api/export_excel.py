@@ -25,7 +25,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     except ImportError:
-        raise HTTPException(status_code=503, detail="Excel export not available (openpyxl not installed)")
+        raise HTTPException(status_code=503, detail="Excel export not available (openpyxl not installed)") from None
 
     wb = Workbook()
 

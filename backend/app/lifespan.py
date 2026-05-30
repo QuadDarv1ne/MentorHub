@@ -7,6 +7,7 @@ Manages database connections, Redis, cache, and graceful shutdown.
 
 import asyncio
 import logging
+import platform
 import signal
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -63,8 +64,6 @@ def signal_handler(signum, frame):
 
 # Регистрируем обработчики сигналов
 # SIGTERM не поддерживается на Windows, используем SIGINT
-import platform
-
 if platform.system() != "Windows":
     signal.signal(signal.SIGTERM, signal_handler)
     logger.info("✅ Signal handlers registered for SIGTERM, SIGINT")

@@ -72,7 +72,7 @@ async def update_current_user_profile(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при обновлении профиля",
-        )
+        ) from e
 
 
 @router.get("/{user_id}", response_model=UserResponse)

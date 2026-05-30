@@ -41,7 +41,7 @@ async def get_backup_info(current_user: User = Depends(get_current_user)):
         return info
     except Exception as e:
         logger.error(f"Error getting backup info: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить информацию о backup'ах")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить информацию о backup'ах") from e
 
 
 @router.post("/create", response_model=Dict[str, str])
@@ -67,7 +67,7 @@ async def create_backup(current_user: User = Depends(get_current_user)):
         return {"message": f"Резервная копия создана: {backup_file.name}", "filename": backup_file.name}
     except Exception as e:
         logger.error(f"Error creating backup: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось создать резервную копию")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось создать резервную копию") from e
 
 
 @router.post("/cleanup", response_model=Dict[str, str])
@@ -88,7 +88,7 @@ async def cleanup_backups(keep_days: int = 7, current_user: User = Depends(get_c
         return {"message": f"Очистка backup'ов завершена. Удалены backup'ы старше {keep_days} дней"}
     except Exception as e:
         logger.error(f"Error cleaning up backups: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось выполнить очистку backup'ов")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось выполнить очистку backup'ов") from e
 
 
 @router.get("/verify/{filename}", response_model=Dict[str, Any])
@@ -131,4 +131,7 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
         raise
     except Exception as e:
         logger.error(f"Error verifying backup: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось проверить целостность backup'а")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось проверить целостность backup'а") from e
+
+
+

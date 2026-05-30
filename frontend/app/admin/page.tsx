@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   BarChart, Users, BookOpen, TrendingUp, AlertCircle,
-  Filter, Download, Search, ChevronLeft, ChevronRight,
-  Shield, UserCheck, UserX, RefreshCw, Loader2, Eye
+  Filter, Search, ChevronLeft, ChevronRight,
+  UserCheck, UserX, RefreshCw, Loader2, Eye
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
@@ -15,7 +15,6 @@ import {
   getPlatformStats,
   updateUserRole,
   updateUserStatus,
-  type AdminUser,
   type AdminUserListResponse,
   type PlatformStats,
 } from '@/lib/api/admin'
@@ -222,18 +221,6 @@ export default function AdminDashboard() {
       loading: statsLoading,
     },
   ]
-
-  const roleLabel: Record<string, string> = {
-    student: 'Студент',
-    mentor: 'Ментор',
-    admin: 'Администратор',
-  }
-
-  const roleColor: Record<string, 'success' | 'warning' | 'info'> = {
-    student: 'info',
-    mentor: 'success',
-    admin: 'warning',
-  }
 
   const statusLabel: Record<string, string> = {
     active: 'Активен',

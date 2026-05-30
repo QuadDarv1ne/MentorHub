@@ -160,7 +160,7 @@ async def create_session(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating session: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при создании сессии")
+        raise HTTPException(status_code=500, detail="Ошибка при создании сессии") from e
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
@@ -209,7 +209,7 @@ async def update_session(
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating session: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при обновлении сессии")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении сессии") from e
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -241,4 +241,4 @@ async def delete_session(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting session: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при удалении сессии")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении сессии") from e

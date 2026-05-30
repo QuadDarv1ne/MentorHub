@@ -72,7 +72,7 @@ async def create_lesson(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating lesson: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при создании урока")
+        raise HTTPException(status_code=500, detail="Ошибка при создании урока") from e
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
@@ -109,7 +109,7 @@ async def update_lesson(
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating lesson: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при обновлении урока")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении урока") from e
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{db_lesson.course_id}"))
@@ -143,7 +143,7 @@ async def delete_lesson(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting lesson: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при удалении урока")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении урока") from e
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
@@ -244,7 +244,7 @@ async def complete_lesson(
     except Exception as e:
         db.rollback()
         logger.error(f"Error completing lesson: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при завершении урока")
+        raise HTTPException(status_code=500, detail="Ошибка при завершении урока") from e
 
     # Инвалидируем кеш курса
     asyncio.create_task(invalidate_cache(f"course_detail:{lesson.course_id}"))

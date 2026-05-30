@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, AlertCircle, CheckCircle, ArrowLeft, Loader2 } from 'lucide-react'
+import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { publicRequest } from '@/lib/api/client'
 

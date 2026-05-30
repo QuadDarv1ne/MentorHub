@@ -67,6 +67,7 @@ const MonitoringDashboard: React.FC = () => {
 
   // Reset metrics
   const handleResetMetrics = async () => {
+    // eslint-disable-next-line no-alert
     if (window.confirm('Вы уверены, что хотите сбросить все метрики? Это действие нельзя отменить.')) {
       try {
         await resetMetrics();

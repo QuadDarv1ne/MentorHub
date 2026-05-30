@@ -23,7 +23,7 @@ export default function CoursesPage() {
         const data = await getCourses(0, 100)
         setCourses(data)
         setLoading(false)
-      } catch (err) {
+      } catch {
         setError('Не удалось загрузить курсы. Пожалуйста, попробуйте позже.')
         setLoading(false)
       }

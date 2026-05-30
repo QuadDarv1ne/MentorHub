@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Star, MapPin, Clock, DollarSign, Calendar, CheckCircle, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Star, Clock, DollarSign, Calendar, CheckCircle, MessageCircle, ArrowLeft } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'

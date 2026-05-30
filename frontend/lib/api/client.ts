@@ -53,7 +53,7 @@ export class AuthError extends Error {
  * Returns the base URL for the API.
  * Throws if no environment variable is set — prevents silent localhost fallback.
  */
-function getBaseUrl(): string {
+export function getBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
   if (!url) {
     throw new Error(
@@ -175,6 +175,9 @@ export async function fetchWithRetry(
       )
     } catch (error) {
       if (error instanceof ApiError) {
+        if (!config.retryStatusCodes.includes(error.status)) {
+          throw error
+        }
         lastError = error
       } else if (error instanceof Error) {
         lastError = error.name === 'AbortError'

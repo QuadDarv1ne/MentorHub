@@ -29,8 +29,6 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
-  const [showEventModal, setShowEventModal] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [settings, setSettings] = useState<CalendarSettings>({
     googleSync: false,
     outlookSync: false,

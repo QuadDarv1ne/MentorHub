@@ -104,7 +104,7 @@ async def create_payment(
             transaction_id=payment.transaction_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.put("/{payment_id}", response_model=PaymentResponse)
@@ -130,7 +130,7 @@ async def update_payment(
             raise HTTPException(status_code=404, detail="Payment not found")
         return updated
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)

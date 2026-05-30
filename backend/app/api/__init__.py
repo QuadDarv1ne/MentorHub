@@ -7,11 +7,6 @@ import logging
 
 from fastapi import FastAPI
 
-from app.config import settings
-
-logger = logging.getLogger(__name__)
-
-# Импорт всех роутов
 from app.api import (
     achievements,
     admin,
@@ -40,6 +35,9 @@ from app.api import (
     video_calls,
     websocket,
 )
+from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def register_routes(app: FastAPI) -> None:

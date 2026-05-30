@@ -59,7 +59,7 @@ def upsert_progress(
         except Exception as e:
             db.rollback()
             logger.error(f"Error updating progress: {e}")
-            raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса")
+            raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса") from e
         return existing
 
     new = Progress(
@@ -76,7 +76,7 @@ def upsert_progress(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating progress: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при создании записи прогресса")
+        raise HTTPException(status_code=500, detail="Ошибка при создании записи прогресса") from e
     return new
 
 

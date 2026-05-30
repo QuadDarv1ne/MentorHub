@@ -98,7 +98,7 @@ export default function StepikCoursesPage() {
         const mappedCourses = stepikCourses.map(mapStepikCourse);
         setAllCourses(mappedCourses);
         setCourses(mappedCourses);
-      } catch (err) {
+      } catch {
         setError('Не удалось загрузить курсы. Попробуйте позже.');
       } finally {
         setLoading(false);

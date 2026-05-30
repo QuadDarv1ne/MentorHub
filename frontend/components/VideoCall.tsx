@@ -20,7 +20,7 @@ interface AgoraClient {
   publish: (track: any) => Promise<void>
   unpublish: (track: any) => Promise<void>
   subscribe: (user: any, mediaType: string) => Promise<void>
-  on: (event: string, callback: Function) => void
+  on: (event: string, callback: (...args: any[]) => void) => void
   off: (event: string) => void
 }
 
@@ -33,7 +33,7 @@ export default function VideoCall({
 }: VideoCallProps) {
   const router = useRouter()
   const toast = useToast()
-  const [isConnected, setIsConnected] = useState(false)
+  const [, setIsConnected] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -88,7 +88,7 @@ export default function VideoCall({
       })
 
       // Подключаемся к каналу
-      await client.join(token, channel, uid)
+      await client.join(token, channel, String(uid))
       setIsConnected(true)
 
       // Создаем и публикуем локальные треки

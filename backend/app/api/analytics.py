@@ -44,7 +44,7 @@ async def get_platform_analytics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении статистики"
-        )
+        ) from e
 
 
 @router.get("/analytics/user-growth")
@@ -77,7 +77,7 @@ async def get_user_growth(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении данных о росте"
-        )
+        ) from e
 
 
 @router.get("/analytics/sessions")
@@ -109,7 +109,7 @@ async def get_session_analytics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении аналитики сессий"
-        )
+        ) from e
 
 
 @router.get("/analytics/courses")
@@ -138,7 +138,7 @@ async def get_course_analytics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении аналитики курсов"
-        )
+        ) from e
 
 
 @router.get("/analytics/revenue")
@@ -170,7 +170,7 @@ async def get_revenue_analytics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении финансовой аналитики"
-        )
+        ) from e
 
 
 @router.get("/analytics/user/{user_id}/engagement")
@@ -201,13 +201,13 @@ async def get_user_engagement(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Пользователь не найден"
-        )
+        ) from None
     except Exception as e:
         logger.error(f"Error getting user engagement: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении статистики пользователя"
-        )
+        ) from e
 
 
 @router.get("/analytics/me/engagement")
@@ -227,4 +227,4 @@ async def get_my_engagement(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при получении вашей статистики"
-        )
+        ) from e

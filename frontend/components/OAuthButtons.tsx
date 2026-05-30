@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { getBaseUrl } from '@/lib/api/client'
 
 interface OAuthButtonsProps {
@@ -9,9 +8,8 @@ interface OAuthButtonsProps {
   onOAuthComplete?: () => void
 }
 
-export default function OAuthButtons({ onOAuthStart, onOAuthComplete }: OAuthButtonsProps) {
+export default function OAuthButtons({ onOAuthStart }: OAuthButtonsProps) {
   const [isLoading, setIsLoading] = useState<string | null>(null)
-  const router = useRouter()
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
     try {

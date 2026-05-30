@@ -30,7 +30,7 @@ async def get_metrics(current_user: User = Depends(get_current_user)):
         return metrics
     except Exception as e:
         logger.error(f"Failed to get metrics: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить метрики")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить метрики") from e
 
 
 @router.post("/metrics/reset", response_model=Dict[str, str])
@@ -47,7 +47,7 @@ async def reset_metrics(current_user: User = Depends(get_current_user)):
         return {"message": "Метрики успешно сброшены"}
     except Exception as e:
         logger.error(f"Failed to reset metrics: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить метрики")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить метрики") from e
 
 
 @router.get("/alerts", response_model=Dict[str, Any])
@@ -64,7 +64,7 @@ async def get_alerts(current_user: User = Depends(get_current_user)):
         return {"alerts": metrics.get("alerts", [])}
     except Exception as e:
         logger.error(f"Failed to get alerts: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить алерты")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить алерты") from e
 
 
 @router.post("/alerts/thresholds", response_model=Dict[str, str])
@@ -84,7 +84,7 @@ async def update_alert_thresholds(
         return {"message": "Пороговые значения успешно обновлены"}
     except Exception as e:
         logger.error(f"Failed to update alert thresholds: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось обновить пороговые значения")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось обновить пороговые значения") from e
 
 
 @router.get("/cache/stats", response_model=Dict[str, Any])
@@ -101,7 +101,7 @@ async def get_cache_statistics(current_user: User = Depends(get_current_user)):
         return {"cache_stats": stats}
     except Exception as e:
         logger.error(f"Failed to get cache stats: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить статистику кеша")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить статистику кеша") from e
 
 
 @router.post("/cache/reset-stats", response_model=Dict[str, str])
@@ -118,7 +118,7 @@ async def reset_cache_statistics(current_user: User = Depends(get_current_user))
         return {"message": "Статистика кеша успешно сброшена"}
     except Exception as e:
         logger.error(f"Failed to reset cache stats: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить статистику кеша")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить статистику кеша") from e
 
 
 @router.get("/health/detailed", response_model=Dict[str, Any])

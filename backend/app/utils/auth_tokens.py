@@ -114,9 +114,9 @@ def decode_token(token: str, token_type: str = "access") -> dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"{'Access' if token_type == 'access' else 'Refresh'} токен истек",
-        )
+        ) from None
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Неверный {'access' if token_type == 'access' else 'refresh'} токен",
-        )
+        ) from None

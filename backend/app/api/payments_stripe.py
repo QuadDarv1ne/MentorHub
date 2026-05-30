@@ -242,4 +242,4 @@ def handle_stripe_webhook_event(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Webhook processing error"
-        )
+        ) from e

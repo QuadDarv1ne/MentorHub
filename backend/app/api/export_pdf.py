@@ -29,7 +29,7 @@ def export_as_pdf(data: Dict[str, Any]) -> Response:
         from reportlab.lib.units import inch
         from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     except ImportError:
-        raise HTTPException(status_code=503, detail="PDF export not available (reportlab not installed)")
+        raise HTTPException(status_code=503, detail="PDF export not available (reportlab not installed)") from None
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch)

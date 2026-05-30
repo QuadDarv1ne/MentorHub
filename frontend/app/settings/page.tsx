@@ -85,7 +85,7 @@ export default function SettingsPage() {
   const toast = useToast()
   const [activeTab, setActiveTab] = useState('general')
   const [settings, setSettings] = useState<SettingsData>(DEFAULT_SETTINGS)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 

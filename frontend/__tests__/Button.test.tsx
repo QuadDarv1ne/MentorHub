@@ -93,6 +93,6 @@ describe('Button Component', () => {
   test('использует forwardRef', () => {
     const ref = jest.fn()
     render(<Button ref={ref}>Test</Button>)
-    expect(ref).toHaveBeenCalledWith(expect.any(HTMLButtonElement), expect.anything())
+    expect(ref).toHaveBeenCalledWith(expect.any(HTMLButtonElement))
   })
 })

@@ -65,7 +65,7 @@ async def join_video_call(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
-        )
+        ) from e
 
 
 @router.post("/{call_id}/start", response_model=dict)

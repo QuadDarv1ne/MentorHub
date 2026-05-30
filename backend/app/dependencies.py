@@ -21,7 +21,7 @@ except ImportError:
 
         jwt = PyJWT_jwt
     except ImportError:
-        raise ImportError("Необходимо установить PyJWT: pip install PyJWT")
+        raise ImportError("Необходимо установить PyJWT: pip install PyJWT") from None
 
 from app.config import settings
 from app.database import SessionLocal
@@ -100,13 +100,13 @@ def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(s
         return TokenPayload(user_id=user_id, email=email, role=role or "student")
 
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired") from None
     except jwt.InvalidTokenError as e:
         logger.error(f"Invalid token: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from e
     except Exception as e:
         logger.error(f"Token verification error: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate token") from e
 
 
 def get_current_user(

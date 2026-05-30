@@ -1,4 +1,6 @@
 /** @jest-environment jsdom */
+process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8000';
+process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';

@@ -23,7 +23,7 @@ export default function VideoCallPage() {
         type: 'one-on-one',
         participantId: call.participant_id
       })
-    } catch (error) {
+    } catch {
       toast.error('Не удалось начать звонок')
     }
   }
@@ -38,7 +38,7 @@ export default function VideoCallPage() {
         type: 'group',
         roomId: call.room_id
       })
-    } catch (error) {
+    } catch {
       toast.error('Не удалось начать групповой звонок')
     }
   }

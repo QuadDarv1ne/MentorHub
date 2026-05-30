@@ -63,7 +63,7 @@ export default function LoadingSpinner({
   };
 
   const spinner = (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center" role="status">
       {renderSpinner()}
       {text && (
         <p className="mt-4 text-sm text-gray-600">{text}</p>
@@ -106,11 +106,11 @@ export function SectionLoader({ text = "Загрузка данных..." }: { t
   return (
     <div className="flex items-center justify-center py-12">
       <div className="text-center">
-        <div className="flex space-x-2 justify-center mb-4">
-          <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce"></div>
-          <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-        </div>
+          <div className="flex space-x-2 justify-center mb-4">
+            <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce" role="status"></div>
+            <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} role="status"></div>
+            <div className="h-3 w-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} role="status"></div>
+          </div>
         <p className="text-sm text-gray-600">{text}</p>
       </div>
     </div>
@@ -121,7 +121,7 @@ export function InlineLoader({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const sizeClasses = size === 'sm' ? 'h-4 w-4' : 'h-6 w-6';
   
   return (
-    <div className="inline-flex items-center">
+    <div className="inline-flex items-center" role="status">
       <div className={`${sizeClasses} border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mr-2`}></div>
       <span className="text-sm text-gray-600">Загрузка...</span>
     </div>

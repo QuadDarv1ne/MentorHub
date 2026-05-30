@@ -101,11 +101,11 @@ async def enroll_in_course(
             raise HTTPException(
                 status_code=400,
                 detail="Вы уже записаны на этот курс"
-            )
+            ) from e
         raise HTTPException(
             status_code=500,
             detail="Ошибка при записи на курс"
-        )
+        ) from e
 
 
 @router.delete("/{course_id}/enroll", status_code=status.HTTP_204_NO_CONTENT)
@@ -137,7 +137,7 @@ async def unenroll_from_course(
     except Exception as e:
         db.rollback()
         logger.error(f"Error unenrolling from course: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при отписке от курса")
+        raise HTTPException(status_code=500, detail="Ошибка при отписке от курса") from e
 
     return None
 

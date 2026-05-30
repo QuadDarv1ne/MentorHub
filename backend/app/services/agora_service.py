@@ -67,7 +67,7 @@ class AgoraService:
 
         except Exception as e:
             logger.error(f"Failed to generate Agora token: {e}")
-            raise ValueError(f"Failed to generate Agora token: {str(e)}")
+            raise ValueError(f"Failed to generate Agora token: {str(e)}") from e
 
     def generate_token_for_call(
         self,

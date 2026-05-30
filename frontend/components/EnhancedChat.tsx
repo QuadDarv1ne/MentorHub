@@ -32,7 +32,6 @@ export default function EnhancedChat() {
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [isGroupChat, setIsGroupChat] = useState(false)
   const [showNewGroupModal, setShowNewGroupModal] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [selectedParticipants, setSelectedParticipants] = useState<number[]>([])
@@ -338,7 +337,7 @@ export default function EnhancedChat() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
-              {messages.map((message, index) => {
+              {messages.map((message, _index) => {
                 const currentUserId = typeof window !== 'undefined'
                   ? (() => {
                       try {

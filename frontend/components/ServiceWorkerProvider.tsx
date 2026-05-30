@@ -28,7 +28,7 @@ export default function ServiceWorkerProvider() {
               })
             }
           })
-        } catch (error) {
+        } catch {
           // Service Worker registration failed
         }
       })

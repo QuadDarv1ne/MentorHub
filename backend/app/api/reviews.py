@@ -54,11 +54,11 @@ def create_review(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Вы уже оставили отзыв для этого курса"
-            )
+            ) from e
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при создании отзыва"
-        )
+        ) from e
 
 
 @router.get("/courses/{course_id}/reviews", response_model=PaginatedResponse[ReviewRead])

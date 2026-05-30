@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const type = searchParams.get('type') || 'users'
 
     const body = await request.json()
-    const { date_from, date_to, user_ids, course_ids } = body
+    const { date_from: _date_from, date_to: _date_to, user_ids: _user_ids, course_ids: _course_ids } = body
 
     // Запрос к бэкенду за экспортом
     const params = new URLSearchParams({ format })

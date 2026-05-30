@@ -4,17 +4,13 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { useAuth } from '@/lib/hooks/useAuth'
 import { login, getCurrentUser } from '@/lib/api/auth'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthButtons from '@/components/OAuthButtons'
-import { InlineLoader } from '@/components/LoadingSpinner'
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login: authLogin } = useAuth()
-
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,7 +19,6 @@ function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [socialLoading, setSocialLoading] = useState<{ google: boolean; github: boolean }>({ google: false, github: false })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -34,11 +29,6 @@ function LoginForm() {
       router.push('/dashboard')
     }
   }, [router])
-
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    // OAuth redirect handled by OAuthButtons component
-    // Backend will handle the OAuth flow and redirect back
-  }
 
   // Перемещено выше чтобы избежать Temporal Dead Zone
 
@@ -83,8 +73,7 @@ function LoginForm() {
       // Get user profile via API client
       const user = await getCurrentUser()
 
-      // Store tokens and user data using improved authLogin
-      authLogin(authResponse.access_token, user)
+      // User data is stored via localStorage below
 
       localStorage.setItem('user_name', user.full_name || user.email)
       localStorage.setItem('user_role', user.role)

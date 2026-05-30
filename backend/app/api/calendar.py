@@ -162,7 +162,7 @@ async def disconnect_calendar(
     try:
         calendar_provider = CalendarProvider(provider)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid provider. Use 'google' or 'outlook'")
+        raise HTTPException(status_code=400, detail="Invalid provider. Use 'google' or 'outlook'") from None
 
     sync = db.query(CalendarSync).filter(
         CalendarSync.user_id == current_user.id,
@@ -233,7 +233,7 @@ async def export_calendar_ics(
         from icalendar import Event as IcalEvent
         from icalendar.prop import vDDDTypes, vText  # noqa: F401
     except ImportError:
-        raise HTTPException(status_code=503, detail="ICS export not available (icalendar not installed)")
+        raise HTTPException(status_code=503, detail="ICS export not available (icalendar not installed)") from None
 
     start = datetime.now(timezone.utc)
     end = start + timedelta(days=days)
@@ -314,7 +314,7 @@ async def sync_calendar_now(
     try:
         calendar_provider = CalendarProvider(provider)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid provider")
+        raise HTTPException(status_code=400, detail="Invalid provider") from None
 
     sync = db.query(CalendarSync).filter(
         CalendarSync.user_id == current_user.id,

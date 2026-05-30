@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Users, Calendar, BookOpen, Star,
-  Activity, Clock, Loader2, AlertCircle
+  Activity, Clock, AlertCircle
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'

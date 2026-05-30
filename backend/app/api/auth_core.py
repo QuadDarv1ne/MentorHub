@@ -218,7 +218,7 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный токен: некорректный идентификатор пользователя",
-        )
+        ) from None
 
     user = db.query(User).filter(User.id == user_id).first()
 

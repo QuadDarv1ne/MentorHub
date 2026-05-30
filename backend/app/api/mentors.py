@@ -10,6 +10,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
+from app.api.mentors_search import router as mentors_search_router
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.mentor import Mentor
 from app.models.review import Review
@@ -21,9 +22,6 @@ from app.utils.cache import invalidate_cache
 from app.utils.sanitization import is_safe_string, sanitize_string, sanitize_text_field
 
 logger = logging.getLogger(__name__)
-
-# Импортируем роутер поиска
-from app.api.mentors_search import router as mentors_search_router
 
 router = APIRouter()
 
@@ -109,7 +107,7 @@ async def create_mentor(
     except Exception as e:
         db.rollback()
         logger.error(f"Error creating mentor profile: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при создании профиля ментора")
+        raise HTTPException(status_code=500, detail="Ошибка при создании профиля ментора") from e
 
 
 @router.put("/{mentor_id}", response_model=MentorResponse)
@@ -155,7 +153,7 @@ async def update_mentor(
     except Exception as e:
         db.rollback()
         logger.error(f"Error updating mentor profile: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при обновлении профиля ментора")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении профиля ментора") from e
 
     # Инвалидируем кеш обновленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{db_mentor.id}"))
@@ -186,7 +184,7 @@ async def delete_mentor(
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting mentor profile: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при удалении профиля ментора")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении профиля ментора") from e
 
     # Инвалидируем кеш удаленного ментора
     asyncio.create_task(invalidate_cache(f"mentor_detail:{mentor_id}"))
