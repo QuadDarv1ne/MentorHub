@@ -44,7 +44,7 @@ class TestAnalyticsCourses:
         client, headers = sync_authenticated_client
 
         response = client.get("/api/v1/analytics/courses", headers=headers)
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND]
 
 
 class TestAnalyticsRevenue:

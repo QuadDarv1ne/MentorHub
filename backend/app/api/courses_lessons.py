@@ -226,10 +226,7 @@ async def complete_lesson(
     )
 
     # Вычисляем общий прогресс курса
-    if total_lessons > 0:
-        course_progress = int((completed_lessons / total_lessons) * 100)
-    else:
-        course_progress = 0
+    course_progress = int((completed_lessons / total_lessons) * 100) if total_lessons > 0 else 0
 
     # Обновляем запись записи на курс
     enrollment.progress_percent = course_progress

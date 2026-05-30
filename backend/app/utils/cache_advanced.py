@@ -100,7 +100,7 @@ class MemoryCache(CacheBackend):
         else:
             # Простая фильтрация по началу ключа
             prefix = pattern.rstrip("*")
-            keys_to_delete = [k for k in self._cache.keys() if k.startswith(prefix)]
+            keys_to_delete = [k for k in self._cache if k.startswith(prefix)]
             for key in keys_to_delete:
                 self._cache.pop(key, None)
                 self._ttl.pop(key, None)
@@ -141,7 +141,7 @@ def cache_key(*args, **kwargs) -> str:
     }, sort_keys=True, default=str)
 
     # Создаем хэш
-    return hashlib.md5(key_data.encode()).hexdigest()
+    return hashlib.sha256(key_data.encode()).hexdigest()
 
 
 def cache_response(

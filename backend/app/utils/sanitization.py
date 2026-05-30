@@ -160,11 +160,7 @@ def is_safe_string(text: str) -> bool:
         r"<embed",
     ]
 
-    for pattern in xss_patterns:
-        if re.search(pattern, text_lower, re.IGNORECASE):
-            return False
-
-    return True
+    return all(not re.search(pattern, text_lower, re.IGNORECASE) for pattern in xss_patterns)
 
 
 def sanitize_input(data: Union[str, dict, list], field_type: str = "string") -> Union[str, dict, list]:

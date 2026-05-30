@@ -44,11 +44,7 @@ def get_system_metrics() -> Dict[str, Any]:
         import platform
 
         # Cross-platform disk usage
-        if platform.system() == "Windows":
-            # На Windows используем текущий диск
-            path = os.getcwd()[0] + ":/"
-        else:
-            path = "/"
+        path = os.getcwd()[0] + ":/" if platform.system() == "Windows" else "/"
 
         return {
             "cpu_percent": psutil.cpu_percent(interval=1),

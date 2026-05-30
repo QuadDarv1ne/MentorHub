@@ -69,9 +69,8 @@ class Settings(BaseSettings):
             import secrets
             logging.getLogger("config").warning("⚠️ SECRET_KEY not set, using temporary key. Set SECRET_KEY env var!")
             return secrets.token_urlsafe(32)
-        # Проверка на слабые ключи
-        if len(v) < 32:
-            if os.environ.get("ENVIRONMENT") == "production":
+            # Проверка на слабые ключи
+            if len(v) < 32 and os.environ.get("ENVIRONMENT") == "production":
                 raise ValueError("SECRET_KEY must be at least 32 characters in production!")
         return v
 
@@ -189,12 +188,11 @@ class Settings(BaseSettings):
     @model_validator(mode='after')
     def validate_agora_secrets(self):
         """Валидация Agora секретов - предупреждения в production"""
-        if self.ENVIRONMENT == "production":
-            if self.AGORA_APP_ID and len(self.AGORA_APP_CERTIFICATE) < OAUTH_SECRET_MIN_LENGTH:
-                logging.getLogger("config").warning(
-                    f"⚠️ WARNING: AGORA_APP_CERTIFICATE length ({len(self.AGORA_APP_CERTIFICATE)}) "
-                    f"is less than {OAUTH_SECRET_MIN_LENGTH} characters!"
-                )
+        if self.ENVIRONMENT == "production" and self.AGORA_APP_ID and len(self.AGORA_APP_CERTIFICATE) < OAUTH_SECRET_MIN_LENGTH:
+            logging.getLogger("config").warning(
+                f"⚠️ WARNING: AGORA_APP_CERTIFICATE length ({len(self.AGORA_APP_CERTIFICATE)}) "
+                f"is less than {OAUTH_SECRET_MIN_LENGTH} characters!"
+            )
         return self
 
     # ==================== STRIPE PAYMENTS ====================
@@ -257,12 +255,12 @@ class Settings(BaseSettings):
 
     # ==================== SESSION ====================
     SESSION_EXPIRE_DAYS: int = 7
-    SESSION_COOKIE_SECURE: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
+    SESSION_COOKIE_SECURE: bool = os.environ.get('ENVIRONMENT') == 'production'
     SESSION_COOKIE_HTTPONLY: bool = True
 
     # ==================== SECURITY ====================
     ALLOWED_HOSTS: List[str] = []
-    SECURE_SSL_REDIRECT: bool = True if os.environ.get('ENVIRONMENT') == 'production' else False
+    SECURE_SSL_REDIRECT: bool = os.environ.get('ENVIRONMENT') == 'production'
     HSTS_SECONDS: int = HSTS_MAX_AGE
 
     @model_validator(mode='after')
@@ -374,8 +372,6 @@ def get_redis_url() -> str:
 # ==================== VALIDATION ====================
 if is_production():
     # Production validations (warnings, not errors)
-    if settings.SECRET_KEY == "your-secret-key-change-in-production" or not settings.SECRET_KEY:
-        logging.warning("⚠️ WARNING: SECRET_KEY not set in production!")
     if settings.DEBUG is True:
         logging.warning("⚠️ WARNING: DEBUG is True in production!")
     if not settings.DATABASE_URL.startswith("postgresql://"):

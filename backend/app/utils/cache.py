@@ -128,7 +128,7 @@ class CacheManager:
                     self.memory_cache.clear()
                 else:
                     prefix = pattern.replace("*", "")
-                    keys_to_delete: List[str] = [k for k in self.memory_cache.keys() if k.startswith(prefix)]
+                    keys_to_delete: List[str] = [k for k in self.memory_cache if k.startswith(prefix)]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
@@ -140,7 +140,7 @@ class CacheManager:
     def generate_key(self, *args: Any, **kwargs: Any) -> str:
         """Генерация ключа кеша из параметров"""
         key_data = f"{args}:{sorted(kwargs.items())}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        return hashlib.sha256(key_data.encode()).hexdigest()
 
     def get_stats(self) -> Dict[str, Any]:
         """Получение статистики кеша"""

@@ -41,10 +41,7 @@ class EmailService:
             msg["From"] = self.from_email
             msg["To"] = to_email
 
-            if html:
-                part = MIMEText(body, "html")
-            else:
-                part = MIMEText(body, "plain")
+            part = MIMEText(body, "html") if html else MIMEText(body, "plain")
 
             msg.attach(part)
 

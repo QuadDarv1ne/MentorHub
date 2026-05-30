@@ -147,10 +147,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
         """Generate client key based on IP and user ID"""
         # Get IP address (handle proxies)
         forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            ip = forwarded.split(",")[0].strip()
-        else:
-            ip = request.client.host if request.client else "unknown"
+        ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
 
         # Get user ID from auth header (if authenticated)
         auth_header = request.headers.get("Authorization", "")
