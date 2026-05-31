@@ -83,7 +83,7 @@ export function useChat({
   // Load conversations list
   const loadConversations = useCallback(async () => {
     try {
-      const data = await apiRequest<any[]>('/messages/conversations')
+      const data = await apiRequest<Conversation[]>('/messages/conversations')
       setConversations(data)
       return data
     } catch (err) {
