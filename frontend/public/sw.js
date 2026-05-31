@@ -73,6 +73,7 @@ async function updateCache(request) {
     await cache.put(request, response)
   } catch (error) {
     // Игнорируем ошибки сети
+    void error;
   }
 }
 

@@ -163,7 +163,7 @@ async def get_top_rated_mentors(
     """
     Получить топ менторов по рейтингу
     """
-    mentors = (
+    return (
         db.query(Mentor)
         .options(joinedload(Mentor.user), joinedload(Mentor.reviews))
         .filter(Mentor.rating > 0)
@@ -172,4 +172,3 @@ async def get_top_rated_mentors(
         .all()
     )
 
-    return mentors

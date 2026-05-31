@@ -133,7 +133,7 @@ class FCMService:
         data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Формирование payload для FCM"""
-        payload = {
+        return {
             "to": token,
             "notification": {
                 "title": title,
@@ -165,7 +165,6 @@ class FCMService:
                 }
             }
         }
-        return payload
 
     async def _send_to_fcm(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Отправка payload в FCM"""

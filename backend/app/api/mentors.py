@@ -39,8 +39,7 @@ async def get_mentors(
     skip, limit = validate_pagination(skip, limit)
 
     # Используем joinedload для загрузки user данных вместе с ментором (избегаем N+1)
-    mentors = db.query(Mentor).options(joinedload(Mentor.user)).offset(skip).limit(limit).all()
-    return mentors
+    return db.query(Mentor).options(joinedload(Mentor.user)).offset(skip).limit(limit).all()
 
 
 @router.get("/{mentor_id}", response_model=MentorResponse)

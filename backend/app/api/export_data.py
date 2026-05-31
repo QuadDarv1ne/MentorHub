@@ -37,7 +37,7 @@ def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
     Returns:
         Dictionary with all user data
     """
-    user_data = {
+    return {
         "export_date": datetime.now(timezone.utc).isoformat(),
         "user": {
             "id": current_user.id,
@@ -62,8 +62,6 @@ def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
         "messages": _collect_messages(db, current_user.id),
         "enrollments": _collect_enrollments(db, current_user.id),
     }
-
-    return user_data
 
 
 def _collect_sessions(db: Session, user_id: int) -> List[Dict]:
@@ -212,7 +210,7 @@ def _collect_enrollments(db: Session, user_id: int) -> List[Dict]:
 
 def get_user_data_counts(db: Session, user_id: int) -> Dict[str, int]:
     """Get counts of user data records."""
-    counts = {
+    return {
         "sessions": db.execute(
             select(SessionModel).where(
                 (SessionModel.student_id == user_id) |
@@ -244,4 +242,3 @@ def get_user_data_counts(db: Session, user_id: int) -> Dict[str, int]:
             select(CourseEnrollment).where(CourseEnrollment.user_id == user_id)
         ).scalars().count(),
     }
-    return counts

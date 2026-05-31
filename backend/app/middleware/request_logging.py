@@ -165,5 +165,4 @@ class SQLLoggingMiddleware(BaseHTTPMiddleware):
         # Можно добавить логирование SQL через SQLAlchemy events
         # Или использовать SQLAlchemy echo=True в config
 
-        response = await call_next(request)
-        return response
+        return await call_next(request)

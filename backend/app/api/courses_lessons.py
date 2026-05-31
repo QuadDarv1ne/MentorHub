@@ -33,14 +33,12 @@ async def get_course_lessons(
     if not course:
         raise HTTPException(status_code=404, detail="Курс не найден")
 
-    lessons = (
+    return (
         db.query(Lesson)
         .filter(Lesson.course_id == course_id)
         .order_by(Lesson.order)
         .all()
     )
-
-    return lessons
 
 
 @router.post("/{course_id}/lessons", response_model=LessonResponse, status_code=status.HTTP_201_CREATED)

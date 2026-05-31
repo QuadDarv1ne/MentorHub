@@ -26,8 +26,7 @@ async def get_metrics(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can access metrics")
 
     try:
-        metrics = performance_monitor.get_metrics()
-        return metrics
+        return performance_monitor.get_metrics()
     except Exception as e:
         logger.error(f"Failed to get metrics: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить метрики") from e

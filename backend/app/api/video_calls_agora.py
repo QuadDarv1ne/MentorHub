@@ -188,6 +188,5 @@ async def get_recording_config(
         )
 
     # Получаем конфигурацию записи
-    config = agora_service.get_recording_config(call.id)
+    return agora_service.get_recording_config(call.id)
 
-    return config

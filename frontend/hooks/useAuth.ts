@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, login as apiLogin, register as apiRegister, logout as apiLogout, getCurrentUser, refreshToken as apiRefreshToken } from '@/lib/api/auth';
+import { User, login as apiLogin, logout as apiLogout, getCurrentUser, refreshToken as apiRefreshToken } from '@/lib/api/auth';
 import { STORAGE_KEYS } from '@/lib/api/client';
 import { logger } from '@/lib/utils/logger';
 

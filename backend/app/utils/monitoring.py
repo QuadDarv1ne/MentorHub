@@ -275,8 +275,7 @@ def measure_execution_time(func: Callable) -> Callable:
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         start = time.time()
         try:
-            result = await func(*args, **kwargs)
-            return result
+            return await func(*args, **kwargs)
         finally:
             duration = time.time() - start
             if duration > 0.5:  # Логируем если > 500ms

@@ -158,8 +158,7 @@ async def get_messages(
     from app.utils.pagination import validate_pagination
     skip, limit = validate_pagination(skip, limit)
 
-    messages = db.query(DBMessage).offset(skip).limit(limit).all()
-    return messages
+    return db.query(DBMessage).offset(skip).limit(limit).all()
 
 
 @router.get("/{message_id}", response_model=MessageResponse)

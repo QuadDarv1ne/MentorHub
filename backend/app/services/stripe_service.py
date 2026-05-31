@@ -255,8 +255,7 @@ class StripeService:
             return None
 
         try:
-            event = stripe.Webhook.construct_event(payload, signature, settings.STRIPE_WEBHOOK_SECRET)
-            return event
+            return stripe.Webhook.construct_event(payload, signature, settings.STRIPE_WEBHOOK_SECRET)
 
         except ValueError:
             logger.error("Invalid webhook payload")

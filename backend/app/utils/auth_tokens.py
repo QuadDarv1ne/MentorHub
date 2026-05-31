@@ -44,12 +44,11 @@ def create_access_token(
         "type": token_type,
     })
 
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
-    return encoded_jwt
 
 
 def create_refresh_token(

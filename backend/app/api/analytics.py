@@ -37,8 +37,7 @@ async def get_platform_analytics(
         )
     try:
         analytics = AnalyticsService(db)
-        stats = analytics.get_platform_stats()
-        return stats
+        return analytics.get_platform_stats()
     except Exception as e:
         logger.error(f"Error getting platform analytics: {e}")
         raise HTTPException(
@@ -131,8 +130,7 @@ async def get_course_analytics(
         )
     try:
         analytics = AnalyticsService(db)
-        course_data = analytics.get_course_performance(course_id)
-        return course_data
+        return analytics.get_course_performance(course_id)
     except Exception as e:
         logger.error(f"Error getting course analytics: {e}")
         raise HTTPException(
@@ -194,8 +192,7 @@ async def get_user_engagement(
 
     try:
         analytics = AnalyticsService(db)
-        engagement_data = analytics.get_user_engagement(user_id)
-        return engagement_data
+        return analytics.get_user_engagement(user_id)
     except ValueError:
         logger.error(f"User not found for engagement: {user_id}")
         raise HTTPException(
@@ -220,8 +217,7 @@ async def get_my_engagement(
     """
     try:
         analytics = AnalyticsService(db)
-        engagement_data = analytics.get_user_engagement(current_user.id)
-        return engagement_data
+        return analytics.get_user_engagement(current_user.id)
     except Exception as e:
         logger.error(f"Error getting user engagement: {e}")
         raise HTTPException(

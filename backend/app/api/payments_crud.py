@@ -23,34 +23,31 @@ def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPay
     from app.utils.pagination import validate_pagination
     skip, limit = validate_pagination(skip, limit)
 
-    payments = db.query(DBPayment).options(
+    return db.query(DBPayment).options(
         joinedload(DBPayment.student),
         joinedload(DBPayment.mentor),
         joinedload(DBPayment.session)
     ).offset(skip).limit(limit).all()
-    return payments
 
 
 def get_payment_by_id(db: Session, payment_id: int) -> Optional[DBPayment]:
     """Get payment by ID."""
-    payment = db.query(DBPayment).options(
+    return db.query(DBPayment).options(
         joinedload(DBPayment.student),
         joinedload(DBPayment.mentor),
         joinedload(DBPayment.session)
     ).filter(DBPayment.id == payment_id).first()
-    return payment
 
 
 def get_payments_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> List[DBPayment]:
     """Get payments by user ID with pagination."""
-    payments = db.query(DBPayment).options(
+    return db.query(DBPayment).options(
         joinedload(DBPayment.student),
         joinedload(DBPayment.mentor),
         joinedload(DBPayment.session)
     ).filter(DBPayment.student_id == user_id).order_by(
         DBPayment.created_at.desc()
     ).offset(skip).limit(limit).all()
-    return payments
 
 
 def create_payment(
@@ -199,7 +196,6 @@ def get_payment_by_transaction_id(
     transaction_id: str
 ) -> Optional[DBPayment]:
     """Get payment by transaction ID."""
-    payment = db.query(DBPayment).filter(
+    return db.query(DBPayment).filter(
         DBPayment.transaction_id == transaction_id
     ).first()
-    return payment

@@ -73,8 +73,7 @@ class TestRetryOnException:
             call_count += 1
             raise ValueError("Error")
 
-        with patch('time.sleep', mock_sleep):
-            with pytest.raises(ValueError):
+        with patch('time.sleep', mock_sleep), pytest.raises(ValueError):
                 failing_function()
 
         assert call_count == 3

@@ -35,11 +35,10 @@ async def get_sessions(
     from app.utils.pagination import validate_pagination
     skip, limit = validate_pagination(skip, limit)
 
-    sessions = db.query(DBSession).options(
+    return db.query(DBSession).options(
         joinedload(DBSession.mentor),
         joinedload(DBSession.student)
     ).offset(skip).limit(limit).all()
-    return sessions
 
 
 @router.get("/my", response_model=List[SessionResponse])
@@ -71,8 +70,7 @@ async def get_my_sessions(
     if status:
         query = query.filter(DBSession.status == status)
 
-    sessions = query.order_by(DBSession.scheduled_at.desc()).all()
-    return sessions
+    return query.order_by(DBSession.scheduled_at.desc()).all()
 
 
 @router.get("/{session_id}", response_model=SessionResponse)

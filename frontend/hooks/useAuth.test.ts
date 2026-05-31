@@ -26,7 +26,6 @@ jest.mock('@/lib/api/auth', () => ({
 
 const mockGetCurrentUser = authApi.getCurrentUser as jest.MockedFunction<typeof authApi.getCurrentUser>
 const mockLogin = authApi.login as jest.MockedFunction<typeof authApi.login>
-const mockLogout = authApi.logout as jest.MockedFunction<typeof authApi.logout>
 const mockRefreshToken = authApi.refreshToken as jest.MockedFunction<typeof authApi.refreshToken>
 
 // Mock global fetch for API calls

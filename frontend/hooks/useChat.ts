@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
 import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
-import { apiRequest, getAccessToken, getBaseUrl } from '@/lib/api/client'
+import { apiRequest, getBaseUrl } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
 export interface Message {

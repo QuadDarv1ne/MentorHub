@@ -1,3 +1,8 @@
-module.exports = function MockLink({ children, ...props }) {
-  return require('react').createElement('a', props, children);
-};
+/* eslint-disable @typescript-eslint/no-require-imports */
+const React = require('react');
+
+function MockLink({ children, ...props }) {
+  return React.createElement('a', props, children);
+}
+
+module.exports = MockLink;

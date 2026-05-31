@@ -37,8 +37,7 @@ async def get_backup_info(current_user: User = Depends(get_current_user)):
 
     try:
         backup_manager = DatabaseBackup()
-        info = backup_manager.get_backup_info()
-        return info
+        return backup_manager.get_backup_info()
     except Exception as e:
         logger.error(f"Error getting backup info: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить информацию о backup'ах") from e
@@ -132,6 +131,5 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
     except Exception as e:
         logger.error(f"Error verifying backup: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось проверить целостность backup'а") from e
-
 
 

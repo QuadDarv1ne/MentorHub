@@ -68,8 +68,7 @@ class SBPService:
         message = "".join([f"{k}={v}" for k, v in sorted_data])
         message += self.secret_key
 
-        signature = hashlib.sha256(message.encode()).hexdigest()
-        return signature
+        return hashlib.sha256(message.encode()).hexdigest()
 
     @retry_on_exception(
         exceptions=(ConnectionError, TimeoutError),

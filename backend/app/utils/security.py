@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 def decode_access_token(token: str) -> Dict:
     """Декодирование access токена с audience/issuer validation"""
     try:
-        payload = jwt.decode(
+        return jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
@@ -39,7 +39,6 @@ def decode_access_token(token: str) -> Dict:
             issuer="mentorhub-api",
             options={"require": ["aud", "iss", "exp"]},
         )
-        return payload
     except jwt.ExpiredSignatureError:
         raise ValueError("Token expired") from None
     except jwt.InvalidTokenError:

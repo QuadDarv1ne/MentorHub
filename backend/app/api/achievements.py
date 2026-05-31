@@ -25,8 +25,7 @@ async def get_my_achievements(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список достижений текущего пользователя"""
-    achievements = db.query(Achievement).filter(Achievement.user_id == current_user.id).all()
-    return achievements
+    return db.query(Achievement).filter(Achievement.user_id == current_user.id).all()
 
 
 @router.get("/", response_model=List[AchievementRead])
@@ -40,10 +39,9 @@ async def get_achievements(
     from app.utils.pagination import validate_pagination
     skip, limit = validate_pagination(skip, limit)
 
-    achievements = db.query(Achievement).options(
+    return db.query(Achievement).options(
         joinedload(Achievement.user)
     ).offset(skip).limit(limit).all()
-    return achievements
 
 
 @router.get("/{achievement_id}", response_model=AchievementRead)

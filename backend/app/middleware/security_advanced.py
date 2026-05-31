@@ -88,9 +88,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add security headers
-        response = self._add_security_headers(response)
+        return self._add_security_headers(response)
 
-        return response
 
     async def _check_rate_limit(self, request: Request):
         """Check rate limiting."""

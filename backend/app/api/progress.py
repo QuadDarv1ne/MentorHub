@@ -90,8 +90,7 @@ def list_my_progress(
     q = db.query(Progress).filter(Progress.user_id == current_user.id)
     if course_id:
         q = q.filter(Progress.course_id == course_id)
-    items = q.order_by(Progress.updated_at.desc()).all()
-    return items
+    return q.order_by(Progress.updated_at.desc()).all()
 
 
 @router.get("/courses/{course_id}/progress/aggregate", response_model=ProgressAggregate)

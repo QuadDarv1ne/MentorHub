@@ -43,8 +43,7 @@ async def get_courses(
     if category:
         query = query.filter(Course.category == category)
 
-    courses = query.offset(skip).limit(limit).all()
-    return courses
+    return query.offset(skip).limit(limit).all()
 
 
 @router.get("/{course_id}", response_model=CourseWithLessonsResponse)

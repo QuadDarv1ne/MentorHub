@@ -34,9 +34,7 @@ def sanitize_string(text: str, max_length: int = 1000) -> str:
     text = re.sub(r'[<>"\']', "", text)
 
     # Нормализуем пробельные символы
-    text = re.sub(r"\s+", " ", text).strip()
-
-    return text
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def sanitize_email(email: str) -> str:
@@ -60,9 +58,7 @@ def sanitize_email(email: str) -> str:
     email = email.strip()
 
     # Экранируем HTML теги
-    email = html.escape(email)
-
-    return email
+    return html.escape(email)
 
 
 def sanitize_username(username: str) -> str:
@@ -89,9 +85,7 @@ def sanitize_username(username: str) -> str:
     username = html.escape(username)
 
     # Оставляем только допустимые символы (буквы, цифры, подчеркивание, дефис, точка)
-    username = re.sub(r"[^a-zA-Z0-9_.-]", "", username)
-
-    return username
+    return re.sub(r"[^a-zA-Z0-9_.-]", "", username)
 
 
 def sanitize_text_field(text: str, max_length: int = 5000) -> str:
@@ -116,9 +110,7 @@ def sanitize_text_field(text: str, max_length: int = 5000) -> str:
     text = html.escape(text)
 
     # Нормализуем пробельные символы
-    text = re.sub(r"\s+", " ", text).strip()
-
-    return text
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def is_safe_string(text: str) -> bool:
