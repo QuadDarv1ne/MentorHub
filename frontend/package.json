@@ -21,7 +21,6 @@
     "lighthouse:check": "lhci assert --config=./.lighthouserc.json"
   },
   "dependencies": {
-    "2": "^3.0.0",
     "@sentry/nextjs": "^8.54.0",
     "agora-rtc-react": "^2.3.0",
     "lucide-react": "^0.468.0",
