@@ -58,6 +58,10 @@ export function useChat({
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const enableNotificationsRef = useRef(enableNotifications)
+  const toastRef = useRef(toast)
+  enableNotificationsRef.current = enableNotifications
+  toastRef.current = toast
 
   // Load message history
   const loadMessageHistory = useCallback(async (userId: number, limit = LIMITS.MAX_MESSAGE_LENGTH / 2) => {
@@ -129,8 +133,8 @@ export function useChat({
               return [...prev, data]
             })
             // Show toast notification for new messages from others
-            if (enableNotifications && data.sender_id !== parseInt(localStorage.getItem('user_id') || '0')) {
-              toast.showToast(`Новое сообщение от ${data.sender_username}`, 'info', 3000)
+            if (enableNotificationsRef.current && data.sender_id !== parseInt(localStorage.getItem('user_id') || '0')) {
+              toastRef.current.showToast(`Новое сообщение от ${data.sender_username}`, 'info', 3000)
             }
             // Also update conversations
             setConversations(prev => {

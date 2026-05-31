@@ -45,20 +45,19 @@ export default function EnhancedChat() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchRooms()
     connectWebSocket()
+    const typingTimeouts = typingTimeoutsRef.current
     return () => {
-      // Очищаем все timeout'ы
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
       }
-      typingTimeoutsRef.current.forEach(timeout => clearTimeout(timeout))
-      typingTimeoutsRef.current.clear()
-      // Закрываем WebSocket
+      typingTimeouts.forEach(timeout => clearTimeout(timeout))
+      typingTimeouts.clear()
       wsRef.current?.close()
     }
+  // Deps intentionally empty: runs once on mount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
