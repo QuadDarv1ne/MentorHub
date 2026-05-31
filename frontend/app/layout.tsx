@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -10,6 +12,7 @@ import { ToastProvider } from '@/components/ui/ToastContext'
 import ServiceWorkerProvider from '@/components/ServiceWorkerProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
 import AuthClientInitializer from '@/components/AuthClientInitializer'
+import { localeDirections } from '@/lib/i18n/types'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
@@ -29,36 +32,42 @@ export const metadata: Metadata = {
   themeColor: '#4f46e5',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+  const direction = localeDirections[locale as keyof typeof localeDirections]
+
   return (
-    <html lang="ru" className={inter.variable} suppressHydrationWarning>
+    <html lang={locale} dir={direction} className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#4f46e5" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
-      <body className="antialiased">
-        <ThemeProvider defaultTheme="system">
-          <AuthClientInitializer />
-          <SkipLinks />
-          <RouteAnnouncer />
-          <GlobalLoadingProvider>
-            <ToastProvider>
-              <NotificationProvider>
-                <Header />
-                <main id="main-content" tabIndex={-1} className="focus:outline-none">
-                  {children}
-                </main>
-                <Footer />
-                <ServiceWorkerProvider />
-              </NotificationProvider>
-            </ToastProvider>
-          </GlobalLoadingProvider>
-        </ThemeProvider>
+      <body className={`antialiased ${direction === 'rtl' ? 'rtl' : 'ltr'}`}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider defaultTheme="system">
+            <AuthClientInitializer />
+            <SkipLinks />
+            <RouteAnnouncer />
+            <GlobalLoadingProvider>
+              <ToastProvider>
+                <NotificationProvider>
+                  <Header />
+                  <main id="main-content" tabIndex={-1} className="focus:outline-none">
+                    {children}
+                  </main>
+                  <Footer />
+                  <ServiceWorkerProvider />
+                </NotificationProvider>
+              </ToastProvider>
+            </GlobalLoadingProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

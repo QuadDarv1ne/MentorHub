@@ -69,9 +69,9 @@ class Settings(BaseSettings):
             import secrets
             logging.getLogger("config").warning("⚠️ SECRET_KEY not set, using temporary key. Set SECRET_KEY env var!")
             return secrets.token_urlsafe(32)
-            # Проверка на слабые ключи
-            if len(v) < 32 and os.environ.get("ENVIRONMENT") == "production":
-                raise ValueError("SECRET_KEY must be at least 32 characters in production!")
+        # Проверка на слабые ключи
+        if len(v) < 32 and os.environ.get("ENVIRONMENT") == "production":
+            raise ValueError("SECRET_KEY must be at least 32 characters in production!")
         return v
 
     # ==================== SERVER ====================
