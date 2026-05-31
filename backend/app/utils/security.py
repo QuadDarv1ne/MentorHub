@@ -9,7 +9,7 @@ import re
 import secrets
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import bcrypt
 import jwt
@@ -71,7 +71,7 @@ class PasswordValidator:
     COMMON_PASSWORDS = COMMON_PASSWORDS
 
     @classmethod
-    def validate_password(cls, password: str) -> Dict[str, any]:
+    def validate_password(cls, password: str) -> Dict[str, Any]:
         """Валидация пароля"""
         result = {"is_valid": True, "errors": [], "strength": 0, "strength_label": ""}
 
