@@ -8,7 +8,7 @@ meta:
   version: "1.0.0"
 
 build:
-  dockerfile: ./backend/Dockerfile
+  dockerfile: ./Dockerfile
   context: ./backend
   # Кэширование для ускорения сборки
   cache: true
