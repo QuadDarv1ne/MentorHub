@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getBaseUrl } from '@/lib/api/client'
+import { logger } from '@/lib/utils/logger'
 
 interface OAuthButtonsProps {
   onOAuthStart?: () => void
@@ -21,7 +22,7 @@ export default function OAuthButtons({ onOAuthStart }: OAuthButtonsProps) {
       window.location.href = `${baseUrl}/api/v1/auth/oauth/${provider}`
 
     } catch (error) {
-      console.error(`OAuth ${provider} error:`, error)
+      logger.error(`OAuth ${provider} error:`, error)
       setIsLoading(null)
     }
   }

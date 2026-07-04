@@ -81,7 +81,7 @@ export default function EnhancedChat() {
         }
       }
     } catch (error) {
-      console.error('Fetch rooms error:', error)
+      logger.error('Fetch rooms error:', error)
     }
   }
 
@@ -94,7 +94,7 @@ export default function EnhancedChat() {
         setTimeout(scrollToBottom, 100)
       }
     } catch (error) {
-      console.error('Fetch messages error:', error)
+      logger.error('Fetch messages error:', error)
     }
   }
 
@@ -148,7 +148,7 @@ export default function EnhancedChat() {
             ))
           }
         } catch (error) {
-          console.error('Parse message error:', error)
+          logger.error('Parse message error:', error)
         }
       }
 
@@ -157,7 +157,7 @@ export default function EnhancedChat() {
         reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000)
       }
     } catch (error) {
-      console.error('WebSocket connection error:', error)
+      logger.error('WebSocket connection error:', error)
     }
   }
 
@@ -188,7 +188,7 @@ export default function EnhancedChat() {
         toast.error('Ошибка отправки сообщения')
       }
     } catch (error) {
-      console.error('Send message error:', error)
+      logger.error('Send message error:', error)
       toast.error('Ошибка отправки сообщения')
     }
   }
@@ -201,7 +201,7 @@ export default function EnhancedChat() {
         body: JSON.stringify({ emoji })
       })
     } catch (error) {
-      console.error('Add reaction error:', error)
+      logger.error('Add reaction error:', error)
     }
   }
 
@@ -227,7 +227,7 @@ export default function EnhancedChat() {
         toast.error('Ошибка создания группы')
       }
     } catch (error) {
-      console.error('Create group error:', error)
+      logger.error('Create group error:', error)
       toast.error('Ошибка создания группы')
     }
   }
@@ -250,7 +250,7 @@ export default function EnhancedChat() {
     try {
       await fetch(`/api/chat/rooms/${roomId}/read`, { method: 'POST' })
     } catch (error) {
-      console.error('Mark as read error:', error)
+      logger.error('Mark as read error:', error)
     }
   }
 

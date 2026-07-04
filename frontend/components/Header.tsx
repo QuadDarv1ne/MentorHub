@@ -21,7 +21,7 @@ export default function Header() {
     
     if (token) {
       // Попытка получить имя пользователя из localStorage или API
-      const storedUser = localStorage.getItem('user_name')
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_NAME)
       if (storedUser) {
         setUserName(storedUser)
       }
@@ -30,8 +30,8 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    localStorage.removeItem('user_name')
-    localStorage.removeItem('user_id')
+    localStorage.removeItem(STORAGE_KEYS.USER_NAME)
+    localStorage.removeItem(STORAGE_KEYS.USER_ID)
     setIsAuthenticated(false)
     setUserName('')
     router.push('/')

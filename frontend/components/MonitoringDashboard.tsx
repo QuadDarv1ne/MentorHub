@@ -13,6 +13,7 @@ import {
   Bell,
   Trash2
 } from 'lucide-react';
+import { logger } from '@/lib/utils/logger';
 import Card from '@/components/ui/Card';
 import MetricCard from '@/components/ui/MetricCard';
 import Chart from '@/components/ui/Chart';
@@ -53,13 +54,13 @@ const MonitoringDashboard: React.FC = () => {
         const alertData = await getAlerts();
         setAlerts(alertData.alerts || []);
       } catch (alertError) {
-        console.warn('Failed to fetch alerts:', alertError);
+        logger.warn('Failed to fetch alerts:', alertError);
       }
       
       setError(null);
     } catch (err) {
       setError('Failed to fetch monitoring data');
-      console.error('Error fetching metrics:', err);
+      logger.error('Error fetching metrics:', err);
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ const MonitoringDashboard: React.FC = () => {
         success('Метрики успешно сброшены');
       } catch (err) {
         showError('Ошибка при сбросе метрик');
-        console.error('Error resetting metrics:', err);
+        logger.error('Error resetting metrics:', err);
       }
     }
   };
@@ -97,7 +98,7 @@ const MonitoringDashboard: React.FC = () => {
       success('Пороговые значения успешно обновлены');
     } catch (err) {
       showError('Ошибка при обновлении пороговых значений');
-      console.error('Error updating thresholds:', err);
+      logger.error('Error updating thresholds:', err);
     }
   };
 

@@ -118,7 +118,7 @@ export default function VideoCall({
       toast.success('Видеозвонок подключён')
 
     } catch (err: any) {
-      console.error('Video call init error:', err)
+      logger.error('Video call init error:', err)
       setError(err.message || 'Failed to initialize video call')
       setIsLoading(false)
       toast.error('Ошибка подключения к видеозвонку')
@@ -157,7 +157,7 @@ export default function VideoCall({
       onClose?.()
       router.push('/calls')
     } catch (err) {
-      console.error('Leave call error:', err)
+      logger.error('Leave call error:', err)
     }
   }
 
@@ -176,7 +176,7 @@ export default function VideoCall({
         await client.leave()
       }
     } catch (err) {
-      console.error('Cleanup error:', err)
+      logger.error('Cleanup error:', err)
     }
   }
 

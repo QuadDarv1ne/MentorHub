@@ -14,7 +14,6 @@ from typing import Optional
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
-from sqlalchemy import engine
 
 from app.config import is_production, settings
 from app.database import Base

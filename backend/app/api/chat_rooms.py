@@ -216,7 +216,7 @@ async def get_chat_messages(
         joinedload(ChatMessage.sender)
     ).filter(
         ChatMessage.room_id == room_id,
-        ChatMessage.is_deleted is False
+        ChatMessage.is_deleted == False
     ).order_by(desc(ChatMessage.created_at))
 
     total = query.count()

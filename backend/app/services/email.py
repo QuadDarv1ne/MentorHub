@@ -23,7 +23,7 @@ class EmailService:
         self.smtp_port = settings.SMTP_PORT if hasattr(settings, "SMTP_PORT") else 587
         self.smtp_user = settings.SMTP_USER if hasattr(settings, "SMTP_USER") else None
         self.smtp_password = settings.SMTP_PASSWORD if hasattr(settings, "SMTP_PASSWORD") else None
-        self.from_email = settings.FROM_EMAIL if hasattr(settings, "FROM_EMAIL") else "noreply@mentorhub.com"
+        self.from_email = settings.SMTP_FROM_EMAIL if hasattr(settings, "SMTP_FROM_EMAIL") else "noreply@mentorhub.com"
         self.enabled = all([self.smtp_host, self.smtp_user, self.smtp_password])
 
         if not self.enabled:

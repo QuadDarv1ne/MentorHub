@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { publicRequest } from '@/lib/api/client';
+import { logger } from '@/lib/utils/logger';
 
 interface Review {
   id: number;
@@ -32,7 +33,7 @@ export default function ReviewList({ courseId }: { courseId: number }) {
         const data = await publicRequest<Paginated<Review>>(`/courses/${courseId}/reviews?page=${page}&page_size=10`);
         setReviews(data.data);
       } catch (err) {
-        console.error(err);
+        logger.error('Failed to fetch reviews:', err);
       } finally {
         setIsLoading(false);
       }

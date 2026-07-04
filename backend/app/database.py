@@ -7,7 +7,7 @@ import logging
 from contextlib import contextmanager
 
 from sqlalchemy import Engine, create_engine, event
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
 
 from app.config import settings
@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 # ==================== DATABASE ENGINE SETUP ====================
 
-# Use new SQLAlchemy 2.0 declarative_base
-Base = declarative_base()
+# Use SQLAlchemy 2.0 DeclarativeBase
+class Base(DeclarativeBase):
+    pass
 
 
 def _create_engine_for_testing():

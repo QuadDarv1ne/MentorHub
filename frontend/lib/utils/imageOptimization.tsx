@@ -5,6 +5,7 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 interface OptimizedImageProps {
   src: string
@@ -181,7 +182,7 @@ export function useImagePreloader() {
     try {
       await Promise.all(srcs.map(preloadImage))
     } catch (error) {
-      console.error('Failed to preload images:', error)
+      logger.error('Failed to preload images:', error)
     }
   }
 
@@ -203,7 +204,7 @@ export async function generateBlurDataURL(): Promise<string> {
 
     return `data:image/svg+xml;base64,${base64svg}`
   } catch (error) {
-    console.error('Error generating blur data URL:', error)
+    logger.error('Error generating blur data URL:', error)
     return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTBmMmZlIi8+PC9zdmc+'
   }
 }
