@@ -210,9 +210,12 @@ class Database:
 
     @staticmethod
     def get_connection_info() -> dict:
-        """Get database connection information"""
+        """Get database connection information (credentials masked)"""
+        from urllib.parse import urlparse
+        parsed = urlparse(settings.DATABASE_URL)
+        masked_url = f"{parsed.scheme}://***:***@{parsed.hostname}:{parsed.port}{parsed.path}"
         return {
-            "url": settings.DATABASE_URL,
+            "url": masked_url,
             "pool_size": settings.DB_POOL_SIZE,
             "max_overflow": settings.DB_MAX_OVERFLOW,
             "pool_pre_ping": True,

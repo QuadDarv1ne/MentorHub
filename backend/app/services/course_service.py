@@ -81,7 +81,7 @@ class CourseService:
         """Получить похожие курсы"""
         return self.db.query(Course).filter(
             Course.id != course.id,
-            Course.is_active is True,
+            Course.is_active == True,
             or_(
                 Course.category == course.category,
                 Course.difficulty == course.difficulty,

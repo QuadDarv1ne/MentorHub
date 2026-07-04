@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getMyProgress, upsertProgress } from '@/lib/api/progress';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 export default function ProgressTracker({ courseId }: { courseId: number }) {
   const [percent, setPercent] = useState<number>(0);
@@ -13,7 +14,7 @@ export default function ProgressTracker({ courseId }: { courseId: number }) {
 
   useEffect(() => {
     let mounted = true;
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) : null;
     setIsAuthenticated(Boolean(token));
     (async () => {
       try {

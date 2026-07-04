@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import { apiRequest } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
@@ -20,17 +21,27 @@ export default function NotificationsPanel() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
-  const wsRef = useRef<WebSocket | null>(null)
+
+  const handleNotification = useCallback((data: Record<string, unknown>) => {
+    if (data.type === 'notification') {
+      const newNotification = data as unknown as Notification
+      setNotifications(prev => [newNotification, ...prev])
+      setUnreadCount(prev => prev + 1)
+      toast.success(newNotification.title, newNotification.message)
+    }
+  }, [toast])
+
+  const { connect } = useWebSocket({
+    path: '/ws/notifications',
+    onMessage: handleNotification,
+  })
 
   useEffect(() => {
     fetchNotifications()
-    connectWebSocket()
+    connect()
 
-    const interval = setInterval(fetchNotifications, 30000) // Poll every 30s
-    return () => {
-      clearInterval(interval)
-      wsRef.current?.close()
-    }
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -41,41 +52,6 @@ export default function NotificationsPanel() {
       setUnreadCount(data.filter((n) => !n.read).length)
     } catch (error) {
       logger.error('Fetch notifications error', error)
-    }
-  }
-
-  const connectWebSocket = () => {
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/notifications`
-
-    try {
-      wsRef.current = new WebSocket(wsUrl)
-
-      wsRef.current.onopen = () => {
-        logger.info('Notifications WebSocket connected')
-      }
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const newNotification = JSON.parse(event.data)
-          setNotifications(prev => [newNotification, ...prev])
-          setUnreadCount(prev => prev + 1)
-          toast.success(newNotification.title, newNotification.message)
-        } catch (error) {
-          logger.error('Parse notification error', error)
-        }
-      }
-
-      wsRef.current.onerror = (error) => {
-        logger.error('WebSocket error', error)
-      }
-
-      wsRef.current.onclose = () => {
-        logger.warn('Notifications WebSocket disconnected')
-        // Reconnect after 5 seconds
-        setTimeout(connectWebSocket, 5000)
-      }
-    } catch (error) {
-      logger.error('WebSocket connection error', error)
     }
   }
 

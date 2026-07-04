@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/ToastContext'
-import { TIMEOUTS, RETRY, LIMITS } from '@/lib/constants'
+import { TIMEOUTS, RETRY, LIMITS, STORAGE_KEYS } from '@/lib/constants'
 import { apiRequest, getBaseUrl } from '@/lib/api/client'
 import { logger } from '@/lib/utils/logger'
 
@@ -94,7 +94,7 @@ export function useChat({
 
   // Connect to WebSocket
   const connect = useCallback(() => {
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     if (!token) {
       setConnectionStatus('disconnected')
       return

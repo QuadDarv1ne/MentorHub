@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { NotificationCenter } from './NotificationCenter'
 import { NavMenu, MobileNavMenu } from './navigation/NavMenu'
 import ThemeToggle from './ThemeToggle'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -15,7 +16,7 @@ export default function Header() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     setIsAuthenticated(!!token)
     
     if (token) {
@@ -28,8 +29,9 @@ export default function Header() {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem('user_name')
+    localStorage.removeItem('user_id')
     setIsAuthenticated(false)
     setUserName('')
     router.push('/')

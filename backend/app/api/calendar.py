@@ -319,7 +319,7 @@ async def sync_calendar_now(
     sync = db.query(CalendarSync).filter(
         CalendarSync.user_id == current_user.id,
         CalendarSync.provider == calendar_provider,
-        CalendarSync.is_active is True
+        CalendarSync.is_active == True
     ).first()
 
     if not sync:

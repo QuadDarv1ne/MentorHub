@@ -1,37 +1,28 @@
 # MentorHub — TODO и План Улучшений
 
-**Дата:** 5 апреля 2026 г.
-**Ветка:** `dev` → `main`
-**Статус:** 🔧 В процессе стабилизации
+**Дата:** 4 июля 2026 г.
+**Ветка:** `main`
+**Статус:** ✅ Оптимизация завершена
 
 ---
 
-## 📋 Текущие несохранённые изменения (17 файлов)
+## ✅ ВЫПОЛНЕННЫЕ УЛУЧШЕНИЯ (сессия 4 июля 2026)
 
-### CI/CD Workflow (4 файла)
-- [x] `.github/workflows/ci-cd.yml` — исправлены ветки `develop` → `dev`
-- [x] `.github/workflows/deploy-notifications.yml` — убран дублирующийся `with:` блок
-- [x] `.github/workflows/lighthouse.yml` — Node.js 20 → 18 (совместимость)
-- [x] `.github/workflows/main.yml` — добавлен PostgreSQL сервис для тестов
+### Исправления критических багов
+- [x] **is_active identity comparison** — 6 мест исправлены: `is_active is True` → `is_active == True`
+- [x] **user_id localStorage bug** — `user_id` теперь сохраняется при логине и очищается при выходе
+- [x] **Rate limiter memory leak** — добавлена периодическая очистка неактивных клиентов
+- [x] **Database credentials exposure** — `get_connection_info()` теперь маскирует URL
 
-### Docker (4 файла)
-- [x] `Dockerfile.optimized` — исправлены ENV комментарии
-- [x] `Dockerfile.production` — исправлены ENV комментарии
-- [x] `docker-compose.prod.yml` — исправлен Dockerfile frontend → `Dockerfile.frontend`
-- [x] `docker-compose.yml` — исправлен путь nginx.conf `./nginx.conf` → `./nginx/nginx.conf`
+### Безопасность и консистентность
+- [x] **STORAGE_KEYS константы** — заменены 14+ хардкоженных строк `'access_token'`/`'refresh_token'` на `STORAGE_KEYS`
+- [x] **Удалена冗余ная зависимость** — `python-jose` удалена, используется только `PyJWT`
+- [x] **Упрощён jwt import** — убран сложный fallback между библиотеками
 
-### Frontend API (6 файлов)
-- [x] `frontend/hooks/useChat.ts` — WebSocket URL fallback через `NEXT_PUBLIC_API_URL`
-- [x] `frontend/lib/api/achievements.ts` — fallback `NEXT_PUBLIC_API_URL`
-- [x] `frontend/lib/api/auth.ts` — fallback `NEXT_PUBLIC_API_URL`
-- [x] `frontend/lib/api/dashboard.ts` — fallback `NEXT_PUBLIC_API_URL`
-- [x] `frontend/lib/api/monitoring.ts` — fallback `NEXT_PUBLIC_API_URL`
-- [x] `frontend/lib/api/sessions.ts` — fallback `NEXT_PUBLIC_API_URL`
-
-### Monitoring и Nginx (3 файла)
-- [x] `monitoring/prometheus/prometheus.yml` — исправлен postgres exporter target
-- [x] `nginx/nginx.conf` — исправлены upstream на Docker сервисы (`frontend:3000`, `backend:8000`)
-- [x] `nginx/nginx.conf.template` — обновлён комментарий
+### Рефакторинг и переиспользование
+- [x] **Shared useWebSocket hook** — создан общий хук для WebSocket соединений
+- [x] **NotificationsPanel** — рефакторинг с использованием `useWebSocket`
+- [x] **ChatWidget** — рефакторинг с использованием `useWebSocket`
 
 ---
 
@@ -46,43 +37,25 @@
 
 ### 2. Мёртвые зависимости в frontend (~18 пакетов) — ✅ ГОТОВО
 - **Файл:** `frontend/package.json`
-- **Статус:** Удалены все неиспользуемые пакеты: @reduxjs/toolkit, zustand, @tanstack/react-query, swr, react-query, clsx, date-fns, jwt-decode, qrcode.react, react-hook-form, react-hot-toast, tailwind-merge, zod, typescript (перемещён в devDependencies), @sentry/types, @testing-library/dom, critters, ts-node
-- **Влияние:** Значительное уменьшение bundle size и времени установки
+- **Статус:** Удалены все неиспользуемые пакеты
 
 ### 2b. Backend CORS origins — ✅ ГОТОВО
 - **Файл:** `backend/app/config.py`
-- **Статус:** Удалены `http://localhost:8000` и `http://127.0.0.1:8000` из `_dev_cors_origins` — backend не должен CORS-allow самого себя.
 
 ### 3. Три дублирующихся API клиента
-- **Файлы:**
-  - `frontend/lib/api/client.ts` — `fetchWithRetry`, `apiRequest`
-  - `frontend/lib/utils/api.ts` — `fetchAPI`, `api` объект, `WebSocketClient`
-  - `frontend/lib/api/auth.ts` — `login`, `register`, `getCurrentUser`
 - **Проблема:** Дублирование кода, несогласованность, hardcoded URL
-- **Влияние:** Сложность поддержки, потенциальные баги
 - **Решение:** Консолидировать в единый configured API client с interceptor'ами
 
 ### 4. Hardcoded localhost URLs в production коде — ✅ ЧАСТИЧНО ГОТОВО
-- **Статус:** Протестированные файлы исправлены (e2e.py, monitoring.test.ts). TODO.md entries для login/page.tsx:105 и stepik.ts:4 оказались неактуальны — эти файлы уже используют env vars.
-- **Оставшиеся:** CI/CD workflow файлы используют hardcoded localhost для CI среды — это приемлемо.
 
 ### 5. Фейковый CSRF токен (клиентская генерация)
-- **Файл:** `frontend/lib/hooks/useAuth.ts` — `generateCSRFToken()`
-- **Проблема:** CSRF токен генерируется на клиенте и хранится в localStorage
-- **Влияние:** Не обеспечивает никакой защиты от CSRF атак
 - **Решение:** Реализовать server-side CSRF generation + validation
 
 ### 6. JWT токены в localStorage (XSS уязвимость)
-- **Файл:** `frontend/lib/hooks/useAuth.ts`
-- **Проблема:** `access_token` и `refresh_token` хранятся в localStorage
-- **Влияние:** Уязвимость к XSS атакам
 - **Решение:** Перейти на httpOnly cookies для хранения токенов
 
-### 7. Отсутствует 401 interceptor для автоматического refresh
-- **Файлы:** `frontend/lib/api/client.ts`, `frontend/lib/utils/api.ts`
-- **Проблема:** При 401 ответе нет автоматического refresh токена
-- **Влияние:** Пользователь внезапно разлогинивается
-- **Решение:** Добавить interceptor для automatic token refresh on 401
+### 7. Отсутствует 401 interceptor для автоматического refresh — ✅ ГОТОВО
+- **Статус:** Реализован в `frontend/lib/api/client.ts`
 
 ---
 

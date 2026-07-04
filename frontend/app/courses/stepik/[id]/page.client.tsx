@@ -6,6 +6,7 @@ import type { StepikCourse, StepikInstructor, StepikSection, StepikLesson } from
 import ReviewList from '@/components/ReviewList';
 import ReviewForm from '@/components/ReviewForm';
 import { useState, useEffect } from 'react';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 interface CourseDetailProps {
   course: StepikCourse & {
@@ -24,7 +25,7 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
   useEffect(() => {
     // Check localStorage token for simple auth check
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) : null;
       setIsAuthenticated(Boolean(token));
     } catch {
       setIsAuthenticated(false);

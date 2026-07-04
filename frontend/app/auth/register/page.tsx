@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, Check } from '
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { register } from '@/lib/api/auth'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -30,7 +31,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     // Проверка, если пользователь уже авторизован
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     if (token) {
       router.push('/dashboard')
     }

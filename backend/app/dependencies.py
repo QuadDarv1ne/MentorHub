@@ -12,16 +12,7 @@ from fastapi import Depends, HTTPException, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-try:
-    import jwt
-except ImportError:
-    # Fallback для PyJWT
-    try:
-        import jwt as PyJWT_jwt
-
-        jwt = PyJWT_jwt
-    except ImportError:
-        raise ImportError("Необходимо установить PyJWT: pip install PyJWT") from None
+import jwt
 
 from app.config import settings
 from app.database import SessionLocal
@@ -270,17 +261,36 @@ def verify_session_access(
 
 
 class RateLimiter:
-    """Simple in-memory rate limiter"""
+    """Simple in-memory rate limiter with periodic cleanup"""
 
     def __init__(self, requests: int = 100, period: int = 3600):
         self.requests = requests
         self.period = period
         self.clients = defaultdict(list)
+        self._last_cleanup = datetime.now(timezone.utc)
+
+    def _cleanup_stale_clients(self) -> None:
+        """Remove clients with no recent requests to prevent memory leaks"""
+        now = datetime.now(timezone.utc)
+        # Only cleanup every 5 minutes
+        if (now - self._last_cleanup).total_seconds() < 300:
+            return
+
+        self._last_cleanup = now
+        cutoff = now - timedelta(seconds=self.period)
+        stale_keys = [
+            client_id for client_id, timestamps in self.clients.items()
+            if not timestamps or timestamps[-1] <= cutoff
+        ]
+        for key in stale_keys:
+            del self.clients[key]
 
     def is_allowed(self, client_id: str) -> bool:
         """Check if client is allowed to make request"""
         now = datetime.now(timezone.utc)
         cutoff = now - timedelta(seconds=self.period)
+
+        self._cleanup_stale_clients()
 
         self.clients[client_id] = [req_time for req_time in self.clients[client_id] if req_time > cutoff]
 

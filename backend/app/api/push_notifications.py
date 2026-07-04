@@ -211,7 +211,7 @@ async def send_push_notification(
             )
         else:
             # Отправка всем пользователям (можно добавить пагинацию)
-            all_users = db.query(User).filter(User.is_active is True).all()
+            all_users = db.query(User).filter(User.is_active == True).all()
             user_ids = [user.id for user in all_users]
 
             result = await fcm_service.send_bulk_notification(

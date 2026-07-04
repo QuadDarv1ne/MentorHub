@@ -41,6 +41,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem('user_name');
     localStorage.removeItem('user_role');
+    localStorage.removeItem('user_id');
     setUser(null);
     router.push('/auth/login');
   }, [router]);
@@ -118,6 +119,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       const userData = await getCurrentUser();
       localStorage.setItem('user_name', userData.full_name || userData.email);
       localStorage.setItem('user_role', userData.role);
+      localStorage.setItem('user_id', String(userData.id));
       setUser(userData);
       setError(null);
       router.push('/dashboard');

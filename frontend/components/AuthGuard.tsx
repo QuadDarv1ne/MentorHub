@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, AlertTriangle } from 'lucide-react'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -38,8 +39,8 @@ export default function AuthGuard({
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('access_token')
-      
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
+
       if (!token) {
         if (requireAuth) {
           const currentPath = window.location.pathname
@@ -51,8 +52,8 @@ export default function AuthGuard({
       }
 
       if (isTokenExpired(token)) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
         if (requireAuth) {
           const currentPath = window.location.pathname
           router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)

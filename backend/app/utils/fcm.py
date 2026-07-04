@@ -55,7 +55,7 @@ class FCMService:
         # Получаем активные токены пользователя
         device_tokens = db.query(DeviceToken).filter(
             DeviceToken.user_id == user_id,
-            DeviceToken.is_active is True
+            DeviceToken.is_active == True
         ).all()
 
         if not device_tokens:

@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import ProgressList, { type ProgressItem } from '@/components/ProgressList';
 import { getMyProgress } from '@/lib/api/progress';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 export default function ProgressDashboardPage() {
   const [items, setItems] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+  const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
   useEffect(() => {
     if (!isAuthenticated) return;

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { login, getCurrentUser } from '@/lib/api/auth'
+import { STORAGE_KEYS } from '@/lib/constants'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthButtons from '@/components/OAuthButtons'
 
@@ -24,7 +25,7 @@ function LoginForm() {
 
   useEffect(() => {
     // Проверка, если пользователь уже авторизован
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     if (token) {
       router.push('/dashboard')
     }
@@ -65,9 +66,9 @@ function LoginForm() {
       })
 
       // Store access token so getCurrentUser can use it
-      localStorage.setItem('access_token', authResponse.access_token)
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, authResponse.access_token)
       if (formData.rememberMe && authResponse.refresh_token) {
-        localStorage.setItem('refresh_token', authResponse.refresh_token)
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, authResponse.refresh_token)
       }
 
       // Get user profile via API client
@@ -77,6 +78,7 @@ function LoginForm() {
 
       localStorage.setItem('user_name', user.full_name || user.email)
       localStorage.setItem('user_role', user.role)
+      localStorage.setItem('user_id', String(user.id))
       setSuccess('Вход выполнен успешно!')
 
       setTimeout(() => {

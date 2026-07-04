@@ -5,9 +5,10 @@
 
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Send, X, MessageCircle, User, Check, CheckCheck } from 'lucide-react'
-import { getBaseUrl } from '@/lib/api/client'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 interface Message {
   id: number
@@ -31,121 +32,84 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting')
-  const [ws, setWs] = useState<WebSocket | null>(null)
   const [currentUserId, setCurrentUserId] = useState<number | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
-  // Get current user ID from stored user data
+  const handleWebSocketMessage = useCallback((data: Record<string, unknown>) => {
+    switch (data.type) {
+      case 'message':
+        setMessages(prev => [...prev, data as unknown as Message])
+        break
+      case 'typing':
+        setIsTyping(true)
+        setTimeout(() => setIsTyping(false), 3000)
+        break
+      case 'read':
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === data.message_id
+              ? { ...msg, is_read: true }
+              : msg
+          )
+        )
+        break
+    }
+  }, [])
+
+  const { connectionStatus, sendMessage: wsSend, connect, disconnect } = useWebSocket({
+    path: '/ws/chat',
+    autoReconnect: false,
+    useQueryParam: true,
+    onMessage: handleWebSocketMessage,
+  })
+
   useEffect(() => {
     try {
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
-        const user = JSON.parse(userStr)
-        setCurrentUserId(user?.id ?? null)
+      const userId = localStorage.getItem(STORAGE_KEYS.USER_ID)
+      if (userId) {
+        setCurrentUserId(parseInt(userId))
       }
     } catch {
       // Ignore parse errors
     }
   }, [])
 
-  // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // WebSocket connection
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    if (!isOpen || !token) return
-
-    const baseUrl = getBaseUrl().replace('http', 'ws')
-    const websocketUrl = `${baseUrl}/ws/chat?token=${token}`
-    const socket = new WebSocket(websocketUrl)
-
-    socket.onopen = () => {
-      setConnectionStatus('connected')
-      setWs(socket)
+    if (isOpen) {
+      connect()
+    } else {
+      disconnect()
     }
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        
-        switch (data.type) {
-          case 'message':
-            setMessages(prev => [...prev, data])
-            break
-          case 'typing':
-            setIsTyping(true)
-            setTimeout(() => setIsTyping(false), 3000)
-            break
-          case 'read':
-            setMessages(prev => 
-              prev.map(msg => 
-                msg.id === data.message_id 
-                  ? { ...msg, is_read: true } 
-                  : msg
-              )
-            )
-            break
-          case 'connected':
-            break
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error)
-      }
-    }
-
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error)
-      setConnectionStatus('disconnected')
-    }
-
-    socket.onclose = () => {
-      setConnectionStatus('disconnected')
-    }
-
-    return () => {
-      // Cleanup typing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current)
-        typingTimeoutRef.current = undefined
-      }
-      // Close WebSocket connection
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close()
-      }
-      setWs(null)
-    }
-  }, [isOpen])
+  }, [isOpen, connect, disconnect])
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !ws || ws.readyState !== WebSocket.OPEN) return
+    if (!newMessage.trim() || connectionStatus !== 'connected') return
 
-    const messageData = {
+    wsSend({
       type: 'message',
       recipient_id: recipientId,
       content: newMessage.trim()
-    }
-
-    ws.send(JSON.stringify(messageData))
+    })
     setNewMessage('')
   }
 
   const sendTypingIndicator = () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return
-    
+    if (connectionStatus !== 'connected') return
+
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
 
-    ws.send(JSON.stringify({
+    wsSend({
       type: 'typing',
       recipient_id: recipientId
-    }))
+    })
 
     typingTimeoutRef.current = setTimeout(() => {
       // Typing stopped
@@ -173,17 +137,17 @@ export function ChatWidget({ recipientId, recipientName, isOpen, onClose }: Chat
             <h3 className="font-semibold text-gray-900">{recipientName}</h3>
             <div className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-full ${
-                connectionStatus === 'connected' ? 'bg-green-500' : 
+                connectionStatus === 'connected' ? 'bg-green-500' :
                 connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
               }`} />
               <span className="text-xs text-gray-500 capitalize">
-                {connectionStatus === 'connected' ? 'Online' : 
+                {connectionStatus === 'connected' ? 'Online' :
                  connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
               </span>
             </div>
           </div>
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
           aria-label="Close chat"

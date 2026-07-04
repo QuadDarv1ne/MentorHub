@@ -83,6 +83,7 @@ export async function logout(): Promise<void> {
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
     localStorage.removeItem('user_name')
     localStorage.removeItem('user_role')
+    localStorage.removeItem('user_id')
   }
 }
 
