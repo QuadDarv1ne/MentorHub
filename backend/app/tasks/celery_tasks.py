@@ -7,10 +7,9 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from celery import Celery
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
+from app.database import SessionLocal
 from app.utils.email import email_service
 
 logger = logging.getLogger(__name__)
@@ -33,10 +32,6 @@ celery_app.conf.update(
     task_time_limit=30 * 60,  # 30 минут
     task_soft_time_limit=25 * 60,  # 25 минут
 )
-
-# Database session для tasks
-engine = create_engine(settings.DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @celery_app.task(name="send_verification_email_task")

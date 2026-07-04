@@ -3,6 +3,8 @@ Constants module for MentorHub Backend
 Centralized constants for maintainability and consistency
 """
 
+import string
+
 # ==================== TIME CONSTANTS (SECONDS) ====================
 # Cache TTLs
 CACHE_TTL_DEFAULT = 300  # 5 minutes
@@ -102,7 +104,6 @@ ACCESS_TOKEN_MAX_LENGTH = 2048
 # ==================== OAUTH VALIDATION ====================
 # OAuth secrets minimum length for security
 OAUTH_SECRET_MIN_LENGTH = 10  # Minimum length for OAuth client secrets
-OAUTH_STATE_EXPIRE_SECONDS = 600  # 10 minutes
 OAUTH_TOKEN_EXPIRE_SECONDS = 3600  # 1 hour
 
 # Google OAuth
@@ -281,8 +282,8 @@ COMMON_PASSWORDS = [
     "123123", "654321",
 ]
 
-# Password alphabet for generation
-PASSWORD_ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
+# Password alphabet for generation (built from string constants)
+PASSWORD_ALPHABET = string.ascii_letters + string.digits + "!@#$%^&*()"
 
 # Typing indicator timeout
 TYPING_INDICATOR_TIMEOUT = 3000  # 3 seconds

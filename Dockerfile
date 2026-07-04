@@ -4,7 +4,7 @@
 # =====================================================
 
 # ==================== STAGE 1: Frontend Build ====================
-FROM node:26-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -26,7 +26,7 @@ RUN npm run build
 RUN npm cache clean --force
 
 # ==================== STAGE 2: Backend Build ====================
-FROM python:3.14-alpine AS backend-builder
+FROM python:3.12-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -44,7 +44,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # ==================== STAGE 3: Production Image ====================
-FROM python:3.14-alpine
+FROM python:3.12-alpine
 
 # Минимальный набор пакетов + nginx
 RUN apk add --no-cache \
@@ -68,7 +68,7 @@ ENV PYTHONUNBUFFERED=1 \
     MALLOC_ARENA_MAX=2
 
 # Копируем зависимости backend
-COPY --from=backend-builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=backend-builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=backend-builder /usr/local/bin /usr/local/bin
 
 # Копируем backend код

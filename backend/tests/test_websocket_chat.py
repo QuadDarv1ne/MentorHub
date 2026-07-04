@@ -92,7 +92,7 @@ class TestWebSocketChat:
 
     def test_websocket_invalid_token(self):
         """Тест проверки неверного токена"""
-        invalid_token = "invalid.token.here"
+        invalid_token = "not.a.valid.jwt.token"
         
         # Проверяем что токен невалидный
         assert invalid_token is not None

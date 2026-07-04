@@ -83,6 +83,7 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token',
   USER_DATA: 'user_data',
+  USER_ID: 'user_id',
   USER_NAME: 'user_name',
   THEME: 'theme',
   LANGUAGE: 'language',
@@ -251,8 +252,8 @@ export const LIMITS = {
   MAX_MESSAGE_LENGTH: 1000,
   MAX_BIO_LENGTH: 500,
   MAX_TITLE_LENGTH: 100,
-  MIN_PASSWORD_LENGTH: 6,
-  MAX_PASSWORD_LENGTH: 50,
+  MIN_PASSWORD_LENGTH: 8,
+  MAX_PASSWORD_LENGTH: 128,
   MAX_PAGE_SIZE: 100,
   DEFAULT_PAGE_SIZE: 20,
   MAX_UPLOAD_SIZE: 10 * 1024 * 1024, // 10 MB

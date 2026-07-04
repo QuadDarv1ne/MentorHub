@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, Check } from '
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { register } from '@/lib/api/auth'
-import { STORAGE_KEYS } from '@/lib/constants'
+import { STORAGE_KEYS, LIMITS } from '@/lib/constants'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -42,7 +42,7 @@ export default function RegisterPage() {
     const password = formData.password
     let strength = 0
     
-    if (password.length >= 6) strength++
+    if (password.length >= LIMITS.MIN_PASSWORD_LENGTH) strength++
     if (password.length >= 10) strength++
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++
     if (/\d/.test(password)) strength++
@@ -88,8 +88,8 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Пароль должен быть не менее 6 символов')
+    if (formData.password.length < LIMITS.MIN_PASSWORD_LENGTH) {
+      setError(`Пароль должен быть не менее ${LIMITS.MIN_PASSWORD_LENGTH} символов`)
       setLoading(false)
       return
     }

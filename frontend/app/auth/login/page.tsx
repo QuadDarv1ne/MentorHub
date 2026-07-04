@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { login, getCurrentUser } from '@/lib/api/auth'
-import { STORAGE_KEYS } from '@/lib/constants'
+import { STORAGE_KEYS, LIMITS } from '@/lib/constants'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import OAuthButtons from '@/components/OAuthButtons'
 
@@ -52,8 +52,8 @@ function LoginForm() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Пароль должен быть не менее 6 символов')
+    if (formData.password.length < LIMITS.MIN_PASSWORD_LENGTH) {
+      setError(`Пароль должен быть не менее ${LIMITS.MIN_PASSWORD_LENGTH} символов`)
       setLoading(false)
       return
     }

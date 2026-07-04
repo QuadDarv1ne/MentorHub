@@ -27,7 +27,7 @@ export default function NotificationsPanel() {
       const newNotification = data as unknown as Notification
       setNotifications(prev => [newNotification, ...prev])
       setUnreadCount(prev => prev + 1)
-      toast.success(newNotification.title, newNotification.message)
+      toast.success(newNotification.message || newNotification.title)
     }
   }, [toast])
 

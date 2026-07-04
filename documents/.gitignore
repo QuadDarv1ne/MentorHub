@@ -9,5 +9,7 @@
 # - WEBSOCKET_CHAT.md → docs/FEATURES/
 # - И другие
 
+# Игнорируем всё содержимое (кроме .gitkeep для сохранения директории)
 *
 !.gitignore
+!.gitkeep

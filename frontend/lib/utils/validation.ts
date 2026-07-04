@@ -2,6 +2,8 @@
  * Утилиты для валидации данных
  */
 
+import { LIMITS } from '@/lib/constants'
+
 /**
  * Валидация email адреса
  */
@@ -31,8 +33,8 @@ export function validatePassword(password: string): PasswordValidation {
   const errors: string[] = []
   let strength = 0
 
-  if (password.length < 6) {
-    errors.push('Пароль должен быть не менее 6 символов')
+  if (password.length < LIMITS.MIN_PASSWORD_LENGTH) {
+    errors.push(`Пароль должен быть не менее ${LIMITS.MIN_PASSWORD_LENGTH} символов`)
   } else {
     strength++
   }
