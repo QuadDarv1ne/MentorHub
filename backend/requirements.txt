@@ -31,7 +31,7 @@ redis>=5.2.0
 cachetools>=5.5.0
 
 # ==================== HTTP CLIENT ====================
-httpx>=0.28.0
+httpx>=0.28.1
 requests>=2.32.3
 urllib3>=2.0.0,<3.0.0
 
