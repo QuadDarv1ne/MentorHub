@@ -9,12 +9,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload, selectinload
 
-from app.dependencies import get_current_user, get_db, rate_limit_dependency
+from app.dependencies import get_current_user, get_current_user_mentor_id, get_db, rate_limit_dependency
 from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
 from app.models.user import User
 from app.schemas.session import SessionCreate, SessionResponse, SessionUpdate
-from app.utils.sanitization import is_safe_string, sanitize_string
+from app.utils.sanitization import sanitize_and_validate
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,21 +46,16 @@ async def get_my_sessions(
     status: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список сессий текущего пользователя (как студента или ментора)"""
-    # Get the user's mentor ID (if they are a mentor)
-    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
-    mentor_id = mentor.id if mentor else None
 
     # Build query for sessions where user is either student or mentor
     query = db.query(DBSession).filter(
         (DBSession.student_id == current_user.id) |
         (DBSession.mentor_id == mentor_id if mentor_id else False)
-    )
-
-    # Join with mentor, student and payments to avoid N+1 problem
-    query = query.options(
+    ).options(
         joinedload(DBSession.mentor),
         joinedload(DBSession.student),
         selectinload(DBSession.payments)
@@ -78,16 +73,13 @@ async def get_session(
     session_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить информацию о сессии по ID"""
     session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-
-    # Get user's mentor ID for comparison
-    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
-    mentor_id = mentor.id if mentor else None
 
     # Проверка доступа: студент, ментор или админ
     if (session.student_id != current_user.id and
@@ -111,14 +103,11 @@ async def create_session(
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права ментора.")
 
     # Санитизация входных данных
-    sanitized_meeting_link = sanitize_string(session.meeting_link) if session.meeting_link else None
-    sanitized_notes = sanitize_string(session.notes) if session.notes else None
-
-    # Проверка на безопасность входных данных
-    if sanitized_meeting_link and not is_safe_string(sanitized_meeting_link):
-        raise HTTPException(status_code=400, detail="Недопустимые символы в ссылке на встречу")
-    if sanitized_notes and not is_safe_string(sanitized_notes):
-        raise HTTPException(status_code=400, detail="Недопустимые символы в заметках")
+    try:
+        sanitized_meeting_link = sanitize_and_validate(session.meeting_link, field_name="ссылке на встречу") if session.meeting_link else None
+        sanitized_notes = sanitize_and_validate(session.notes, field_name="заметках") if session.notes else None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # Проверяем, что студент и ментор существуют одним запросом (N+1 fix)
     user_ids = {session.student_id, session.mentor_id}
@@ -167,16 +156,13 @@ async def update_session(
     session: SessionUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Обновить сессию (только для участников сессии или администратора)"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-
-    # Get user's mentor ID for comparison
-    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
-    mentor_id = mentor.id if mentor else None
 
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and
@@ -188,11 +174,11 @@ async def update_session(
     sanitized_data = {}
     for key, value in session.model_dump(exclude_unset=True).items():
         if key in ["meeting_link", "notes"] and value is not None:
-            sanitized_value = sanitize_string(value)
-            if not is_safe_string(sanitized_value):
+            try:
                 field_name = "ссылке на встречу" if key == "meeting_link" else "заметках"
-                raise HTTPException(status_code=400, detail=f"Недопустимые символы в {field_name}")
-            sanitized_data[key] = sanitized_value
+                sanitized_data[key] = sanitize_and_validate(value, field_name=field_name)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         else:
             sanitized_data[key] = value
 
@@ -215,16 +201,13 @@ async def delete_session(
     session_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Удалить сессию (только для участников сессии или администратора)"""
     db_session = db.query(DBSession).filter(DBSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Сессия не найдена")
-
-    # Get user's mentor ID for comparison
-    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
-    mentor_id = mentor.id if mentor else None
 
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and

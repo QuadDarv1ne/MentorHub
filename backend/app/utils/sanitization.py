@@ -37,6 +37,36 @@ def sanitize_string(text: str, max_length: int = 1000) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def sanitize_and_validate(value: str, field_type: str = "string", field_name: str = "поле") -> str:
+    """
+    Sanitize a string field and raise ValueError if it contains XSS payloads.
+
+    Repeated across multiple API endpoints — this centralizes the pattern:
+        sanitize -> is_safe_string -> raise if unsafe.
+
+    Args:
+        value: Raw input string.
+        field_type: One of "string", "email", "username", "text".
+        field_name: Human-readable field name for the error message.
+
+    Returns:
+        Sanitized string.
+
+    Raises:
+        ValueError: If the sanitized value contains dangerous content.
+    """
+    sanitizer_map = {
+        "email": sanitize_email,
+        "username": sanitize_username,
+        "text": sanitize_text_field,
+    }
+    sanitizer = sanitizer_map.get(field_type, sanitize_string)
+    sanitized = sanitizer(value)
+    if not is_safe_string(sanitized):
+        raise ValueError(f"Недопустимые символы в {field_name}")
+    return sanitized
+
+
 def sanitize_email(email: str) -> str:
     """
     Санитизация email адреса
@@ -115,32 +145,22 @@ def sanitize_text_field(text: str, max_length: int = 5000) -> str:
 
 def is_safe_string(text: str) -> bool:
     """
-    Проверка строки на потенциально опасное содержание
+    Проверка строки на потенциально опасное XSS содержание.
+
+    SQL инъекции не проверяются — SQLAlchemy ORM использует параметризованные
+    запросы, которые уже защищают от SQLi. Проверка по ключевым словам
+    (select, union, drop и т.д.) только создавала ложные срабатывания
+    (например, "select a mentor", "create an account").
 
     Args:
         text: Проверяемая строка
 
     Returns:
-        True если строка безопасна, False если содержит опасное содержание
+        True если строка безопасна, False если содержит XSS payload
     """
     if not text:
         return True
 
-    # Проверяем на наличие SQL инъекций
-    sql_patterns = [
-        r"\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b",
-        r"--",
-        r";",
-        r"\/\*",
-        r"\*\/",
-    ]
-
-    text_lower = text.lower()
-    for pattern in sql_patterns:
-        if re.search(pattern, text_lower, re.IGNORECASE):
-            return False
-
-    # Проверяем на наличие XSS
     xss_patterns = [
         r"<script",
         r"javascript:",
@@ -152,6 +172,7 @@ def is_safe_string(text: str) -> bool:
         r"<embed",
     ]
 
+    text_lower = text.lower()
     return all(not re.search(pattern, text_lower, re.IGNORECASE) for pattern in xss_patterns)
 
 

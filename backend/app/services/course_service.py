@@ -12,7 +12,7 @@ from app.models.course import Course, CourseEnrollment, Lesson
 from app.models.mentor import Mentor
 from app.models.user import User
 from app.schemas.course import CourseCreate, CourseUpdate, LessonCreate, LessonUpdate
-from app.utils.sanitization import is_safe_string, sanitize_text_field
+from app.utils.sanitization import sanitize_and_validate
 
 
 class CourseService:
@@ -26,11 +26,8 @@ class CourseService:
         sanitized = {}
         for key, value in data.items():
             if key in ["title", "description", "category"] and value is not None:
-                sanitized_value = sanitize_text_field(value)
-                if not is_safe_string(sanitized_value):
-                    field_name = "названии" if key == "title" else "описании" if key == "description" else "категории"
-                    raise ValueError(f"Недопустимые символы в {field_name} курса")
-                sanitized[key] = sanitized_value
+                field_name = "названии" if key == "title" else "описании" if key == "description" else "категории"
+                sanitized[key] = sanitize_and_validate(value, field_type="text", field_name=f"{field_name} курса")
             else:
                 sanitized[key] = value
         return sanitized
@@ -40,11 +37,8 @@ class CourseService:
         sanitized = {}
         for key, value in data.items():
             if key in ["title", "description", "content"] and value is not None:
-                sanitized_value = sanitize_text_field(value)
-                if not is_safe_string(sanitized_value):
-                    field_name = "названии" if key == "title" else "описании" if key == "description" else "содержании"
-                    raise ValueError(f"Недопустимые символы в {field_name} урока")
-                sanitized[key] = sanitized_value
+                field_name = "названии" if key == "title" else "описании" if key == "description" else "содержании"
+                sanitized[key] = sanitize_and_validate(value, field_type="text", field_name=f"{field_name} урока")
             else:
                 sanitized[key] = value
         return sanitized

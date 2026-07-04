@@ -10,7 +10,7 @@ from app.dependencies import get_current_user, get_current_user_optional, get_db
 from app.models import CourseEnrollment, Review, User
 from app.schemas.common import PaginatedResponse
 from app.schemas.review import ReviewAggregate, ReviewCreate, ReviewCreateGeneric, ReviewRead
-from app.utils.sanitization import sanitize_text_field
+from app.utils.sanitization import sanitize_and_validate
 
 router = APIRouter()
 
@@ -41,7 +41,7 @@ def create_review(
             user_id=current_user.id,
             course_id=course_id,
             rating=payload.rating,
-            comment=sanitize_text_field(payload.comment) if payload.comment else None,
+            comment=sanitize_and_validate(payload.comment, field_type="text", field_name="комментарии") if payload.comment else None,
         )
         db.add(review)
         db.commit()
@@ -154,7 +154,7 @@ def create_review_generic(
         reviewed_id=payload.reviewed_id,
         course_id=None,
         rating=payload.rating,
-        comment=sanitize_text_field(payload.comment) if payload.comment else None,
+        comment=sanitize_and_validate(payload.comment, field_type="text", field_name="комментарии") if payload.comment else None,
     )
     db.add(review)
     db.commit()

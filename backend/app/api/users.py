@@ -12,7 +12,7 @@ from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.cache import cached
-from app.utils.sanitization import is_safe_string, sanitize_string, sanitize_username
+from app.utils.sanitization import sanitize_and_validate
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -35,17 +35,13 @@ async def update_current_user_profile(
 ):
     """Обновить профиль текущего пользователя"""
 
-    # Санитизация входных данных
-    sanitized_full_name = sanitize_string(user_update.full_name) if user_update.full_name is not None else None
-    sanitized_avatar_url = sanitize_string(user_update.avatar_url) if user_update.avatar_url is not None else None
-    sanitized_username = sanitize_username(user_update.username) if user_update.username is not None else None
-
-    # Проверка на безопасность входных данных
-    if sanitized_username and not is_safe_string(sanitized_username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Недопустимые символы в username",
-        )
+    # Санитизация и валидация входных данных
+    try:
+        sanitized_full_name = sanitize_and_validate(user_update.full_name, field_name="имени") if user_update.full_name is not None else None
+        sanitized_avatar_url = sanitize_and_validate(user_update.avatar_url, field_name="URL аватара") if user_update.avatar_url is not None else None
+        sanitized_username = sanitize_and_validate(user_update.username, field_type="username", field_name="username") if user_update.username is not None else None
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     # Обновление полей
     if sanitized_full_name is not None:

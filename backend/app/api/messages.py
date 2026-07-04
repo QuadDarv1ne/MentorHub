@@ -15,7 +15,7 @@ from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.message import Message as DBMessage
 from app.models.user import User
 from app.schemas.message import ConversationResponse, MessageCreate, MessageListResponse, MessageResponse, MessageUpdate
-from app.utils.sanitization import is_safe_string, sanitize_text_field
+from app.utils.sanitization import sanitize_and_validate
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -199,12 +199,11 @@ async def create_message(
     if message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
-    # Санитизация входных данных
-    sanitized_content = sanitize_text_field(message.content)
-
-    # Проверка на безопасность входных данных
-    if not is_safe_string(sanitized_content):
-        raise HTTPException(status_code=400, detail="Недопустимые символы в сообщении")
+    # Санитизация и валидация входных данных
+    try:
+        sanitized_content = sanitize_and_validate(message.content, field_type="text", field_name="сообщении")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # Проверяем, что получатель существует
     recipient = db.query(User).filter(User.id == message.recipient_id).first()
@@ -236,14 +235,14 @@ async def update_message(
     if db_message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
-    # Санитизация входных данных
+    # Санитизация и валидация входных данных
     sanitized_data = {}
     for key, value in message.model_dump(exclude_unset=True).items():
         if key == "content" and value is not None:
-            sanitized_value = sanitize_text_field(value)
-            if not is_safe_string(sanitized_value):
-                raise HTTPException(status_code=400, detail="Недопустимые символы в сообщении")
-            sanitized_data[key] = sanitized_value
+            try:
+                sanitized_data[key] = sanitize_and_validate(value, field_type="text", field_name="сообщении")
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         else:
             sanitized_data[key] = value
 

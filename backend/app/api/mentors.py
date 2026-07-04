@@ -19,7 +19,7 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.mentor import MentorCreate, MentorResponse, MentorUpdate
 from app.services.cache import cached
 from app.utils.cache import invalidate_cache
-from app.utils.sanitization import is_safe_string, sanitize_string, sanitize_text_field
+from app.utils.sanitization import sanitize_and_validate
 
 logger = logging.getLogger(__name__)
 
@@ -68,15 +68,12 @@ async def create_mentor(
     if mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете создать профиль только от своего имени.")
 
-    # Санитизация входных данных
-    sanitized_bio = sanitize_text_field(mentor.bio) if mentor.bio else None
-    sanitized_specialization = sanitize_string(mentor.specialization) if mentor.specialization else None
-
-    # Проверка на безопасность входных данных
-    if sanitized_bio and not is_safe_string(sanitized_bio):
-        raise HTTPException(status_code=400, detail="Недопустимые символы в биографии")
-    if sanitized_specialization and not is_safe_string(sanitized_specialization):
-        raise HTTPException(status_code=400, detail="Недопустимые символы в специализации")
+    # Санитизация и валидация входных данных
+    try:
+        sanitized_bio = sanitize_and_validate(mentor.bio, field_type="text", field_name="биографии") if mentor.bio else None
+        sanitized_specialization = sanitize_and_validate(mentor.specialization, field_name="специализации") if mentor.specialization else None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     # Проверяем, что пользователь существует
     user = db.query(User).filter(User.id == mentor.user_id).first()
@@ -126,19 +123,19 @@ async def update_mentor(
     if db_mentor.user_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы можете редактировать только свой профиль.")
 
-    # Санитизация входных данных
+    # Санитизация и валидация входных данных
     sanitized_data = {}
     for key, value in mentor.model_dump(exclude_unset=True).items():
         if key == "bio" and value is not None:
-            sanitized_value = sanitize_text_field(value)
-            if not is_safe_string(sanitized_value):
-                raise HTTPException(status_code=400, detail="Недопустимые символы в биографии")
-            sanitized_data[key] = sanitized_value
+            try:
+                sanitized_data[key] = sanitize_and_validate(value, field_type="text", field_name="биографии")
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         elif key == "specialization" and value is not None:
-            sanitized_value = sanitize_string(value)
-            if not is_safe_string(sanitized_value):
-                raise HTTPException(status_code=400, detail="Недопустимые символы в специализации")
-            sanitized_data[key] = sanitized_value
+            try:
+                sanitized_data[key] = sanitize_and_validate(value, field_name="специализации")
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
         else:
             sanitized_data[key] = value
 

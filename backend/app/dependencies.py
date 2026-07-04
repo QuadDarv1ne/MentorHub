@@ -141,6 +141,16 @@ def get_current_student(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+def get_current_user_mentor_id(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Optional[int]:
+    """Return the mentor profile ID for the current user, or None if not a mentor."""
+    from app.models.mentor import Mentor
+    mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
+    return mentor.id if mentor else None
+
+
 # ==================== OPTIONAL AUTHENTICATION ====================
 
 

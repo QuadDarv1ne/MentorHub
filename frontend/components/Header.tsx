@@ -30,6 +30,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.USER_NAME)
     localStorage.removeItem(STORAGE_KEYS.USER_ID)
     setIsAuthenticated(false)

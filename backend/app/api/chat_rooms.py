@@ -24,7 +24,7 @@ from app.schemas.chat_room import (
     ChatRoomWithMembersResponse,
 )
 from app.services.chat_room_service import ChatRoomService, format_room_response
-from app.utils.sanitization import is_safe_string, sanitize_string
+from app.utils.sanitization import sanitize_and_validate
 
 router = APIRouter()
 
@@ -289,9 +289,10 @@ async def send_chat_message(
             raise HTTPException(status_code=404, detail="Родительское сообщение не найдено")
 
     # Санитизация контента сообщения (XSS protection)
-    sanitized_content = sanitize_string(message.content)
-    if not is_safe_string(sanitized_content):
-        raise HTTPException(status_code=400, detail="Сообщение содержит недопустимые символы")
+    try:
+        sanitized_content = sanitize_and_validate(message.content, field_name="сообщении")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     db_message = ChatMessage(
         room_id=room_id,
@@ -309,15 +310,12 @@ async def send_chat_message(
     db.commit()
     db.refresh(db_message)
 
-    # Получаем данные отправителя
-    sender = db.query(User).filter(User.id == current_user.id).first()
-
     return {
         "id": db_message.id,
         "room_id": db_message.room_id,
         "sender_id": db_message.sender_id,
-        "sender_username": sender.username,
-        "sender_avatar": sender.avatar_url,
+        "sender_username": current_user.username,
+        "sender_avatar": current_user.avatar_url,
         "content": db_message.content,
         "is_edited": db_message.is_edited,
         "is_deleted": db_message.is_deleted,
@@ -351,10 +349,10 @@ async def edit_chat_message(
 
     # Санитизация нового контента (XSS protection)
     if message_data.content:
-        sanitized_content = sanitize_string(message_data.content)
-        if not is_safe_string(sanitized_content):
-            raise HTTPException(status_code=400, detail="Сообщение содержит недопустимые символы")
-        db_message.content = sanitized_content
+        try:
+            db_message.content = sanitize_and_validate(message_data.content, field_name="сообщении")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     db_message.is_edited = True
     db_message.updated_at = datetime.now(timezone.utc)
@@ -362,14 +360,12 @@ async def edit_chat_message(
     db.commit()
     db.refresh(db_message)
 
-    sender = db.query(User).filter(User.id == current_user.id).first()
-
     return {
         "id": db_message.id,
         "room_id": db_message.room_id,
         "sender_id": db_message.sender_id,
-        "sender_username": sender.username,
-        "sender_avatar": sender.avatar_url,
+        "sender_username": current_user.username,
+        "sender_avatar": current_user.avatar_url,
         "content": db_message.content,
         "is_edited": db_message.is_edited,
         "is_deleted": db_message.is_deleted,

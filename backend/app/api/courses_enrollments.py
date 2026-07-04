@@ -13,15 +13,9 @@ from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.course import Course, CourseEnrollment
 from app.models.user import User
 from app.schemas.course import CourseEnrollmentResponse, CourseWithEnrollmentResponse
-from app.services.course_service import CourseService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _get_course_service(db: Session) -> CourseService:
-    """Получить сервис курсов"""
-    return CourseService(db)
 
 
 @router.get("/my", response_model=List[CourseWithEnrollmentResponse])
