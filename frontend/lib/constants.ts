@@ -318,11 +318,11 @@ export const SOCIAL_LINKS = {
   TELEGRAM: 'https://t.me/mentorhub_community',
 } as const
 
-// Контакты
+// Контакты (из env vars, без хардкода в коде)
 export const CONTACTS = {
-  EMAIL: 'maksimqwe42@mail.ru',
-  PHONE: '+79150480249',
-  TELEGRAM: '@quadd4rv1n7',
+  EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL || '',
+  PHONE: process.env.NEXT_PUBLIC_CONTACT_PHONE || '',
+  TELEGRAM: process.env.NEXT_PUBLIC_CONTACT_TELEGRAM || '',
 } as const
 
 // Допустимые типы файлов

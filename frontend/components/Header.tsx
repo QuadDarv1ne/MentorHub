@@ -1,42 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu, X, User, LogOut, MessageSquare } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { NotificationCenter } from './NotificationCenter'
 import { NavMenu, MobileNavMenu } from './navigation/NavMenu'
 import ThemeToggle from './ThemeToggle'
-import { STORAGE_KEYS } from '@/lib/constants'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userName, setUserName] = useState('')
-  const router = useRouter()
-
-  useEffect(() => {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
-    setIsAuthenticated(!!token)
-    
-    if (token) {
-      // Попытка получить имя пользователя из localStorage или API
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_NAME)
-      if (storedUser) {
-        setUserName(storedUser)
-      }
-    }
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-    localStorage.removeItem(STORAGE_KEYS.USER_NAME)
-    localStorage.removeItem(STORAGE_KEYS.USER_ID)
-    setIsAuthenticated(false)
-    setUserName('')
-    router.push('/')
-  }
+  const { isAuthenticated, user, logout } = useAuth({ redirectOnAuth: false })
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-200">
@@ -80,10 +54,10 @@ export default function Header() {
                   className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   <User size={20} />
-                  <span>{userName || 'Профиль'}</span>
+                  <span>{user?.full_name || user?.username || 'Профиль'}</span>
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={logout}
                   className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                   aria-label="Выйти"
                 >
@@ -124,13 +98,13 @@ export default function Header() {
                 <>
                   <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 transition-colors">
                     <User size={20} />
-                    <span>{userName || 'Профиль'}</span>
+                    <span>{user?.full_name || user?.username || 'Профиль'}</span>
                   </Link>
                   <Link href="/notifications" className="text-gray-700 hover:text-indigo-600 transition-colors">
                     Уведомления
                   </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
                     aria-label="Выйти"
                   >
