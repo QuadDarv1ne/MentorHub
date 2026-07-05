@@ -113,8 +113,8 @@ function clearAuthAndRedirect(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN)
-    localStorage.removeItem('user_name')
-    localStorage.removeItem('user_role')
+    localStorage.removeItem(STORAGE_KEYS.USER_NAME)
+    localStorage.removeItem(STORAGE_KEYS.USER_ID)
     window.location.href = '/auth/login'
   }
 }
@@ -132,7 +132,7 @@ interface RetryConfig {
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: RETRY.MAX_ATTEMPTS > 3 ? 3 : RETRY.MAX_ATTEMPTS,
   retryDelay: RETRY.DELAY,
-  retryStatusCodes: [401, 408, 429, 500, 502, 503, 504],
+  retryStatusCodes: [408, 429, 500, 502, 503, 504],
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -243,34 +243,31 @@ export async function apiRequest<T>(
   } catch (error) {
     // Handle 401 with automatic token refresh
     if (error instanceof ApiError && error.status === 401 && _refreshTokenCallback) {
-      const storedRefreshToken = getRefreshToken()
-      if (storedRefreshToken) {
-        try {
-          // Reuse pending refresh promise to prevent race conditions
-          if (!_pendingRefresh) {
-            _pendingRefresh = _refreshTokenCallback(storedRefreshToken)
-              .catch((): null => null)
-              .finally((): void => {
-                _pendingRefresh = null
-              })
-          }
-          const newToken = await _pendingRefresh
-          if (newToken) {
-            // Retry with new token
-            headers['Authorization'] = `Bearer ${newToken}`
-            const response = await fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
-              ...options,
-              headers,
+      try {
+        // Reuse pending refresh promise to prevent race conditions
+        if (!_pendingRefresh) {
+          _pendingRefresh = _refreshTokenCallback('')
+            .catch((): null => null)
+            .finally((): void => {
+              _pendingRefresh = null
             })
-            if (response.status === 204) return null as T
-            const data = await response.json()
-            return data as T
-          }
-        } catch {
-          // Refresh failed — clear auth and redirect
-          clearAuthAndRedirect()
-          throw new AuthError('Session expired, please login again')
         }
+        const newToken = await _pendingRefresh
+        if (newToken) {
+          // Retry with new token
+          headers['Authorization'] = `Bearer ${newToken}`
+          const response = await fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
+            ...options,
+            headers,
+          })
+          if (response.status === 204) return null as T
+          const data = await response.json()
+          return data as T
+        }
+      } catch {
+        // Refresh failed — clear auth and redirect
+        clearAuthAndRedirect()
+        throw new AuthError('Session expired, please login again')
       }
       clearAuthAndRedirect()
       throw new AuthError('Session expired, please login again')
