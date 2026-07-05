@@ -8,7 +8,7 @@ meta:
     name: docker
 
 build:
-  dockerfile: ./Dockerfile
+  dockerfile: Dockerfile
 
 run:
   containerPort: 8000

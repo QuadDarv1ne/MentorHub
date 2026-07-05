@@ -1,46 +1,45 @@
 #!/bin/bash
 # =====================================================
 # MentorHub Startup Script - Nginx Reverse Proxy
-# Запускает: Nginx (PORT) + Backend (8000) + Frontend (3000)
+# Starts: Nginx (PORT) + Backend (8000) + Frontend (3000)
+# Works with both Render and Amvera Cloud
 # =====================================================
 
 set -e
 
 echo "========================================="
-echo "🔍 MentorHub Environment Check"
+echo "MentorHub Environment Check"
 echo "========================================="
 echo "ENVIRONMENT: ${ENVIRONMENT:-not set}"
-echo "PORT: ${PORT:-not set} (Render выделяет этот порт)"
+echo "PORT: ${PORT:-not set}"
 echo "DATABASE_URL: ${DATABASE_URL:+***SET***}"
 echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
-echo "RENDER: ${RENDER:-not set}"
 echo "========================================="
 
-# Оптимизация памяти для Node.js (Frontend)
+# Node.js memory optimization (Frontend)
 export NODE_OPTIONS="--max-old-space-size=256"
 
-# Оптимизация для Python (Backend)
+# Python optimization (Backend)
 export PYTHONMALLOC=malloc
 export MALLOC_ARENA_MAX=2
 export PYTHONDONTWRITEBYTECODE=1
 
 # =====================================================
-# ОПРЕДЕЛЕНИЕ ПОРТОВ
+# PORT DEFINITION
 # =====================================================
 
-# Render устанавливает PORT - nginx будет слушать на этом порту
-# Backend и Frontend работают на внутренних портах
+# Use PORT from environment (set by Render/Amvera) or default to 8000
 export NGINX_PORT="${PORT:-8000}"
 export BACKEND_PORT="8000"
 export FRONTEND_PORT="3000"
 
-# Важно: hostname должен быть 0.0.0.0 для доступности извне
+# Host must be 0.0.0.0 for external access
 export HOSTNAME="0.0.0.0"
 
 echo "========================================="
-echo "🚀 Starting MentorHub..."
+echo "Starting MentorHub..."
 echo "========================================="
-echo "Nginx port:    $NGINX_PORT (external - Render PORT)"
+echo "Nginx port:    $NGINX_PORT (external)"
 echo "Backend port:  $BACKEND_PORT (internal)"
 echo "Frontend port: $FRONTEND_PORT (internal)"
 echo "Hostname:      $HOSTNAME"
@@ -48,12 +47,12 @@ echo "Environment:   ${ENVIRONMENT:-production}"
 echo "========================================="
 
 # =====================================================
-# DATABASE WAIT (опционально)
+# DATABASE WAIT (optional)
 # =====================================================
 
 if [ -n "$DATABASE_URL" ]; then
-    echo "📊 Database configured"
-    echo "⏳ Waiting for database..."
+    echo "Database configured"
+    echo "Waiting for database..."
 
     # Extract host from DATABASE_URL
     DB_HOST=$(echo $DATABASE_URL | sed -E 's|.*@([^:/]+).*|\1|')
@@ -63,24 +62,24 @@ if [ -n "$DATABASE_URL" ]; then
     # Wait for database with timeout
     for i in $(seq 1 30); do
         if nc -z $DB_HOST $DB_PORT 2>/dev/null; then
-            echo "✅ Database is ready"
+            echo "Database is ready"
             break
         fi
         if [ $i -eq 30 ]; then
-            echo "⚠️ Database not ready, continuing anyway..."
+            echo "Database not ready, continuing anyway..."
         fi
         sleep 1
     done
 else
-    echo "⚠️ DATABASE_URL not set"
+    echo "DATABASE_URL not set"
 fi
 
 # =====================================================
-# START BACKEND (на порту 8000)
+# START BACKEND (on port 8000)
 # =====================================================
 
 echo ""
-echo "🚀 Starting backend on port $BACKEND_PORT..."
+echo "Starting backend on port $BACKEND_PORT..."
 
 if [ -d "/app/backend" ]; then
     cd /app/backend
@@ -95,19 +94,19 @@ if [ -d "/app/backend" ]; then
         --loop asyncio \
         &
     BACKEND_PID=$!
-    echo "   ✅ Backend started (PID: $BACKEND_PID)"
+    echo "   Backend started (PID: $BACKEND_PID)"
 else
-    echo "   ⚠️ WARNING: Backend directory not found!"
+    echo "   WARNING: Backend directory not found!"
     ls -la /app/
     exit 1
 fi
 
 # =====================================================
-# START FRONTEND (на порту 3000)
+# START FRONTEND (on port 3000)
 # =====================================================
 
 echo ""
-echo "🚀 Starting frontend on port $FRONTEND_PORT..."
+echo "Starting frontend on port $FRONTEND_PORT..."
 
 if [ -f "/app/frontend/server.js" ]; then
     cd /app/frontend
@@ -119,101 +118,101 @@ if [ -f "/app/frontend/server.js" ]; then
 
     node server.js &
     FRONTEND_PID=$!
-    echo "   ✅ Frontend started (PID: $FRONTEND_PID)"
+    echo "   Frontend started (PID: $FRONTEND_PID)"
 else
-    echo "   ⚠️ WARNING: Frontend server.js not found!"
+    echo "   WARNING: Frontend server.js not found!"
     echo "   Checking /app/frontend:"
     ls -la /app/frontend/ || true
     exit 1
 fi
 
 # =====================================================
-# START NGINX (на порту Render)
+# START NGINX (on external PORT)
 # =====================================================
 
 echo ""
-echo "🚀 Starting nginx on port $NGINX_PORT..."
+echo "Starting nginx on port $NGINX_PORT..."
 
-# Проверяем что nginx.conf существует
+# Check that nginx.conf exists
 if [ ! -f "/etc/nginx/nginx.conf" ]; then
-    echo "   ⚠️ ERROR: nginx.conf not found!"
+    echo "   ERROR: nginx.conf not found!"
     exit 1
 fi
 
-# Подготавливаем nginx конфигурацию - заменяем порт 8000 на актуальный PORT
+# Prepare nginx configuration - replace port 8000 with actual PORT
 sed -i "s/listen 8000;/listen $NGINX_PORT;/g" /etc/nginx/nginx.conf
 sed -i "s/listen \[::\]:8000;/listen [::]:$NGINX_PORT;/g" /etc/nginx/nginx.conf
 
 echo "   Nginx configuration updated for port $NGINX_PORT"
 echo "   Nginx URL: http://$HOSTNAME:$NGINX_PORT"
 
-# Проверяем конфигурацию nginx перед запуском
+# Test nginx configuration before starting
 if ! nginx -t 2>&1; then
-    echo "   ⚠️ ERROR: nginx configuration test failed!"
+    echo "   ERROR: nginx configuration test failed!"
     cat /etc/nginx/nginx.conf
     exit 1
 fi
 
-# Запускаем nginx
+# Start nginx
 nginx -g "daemon off;" &
 NGINX_PID=$!
-echo "   ✅ Nginx started (PID: $NGINX_PID)"
+echo "   Nginx started (PID: $NGINX_PID)"
 
 # =====================================================
 # HEALTH CHECK LOG
 # =====================================================
 
 echo ""
-echo "✅ Services started:"
+echo "Services started:"
 echo "   Backend PID:  $BACKEND_PID on port $BACKEND_PORT"
 echo "   Frontend PID: $FRONTEND_PID on port $FRONTEND_PORT"
 echo "   Nginx PID:    $NGINX_PID on port $NGINX_PORT (external)"
 echo ""
 
-# Даём сервисам время запуститься
+# Give services time to start
 sleep 8
 
-# Проверяем что сервисы отвечают
-echo "🏥 Health check..."
+# Check that services are responding
+echo "Health check..."
 
-# Проверка backend
+# Check backend
 if curl -s http://localhost:$BACKEND_PORT/api/v1/health > /dev/null 2>&1; then
-    echo "   ✅ Backend responding"
+    echo "   Backend responding"
 else
-    echo "   ⚠️ Backend not responding"
+    echo "   Backend not responding"
 fi
 
-# Проверка frontend
+# Check frontend
 if curl -s http://localhost:$FRONTEND_PORT/ > /dev/null 2>&1; then
-    echo "   ✅ Frontend responding"
+    echo "   Frontend responding"
 else
-    echo "   ⚠️ Frontend not responding"
+    echo "   Frontend not responding"
 fi
 
-# Проверка nginx (external port)
+# Check nginx (external port)
 if curl -s http://localhost:$NGINX_PORT/nginx-health > /dev/null 2>&1; then
-    echo "   ✅ Nginx responding"
+    echo "   Nginx responding"
 elif curl -s http://localhost:$NGINX_PORT/api/v1/health > /dev/null 2>&1; then
-    echo "   ✅ Nginx proxy working (API accessible)"
+    echo "   Nginx proxy working (API accessible)"
 else
-    echo "   ⚠️ Nginx not responding on port $NGINX_PORT"
+    echo "   Nginx not responding on port $NGINX_PORT"
     echo "   Checking nginx error log:"
     cat /var/log/nginx/error.log 2>/dev/null || echo "   No error log available"
 fi
 
 echo ""
-echo "🎉 MentorHub is ready!"
-echo "   Public URL: ${RENDER_EXTERNAL_URL:-http://localhost:$NGINX_PORT}"
-echo "   API URL:    ${RENDER_EXTERNAL_URL:-http://localhost:$NGINX_PORT}/api/v1"
+echo "MentorHub is ready!"
+echo "   Public URL: http://localhost:$NGINX_PORT"
+echo "   API URL:    http://localhost:$NGINX_PORT/api/v1"
 echo ""
 
 # =====================================================
 # KEEP ALIVE
 # =====================================================
 
-# Сигнал завершения для дочерних процессов
+# Signal handler for child processes
 cleanup() {
-    echo "🛑 Stopping services..."
+    echo "Stopping services..."
     kill $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
     wait $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
     exit 0
@@ -221,9 +220,9 @@ cleanup() {
 
 trap cleanup SIGTERM SIGINT EXIT
 
-# Ожидание завершения процессов
+# Wait for processes
 wait $BACKEND_PID $FRONTEND_PID $NGINX_PID 2>/dev/null || true
 
-# Если процессы завершились, держим контейнер живым
-echo "⚠️ Processes ended, keeping container alive..."
+# If processes ended, keep container alive
+echo "Processes ended, keeping container alive..."
 tail -f /dev/null
