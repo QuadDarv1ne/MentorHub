@@ -5,7 +5,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, Text
 
 from app.models.base import BaseModel
 
@@ -14,6 +14,9 @@ class Message(BaseModel):
     """Модель сообщения между пользователями"""
 
     __tablename__ = "messages"
+    __table_args__ = (
+        Index("idx_message_conversation", "sender_id", "recipient_id", "created_at"),
+    )
 
     sender_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     recipient_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)

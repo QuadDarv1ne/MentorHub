@@ -4,6 +4,7 @@ Payments CRUD Operations
 Database operations for payments management.
 """
 
+import logging
 from decimal import Decimal
 from typing import List, Optional
 
@@ -13,6 +14,8 @@ from app.models.mentor import Mentor
 from app.models.payment import Payment as DBPayment
 from app.models.payment import PaymentStatus
 from app.models.session import Session as DBSession
+
+logger = logging.getLogger(__name__)
 from app.models.user import User
 from app.schemas.payment import PaymentUpdate
 from app.utils.sanitization import is_safe_string, sanitize_string
@@ -105,6 +108,7 @@ def create_payment(
         db.refresh(db_payment)
         return db_payment
     except Exception:
+        logger.exception("Failed to create payment")
         db.rollback()
         raise
 
@@ -142,6 +146,7 @@ def update_payment(
         db.refresh(db_payment)
         return db_payment
     except Exception:
+        logger.exception("Failed to update payment %s", payment_id)
         db.rollback()
         raise
 
@@ -167,6 +172,7 @@ def delete_payment(
         db.commit()
         return True
     except Exception:
+        logger.exception("Failed to delete payment %s", payment_id)
         db.rollback()
         raise
 
@@ -187,6 +193,7 @@ def update_payment_status(
         db.refresh(payment)
         return payment
     except Exception:
+        logger.exception("Failed to update payment status %s", payment_id)
         db.rollback()
         raise
 

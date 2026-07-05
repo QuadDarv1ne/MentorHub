@@ -5,7 +5,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
@@ -15,6 +15,9 @@ class Achievement(BaseModel, TimestampMixin):
     """Модель достижений пользователей"""
 
     __tablename__ = "achievements"
+    __table_args__ = (
+        Index("idx_achievement_user_earned", "user_id", "earned_at"),
+    )
 
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     title = Column(String(255), nullable=False)

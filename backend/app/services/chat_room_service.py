@@ -3,6 +3,7 @@ Chat Rooms Service
 Бизнес-логика для управления чат-комнатами
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import desc, func
@@ -11,6 +12,8 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.chat_room import ChatMessage, ChatRoom, chat_room_members
 from app.models.user import User
 from app.schemas.chat_room import ChatMessageCreate, ChatRoomCreate
+
+logger = logging.getLogger(__name__)
 
 
 class ChatRoomService:
@@ -83,6 +86,7 @@ class ChatRoomService:
                 return True
             return False
         except Exception:
+            logger.exception("Failed to add member %s to room %s", member_id, room_id)
             self.db.rollback()
             raise
 
@@ -103,6 +107,7 @@ class ChatRoomService:
                 return True
             return False
         except Exception:
+            logger.exception("Failed to remove member %s from room %s", member_id, room_id)
             self.db.rollback()
             raise
 
@@ -121,6 +126,7 @@ class ChatRoomService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to delete room %s by user %s", room_id, user_id)
             self.db.rollback()
             raise
 
@@ -149,6 +155,7 @@ class ChatRoomService:
         except PermissionError:
             raise
         except Exception:
+            logger.exception("Failed to send message in room %s by user %s", room_id, user.id)
             self.db.rollback()
             raise
 

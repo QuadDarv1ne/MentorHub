@@ -211,11 +211,16 @@ async def create_message(
         raise HTTPException(status_code=404, detail="Получатель не найден")
 
     # Создаем сообщение с санитизированными данными
-    db_message = DBMessage(sender_id=current_user.id, recipient_id=message.recipient_id, content=sanitized_content)
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    return db_message
+    try:
+        db_message = DBMessage(sender_id=current_user.id, recipient_id=message.recipient_id, content=sanitized_content)
+        db.add(db_message)
+        db.commit()
+        db.refresh(db_message)
+        return db_message
+    except Exception:
+        logger.exception("Failed to create message from user %s to %s", current_user.id, message.recipient_id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при отправке сообщения")
 
 
 @router.put("/{message_id}", response_model=MessageResponse)
@@ -250,9 +255,14 @@ async def update_message(
     for key, value in sanitized_data.items():
         setattr(db_message, key, value)
 
-    db.commit()
-    db.refresh(db_message)
-    return db_message
+    try:
+        db.commit()
+        db.refresh(db_message)
+        return db_message
+    except Exception:
+        logger.exception("Failed to update message %s by user %s", message_id, current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении сообщения")
 
 
 @router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -271,6 +281,11 @@ async def delete_message(
     if db_message.sender_id != current_user.id and current_user.role.value != "admin":
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
-    db.delete(db_message)
-    db.commit()
-    return None
+    try:
+        db.delete(db_message)
+        db.commit()
+        return None
+    except Exception:
+        logger.exception("Failed to delete message %s by user %s", message_id, current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при удалении сообщения")

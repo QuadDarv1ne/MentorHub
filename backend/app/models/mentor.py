@@ -3,7 +3,7 @@
 Модель профиля ментора с информацией о специализации и опыте
 """
 
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
@@ -13,6 +13,10 @@ class Mentor(BaseModel, TimestampMixin):
     """Модель ментора"""
 
     __tablename__ = "mentors"
+    __table_args__ = (
+        Index("idx_mentor_available_rating", "is_available", "rating"),
+        Index("idx_mentor_specialization", "specialization"),
+    )
 
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True, nullable=False)
     bio = Column(Text, nullable=True)

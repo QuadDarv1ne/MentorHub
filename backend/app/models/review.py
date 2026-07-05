@@ -27,6 +27,7 @@ class Review(BaseModel, TimestampMixin):
     # Уникальный constraint: один отзыв на курс от пользователя (защита от race condition)
     __table_args__ = (
         UniqueConstraint('user_id', 'course_id', name='uq_review_user_course'),
+        Index("idx_review_reviewed_created", "reviewed_id", "created_at"),
     )
 
     def __repr__(self):

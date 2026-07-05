@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
 if (!BACKEND_URL) {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Analytics API error:', error)
+    logger.error('Analytics API error:', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

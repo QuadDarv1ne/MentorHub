@@ -2,6 +2,7 @@
  * Универсальный хук для управления формами с валидацией
  * Поддерживает реальное время валидации, async проверки, удобное управление состоянием
  */
+import { logger } from '@/lib/utils/logger'
 
 import { useState, useCallback } from 'react'
 
@@ -160,7 +161,7 @@ export function useForm<T extends Record<string, unknown>>(
         try {
           await onSubmit(values)
         } catch (error) {
-          console.error('Form submission error:', error)
+          logger.error('Form submission error:', error as Error)
         } finally {
           setIsSubmitting(false)
         }

@@ -124,6 +124,7 @@ async def update_achievement(
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Failed to update achievement %s", achievement_id)
         db.rollback()
         raise
 
@@ -151,5 +152,6 @@ async def delete_achievement(
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Failed to delete achievement %s", achievement_id)
         db.rollback()
         raise

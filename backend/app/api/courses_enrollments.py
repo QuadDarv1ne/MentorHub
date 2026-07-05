@@ -169,7 +169,12 @@ async def update_course_progress(
     enrollment.progress_percent = progress
     enrollment.completed = (progress == 100)
 
-    db.commit()
-    db.refresh(enrollment)
+    try:
+        db.commit()
+        db.refresh(enrollment)
+    except Exception:
+        logger.exception("Failed to update progress for user %s course %s", current_user.id, course_id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса")
 
     return enrollment

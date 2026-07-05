@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { SearchFilters } from '@/components/mentors/MentorSearchFilters';
+import { logger } from '@/lib/utils/logger';
 import {
   searchMentors as apiSearchMentors,
   getSpecializations as apiGetSpecializations,
@@ -23,7 +24,7 @@ export function useMentorSearch() {
       const data = await apiGetSpecializations();
       setSpecializations(data);
     } catch (err) {
-      console.error('Failed to fetch specializations:', err);
+      logger.error('Failed to fetch specializations:', err as Error);
     }
   }, []);
 

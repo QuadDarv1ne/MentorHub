@@ -3,6 +3,7 @@ Subscriptions Service
 Бизнес-логика для управления подписками
 """
 
+import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
@@ -11,6 +12,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 class SubscriptionService:
@@ -119,6 +122,7 @@ class SubscriptionService:
         except ValueError:
             raise
         except Exception:
+            logger.exception("Failed to create subscription for user %s", user.id)
             self.db.rollback()
             raise
 
@@ -136,6 +140,7 @@ class SubscriptionService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to activate subscription %s", subscription_id)
             self.db.rollback()
             raise
 
@@ -154,6 +159,7 @@ class SubscriptionService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to cancel subscription %s for user %s", subscription_id, user_id)
             self.db.rollback()
             raise
 
@@ -172,6 +178,7 @@ class SubscriptionService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to reactivate subscription %s for user %s", subscription_id, user_id)
             self.db.rollback()
             raise
 
@@ -189,6 +196,7 @@ class SubscriptionService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to expire subscription %s", subscription_id)
             self.db.rollback()
             raise
 
@@ -217,6 +225,7 @@ class SubscriptionService:
             self.db.commit()
             return True
         except Exception:
+            logger.exception("Failed to upgrade subscription %s for user %s to tier %s", subscription_id, user_id, new_tier)
             self.db.rollback()
             raise
 

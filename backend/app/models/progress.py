@@ -2,7 +2,7 @@
 Модель трекинга прогресса пользователя по курсам/урокам
 """
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
@@ -12,6 +12,9 @@ class Progress(BaseModel, TimestampMixin):
     """Модель для хранения прогресса пользователя по курсам и урокам."""
 
     __tablename__ = "progress"
+    __table_args__ = (
+        Index("idx_progress_user_course", "user_id", "course_id"),
+    )
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)

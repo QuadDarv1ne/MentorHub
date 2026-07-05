@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { publicRequest } from '@/lib/api/client'
+import { logger } from '@/lib/utils/logger'
 
 interface UserEvent {
   event_type: string
@@ -135,7 +136,7 @@ export function useAnalytics() {
       })
     } catch (error) {
       // Silently fail - analytics shouldn't break the app
-      console.error('Analytics event failed:', error)
+      logger.error('Analytics event failed:', error as Error)
     }
   }
 

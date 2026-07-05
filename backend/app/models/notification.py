@@ -5,7 +5,7 @@ Notification system
 
 import enum
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 
@@ -51,6 +51,9 @@ class Notification(BaseModel, TimestampMixin):
     """Модель уведомления"""
 
     __tablename__ = "notifications"
+    __table_args__ = (
+        Index("idx_notification_user_unread", "user_id", "is_read", "created_at"),
+    )
 
     # Получатель
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)

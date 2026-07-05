@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * Хук для debounce значения
@@ -119,7 +120,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
       const item = window.localStorage.getItem(key)
       return item ? JSON.parse(item) : initialValue
     } catch (error) {
-      console.error(error)
+      logger.error('Failed to read localStorage', error as Error)
       return initialValue
     }
   })
@@ -131,7 +132,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
         window.localStorage.setItem(key, JSON.stringify(value))
       }
     } catch (error) {
-      console.error(error)
+      logger.error('Failed to write localStorage', error as Error)
     }
   }, [key])
 
@@ -179,7 +180,7 @@ export function useCopyToClipboard(): [boolean, (text: string) => Promise<void>]
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     } catch (error) {
-      console.error('Failed to copy:', error)
+      logger.error('Failed to copy to clipboard', error as Error)
       setIsCopied(false)
     }
   }, [])

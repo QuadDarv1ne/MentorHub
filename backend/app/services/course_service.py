@@ -3,6 +3,7 @@ Courses Service
 Бизнес-логика для работы с курсами
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import or_
@@ -13,6 +14,8 @@ from app.models.mentor import Mentor
 from app.models.user import User
 from app.schemas.course import CourseCreate, CourseUpdate, LessonCreate, LessonUpdate
 from app.utils.sanitization import sanitize_and_validate
+
+logger = logging.getLogger(__name__)
 
 
 class CourseService:
@@ -110,6 +113,7 @@ class CourseService:
         except (PermissionError, ValueError):
             raise
         except Exception:
+            logger.exception("Failed to create course by user %s", user.id)
             self.db.rollback()
             raise
 
@@ -134,6 +138,7 @@ class CourseService:
         except (PermissionError, ValueError):
             raise
         except Exception:
+            logger.exception("Failed to update course %s by user %s", course_id, user.id)
             self.db.rollback()
             raise
 
@@ -167,6 +172,7 @@ class CourseService:
         except (PermissionError, ValueError):
             raise
         except Exception:
+            logger.exception("Failed to create lesson in course %s by user %s", course_id, user.id)
             self.db.rollback()
             raise
 
@@ -192,6 +198,7 @@ class CourseService:
         except (PermissionError, ValueError):
             raise
         except Exception:
+            logger.exception("Failed to update lesson %s by user %s", lesson_id, user.id)
             self.db.rollback()
             raise
 

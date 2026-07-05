@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/utils/logger'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 if (!BACKEND_URL) {
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Analytics track error:', error)
+    logger.error('Analytics track error:', error as Error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

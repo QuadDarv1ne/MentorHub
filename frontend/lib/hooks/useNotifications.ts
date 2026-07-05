@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 export interface Notification {
   id: string
@@ -31,7 +32,7 @@ export function useNotifications() {
           timestamp: new Date(n.timestamp)
         })))
       } catch (error) {
-        console.error('Error loading notifications:', error)
+        logger.error('Error loading notifications:', error as Error)
       }
     }
   }, [])

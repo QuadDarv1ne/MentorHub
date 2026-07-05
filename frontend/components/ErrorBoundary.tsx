@@ -3,6 +3,7 @@
 import React from 'react'
 import { AlertTriangle, RefreshCw, Home, WifiOff, Server, Bug } from 'lucide-react'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -35,7 +36,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    logger.error('ErrorBoundary caught an error:', error, errorInfo as any)
     this.setState({ errorInfo })
     this.props.onError?.(error, errorInfo)
     

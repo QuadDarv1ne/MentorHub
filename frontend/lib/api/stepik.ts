@@ -1,4 +1,5 @@
 import { cache } from '../cache';
+import { logger } from '../utils/logger';
 
 // Use Next.js API route as proxy for server-side rendering
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL 
@@ -276,7 +277,7 @@ export async function getCourseDetails(courseId: number) {
       syllabus
     };
   } catch (error) {
-    console.error('Ошибка при получении детальной информации о курсе:', error);
+    logger.error('Ошибка при получении детальной информации о курсе:', error as Error);
     throw error;
   }
 }

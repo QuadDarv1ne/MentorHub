@@ -140,6 +140,7 @@ async def verify_2fa(
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Failed to enable 2FA for user %s", current_user.id)
         db.rollback()
         raise
 
@@ -182,6 +183,7 @@ async def disable_2fa(
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Failed to disable 2FA for user %s", current_user.id)
         db.rollback()
         raise
 
