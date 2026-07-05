@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
@@ -28,58 +28,73 @@ async def get_conversations(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список всех диалогов текущего пользователя с последними сообщениями"""
-    # Получаем все диалоги где пользователь участвует
-    messages_query = db.query(
-        DBMessage.sender_id,
-        DBMessage.recipient_id,
-        DBMessage.content,
-        DBMessage.created_at,
-        DBMessage.is_read
-    ).filter(
-        or_(
-            DBMessage.sender_id == current_user.id,
-            DBMessage.recipient_id == current_user.id
+    # Подзапрос: определяем собеседника для каждого сообщения
+    other_user = func.case(
+        (DBMessage.sender_id == current_user.id, DBMessage.recipient_id),
+        else_=DBMessage.sender_id,
+    ).label("other_user_id")
+
+    # Подзапрос: последнее сообщение в каждом диалоге
+    last_msg_subq = (
+        db.query(
+            other_user.label("other_user_id"),
+            DBMessage.content.label("last_message"),
+            DBMessage.created_at.label("last_message_time"),
+            DBMessage.sender_id.label("last_sender_id"),
         )
-    ).order_by(DBMessage.created_at.desc())
+        .filter(
+            or_(
+                DBMessage.sender_id == current_user.id,
+                DBMessage.recipient_id == current_user.id,
+            )
+        )
+        .order_by(DBMessage.created_at.desc())
+        .subquery()
+    )
 
-    # Группируем по собеседникам
-    conversations = {}
-    for msg in messages_query.all():
-        other_user_id = msg.recipient_id if msg.sender_id == current_user.id else msg.sender_id
-        if other_user_id not in conversations:
-            conversations[other_user_id] = {
-                "user_id": other_user_id,
-                "last_message": msg.content,
-                "last_message_time": msg.created_at,
-                "unread_count": 0,
-                "is_from_me": msg.sender_id == current_user.id
-            }
-        # Считаем непрочитанные
-        if msg.sender_id != current_user.id and not msg.is_read:
-            conversations[other_user_id]["unread_count"] += 1
+    # Подзапрос: количество непрочитанных сообщений от каждого собеседника
+    unread_subq = (
+        db.query(
+            DBMessage.sender_id.label("other_user_id"),
+            func.count().label("unread_count"),
+        )
+        .filter(
+            DBMessage.recipient_id == current_user.id,
+            DBMessage.is_read == False,
+        )
+        .group_by(DBMessage.sender_id)
+        .subquery()
+    )
 
-    # Получаем данные пользователей
-    user_ids = list(conversations.keys())
-    users = db.query(User.id, User.username, User.avatar_url).filter(User.id.in_(user_ids)).all()
-    users_dict = {u.id: {"username": u.username, "avatar_url": u.avatar_url} for u in users}
+    # Основной запрос: объединяем последнее сообщение + непрочитанные + данные пользователя
+    rows = (
+        db.query(
+            last_msg_subq.c.other_user_id,
+            last_msg_subq.c.last_message,
+            last_msg_subq.c.last_message_time,
+            last_msg_subq.c.last_sender_id,
+            User.username,
+            User.avatar_url,
+            func.coalesce(unread_subq.c.unread_count, 0).label("unread_count"),
+        )
+        .join(User, User.id == last_msg_subq.c.other_user_id)
+        .outerjoin(unread_subq, unread_subq.c.other_user_id == last_msg_subq.c.other_user_id)
+        .order_by(last_msg_subq.c.last_message_time.desc())
+        .all()
+    )
 
-    # Формируем результат
-    result = []
-    for user_id, conv_data in conversations.items():
-        user_info = users_dict.get(user_id, {"username": f"User_{user_id}", "avatar_url": None})
-        result.append({
-            "user_id": user_id,
-            "username": user_info["username"],
-            "avatar_url": user_info["avatar_url"],
-            "last_message": conv_data["last_message"],
-            "last_message_time": conv_data["last_message_time"],
-            "unread_count": conv_data["unread_count"],
-            "is_from_me": conv_data["is_from_me"]
-        })
-
-    # Сортируем по времени последнего сообщения
-    result.sort(key=lambda x: x["last_message_time"], reverse=True)
-    return result
+    return [
+        {
+            "user_id": row.other_user_id,
+            "username": row.username or f"User_{row.other_user_id}",
+            "avatar_url": row.avatar_url,
+            "last_message": row.last_message,
+            "last_message_time": row.last_message_time,
+            "unread_count": row.unread_count,
+            "is_from_me": row.last_sender_id == current_user.id,
+        }
+        for row in rows
+    ]
 
 
 @router.get("/history/{other_user_id}", response_model=MessageListResponse)

@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 try:
-    import redis
+    import redis.asyncio as aioredis
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -26,12 +26,12 @@ from app.dependencies import get_db
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/health", tags=["Health"])
 
-# Redis client import
+# Async Redis client import
 redis_client = None
 try:
     if REDIS_AVAILABLE and settings.REDIS_URL and settings.REDIS_URL.strip():
-        redis_client = redis.Redis.from_url(settings.REDIS_URL)
-        logger.debug("✅ Redis client initialized for health checks")
+        redis_client = aioredis.from_url(settings.REDIS_URL)
+        logger.debug("Async Redis client initialized for health checks")
 except Exception as e:
     logger.debug(f"Redis client not available for health checks: {e}")
     redis_client = None
@@ -126,11 +126,11 @@ async def detailed_health_check(
     if redis_client:
         try:
             start_time = time.time()
-            redis_client.ping()
+            await redis_client.ping()
             response_time = (time.time() - start_time) * 1000
 
             # Получение информации о Redis
-            info = redis_client.info()
+            info = await redis_client.info()
 
             health_status["services"]["redis"] = {
                 "status": "healthy",
@@ -139,7 +139,7 @@ async def detailed_health_check(
                 "connected_clients": info.get("connected_clients", 0),
                 "uptime_seconds": info.get("uptime_in_seconds", 0)
             }
-        except (redis.ConnectionError, redis.TimeoutError) as e:
+        except (aioredis.ConnectionError, aioredis.TimeoutError) as e:
             logger.error(f"Detailed Redis health check failed: {e}")
             health_status["services"]["redis"] = {
                 "status": "unhealthy",

@@ -4,6 +4,7 @@ Courses CRUD Operations
 """
 
 import asyncio
+import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,6 +14,8 @@ from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.course import Course
 from app.models.user import User
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, CourseWithLessonsResponse
+
+logger = logging.getLogger(__name__)
 from app.services.cache import cached
 from app.services.course_service import CourseService
 from app.utils.cache import invalidate_cache
@@ -128,14 +131,19 @@ async def delete_course(
     if not is_instructor and not is_admin:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
 
-    db.delete(existing_course)
-    db.commit()
+    try:
+        db.delete(existing_course)
+        db.commit()
 
-    # Инвалидируем кеш
-    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-    asyncio.create_task(invalidate_cache("courses_list:"))
+        # Инвалидируем кеш
+        asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
+        asyncio.create_task(invalidate_cache("courses_list:"))
 
-    return None
+        return None
+    except Exception:
+        logger.exception("Failed to delete course %s by user %s", course_id, current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Ошибка при удалении курса")
 
 
 @router.get("/{course_id}/similar", response_model=List[dict])

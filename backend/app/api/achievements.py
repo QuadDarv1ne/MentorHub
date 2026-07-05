@@ -92,6 +92,7 @@ async def create_achievement(
 
         return db_achievement
     except Exception:
+        logger.exception("Failed to create achievement for user %s", current_user.id)
         db.rollback()
         raise
 
