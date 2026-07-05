@@ -1,15 +1,14 @@
-# Эта папка устарела, документация перемещена в docs/
-# Пожалуйста, используйте docs/ для новой документации
+# This directory is deprecated, documentation moved to docs/
+# Please use docs/ for new documentation
 #
-# Старые файлы были перемещены:
-# - DEPLOYMENT-*.md → docs/DEPLOYMENT/
-# - API_*.md → docs/API/
-# - SECURITY*.md → docs/SECURITY/
-# - MONITORING.md → docs/MONITORING/
-# - WEBSOCKET_CHAT.md → docs/FEATURES/
-# - И другие
+# Old files were moved:
+# - DEPLOYMENT-*.md -> docs/DEPLOYMENT/
+# - API_*.md -> docs/API/
+# - SECURITY*.md -> docs/SECURITY/
+# - MONITORING.md -> docs/MONITORING/
+# - WEBSOCKET_CHAT.md -> docs/FEATURES/
 
-# Игнорируем всё содержимое (кроме .gitkeep для сохранения директории)
+# Ignore everything except .gitignore and .gitkeep
 *
 !.gitignore
 !.gitkeep

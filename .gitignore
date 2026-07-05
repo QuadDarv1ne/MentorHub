@@ -13,12 +13,9 @@
 .qwen/
 
 # ==================== PYTHON ====================
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
 # Distribution / packaging
@@ -162,33 +159,21 @@ lerna-debug.log*
 # Production
 .next/
 .nuxt/
-dist/
-build/
-output/
-
-# Next.js specific
-.next/
 out/
+output/
 *.tsbuildinfo
 
 # Next.js cache directory
 .next/cache/
 
-# Nuxt.js build / generate output
-dist/
-
-# Nest output
-dist/
-
 # Storybook coverage
 coverage/
 
 # nyc test coverage
-.nyc_output
+.nyc_output/
 
 # Parcel
 .parcel-cache
-dist/
 
 # Vercel
 .vercel
@@ -207,7 +192,7 @@ coverage/
 tmp/
 temp/
 
-# Lock files (опционально)
+# Lock files (optional)
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
@@ -233,17 +218,6 @@ temp/
 *.iml
 *.iws
 *.ipr
-out/
-.DS_Store
-
-# WebStorm
-.idea/
-*.iml
-
-# PyCharm
-.idea/
-*.iml
-*.iws
 
 # Vim
 *.swp
@@ -261,9 +235,6 @@ out/
 
 # Neovim
 .nvimrc
-
-# VS Code
-.vscode
 
 # ==================== OS ====================
 # MacOS
@@ -289,7 +260,6 @@ $RECYCLE.BIN/
 .dockerignore
 docker-compose.override.yml
 .docker/
-*.log
 
 # ==================== DATABASE ====================
 *.db
@@ -338,19 +308,13 @@ tmp/uploads/
 *.tar
 *.tar.gz
 
-# Исключения: разрешить img/ для README и документации
+# Exceptions: allow img/ for README and documentation
 !img/
 !img/*.png
 !img/*.jpg
 !img/*.jpeg
 
 # ==================== BUILD & DISTRIBUTION ====================
-build/
-dist/
-*.egg
-*.egg-info
-.eggs/
-*.so
 *.o
 *.a
 *.lib
@@ -364,10 +328,6 @@ dist/
 *.temp
 *.bak
 *.new
-*.swp
-*.swo
-*~
-.~*
 *.backup
 *.orig
 *.rej
@@ -383,9 +343,6 @@ frontend/.next/
 frontend/out/
 frontend/build/
 frontend/.env.local
-
-# Alembic migrations (опционально игнорировать локальные)
-# alembic/versions/
 
 # Generated files
 generated/
@@ -405,15 +362,8 @@ htmlcov/
 .gitlab-ci.yml.local
 .travis.yml.local
 
-# ==================== DOCUMENTATION ====================
-# docs/_build/
-# site/
-
 # ==================== MONOREPO ====================
-# turborepo
 .turbo/
-
-# lerna
 lerna-debug.log
 
 # Workspace specific
@@ -423,9 +373,6 @@ lerna-debug.log
 .yarn/install-state.gz
 
 # ==================== MISC ====================
-.DS_Store
-*.pem
-*.key
 .env.production
 config.local.js
 tsconfig.local.json
@@ -435,7 +382,3 @@ jest.config.local.js
 # System files
 .system/
 system.conf
-
-# Keep important files in .gitignore but track specific ones
-# !.gitkeep
-# !important-file.txt

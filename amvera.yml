@@ -2,6 +2,11 @@
 # https://docs.amvera.ru/applications/configuration/docker.html
 # Uses Dockerfile at repo root for build. This file only tunes run params.
 
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+
 build:
   dockerfile: ./Dockerfile
 
