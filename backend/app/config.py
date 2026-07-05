@@ -104,6 +104,7 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = 30  # Timeout waiting for connection from pool
     # PgBouncer-specific settings
     DB_CONNECT_TIMEOUT: int = int(os.environ.get("DB_CONNECT_TIMEOUT", "10"))
+    PGBOUNCER_ENABLED: bool = os.environ.get("PGBOUNCER_ENABLED", "false").lower() in ("true", "1", "yes")
 
     # ==================== REDIS ====================
     REDIS_URL: str = os.environ.get("REDIS_URL", f"redis://{_default_redis_host}:{REDIS_DEFAULT_PORT}/0")

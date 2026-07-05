@@ -103,7 +103,7 @@ elif "sqlite" in settings.DATABASE_URL.lower():
     logger.info("📱 SQLite database engine created")
 else:
     engine = _create_engine_for_postgresql()
-    pgbouncer_enabled = getattr(settings, "PGBOUNCER_ENABLED", False)
+    pgbouncer_enabled = settings.PGBOUNCER_ENABLED
     logger.info(
         f"🗄️ Production database engine created "
         f"(pool_size={settings.DB_POOL_SIZE}, max_overflow={settings.DB_MAX_OVERFLOW}, pgbouncer={pgbouncer_enabled})"

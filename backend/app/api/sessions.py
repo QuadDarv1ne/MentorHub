@@ -37,7 +37,7 @@ async def get_sessions(
 
     return db.query(DBSession).options(
         joinedload(DBSession.mentor),
-        joinedload(DBSession.student)
+        selectinload(DBSession.student)
     ).offset(skip).limit(limit).all()
 
 
@@ -57,7 +57,7 @@ async def get_my_sessions(
         (DBSession.mentor_id == mentor_id if mentor_id else False)
     ).options(
         joinedload(DBSession.mentor),
-        joinedload(DBSession.student),
+        selectinload(DBSession.student),
         selectinload(DBSession.payments)
     )
 
