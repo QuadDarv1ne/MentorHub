@@ -26,6 +26,31 @@
 
 ---
 
+## ✅ ВЫПОЛНЕННЫЕ УЛУЧШЕНИЯ (сессия 5 июля 2026)
+
+### Производительность БД
+- [x] **7 составных индексов** — notifications, messages, progress, mentors, reviews, achievements + Alembic миграция
+- [x] **SQL-based conversations** — `messages.py` `get_conversations` переписано с Python-обработки на SQL subqueries
+- [x] **Subquery для push notifications** — вместо загрузки всех User объектов используется `User.id` subquery
+
+### Безопасность и стабильность
+- [x] **Async Redis health check** — переключено с синхронного `redis.Redis` на `redis.asyncio`
+- [x] **401 interceptor fix** — убран 401 из retryStatusCodes, исправлен flow refresh токена
+- [x] **Contact info в env vars** — email/phone/telegram вынесены из хардкода в `NEXT_PUBLIC_CONTACT_*`
+
+### Качество кода
+- [x] **14 console.error → logger** — централизованное логирование в 12 файлах фронтенда
+- [x] **20 bare except → logger.exception** — добавлено логирование ошибок в 6 файлах бэкенда
+- [x] **Header.tsx auth dedup** — использование `useAuth` хука вместо прямых чтений localStorage
+- [x] **Удалены неиспользуемые deps** — `requests`, `urllib3` из requirements.txt
+
+### Инфраструктура
+- [x] **CI/CD fix** — prettier path (src/ → app/components/lib/hooks), staging branch (develop → dev)
+- [x] **Dockerfile dedup** — удалён дублирующийся `Dockerfile.optimized`
+- [x] **docker-compose fix** — frontend Dockerfile.dev reference исправлен
+
+---
+
 ## 🔴 КРИТИЧЕСКИЕ ПРОБЛЕМЫ (P0)
 
 ### 1. Тесты lesson completion — заглушки
@@ -69,39 +94,22 @@
 - **Влияние:** Потенциальный конфликт при обновлении
 - **Решение:** Либо обновить до Python 3.10+, либо зафиксировать `<1.0.0`
 
-### 9. fastapi-cors — устаревший пакет
-- **Файл:** `backend/requirements.txt` — `fastapi-cors>=0.0.6`
-- **Проблема:** FastAPI имеет встроенный `CORSMiddleware`, пакет устарел
-- **Влияние:** Потенциальные конфликты, неподдерживаемый код
-- **Решение:** Заменить на `fastapi.middleware.cors.CORSMiddleware`
+### 9. fastapi-cors — устаревший пакет — ✅ ГОТОВО
+- **Статус:** Удалён, используется встроенный `CORSMiddleware`
 
-### 10. Security инструменты в production зависимостях
-- **Файл:** `backend/requirements.txt` — `bandit`, `safety`, `pip-audit`
-- **Проблема:** CI/CD инструменты в production зависимостях
-- **Влияние:** Увеличение Docker образа, поверхность атаки
-- **Решение:** Переместить в `requirements-dev.txt`
+### 10. Security инструменты в production зависимостях — ✅ ГОТОВО
+- **Статус:** bandit/safety/pip-audit в `requirements-dev.txt`, не в production
 
-### 11. Mypy конфигурация — ослабленная типизация
-- **Файл:** `backend/pyproject.toml`
-- **Проблемы:**
-  - `disallow_untyped_defs = false`
-  - `ignore_missing_imports = true`
-- **Влияние:** Снижение безопасности типов
-- **Решение:** Включить `true` + добавить `types-*` stub пакеты
+### 11. Mypy конфигурация — ослабленная типизация — ✅ ГОТОВО
+- **Статус:** `disallow_untyped_defs = true`, `ignore_missing_imports = false`
 
-### 12. DeprecationWarning полностью игнорируется
-- **Файл:** `backend/pyproject.toml` — `filterwarnings = ["ignore::DeprecationWarning"]`
-- **Проблема:** Маскировка устаревших API
-- **Влияние:** Пропуск важных предупреждений
-- **Решение:** Изменить на `default::DeprecationWarning`
+### 12. DeprecationWarning полностью игнорируется — ✅ ГОТОВО
+- **Статус:** `filterwarnings = ["default::DeprecationWarning"]`
 
 ### Frontend P1
 
-### 13. i18n middleware отключен
-- **Файлы:** `frontend/middleware.ts` (закомментировано), `frontend/i18n.ts`
-- **Проблема:** 4 языковых файла загружены, но роутинг не работает
-- **Влияние:** Мёртвый код, путаница
-- **Решение:** Либо включить i18n routing, либо удалить языковые файлы
+### 13. i18n middleware — ✅ ГОТОВО
+- **Статус:** Middleware активен, 4 locale файла работают
 
 ### 14. 12 пропущенных тестов (`it.skip`)
 - **Файлы:**
@@ -199,19 +207,25 @@
 
 ## 📝 ПРИОРИТЕТНЫЕ ЗАДАЧИ ДЛЯ ВЫПОЛНЕНИЯ СЕЙЧАС
 
-### Фаза 1: Стабилизация (текущая)
+### Фаза 1: Стабилизация
 1. ✅ Исправить все несохранённые изменения (17 файлов) — **ГОТОВО**
-2. ⏳ Закоммитить изменения в `dev`
-3. ⏳ Проверить что CI/CD проходит
-4. ⏳ Слить `dev` → `main`
-5. ⏳ Отправить на удалённый репозиторий
+2. ✅ Закоммитить изменения — **ГОТОВО**
+3. ✅ CI/CD проходит — **ГОТОВО**
+4. ✅ Отправить на все репозитории (GitHub + Amvera) — **ГОТОВО**
 
-### Фаза 2: Критические исправления (следующая)
+### Фаза 2: Критические исправления
 1. ✅ Удалить мёртвые зависимости из frontend/package.json — **ГОТОВО**
 2. ✅ Исправить hardcoded localhost URLs в тестах — **ГОТОВО**
 3. ✅ Исправить backend CORS origins — **ГОТОВО**
-4. ⏳ Консолидировать API клиенты
-5. ⏳ Добавить 401 interceptor для token refresh
+4. ✅ Консолидировать API клиенты — **ГОТОВО** (client.ts единая точка входа)
+5. ✅ Добавить 401 interceptor для token refresh — **ГОТОВО**
+
+### Фаза 3: Качество кода
+1. ✅ Включить ESLint в сборке — **ГОТОВО** (ignoreDuringBuilds удалён)
+2. ✅ Исправить bare except блоки — **ГОТОВО** (20 блоков с logging)
+3. ✅ Централизовать логирование фронтенда — **ГОТОВО** (14 console → logger)
+4. ✅ Исправить N+1 запросы — **ГОТОВО** (messages, push_notifications)
+5. ✅ Исправить health.py async Redis — **ГОТОВО**
 
 ### Фаза 3: Качество кода
 1. Включить ESLint в сборке
