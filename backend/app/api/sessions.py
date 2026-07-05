@@ -7,6 +7,7 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.dependencies import get_current_user, get_current_user_mentor_id, get_db, rate_limit_dependency
@@ -117,16 +118,21 @@ async def create_session(
     if session.student_id not in user_map:
         raise HTTPException(status_code=404, detail="Студент не найден")
 
-    # Проверяем ментора через отдельный запрос (т.к. это другая таблица)
-    mentor = db.query(Mentor).filter(Mentor.id == session.mentor_id).first()
-    if not mentor:
+    # Один запрос вместо двух: находим ментора сессии И ментора текущего пользователя
+    mentors = db.query(Mentor).filter(
+        or_(Mentor.id == session.mentor_id, Mentor.user_id == current_user.id)
+    ).all()
+    mentor_map = {m.id: m for m in mentors}
+
+    session_mentor = mentor_map.get(session.mentor_id)
+    if not session_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
 
     # Если пользователь не админ, проверяем что он создаёт сессию как ментор
     if current_user.role.value != "admin" and session.mentor_id != current_user.id:
-        # Проверяем что пользователь associated с этим ментором
-        user_mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
-        if not user_mentor or user_mentor.id != session.mentor_id:
+        # Находим mentor profile текущего пользователя
+        user_mentor_profile = next((m for m in mentors if m.user_id == current_user.id), None)
+        if not user_mentor_profile or user_mentor_profile.id != session.mentor_id:
             raise HTTPException(status_code=403, detail="Вы можете создавать сессии только от своего имени")
 
     # Создаем сессию с санитизированными данными
