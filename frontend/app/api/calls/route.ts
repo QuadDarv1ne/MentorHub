@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from 'next-auth/react'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
 if (!BACKEND_URL) {
-  throw new Error('NEXT_PUBLIC_BACKEND_URL environment variable is required for calls API')
+  throw new Error('BACKEND_URL environment variable is required for calls API')
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session?.accessToken) {
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const token = authHeader.slice(7)
 
     const body = await request.json()
     const { participant_id, room_id } = body
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.accessToken}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         participant_id,
