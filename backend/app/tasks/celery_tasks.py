@@ -115,37 +115,37 @@ def cleanup_expired_tokens():
     """
     Периодическая очистка истекших токенов
     Выполняется каждый день в 3:00
+
+    Tokens are now stored in Redis via cache_service with TTL,
+    so Redis handles expiry automatically. This task scans for
+    any stale keys that may have survived a Redis restart without
+    persistence.
     """
-    from app.api.email_verification import reset_tokens, verification_tokens
+    from app.services.cache import cache_service
 
     try:
-        current_time = datetime.now(timezone.utc)
+        cleaned = 0
+        if cache_service.redis_client:
+            try:
+                # Scan for verification and reset token keys
+                for pattern in ["verification:*", "reset:*"]:
+                    cursor = 0
+                    while True:
+                        cursor, keys = cache_service.redis_client.scan(
+                            cursor=cursor, match=pattern, count=100
+                        )
+                        for key in keys:
+                            ttl = cache_service.redis_client.ttl(key)
+                            if ttl == -1:  # Key exists but no TTL
+                                cache_service.redis_client.delete(key)
+                                cleaned += 1
+                        if cursor == 0:
+                            break
+            except Exception as e:
+                logger.debug(f"Redis token cleanup scan failed: {e}")
 
-        # Очистка verification tokens
-        expired_verification = [
-            token for token, data in verification_tokens.items()
-            if current_time > data["expires_at"]
-        ]
-        for token in expired_verification:
-            del verification_tokens[token]
-
-        # Очистка reset tokens
-        expired_reset = [
-            token for token, data in reset_tokens.items()
-            if current_time > data["expires_at"]
-        ]
-        for token in expired_reset:
-            del reset_tokens[token]
-
-        logger.info(
-            f"✅ Cleaned up {len(expired_verification)} verification tokens "
-            f"and {len(expired_reset)} reset tokens"
-        )
-
-        return {
-            "verification_tokens_cleaned": len(expired_verification),
-            "reset_tokens_cleaned": len(expired_reset)
-        }
+        logger.info(f"✅ Token cleanup completed, cleaned {cleaned} stale keys")
+        return {"stale_keys_cleaned": cleaned}
     except Exception as e:
         logger.error(f"❌ Error cleaning up tokens: {e}")
         raise

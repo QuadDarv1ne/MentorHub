@@ -14,7 +14,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
 from app.config import is_production, settings
-from app.constants import DEFAULT_MAX_BODY_SIZE, RATE_LIMIT_DEFAULT_WINDOW
+from app.constants import DEFAULT_MAX_BODY_SIZE
 from app.middleware.rate_limiter_unified import UnifiedRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
@@ -73,11 +73,9 @@ def register_middleware(app: FastAPI, redis_client: Any = None) -> None:
     app.add_middleware(PerformanceMiddleware, monitor=performance_monitor)
     logger.info("✅ Performance monitoring middleware added")
 
-    # 6. Advanced Security Middleware
+    # 6. Advanced Security Middleware (attack detection + security headers)
     app.add_middleware(
         SecurityMiddleware,
-        rate_limit_requests=settings.RATE_LIMIT_REQUESTS if settings.RATE_LIMIT_ENABLED else 999999,
-        rate_limit_window=settings.RATE_LIMIT_PERIOD if settings.RATE_LIMIT_ENABLED else RATE_LIMIT_DEFAULT_WINDOW,
         max_body_size=DEFAULT_MAX_BODY_SIZE,
     )
     logger.info("✅ Advanced Security middleware added")

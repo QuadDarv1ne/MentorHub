@@ -18,7 +18,6 @@ from redis.asyncio import Redis
 from app.config import is_production, settings
 from app.database import Base
 from app.utils.cache import init_cache
-from app.utils.cache_advanced import init_cache_backend
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +202,6 @@ async def lifespan(app: FastAPI):
 
     # Initialize cache with Redis client if available
     init_cache(redis_client)
-    init_cache_backend(redis_client)
     logger.info("✅ Cache initialized")
 
     # Initialize database

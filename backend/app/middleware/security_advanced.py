@@ -3,13 +3,12 @@ Security Middleware
 
 Main security middleware for protecting against various attacks.
 Uses modular security components for detection and sanitization.
+Rate limiting is handled by UnifiedRateLimitMiddleware (Redis-backed).
 """
 
 import json
 import logging
-from collections import defaultdict
-from datetime import datetime, timedelta, timezone
-from typing import Callable, Dict, List
+from typing import Callable
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -21,8 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 # Constants for security middleware
-DEFAULT_RATE_LIMIT_REQUESTS = 100
-DEFAULT_RATE_LIMIT_WINDOW = 60  # seconds
 DEFAULT_MAX_BODY_SIZE = 10 * 1024 * 1024  # 10MB
 DEFAULT_HSTS_MAX_AGE = 31536000  # 1 year in seconds
 DEFAULT_TRUNCATE_LOG_LENGTH = 100  # characters for logging
@@ -37,23 +34,17 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     - XSS (Cross-Site Scripting)
     - Path Traversal
     - Command Injection
-    - Clickjacking
-    - CSRF (Cross-Site Request Forgery)
+    - Request size abuse
     - Malicious User-Agents
-    - Phishing attempts
+    - Adds security response headers (CSP, HSTS, etc.)
     """
 
     def __init__(
         self,
         app,
-        rate_limit_requests: int = DEFAULT_RATE_LIMIT_REQUESTS,
-        rate_limit_window: int = DEFAULT_RATE_LIMIT_WINDOW,
         max_body_size: int = DEFAULT_MAX_BODY_SIZE,
     ):
         super().__init__(app)
-        self.rate_limit_requests = rate_limit_requests
-        self.rate_limit_window = rate_limit_window
-        self.request_counts: Dict[str, List[datetime]] = defaultdict(list)
         self.max_body_size = max_body_size
 
         # Initialize security detector
@@ -67,9 +58,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         # Skip security checks for documentation and health endpoints
         if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health", "/metrics"]:
             return await call_next(request)
-
-        # Rate limiting check
-        await self._check_rate_limit(request)
 
         # Check request size
         await self._check_request_size(request)
@@ -89,30 +77,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         # Add security headers
         return self._add_security_headers(response)
-
-
-    async def _check_rate_limit(self, request: Request):
-        """Check rate limiting."""
-        client_ip = request.client.host
-        now = datetime.now(timezone.utc)
-        window_start = now - timedelta(seconds=self.rate_limit_window)
-
-        # Clean old requests
-        self.request_counts[client_ip] = [
-            req_time for req_time in self.request_counts[client_ip]
-            if req_time > window_start
-        ]
-
-        # Check limit
-        if len(self.request_counts[client_ip]) >= self.rate_limit_requests:
-            logger.warning(f"Rate limit exceeded for IP: {client_ip}")
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many requests"
-            )
-
-        # Record request
-        self.request_counts[client_ip].append(now)
 
     async def _check_request_size(self, request: Request):
         """Check request body size."""

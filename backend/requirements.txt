@@ -88,7 +88,7 @@ icalendar>=6.0.0
 
 # ==================== RATE LIMITING ====================
 # NOTE: fastapi-cors removed - use built-in fastapi.middleware.cors.CORSMiddleware
-slowapi>=0.1.9
+# NOTE: slowapi removed - using UnifiedRateLimitMiddleware with Redis backend
 
 # ==================== PERFORMANCE (Unix only) ====================
 uvloop>=0.19.0; sys_platform != 'win32'

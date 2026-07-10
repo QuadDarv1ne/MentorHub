@@ -7,7 +7,7 @@ import hashlib
 import logging
 import re
 import secrets
-from collections import defaultdict
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
@@ -26,6 +26,27 @@ from app.constants import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Redis client for BruteForceProtection (lazy init)
+_redis_client = None
+
+
+def _get_redis():
+    """Get or create sync Redis client for brute-force protection."""
+    global _redis_client
+    if _redis_client is not None:
+        return _redis_client
+    try:
+        import redis as sync_redis
+        redis_url = getattr(settings, "REDIS_URL", None)
+        if redis_url:
+            _redis_client = sync_redis.from_url(redis_url, decode_responses=True)
+            _redis_client.ping()
+            logger.info("BruteForceProtection connected to Redis")
+            return _redis_client
+    except Exception as e:
+        logger.debug(f"Redis unavailable for BruteForceProtection: {e}")
+    return None
 
 
 def decode_access_token(token: str) -> Dict:
@@ -121,62 +142,117 @@ class PasswordValidator:
 
 
 class BruteForceProtection:
-    """Защита от brute-force атак"""
+    """Защита от brute-force атак — Redis-backed, multi-worker safe.
+
+    Falls back to in-memory when Redis is unavailable (single-worker only).
+    """
 
     def __init__(
         self,
         max_attempts: int = MAX_LOGIN_ATTEMPTS,
         lockout_duration: int = LOCKOUT_DURATION_SECONDS,
-        cleanup_interval: int = CLEANUP_INTERVAL
     ):
         self.max_attempts = max_attempts
         self.lockout_duration = lockout_duration
-        self.cleanup_interval = cleanup_interval
-        self.login_attempts = defaultdict(list)
-        self.lockouts = {}
-        self.last_cleanup = datetime.now(timezone.utc)
+        # In-memory fallback (single-worker only)
+        self._attempts: Dict[str, list] = {}
+        self._lockouts: Dict[str, float] = {}
 
     def record_failed_attempt(self, identifier: str):
         """Записать неудачную попытку входа"""
-        now = datetime.now(timezone.utc)
-        self._cleanup_old_attempts(identifier, now)
-        self.login_attempts[identifier].append(now)
+        r = _get_redis()
+        now = time.time()
+        key = f"bf:attempts:{identifier}"
+        lockout_key = f"bf:lockout:{identifier}"
 
-        if len(self.login_attempts[identifier]) >= self.max_attempts:
-            self.lockouts[identifier] = now + timedelta(seconds=self.lockout_duration)
-            logger.warning(f"Account locked: {identifier}")
+        if r:
+            try:
+                pipe = r.pipeline()
+                pipe.zadd(key, {str(now): now})
+                pipe.zremrangebyscore(key, 0, now - self.lockout_duration)
+                pipe.zcard(key)
+                pipe.expire(key, self.lockout_duration)
+                results = pipe.execute()
+                count = results[2]
+
+                if count >= self.max_attempts:
+                    r.setex(lockout_key, self.lockout_duration, str(now + self.lockout_duration))
+                    r.delete(key)
+                    logger.warning(f"Account locked (Redis): {identifier}")
+                return
+            except Exception as e:
+                logger.debug(f"Redis brute-force tracking failed, using memory: {e}")
+
+        # In-memory fallback
+        cutoff = now - self.lockout_duration
+        attempts = self._attempts.get(identifier, [])
+        attempts = [t for t in attempts if t > cutoff]
+        attempts.append(now)
+        self._attempts[identifier] = attempts
+
+        if len(attempts) >= self.max_attempts:
+            self._lockouts[identifier] = now + self.lockout_duration
+            logger.warning(f"Account locked (memory): {identifier}")
 
     def is_locked(self, identifier: str) -> bool:
         """Проверка блокировки"""
-        if identifier not in self.lockouts:
+        r = _get_redis()
+        lockout_key = f"bf:lockout:{identifier}"
+
+        if r:
+            try:
+                val = r.get(lockout_key)
+                if val:
+                    return True
+                return False
+            except Exception:
+                pass
+
+        # In-memory fallback
+        lockout_until = self._lockouts.get(identifier)
+        if lockout_until is None:
             return False
-        now = datetime.now(timezone.utc)
-        if now < self.lockouts[identifier]:
+        now = time.time()
+        if now < lockout_until:
             return True
-        del self.lockouts[identifier]
-        self.login_attempts[identifier] = []
+        del self._lockouts[identifier]
+        self._attempts.pop(identifier, None)
         return False
 
     def get_lockout_time_remaining(self, identifier: str) -> Optional[int]:
         """Оставшееся время блокировки в секундах"""
-        if identifier not in self.lockouts:
+        r = _get_redis()
+        lockout_key = f"bf:lockout:{identifier}"
+
+        if r:
+            try:
+                ttl = r.ttl(lockout_key)
+                if ttl > 0:
+                    return ttl
+                return None
+            except Exception:
+                pass
+
+        # In-memory fallback
+        lockout_until = self._lockouts.get(identifier)
+        if lockout_until is None:
             return None
-        now = datetime.now(timezone.utc)
-        if now < self.lockouts[identifier]:
-            return int((self.lockouts[identifier] - now).total_seconds())
+        now = time.time()
+        if now < lockout_until:
+            return int(lockout_until - now)
         return None
 
     def reset_attempts(self, identifier: str):
         """Сброс попыток"""
-        self.login_attempts.pop(identifier, None)
-        self.lockouts.pop(identifier, None)
-
-    def _cleanup_old_attempts(self, identifier: str, now: datetime):
-        """Очистка старых попыток"""
-        cutoff = now - timedelta(seconds=self.lockout_duration)
-        self.login_attempts[identifier] = [
-            attempt for attempt in self.login_attempts[identifier] if attempt > cutoff
-        ]
+        r = _get_redis()
+        if r:
+            try:
+                r.delete(f"bf:attempts:{identifier}", f"bf:lockout:{identifier}")
+                return
+            except Exception:
+                pass
+        self._attempts.pop(identifier, None)
+        self._lockouts.pop(identifier, None)
 
 
 class SecureTokenManager:

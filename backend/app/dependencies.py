@@ -4,8 +4,7 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 """
 
 import logging
-from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+import time
 from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, Query, Request, status
@@ -269,58 +268,73 @@ def verify_session_access(
 
 # ==================== RATE LIMITING DEPENDENCY ====================
 
+# Lazy Redis client for rate limiting
+_rate_limit_redis = None
+
+
+def _get_rate_limit_redis():
+    """Get or create sync Redis client for dependency-level rate limiting."""
+    global _rate_limit_redis
+    if _rate_limit_redis is not None:
+        return _rate_limit_redis
+    try:
+        import redis as sync_redis
+        redis_url = getattr(settings, "REDIS_URL", None)
+        if redis_url:
+            _rate_limit_redis = sync_redis.from_url(redis_url, decode_responses=True)
+            _rate_limit_redis.ping()
+            return _rate_limit_redis
+    except Exception as e:
+        logger.debug(f"Redis unavailable for rate limiting: {e}")
+    return None
+
 
 class RateLimiter:
-    """Simple in-memory rate limiter with periodic cleanup"""
+    """Redis-backed sliding-window rate limiter. Falls back to in-memory for single-worker."""
 
-    def __init__(self, requests: int = 100, period: int = 3600):
-        self.requests = requests
+    def __init__(self, requests: int = 100, period: int = 3600, prefix: str = "rl"):
+        self.max_requests = requests
         self.period = period
-        self.clients = defaultdict(list)
-        self._last_cleanup = datetime.now(timezone.utc)
-
-    def _cleanup_stale_clients(self) -> None:
-        """Remove clients with no recent requests to prevent memory leaks"""
-        now = datetime.now(timezone.utc)
-        # Only cleanup every 5 minutes
-        if (now - self._last_cleanup).total_seconds() < 300:
-            return
-
-        self._last_cleanup = now
-        cutoff = now - timedelta(seconds=self.period)
-        stale_keys = [
-            client_id for client_id, timestamps in self.clients.items()
-            if not timestamps or timestamps[-1] <= cutoff
-        ]
-        for key in stale_keys:
-            del self.clients[key]
+        self.prefix = prefix
+        # In-memory fallback (single-worker only)
+        self._store: dict[str, list[float]] = {}
 
     def is_allowed(self, client_id: str) -> bool:
-        """Check if client is allowed to make request"""
-        now = datetime.now(timezone.utc)
-        cutoff = now - timedelta(seconds=self.period)
+        """Check if client is allowed to make request."""
+        r = _get_rate_limit_redis()
+        now = time.time()
+        key = f"{self.prefix}:{client_id}"
 
-        self._cleanup_stale_clients()
+        if r:
+            try:
+                pipe = r.pipeline()
+                pipe.zadd(key, {str(now): now})
+                pipe.zremrangebyscore(key, 0, now - self.period)
+                pipe.zcard(key)
+                pipe.expire(key, self.period)
+                results = pipe.execute()
+                count = results[2]
+                return count <= self.max_requests
+            except Exception as e:
+                logger.debug(f"Redis rate limit failed, using memory: {e}")
 
-        self.clients[client_id] = [req_time for req_time in self.clients[client_id] if req_time > cutoff]
-
-        if len(self.clients[client_id]) >= self.requests:
-            return False
-
-        self.clients[client_id].append(now)
-        return True
+        # In-memory fallback
+        cutoff = now - self.period
+        timestamps = self._store.get(client_id, [])
+        timestamps = [t for t in timestamps if t > cutoff]
+        timestamps.append(now)
+        self._store[client_id] = timestamps
+        return len(timestamps) <= self.max_requests
 
 
 _rate_limiter = (
-    RateLimiter(requests=settings.RATE_LIMIT_REQUESTS, period=settings.RATE_LIMIT_PERIOD)
+    RateLimiter(requests=settings.RATE_LIMIT_REQUESTS, period=settings.RATE_LIMIT_PERIOD, prefix="rl:dep")
     if settings.RATE_LIMIT_ENABLED
     else None
 )
 
-# Webhook rate limiter - более строгие лимиты для webhook endpoints
-# Webhook провайдеры обычно отправляют 100-1000 запросов в час
 _webhook_rate_limiter = (
-    RateLimiter(requests=500, period=3600)  # 500 запросов в час
+    RateLimiter(requests=500, period=3600, prefix="rl:webhook")
     if settings.RATE_LIMIT_ENABLED
     else None
 )
@@ -329,7 +343,7 @@ _webhook_rate_limiter = (
 def rate_limit_dependency(
     current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> bool:
-    """Rate limiting dependency"""
+    """Rate limiting dependency — Redis-backed, multi-worker safe."""
     if not _rate_limiter:
         return True
 
@@ -342,16 +356,12 @@ def rate_limit_dependency(
 
 
 def webhook_rate_limit_dependency(request: Request) -> bool:
-    """
-    Специальный rate limiter для webhook endpoints.
-    Использует IP адрес для идентификации, так как webhook'и не имеют авторизации.
-    """
+    """Rate limiter for webhook endpoints — uses IP + path as key."""
     if not _webhook_rate_limiter:
         return True
 
-    # Используем IP адрес + path для более точной идентификации
     client_ip = request.client.host if request.client else "unknown"
-    client_id = f"webhook_{client_ip}_{request.url.path}"
+    client_id = f"{client_ip}:{request.url.path}"
 
     if not _webhook_rate_limiter.is_allowed(client_id):
         raise HTTPException(
