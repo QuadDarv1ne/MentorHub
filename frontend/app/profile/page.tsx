@@ -4,23 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
-
-interface UserProfile {
-  id: number
-  username: string
-  email: string
-  fullName: string
-  avatar?: string
-  role: 'student' | 'mentor' | 'admin'
-  bio?: string
-  skills: string[]
-  rating: number
-  totalSessions: number
-  completedSessions: number
-  joinDate: string
-  isOnline: boolean
-  lastSeen?: string
-}
+import { getProfile, updateProfile, type UserProfile } from '@/lib/api/profile'
 
 export default function ProfilePage() {
   const { user, token } = useAuth()
@@ -36,20 +20,15 @@ export default function ProfilePage() {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const response = await fetch('/api/profile', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      const data = await getProfile()
+      setProfile(data)
+      setError(null)
+      setFormData({
+        fullName: data.fullName || '',
+        bio: data.bio || '',
+        skills: data.skills?.join(', ') || ''
       })
-      if (response.ok) {
-        const data = await response.json()
-        setProfile(data)
-        setError(null)
-        setFormData({
-          fullName: data.fullName || '',
-          bio: data.bio || '',
-          skills: data.skills?.join(', ') || ''
-        })
-        return
-      }
+      return
     } catch (error) {
       logger.error('Fetch profile error', error)
     }
@@ -82,7 +61,7 @@ export default function ProfilePage() {
     } else {
       setError('Не удалось загрузить профиль')
     }
-  }, [token, user])
+  }, [user])
 
   useEffect(() => {
     fetchProfile()
@@ -90,26 +69,14 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          full_name: formData.fullName,
-          bio: formData.bio,
-          skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean)
-        })
+      await updateProfile({
+        full_name: formData.fullName,
+        bio: formData.bio,
+        skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean),
       })
-
-      if (response.ok) {
-        toast.success('Профиль сохранён')
-        setIsEditing(false)
-        fetchProfile()
-      } else {
-        toast.error('Ошибка сохранения')
-      }
+      toast.success('Профиль сохранён')
+      setIsEditing(false)
+      fetchProfile()
     } catch (error) {
       logger.error('Save profile error', error)
       toast.error('Ошибка сохранения профиля')

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
+import { getSettings, updateSettings, type SettingsData } from '@/lib/api/settings'
 
 // --- Sub-components defined outside render ---
 
@@ -14,6 +14,7 @@ interface TabButtonProps {
   active: boolean
   onClick: () => void
 }
+
 
 const TabButton = ({ id, label, icon, active, onClick }: TabButtonProps) => (
   <button
@@ -56,17 +57,7 @@ const Toggle = ({ enabled, onChange, label }: ToggleProps) => (
   </button>
 )
 
-interface SettingsData {
-  language: string
-  timezone: string
-  emailNotifications: boolean
-  pushNotifications: boolean
-  profileVisibility: string
-  showOnlineStatus: boolean
-  showLastSeen: boolean
-  twoFactorEnabled: boolean
-  sessionsLimit: number
-}
+
 
 const DEFAULT_SETTINGS: SettingsData = {
   language: 'ru',
@@ -81,7 +72,6 @@ const DEFAULT_SETTINGS: SettingsData = {
 }
 
 export default function SettingsPage() {
-  const { token } = useAuth()
   const toast = useToast()
   const [activeTab, setActiveTab] = useState('general')
   const [settings, setSettings] = useState<SettingsData>(DEFAULT_SETTINGS)
@@ -92,14 +82,9 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setSettings(data)
-          return
-        }
+        const data = await getSettings()
+        setSettings(data)
+        return
       } catch (error) {
         logger.error('Fetch settings error', error)
       }
@@ -108,33 +93,21 @@ export default function SettingsPage() {
     }
 
     fetchSettings()
-  }, [token, toast])
+  }, [toast])
 
   const handleSave = useCallback(async () => {
     setIsSaving(true)
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(settings)
-      })
-
-      if (response.ok) {
-        toast.success('Настройки сохранены')
-        setHasChanges(false)
-      } else {
-        toast.error('Ошибка сохранения')
-      }
+      await updateSettings(settings)
+      toast.success('Настройки сохранены')
+      setHasChanges(false)
     } catch (error) {
       logger.error('Save settings error', error)
       toast.error('Ошибка сохранения настроек')
     } finally {
       setIsSaving(false)
     }
-  }, [settings, token, toast])
+  }, [settings, toast])
 
   const updateSetting = <K extends keyof SettingsData>(key: K, value: SettingsData[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))

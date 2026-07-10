@@ -7,6 +7,7 @@ import ReviewList from '@/components/ReviewList';
 import ReviewForm from '@/components/ReviewForm';
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { publicRequest } from '@/lib/api/client';
 
 interface CourseDetailProps {
   course: StepikCourse & {
@@ -34,10 +35,10 @@ export default function CourseDetailClient({ course }: CourseDetailProps) {
     // Fetch aggregated rating from backend
     const fetchAgg = async () => {
       try {
-        const res = await fetch(`/api/v1/courses/${course.id}/reviews/aggregate`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setAggregate({ average_rating: data.average_rating, total_reviews: data.total_reviews });
+        const data = await publicRequest<{ average_rating: number; total_reviews: number }>(
+          `/courses/${course.id}/reviews/aggregate`,
+        );
+        setAggregate(data);
       } catch {
         // ignore
       }

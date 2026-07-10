@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
-
-const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
-if (!BACKEND_URL) {
-  throw new Error('BACKEND_URL environment variable is required for dashboard API')
-}
+import { getBackendUrl, extractBearerToken } from '@/lib/api/server-url'
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = extractBearerToken(request)
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const token = authHeader.slice(7)
 
     const { searchParams } = new URL(request.url)
     const endpoint = searchParams.get('endpoint') || 'stats'
 
-    const response = await fetch(`${BACKEND_URL}/api/dashboard/${endpoint}`, {
+    const response = await fetch(`${getBackendUrl()}/api/dashboard/${endpoint}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

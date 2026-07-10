@@ -4,20 +4,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getBackendUrl, extractBearerToken } from '@/lib/api/server-url'
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-    
+    const token = extractBearerToken(request)
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL
-    if (!backendUrl) {
-      throw new Error('NEXT_PUBLIC_API_URL environment variable is required for messages API')
-    }
-    const response = await fetch(`${backendUrl}/api/messages/conversations`, {
+    const response = await fetch(`${getBackendUrl()}/api/messages/conversations`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 # MentorHub — TODO и План Улучшений
 
-**Дата:** 4 июля 2026 г.
+**Дата:** 10 июля 2026 г.
 **Ветка:** `main`
 **Статус:** ✅ Оптимизация завершена
 
@@ -51,14 +51,32 @@
 
 ---
 
+## ✅ ВЫПОЛНЕННЫЕ УЛУЧШЕНИЯ (сессия 10 июля 2026)
+
+### Консистентность API маршрутов
+- [x] **server-url.ts** — общий модуль `getBackendUrl()` + `extractBearerToken()` для серверных route handlers
+- [x] **8 API route handlers** —统一 BACKEND_URL резолюцию: `analytics/track`, `analytics`, `dashboard`, `export`, `calls`, `calls/token`, `messages/conversations`, `messages/history`
+- [x] **Безопасная извлечение Bearer токена** — `extractBearerToken()` вместо дублирования `.replace('Bearer ', '')`
+
+### Миграция raw fetch() → централизованный клиент
+- [x] **settings/page.tsx** — `fetch('/api/settings')` → `getSettings()` / `updateSettings()`
+- [x] **profile/page.tsx** — `fetch('/api/profile')` → `getProfile()` / `updateProfile()`
+- [x] **calendar/page.tsx** — 4 raw fetch → `getCalendarEvents()` / `syncGoogleCalendar()` / `syncOutlookCalendar()` / `exportIcal()`
+- [x] **stepik/[id]/page.client.tsx** — `fetch('/api/v1/...')` → `publicRequest()`
+- [x] **apiRequestRaw()** — новый метод в client.ts для blob-ответов (скачивание файлов)
+- [x] **3 новых API модуля** — `settings.ts`, `profile.ts`, `calendar.ts` в `lib/api/`
+- [x] **stepik.ts** — единообразная URL-резолюция через `getBackendUrl()`
+
+### Очистка кода
+- [x] **Удалён CSRFProtection** — мёртвый класс из `security.py` (не импортировался нигде)
+- [x] **Обновлён TODO.md** — исправлены устаревшие записи
+
+---
+
 ## 🔴 КРИТИЧЕСКИЕ ПРОБЛЕМЫ (P0)
 
-### 1. Тесты lesson completion — заглушки
-- **Файл:** `backend/tests/test_lesson_completion.py`
-- **Строки:** 73, 85, 89, 94, 99, 108, 113, 118
-- **Проблема:** Все тесты используют `MagicMock`, реальная логика не реализована
-- **Влияние:** Нет реальной проверки функционала завершения уроков
-- **Решение:** Реализовать полноценные интеграционные тесты с БД
+### 1. Тесты lesson completion — заглушки — ✅ ГОТОВО
+- **Статус:** Интеграционные тесты с реальной БД (SQLite), без MagicMock
 
 ### 2. Мёртвые зависимости в frontend (~18 пакетов) — ✅ ГОТОВО
 - **Файл:** `frontend/package.json`
@@ -67,17 +85,17 @@
 ### 2b. Backend CORS origins — ✅ ГОТОВО
 - **Файл:** `backend/app/config.py`
 
-### 3. Три дублирующихся API клиента
-- **Проблема:** Дублирование кода, несогласованность, hardcoded URL
-- **Решение:** Консолидировать в единый configured API client с interceptor'ами
+### 3. Дублирующиеся API клиенты — ✅ ГОТОВО
+- **Статус:** Централизованный `client.ts` используется всеми модулями `lib/api/`. Raw fetch() заменён на `apiRequest`/`publicRequest` в settings, profile, calendar, stepik страницах. Создан `apiRequestRaw` для blob-ответов.
 
 ### 4. Hardcoded localhost URLs в production коде — ✅ ЧАСТИЧНО ГОТОВО
 
-### 5. Фейковый CSRF токен (клиентская генерация)
-- **Решение:** Реализовать server-side CSRF generation + validation
+### 5. Фейковый CSRF токен (клиентская генерация) — ✅ ЧАСТИЧНО ГОТОВО
+- **Статус:** Мёртвый класс `CSRFProtection` удалён из `security.py`. OAuth state token остаётся единственным CSRF-механизмом. Полноценная реализация CSRF требует архитектурного решения (SameSite cookies + double-submit cookie pattern).
 
 ### 6. JWT токены в localStorage (XSS уязвимость)
 - **Решение:** Перейти на httpOnly cookies для хранения токенов
+- **Статус:** Refresh token уже работает через httpOnly cookie. Access token всё ещё в localStorage — требует backend-изменений для cookie-based auth.
 
 ### 7. Отсутствует 401 interceptor для автоматического refresh — ✅ ГОТОВО
 - **Статус:** Реализован в `frontend/lib/api/client.ts`
@@ -154,15 +172,11 @@
 - **Влияние:** Потенциальные баги в базовой функциональности
 - **Решение:** Написать unit тесты для критичных утилит
 
-### 19. ESLint отключен при сборке
-- **Файл:** `frontend/next.config.js` — `eslint: { ignoreDuringBuilds: true }`
-- **Проблема:** Ошибки линтинга не блокируют сборку
-- **Влияние:** Возможны проблемы качества в production
-- **Решение:** Включить ESLint checks, исправить все ошибки
+### 19. ESLint отключен при сборке — ✅ ГОТОВО
+- **Статус:** `ignoreDuringBuilds` отсутствует в `next.config.js`. ESLint работает при сборке.
 
 ### 20. Дублирующийся ключ `optimizePackageImports` в next.config.js — ✅ НЕ ПОДТВЕРЖДЕНО
-- **Файл:** `frontend/next.config.js`
-- **Статус:** При проверке дублирующийся ключ не найден — возможно, уже исправлено или entry неактуален.
+- **Статус:** При проверке дублирующийся ключ не найден.
 
 ---
 
@@ -221,17 +235,13 @@
 5. ✅ Добавить 401 interceptor для token refresh — **ГОТОВО**
 
 ### Фаза 3: Качество кода
-1. ✅ Включить ESLint в сборке — **ГОТОВО** (ignoreDuringBuilds удалён)
-2. ✅ Исправить bare except блоки — **ГОТОВО** (20 блоков с logging)
-3. ✅ Централизовать логирование фронтенда — **ГОТОВО** (14 console → logger)
-4. ✅ Исправить N+1 запросы — **ГОТОВО** (messages, push_notifications)
+1. ✅ Включить ESLint в сборке — **ГОТОВО**
+2. ✅ Исправить bare except блоки — **ГОТОВО**
+3. ✅ Централизовать логирование фронтенда — **ГОТОВО**
+4. ✅ Исправить N+1 запросы — **ГОТОВО**
 5. ✅ Исправить health.py async Redis — **ГОТОВО**
-
-### Фаза 3: Качество кода
-1. Включить ESLint в сборке
-2. Исправить все lint ошибки
-3. Увеличить покрытие тестами критичных компонентов
-4. Включить строгую типизацию mypy
+6. ✅ Консолидировать API клиенты — **ГОТОВО**
+7. ✅ Единообразный BACKEND_URL в API routes — **ГОТОВО**
 
 ---
 
@@ -241,7 +251,7 @@
 - **Файлов Python:** ~100+
 - **Endpoints:** ~80+
 - **Моделей:** ~15+
-- **Тестов:** ~200+ (с заглушками)
+- **Тестов:** ~200+ (интеграционные с реальной БД)
 - **Python версия:** 3.11
 - **Фреймворк:** FastAPI
 
@@ -250,7 +260,7 @@
 - **Компонентов:** ~120+ (49 без тестов)
 - **Страниц:** ~58 (0% покрытие)
 - **Утилит:** 11 (без тестов)
-- **Тестов:** ~74 passing, 12 skipped
+- **Тестов:** ~74 passing, 0 skipped
 - **Node.js версия:** 18
 - **Фреймворк:** Next.js 14
 

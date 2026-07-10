@@ -285,3 +285,26 @@ export async function publicRequest<T>(
 ): Promise<T> {
   return apiRequest<T>(endpoint, options, { skipAuth: true })
 }
+
+/**
+ * Make an authenticated API request and return the raw Response.
+ * Use when you need access to headers, status, or a non-JSON body (e.g. blob download).
+ */
+export async function apiRequestRaw(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const baseUrl = getBaseUrl()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  }
+
+  const token = getAccessToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  return fetchWithRetry(`${baseUrl}/api/v1${endpoint}`, {
+    ...options,
+    headers,
+  })
+}

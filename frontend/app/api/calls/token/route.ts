@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
-
-const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
-if (!BACKEND_URL) {
-  throw new Error('BACKEND_URL environment variable is required for calls token API')
-}
+import { getBackendUrl, extractBearerToken } from '@/lib/api/server-url'
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = extractBearerToken(request)
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const token = authHeader.slice(7)
 
     const body = await request.json()
     const { channel_id, participant_id, room_id } = body
 
-    const response = await fetch(`${BACKEND_URL}/api/calls/token`, {
+    const response = await fetch(`${getBackendUrl()}/api/calls/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

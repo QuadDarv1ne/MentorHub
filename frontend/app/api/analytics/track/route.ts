@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-if (!BACKEND_URL) {
-  throw new Error('NEXT_PUBLIC_BACKEND_URL environment variable is required for analytics tracking API')
-}
+import { getBackendUrl } from '@/lib/api/server-url'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Отправка события в backend
-    const response = await fetch(`${BACKEND_URL}/api/analytics/track`, {
+    const response = await fetch(`${getBackendUrl()}/api/analytics/track`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

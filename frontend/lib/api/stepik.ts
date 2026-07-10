@@ -1,10 +1,14 @@
 import { cache } from '../cache';
 import { logger } from '../utils/logger';
+import { getBackendUrl } from './server-url';
 
-// Use Next.js API route as proxy for server-side rendering
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL 
-  ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/stepik`
-  : '/api/stepik';
+const API_BASE = (() => {
+  try {
+    return `${getBackendUrl()}/stepik`
+  } catch {
+    return '/api/stepik'
+  }
+})();
 
 // Course IDs taught by Дуплей Максим Игоревич (instructor ID 150943726)
 const INSTRUCTOR_COURSE_IDS = [

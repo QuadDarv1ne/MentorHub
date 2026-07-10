@@ -195,35 +195,7 @@ class SecureTokenManager:
         return f"mh_{secrets.token_urlsafe(40)}"
 
 
-class CSRFProtection:
-    """Защита от CSRF атак"""
-
-    _tokens: Dict[str, tuple] = {}
-
-    @classmethod
-    def generate_token(cls, user_id: int) -> str:
-        token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
-        cls._tokens[token] = (user_id, expires_at)
-        return token
-
-    @classmethod
-    def validate_token(cls, token: str, user_id: int) -> bool:
-        if token not in cls._tokens:
-            return False
-        stored_user_id, expires_at = cls._tokens[token]
-        if datetime.now(timezone.utc) > expires_at:
-            del cls._tokens[token]
-            return False
-        return stored_user_id == user_id
-
-    @classmethod
-    def remove_token(cls, token: str):
-        cls._tokens.pop(token, None)
-
-
 # Singleton экземпляры
 password_validator = PasswordValidator()
 brute_force_protection = BruteForceProtection()
 secure_token_manager = SecureTokenManager()
-csrf_protection = CSRFProtection()

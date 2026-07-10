@@ -4,14 +4,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getBackendUrl, extractBearerToken } from '@/lib/api/server-url'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-    
+    const token = extractBearerToken(request)
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -20,11 +20,7 @@ export async function GET(
     const limit = searchParams.get('limit') || '50'
     const before = searchParams.get('before') || ''
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL
-    if (!backendUrl) {
-      throw new Error('NEXT_PUBLIC_API_URL environment variable is required for messages history API')
-    }
-    let url = `${backendUrl}/api/messages/history/${params.userId}?limit=${limit}`
+    let url = `${getBackendUrl()}/api/messages/history/${params.userId}?limit=${limit}`
     
     if (before) {
       url += `&before=${encodeURIComponent(before)}`

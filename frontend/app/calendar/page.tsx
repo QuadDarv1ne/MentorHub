@@ -3,18 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
-
-interface CalendarEvent {
-  id: number
-  title: string
-  description?: string
-  start_time: string
-  end_time: string
-  type: 'session' | 'meeting' | 'personal'
-  participants?: { id: number; name: string; email: string }[]
-  location?: string
-  video_call_url?: string
-}
+import {
+  getCalendarEvents,
+  syncGoogleCalendar,
+  syncOutlookCalendar,
+  exportIcal,
+  type CalendarEvent,
+} from '@/lib/api/calendar'
 
 interface CalendarSettings {
   googleSync: boolean
@@ -43,11 +38,8 @@ export default function CalendarPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/calendar/events')
-      if (response.ok) {
-        const data = await response.json()
-        setEvents(data)
-      }
+      const data = await getCalendarEvents()
+      setEvents(data)
     } catch (error) {
       logger.error('Fetch events error', error)
     }
@@ -55,14 +47,10 @@ export default function CalendarPage() {
 
   const syncWithGoogle = async () => {
     try {
-      const response = await fetch('/api/calendar/sync/google', { method: 'POST' })
-      if (response.ok) {
-        setSettings({ ...settings, googleSync: true })
-        toast.success('Google Calendar синхронизирован')
-        fetchEvents()
-      } else {
-        toast.error('Ошибка синхронизации с Google')
-      }
+      await syncGoogleCalendar()
+      setSettings({ ...settings, googleSync: true })
+      toast.success('Google Calendar синхронизирован')
+      fetchEvents()
     } catch (error) {
       logger.error('Google sync error', error)
       toast.error('Ошибка синхронизации с Google Calendar')
@@ -71,23 +59,19 @@ export default function CalendarPage() {
 
   const syncWithOutlook = async () => {
     try {
-      const response = await fetch('/api/calendar/sync/outlook', { method: 'POST' })
-      if (response.ok) {
-        setSettings({ ...settings, outlookSync: true })
-        toast.success('Outlook Calendar синхронизирован')
-        fetchEvents()
-      } else {
-        toast.error('Ошибка синхронизации с Outlook')
-      }
+      await syncOutlookCalendar()
+      setSettings({ ...settings, outlookSync: true })
+      toast.success('Outlook Calendar синхронизирован')
+      fetchEvents()
     } catch (error) {
       logger.error('Outlook sync error', error)
       toast.error('Ошибка синхронизации с Outlook Calendar')
     }
   }
 
-  const exportIcal = async () => {
+  const handleExportIcal = async () => {
     try {
-      const response = await fetch('/api/calendar/export/ical')
+      const response = await exportIcal()
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -274,7 +258,7 @@ export default function CalendarPage() {
                 </button>
                 
                 <button
-                  onClick={exportIcal}
+                  onClick={handleExportIcal}
                   className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
                 >
                   📥 Экспорт iCal
