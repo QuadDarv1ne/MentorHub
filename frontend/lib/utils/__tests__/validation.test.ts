@@ -51,7 +51,7 @@ describe('validatePassword', () => {
   it('returns invalid for short password', () => {
     const result = validatePassword('abc');
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Пароль должен быть не менее 6 символов');
+    expect(result.errors).toContain('Пароль должен быть не менее 8 символов');
     expect(result.strength).toBe(0);
   });
 

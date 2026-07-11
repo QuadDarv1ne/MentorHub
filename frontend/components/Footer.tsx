@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Github, Mail, Send } from 'lucide-react'
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear()
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="container-custom py-12">
@@ -92,7 +93,7 @@ export default function Footer() {
 
         <div className="mt-8 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-400">
-            © 2025 MentorHub. Все права защищены.
+            © {currentYear} MentorHub. Все права защищены.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="/legal" className="text-sm text-gray-400 hover:text-white transition-colors">

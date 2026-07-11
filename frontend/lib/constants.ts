@@ -85,6 +85,7 @@ export const STORAGE_KEYS = {
   USER_DATA: 'user_data',
   USER_ID: 'user_id',
   USER_NAME: 'user_name',
+  USER_ROLE: 'user_role',
   THEME: 'theme',
   LANGUAGE: 'language',
   NOTIFICATIONS: 'notifications',

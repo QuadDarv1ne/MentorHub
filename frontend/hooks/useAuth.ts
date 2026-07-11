@@ -41,6 +41,7 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_NAME);
     localStorage.removeItem(STORAGE_KEYS.USER_ID);
+    localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
     setUser(null);
     router.push('/auth/login');
   }, [router]);

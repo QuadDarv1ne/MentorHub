@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -16,6 +16,12 @@ import { localeDirections } from '@/lib/i18n/types'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
+export const dynamic = 'force-dynamic'
+
+export const viewport: Viewport = {
+  themeColor: '#4f46e5',
+}
+
 export const metadata: Metadata = {
   title: 'MentorHub - Платформа для профессионального менторства в IT',
   description: 'Соединяем опытных IT-специалистов с теми, кто стремится развивать свои навыки и построить карьеру в технологиях',
@@ -29,7 +35,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  themeColor: '#4f46e5',
 }
 
 export default async function RootLayout({

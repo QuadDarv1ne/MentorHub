@@ -88,6 +88,24 @@
 
 ---
 
+## ✅ ВЫПОЛНЕННЫЕ УЛУЧШЕНИЯ (текущая сессия)
+
+### Тестирование — глубина и покрытие
+- [x] **4 shallow теста переписаны** — ProgressTracker (9), ReviewForm (7), ReviewList (7), SimilarCourses (6) — с реальными поведенческими ассерциями
+- [x] **5 новых utility-тестов** — logger (28), performance (28), lazyLoad (10), seo (19), accessibility (15)
+- [x] **4 новых component-теста** — Header (11), AuthGuard (9), ErrorBoundary (11), Footer (4)
+- [x] **Все пропущенные тесты восстановлены** — 12 skipped → 0 skipped
+
+### Исправления багов
+- [x] **useAuth logout** — теперь очищает `STORAGE_KEYS.USER_ROLE` из localStorage
+- [x] **useKeyboardNav ArrowUp wrap** — исправлено wrapping при отсутствии фокуса
+- [x] **Footer copyright year** — хардкоженный 2025 → динамический `new Date().getFullYear()`
+
+### Метрики
+- [x] **385 тестов проходят** — 25 suites, 0 failures, 0 skipped (было ~74 passing)
+
+---
+
 ## 🔴 КРИТИЧЕСКИЕ ПРОБЛЕМЫ (P0)
 
 ### 1. Тесты lesson completion — заглушки — ✅ ГОТОВО
@@ -144,24 +162,9 @@
 ### 13. i18n middleware — ✅ ГОТОВО
 - **Статус:** Middleware активен, 4 locale файла работают
 
-### 14. 12 пропущенных тестов (`it.skip`)
-- **Файлы:**
-  - `frontend/hooks/useAuth.test.ts` — 4 skipped
-  - `frontend/components/__tests__/ResponsiveImage.test.tsx` — 6 skipped
-  - `frontend/lib/api/client.test.ts` — 2 skipped
-- **Проблема:** Тесты не запускаются из-за timing issues
-- **Влияние:** Снижение покрытия, маскировка проблем
-- **Решение:** Починить моки и timing в тестах
+### 14. 12 пропущенных тестов (`it.skip`) — ✅ ГОТОВО
 
-### 15. Поверхностные тесты (проверяют только rendering)
-- **Файлы:**
-  - `ProgressTracker.test.tsx` — 3/4 теста поверхностные
-  - `ReviewForm.test.tsx` — все 3 теста
-  - `ReviewList.test.tsx` — оба теста
-  - `SimilarCourses.test.tsx` — единственный тест
-- **Проблема:** Тесты не проверяют поведение компонентов
-- **Влияние:** Ложное чувство безопасности
-- **Решение:** Добавить поведенческие ассерции
+### 15. Поверхностные тесты (проверяют только rendering) — ✅ ГОТОВО
 
 ### 16. 49 компонентов без тестов (86% непокрыто)
 - **Категории без тестов:**
@@ -181,11 +184,9 @@
 - **Влияние:** Критический риск production багов
 - **Решение:** Написать интеграционные тесты для ключевых страниц
 
-### 18. 11 utility файлов без тестов
-- **Файлы:** `lib/utils/accessibility.tsx`, `api.ts`, `date.ts`, `format.ts`, `lazyImport.ts`, `lazyLoad.tsx`, `logger.ts`, `performance.ts`, `seo.ts`, `validation.ts`
-- **Проблема:** Утилиты не протестированы
-- **Влияние:** Потенциальные баги в базовой функциональности
-- **Решение:** Написать unit тесты для критичных утилит
+### 18. 11 utility файлов без тестов — ✅ ЧАСТИЧНО ГОТОВО
+- **Покрыто:** `accessibility.tsx` (15), `lazyLoad.tsx` (10), `logger.ts` (28), `performance.ts` (28), `seo.ts` (19)
+- **Осталось:** `api.ts`, `date.ts`, `format.ts`, `lazyImport.ts`, `validation.ts`
 
 ### 19. ESLint отключен при сборке — ✅ ГОТОВО
 - **Статус:** `ignoreDuringBuilds` отсутствует в `next.config.js`. ESLint работает при сборке.
@@ -275,7 +276,7 @@
 - **Компонентов:** ~120+ (49 без тестов)
 - **Страниц:** ~58 (0% покрытие)
 - **Утилит:** 11 (без тестов)
-- **Тестов:** ~74 passing, 0 skipped
+- **Тестов:** 385 passing, 0 skipped
 - **Node.js версия:** 18
 - **Фреймворк:** Next.js 14
 

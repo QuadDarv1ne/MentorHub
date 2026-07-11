@@ -214,7 +214,10 @@ export function useKeyboardNav(
         break
       case 'ArrowUp':
         e.preventDefault()
-        setFocusedIndex((prev) => (prev - 1 + items.length) % items.length)
+        setFocusedIndex((prev) => {
+          if (prev <= 0) return items.length - 1;
+          return (prev - 1 + items.length) % items.length;
+        })
         break
       case 'Home':
         e.preventDefault()
