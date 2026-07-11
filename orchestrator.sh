@@ -319,7 +319,7 @@ show_status() {
     echo -e "${BLUE}Compose файл:${NC} $compose_file"
     
     if [ -f "$ENV_FILE" ]; then
-        local backend_port=$(grep "^BACKEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "8000")
+        local backend_port=$(grep "^BACKEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "8001")
         local frontend_port=$(grep "^FRONTEND_PORT=" "$ENV_FILE" | cut -d'=' -f2 || echo "3000")
         
         echo -e "${BLUE}Backend URL:${NC} http://localhost:$backend_port"

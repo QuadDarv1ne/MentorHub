@@ -1,7 +1,7 @@
 #!/bin/bash
 # =====================================================
 # MentorHub Startup Script - Nginx Reverse Proxy
-# Starts: Nginx (PORT) + Backend (8000) + Frontend (3000)
+# Starts: Nginx (PORT) + Backend (8001) + Frontend (3000)
 # Works with both Render and Amvera Cloud
 # =====================================================
 
@@ -75,7 +75,7 @@ else
 fi
 
 # =====================================================
-# START BACKEND (on port 8000)
+# START BACKEND (on port 8001)
 # =====================================================
 
 echo ""

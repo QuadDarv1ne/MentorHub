@@ -133,7 +133,7 @@ services:
       ENVIRONMENT: production
       WORKERS: ${WORKERS:-4}
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-8001}:8001"
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -143,7 +143,7 @@ services:
       - mentorhub-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -160,7 +160,7 @@ services:
       gunicorn app.main:app
       --workers ${WORKERS:-4}
       --worker-class uvicorn.workers.UvicornWorker
-      --bind 0.0.0.0:8000
+      --bind 0.0.0.0:8001
       --timeout 120
       --graceful-timeout 30
       --keep-alive 5

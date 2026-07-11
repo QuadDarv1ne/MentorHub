@@ -211,7 +211,7 @@ setup_backend() {
     
     local workers="${WORKERS:-4}"
     local host="${HOST:-0.0.0.0}"
-    local port="${PORT:-8000}"
+    local port="${PORT:-8001}"
     
     if [ "${ENVIRONMENT:-production}" = "development" ]; then
         # Development режим с reload
@@ -254,7 +254,7 @@ setup_frontend() {
     
     # Ожидание backend
     local backend_host="${BACKEND_HOST:-backend}"
-    local backend_port="${BACKEND_PORT:-8000}"
+    local backend_port="${BACKEND_PORT:-8001}"
     
     wait_for_service "$backend_host" "$backend_port" "Backend" 60 || {
         log_warning "Backend не доступен, продолжаем без него"

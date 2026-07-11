@@ -4,7 +4,7 @@
 
 // Set env var before any imports that depend on it
 // Note: do NOT include /api/v1 - the client adds it automatically
-process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8000';
+process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8001';
 
 import {
   getMetrics,

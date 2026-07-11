@@ -147,7 +147,7 @@ ENVIRONMENT=production
 
 # ==================== SERVER ====================
 HOST=0.0.0.0
-PORT=8000
+PORT=8001
 LOG_LEVEL=INFO
 
 # ==================== DATABASE ====================

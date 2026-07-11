@@ -83,7 +83,7 @@ events {
 
 http {
     upstream backend {
-        server backend:8000;
+        server backend:8001;
     }
 
     upstream frontend {

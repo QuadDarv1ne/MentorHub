@@ -29,7 +29,7 @@ spec:
         - image: gcr.io/PROJECT_ID/mentorhub:latest
           ports:
             - name: http1
-              containerPort: 8000
+              containerPort: 8001
           resources:
             limits:
               cpu: 1000m
@@ -38,7 +38,7 @@ spec:
             - name: ENVIRONMENT
               value: "production"
             - name: PORT
-              value: "8000"
+              value: "8001"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -70,21 +70,21 @@ spec:
             failureThreshold: 1
             httpGet:
               path: /api/v1/health
-              port: 8000
+              port: 8001
           livenessProbe:
             timeoutSeconds: 5
             periodSeconds: 30
             failureThreshold: 3
             httpGet:
               path: /api/v1/health
-              port: 8000
+              port: 8001
           readinessProbe:
             timeoutSeconds: 5
             periodSeconds: 10
             failureThreshold: 3
             httpGet:
               path: /api/v1/health
-              port: 8000
+              port: 8001
       # Volumes for persistent data (optional)
       # volumes:
       #   - name: data

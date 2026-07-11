@@ -149,7 +149,7 @@ check_ports_availability() {
     
     # Список портов для проверки
     local ports_to_check=(
-        "${BACKEND_PORT:-8000}:Backend API"
+        "${BACKEND_PORT:-8001}:Backend API"
         "${FRONTEND_PORT:-3000}:Frontend"
         "${DB_PORT:-5432}:PostgreSQL"
         "${REDIS_PORT:-6379}:Redis"

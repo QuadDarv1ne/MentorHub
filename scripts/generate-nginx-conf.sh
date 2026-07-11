@@ -36,7 +36,7 @@ fi
 # Устанавливаем дефолты если не заданы
 NGINX_HTTP_PORT="${NGINX_HTTP_PORT:-80}"
 NGINX_HTTPS_PORT="${NGINX_HTTPS_PORT:-443}"
-BACKEND_PORT="${BACKEND_PORT:-8000}"
+BACKEND_PORT="${BACKEND_PORT:-8001}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 # Генерируем nginx.conf

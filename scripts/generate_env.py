@@ -20,7 +20,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class PortConfig:
     """Конфигурация портов"""
-    backend: int = 8000
+    backend: int = 8001
     frontend: int = 3000
     database: int = 5432
     redis: int = 6379

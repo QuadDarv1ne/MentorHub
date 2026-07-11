@@ -332,12 +332,12 @@ function Build-Docker {
     # Тестирование
     if (-not $Force) {
         Write-Info "Запуск тестового контейнера..."
-        $containerId = docker run --rm -d --name mentorhub-test -p 8000:8000 "mentorhub:$Tag"
+        $containerId = docker run --rm -d --name mentorhub-test -p 8001:8001 "mentorhub:$Tag"
         Start-Sleep -Seconds 5
 
         # Проверка health endpoint
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:8000/api/v1/health" -UseBasicParsing -TimeoutSec 10
+            $response = Invoke-WebRequest -Uri "http://localhost:8001/api/v1/health" -UseBasicParsing -TimeoutSec 10
             if ($response.StatusCode -eq 200) {
                 Write-Success "Health check пройден!"
             }

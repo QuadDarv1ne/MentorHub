@@ -25,7 +25,10 @@ const routes = [
 ]
 
 export function GET() {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const base = process.env.NEXT_PUBLIC_BASE_URL
+  if (!base) {
+    return new Response('NEXT_PUBLIC_BASE_URL not configured', { status: 500 })
+  }
   const updated = new Date().toISOString()
   const urls = routes
     .map((path) => `    <url>\n      <loc>${base}${path}</loc>\n      <lastmod>${updated}</lastmod>\n      <changefreq>weekly</changefreq>\n      <priority>0.7</priority>\n    </url>`)

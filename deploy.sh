@@ -139,7 +139,7 @@ check_health() {
     log_info "Проверка health checks..."
     
     # Проверка backend
-    if curl -f http://localhost:8000/health &> /dev/null; then
+    if curl -f http://localhost:8001/health &> /dev/null; then
         log_success "Backend healthy"
     else
         log_error "Backend не отвечает"
@@ -180,10 +180,10 @@ show_status() {
     echo ""
     echo "Полезные команды:"
     echo "  Просмотр логов: docker-compose -f $COMPOSE_FILE logs -f"
-    echo "  Backend health: curl http://localhost:8000/health"
+    echo "  Backend health: curl http://localhost:8001/health"
     echo "  Grafana: http://localhost:3001 (admin/admin)"
     echo "  Prometheus: http://localhost:9090"
-    echo "  Swagger docs: http://localhost:8000/docs"
+    echo "  Swagger docs: http://localhost:8001/docs"
 }
 
 # Очистка

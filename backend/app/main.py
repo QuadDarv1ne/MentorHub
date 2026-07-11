@@ -54,7 +54,7 @@ def is_port_available(port: int, host: str = "0.0.0.0") -> bool:
 
 
 def find_free_port(
-    start_port: int = 8000,
+    start_port: int = 8001,
     max_attempts: int = 100,
     host: str = "0.0.0.0",
     exclude_ports: list[int] | None = None
@@ -68,7 +68,7 @@ def find_free_port(
     raise RuntimeError(f"Failed to find free port in range {start_port}-{start_port + max_attempts}")
 
 
-def resolve_port(preferred_port: int = 8000) -> int:
+def resolve_port(preferred_port: int = 8001) -> int:
     """Resolve port for server startup."""
     exclude_ports = [3000, 12600, 19001, 19005, 19006, 6060, 6061, 81]
     env_port = os.environ.get("PORT")
@@ -219,7 +219,7 @@ logger.info("✅ OpenAPI schema configured with security schemes")
 if __name__ == "__main__":
     import uvicorn
 
-    preferred_port = getattr(settings, 'PORT', 8000)
+    preferred_port = getattr(settings, 'PORT', 8001)
     port = resolve_port(preferred_port)
     host = getattr(settings, 'HOST', '0.0.0.0')
 

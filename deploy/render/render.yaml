@@ -26,7 +26,7 @@ services:
       - key: PORT
         value: "3000"
       - key: BACKEND_PORT
-        value: "8000"
+        value: "8001"
       - key: FRONTEND_PORT
         value: "3000"
       - key: ALGORITHM

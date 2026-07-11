@@ -2,8 +2,8 @@
  * Тесты для useAuth hook
  */
 
-process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8000';
-process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
+process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8001';
+process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8001';
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAuth, useOptionalAuth, useRole, useOwnership } from './useAuth'

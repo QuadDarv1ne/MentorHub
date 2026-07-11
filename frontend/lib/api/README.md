@@ -168,7 +168,7 @@ If not authenticated, functions will throw an error: `"Authentication required"`
 Configure the API base URL:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
 ```
 
 Default: `http://localhost:8000/api/v1`

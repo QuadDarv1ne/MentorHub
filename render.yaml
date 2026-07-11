@@ -1,6 +1,6 @@
 # Render Configuration
 # https://render.com/docs/yaml-spec
-# Nginx reverse proxy: Frontend (3000) + Backend (8000) → PORT
+# Nginx reverse proxy: Frontend (3000) + Backend (8001) → PORT
 
 services:
   # Backend API Service with Nginx Proxy

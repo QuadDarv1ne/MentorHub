@@ -1,5 +1,5 @@
 # Nginx configuration for MentorHub (Development)
-# Reverse proxy: Frontend (3000) + Backend API (8000)
+# Reverse proxy: Frontend (3000) + Backend API (8001)
 # Порты автоматически подставляются через envsubst
 
 events {

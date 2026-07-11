@@ -88,7 +88,7 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # Базовые порты (можно переопределить через аргументы)
-DEFAULT_BACKEND_PORT=8000
+DEFAULT_BACKEND_PORT=8001
 DEFAULT_FRONTEND_PORT=3000
 DEFAULT_DB_PORT=5432
 DEFAULT_REDIS_PORT=6379

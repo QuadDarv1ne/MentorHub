@@ -58,13 +58,13 @@ alembic upgrade head || {
 
 # Start application with optimized settings
 echo "Starting FastAPI application..."
-echo "Port: 8000"
+echo "Port: $BACKEND_PORT"
 echo "Workers: 4"
 echo "========================================="
 
 # Use gunicorn for better performance in production
 if [ "$ENVIRONMENT" = "production" ]; then
-    exec gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 120 app.main:app
+    exec gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind "0.0.0.0:${BACKEND_PORT:-8001}" --timeout 120 app.main:app
 else
-    exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    exec uvicorn app.main:app --host 0.0.0.0 --port "${BACKEND_PORT:-8001}" --workers 4
 fi

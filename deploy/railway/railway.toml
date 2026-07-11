@@ -28,7 +28,7 @@ environment = "production"
 
 # Ports
 [[ports]]
-port = 8000
+port = 8001
 protocol = "http"
 description = "Backend API"
 

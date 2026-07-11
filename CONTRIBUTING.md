@@ -538,7 +538,7 @@ Related to #456
 
 - [README.md](README.md) — основная документация
 - [AUTHENTICATION.md](AUTHENTICATION.md) — система аутентификации
-- [API Documentation](http://localhost:8000/docs) — Swagger docs
+- [API Documentation](http://localhost:8001/docs) — Swagger docs
 
 ### Полезные ссылки
 

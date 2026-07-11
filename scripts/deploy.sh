@@ -317,11 +317,11 @@ build_docker() {
     # Тестирование
     if [ "$FORCE" = false ]; then
         log_info "Запуск тестового контейнера..."
-        docker run --rm -d --name mentorhub-test -p 8000:8000 "mentorhub:$TAG"
+        docker run --rm -d --name mentorhub-test -p 8001:8001 "mentorhub:$TAG"
         sleep 5
 
         # Проверка health endpoint
-        if curl -f http://localhost:8000/api/v1/health &> /dev/null; then
+        if curl -f http://localhost:8001/api/v1/health &> /dev/null; then
             log_success "Health check пройден!"
         else
             log_warning "Health check не пройден. Проверьте логи."

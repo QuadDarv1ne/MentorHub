@@ -106,9 +106,9 @@ ENV BACKEND_PORT=8001 \
 
 # Health check - проверяем nginx который слушает на PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/nginx-health || curl -f http://localhost:${PORT:-8000}/api/v1/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8001}/nginx-health || curl -f http://localhost:${PORT:-8001}/api/v1/health || exit 1
 
-EXPOSE 8000
+EXPOSE 8001
 
 # Запускаем через bash
 CMD ["bash", "-c", "/app/start.sh"]
