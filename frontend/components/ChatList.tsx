@@ -6,6 +6,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { MessageCircle, ChevronRight } from 'lucide-react'
 import useChat, { Conversation } from '@/hooks/useChat'
 import { ChatWidget } from './ChatWidget'
@@ -89,9 +90,11 @@ export function ChatList({ onConversationSelect }: ChatListProps) {
               <div className="relative flex-shrink-0">
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
                   {conversation.avatar_url ? (
-                    <img
+                    <Image
                       src={conversation.avatar_url}
                       alt={conversation.username}
+                      width={48}
+                      height={48}
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
@@ -129,9 +130,11 @@ export default function ProfilePage() {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-4xl border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden">
                   {profile.avatar ? (
-                    <img
+                    <Image
                       src={profile.avatar}
                       alt={profile.fullName}
+                      width={96}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (

@@ -9,6 +9,7 @@
 # - WEBSOCKET_CHAT.md -> docs/FEATURES/
 
 # Ignore everything except .gitignore and .gitkeep
-*
+**
+!*/
 !.gitignore
 !.gitkeep

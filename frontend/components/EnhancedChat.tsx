@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
 
@@ -376,7 +377,9 @@ export default function EnhancedChat() {
                         {message.file_url && (
                           <div className="mt-2">
                             {message.file_type === 'image' ? (
-                              <img src={message.file_url} alt="Attachment" className="rounded-lg max-w-full" />
+                              <div className="relative w-full h-48">
+                                <Image src={message.file_url} alt="Attachment" fill className="rounded-lg object-contain" />
+                              </div>
                             ) : (
                               <a
                                 href={message.file_url}

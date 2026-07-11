@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import { Star, Clock, DollarSign, Calendar, CheckCircle, MessageCircle, ArrowLeft } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -116,9 +117,11 @@ export default function MentorProfilePage() {
           {/* Avatar */}
           <div className="flex-shrink-0">
             {mentor.user?.avatar_url ? (
-              <img
+              <Image
                 src={mentor.user.avatar_url}
                 alt={mentor.user.full_name}
+                width={128}
+                height={128}
                 className="w-32 h-32 rounded-full object-cover"
               />
             ) : (

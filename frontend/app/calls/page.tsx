@@ -5,6 +5,11 @@ import VideoCall from '@/components/VideoCall'
 import { useToast } from '@/hooks/useToast'
 import { apiRequest } from '@/lib/api/client'
 
+interface CallResponse {
+  participant_id?: number
+  room_id?: number
+}
+
 export default function VideoCallPage() {
   const toast = useToast()
   const [activeCall, setActiveCall] = useState<{
@@ -15,7 +20,7 @@ export default function VideoCallPage() {
 
   const startOneOnOneCall = async (participantId: number) => {
     try {
-      const call = await apiRequest<any>('/calls/', {
+      const call = await apiRequest<CallResponse>('/calls/', {
         method: 'POST',
         body: JSON.stringify({ participant_id: participantId })
       })
@@ -30,7 +35,7 @@ export default function VideoCallPage() {
 
   const startGroupCall = async (roomId: number) => {
     try {
-      const call = await apiRequest<any>('/calls/', {
+      const call = await apiRequest<CallResponse>('/calls/', {
         method: 'POST',
         body: JSON.stringify({ room_id: roomId })
       })

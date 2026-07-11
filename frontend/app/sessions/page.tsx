@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Calendar, Clock, Video, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -133,7 +134,7 @@ export default function SessionsPage() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex gap-4 flex-1">
             {mentorPhoto ? (
-              <img src={mentorPhoto} alt={mentorName} className="w-14 h-14 rounded-full object-cover flex-shrink-0" />
+              <Image src={mentorPhoto} alt={mentorName} width={56} height={56} className="w-14 h-14 rounded-full object-cover flex-shrink-0" />
             ) : (
               <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                 <span className="text-lg font-bold text-indigo-600">{mentorName[0]}</span>

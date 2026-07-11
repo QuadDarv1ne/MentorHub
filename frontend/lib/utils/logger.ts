@@ -30,7 +30,7 @@ class Logger {
     return level === 'warn' || level === 'error';
   }
 
-  private formatMessage(level: LogLevel, message: string, ...args: any[]): string {
+  private formatMessage(level: LogLevel, message: string, ...args: unknown[]): string {
     const timestamp = new Date().toISOString();
     const argsStr = args.length > 0 ? args.map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
@@ -39,7 +39,7 @@ class Logger {
     return `[${timestamp}] [${level.toUpperCase()}] ${message} ${argsStr}`.trim();
   }
 
-  private sendToSentry(level: LogLevel, message: string, ...args: any[]) {
+  private sendToSentry(level: LogLevel, message: string, ...args: unknown[]) {
     if (!config.sentryEnabled || level !== 'error') return;
 
     const error = args.find(arg => arg instanceof Error) || new Error(message);
@@ -57,26 +57,26 @@ class Logger {
     });
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     if (this.shouldLog('error')) {
       console.error(this.formatMessage('error', message, ...args));
     }
     this.sendToSentry('error', message, ...args);
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog('warn')) {
       console.warn(this.formatMessage('warn', message, ...args));
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.shouldLog('info')) {
       console.info(this.formatMessage('info', message, ...args));
     }
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
       console.debug(this.formatMessage('debug', message, ...args));
     }

@@ -14,13 +14,25 @@ interface VideoCallProps {
   onClose?: () => void
 }
 
+interface AgoraTrack {
+  play: (element: HTMLVideoElement | null) => void
+  close: () => void
+  setEnabled: (enabled: boolean) => void
+}
+
+interface AgoraUser {
+  videoTrack?: AgoraTrack
+  audioTrack?: AgoraTrack
+}
+
 interface AgoraClient {
-  join: (token: string, channel: string, uid: number) => Promise<void>
+  join: (token: string, channel: string, uid: number | string) => Promise<void>
   leave: () => Promise<void>
-  publish: (track: any) => Promise<void>
-  unpublish: (track: any) => Promise<void>
-  subscribe: (user: any, mediaType: string) => Promise<void>
-  on: (event: string, callback: (...args: any[]) => void) => void
+  publish: (tracks: AgoraTrack[]) => Promise<void>
+  unpublish: (tracks: AgoraTrack[]) => Promise<void>
+  subscribe: (user: AgoraUser, mediaType: 'video' | 'audio') => Promise<void>
+  unsubscribe: (user: AgoraUser, mediaType: 'video' | 'audio') => Promise<void>
+  on: (event: string, callback: (user: AgoraUser, mediaType: 'video' | 'audio') => void) => void
   off: (event: string) => void
 }
 
@@ -42,7 +54,7 @@ export default function VideoCall({
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const agoraClientRef = useRef<AgoraClient | null>(null)
-  const localTrackRef = useRef<any>(null)
+  const localTrackRef = useRef<{ audio: AgoraTrack; video: AgoraTrack } | null>(null)
 
   useEffect(() => {
     initCall()
@@ -70,21 +82,21 @@ export default function VideoCall({
       agoraClientRef.current = client as unknown as AgoraClient
 
       // Настраиваем обработчики событий
-      client.on('user-published', async (user: any, mediaType: any) => {
+      client.on('user-published', async (user: AgoraUser, mediaType: 'video' | 'audio') => {
         await client.subscribe(user, mediaType)
         if (mediaType === 'video') {
-          user.videoTrack.play(remoteVideoRef.current)
+          user.videoTrack?.play(remoteVideoRef.current)
         }
         if (mediaType === 'audio') {
-          user.audioTrack.play()
+          user.audioTrack?.play()
         }
       })
 
-      client.on('user-unpublished', async (user: any, mediaType: any) => {
+      client.on('user-unpublished', async (user: AgoraUser, mediaType: 'video' | 'audio') => {
         await client.unsubscribe(user, mediaType)
       })
 
-      client.on('user-left', (user: any) => {
+      client.on('user-left', (user: AgoraUser) => {
         logger.info('User left call:', user)
       })
 
@@ -117,9 +129,10 @@ export default function VideoCall({
       setIsLoading(false)
       toast.success('Видеозвонок подключён')
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to initialize video call'
       logger.error('Video call init error:', err)
-      setError(err.message || 'Failed to initialize video call')
+      setError(message)
       setIsLoading(false)
       toast.error('Ошибка подключения к видеозвонку')
     }
@@ -168,7 +181,7 @@ export default function VideoCall({
         localTrackRef.current.video?.close()
       }
       if (agoraClientRef.current) {
-        const client = agoraClientRef.current as any
+        const client = agoraClientRef.current
         // Снимаем все event listeners перед уходом
         client.off('user-published')
         client.off('user-unpublished')
