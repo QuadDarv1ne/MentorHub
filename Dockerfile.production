@@ -96,7 +96,7 @@ USER appuser
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Переменные окружения по умолчанию
-ENV BACKEND_PORT=8000 \
+ENV BACKEND_PORT=8001 \
     FRONTEND_PORT=3000
 
 # Health check с меньшим интервалом

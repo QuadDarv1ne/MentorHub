@@ -47,7 +47,7 @@ http {
     }
 
     upstream backend {
-        server 127.0.0.1:${BACKEND_PORT:-8000};
+        server 127.0.0.1:${BACKEND_PORT:-8001};
         keepalive 64;
     }
 

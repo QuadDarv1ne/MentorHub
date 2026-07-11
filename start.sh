@@ -30,7 +30,7 @@ export PYTHONDONTWRITEBYTECODE=1
 
 # Use PORT from environment (set by Render/Amvera) or default to 8000
 export NGINX_PORT="${PORT:-8000}"
-export BACKEND_PORT="8000"
+export BACKEND_PORT="8001"
 export FRONTEND_PORT="3000"
 
 # Host must be 0.0.0.0 for external access

@@ -100,7 +100,7 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Переменные окружения по умолчанию
-ENV BACKEND_PORT=8000 \
+ENV BACKEND_PORT=8001 \
     FRONTEND_PORT=3000 \
     HOSTNAME=0.0.0.0
 
