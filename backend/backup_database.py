@@ -8,7 +8,7 @@ import subprocess
 import logging
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
@@ -228,7 +228,7 @@ class DatabaseBackup:
             if expected_hash:
                 actual_hash = self._calculate_file_hash(backup_file)
                 if actual_hash != expected_hash:
-                    raise ValueError(f"❌ Backup файл поврежден: хеш не совпадает")
+                    raise ValueError("❌ Backup файл поврежден: хеш не совпадает")
                 logger.info("✅ Целостность backup файла проверена")
 
         db_url = settings.DATABASE_URL

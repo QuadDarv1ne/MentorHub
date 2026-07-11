@@ -6,8 +6,6 @@
 import pytest
 from fastapi import status
 
-from app.models.user import User, UserRole
-from app.utils.security import get_password_hash
 
 
 def register_and_login(client, email=None, password="TestPass123!"):
@@ -136,8 +134,7 @@ class TestReviewRead:
 
     def test_get_reviews_pagination(self, client, sample_user_data):
         """Тест пагинации отзывов"""
-        token = register_and_login(client)
-        headers = {"Authorization": f"Bearer {token}"}
+        register_and_login(client)
         course_id = 102
 
         # Получаем с пагинацией

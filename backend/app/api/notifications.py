@@ -83,7 +83,7 @@ async def get_notifications(
 
     # Фильтры
     if unread_only:
-        query = query.filter(Notification.is_read == False)
+        query = query.filter(Notification.is_read.is_(False))
 
     if type:
         query = query.filter(Notification.notification_type == type)
@@ -91,7 +91,7 @@ async def get_notifications(
     # Подсчет непрочитанных
     unread_count = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read == False
+        Notification.is_read.is_(False)
     ).count()
 
     # Сортировка и пагинация с joinedload для оптимизации
@@ -131,7 +131,7 @@ async def get_unread_count(
     """Получить количество непрочитанных уведомлений"""
     count = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read == False
+        Notification.is_read.is_(False)
     ).count()
 
     return {"unread_count": count}
@@ -173,7 +173,7 @@ async def mark_all_as_read(
     try:
         updated = db.query(Notification).filter(
             Notification.user_id == current_user.id,
-            Notification.is_read == False
+            Notification.is_read.is_(False)
         ).update({
             "is_read": True,
             "read_at": int(datetime.now(timezone.utc).timestamp())

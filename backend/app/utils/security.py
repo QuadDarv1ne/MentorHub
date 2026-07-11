@@ -8,7 +8,6 @@ import logging
 import re
 import secrets
 import time
-from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import bcrypt
@@ -16,7 +15,6 @@ import jwt
 
 from app.config import settings
 from app.constants import (
-    CLEANUP_INTERVAL,
     COMMON_PASSWORDS,
     LOCKOUT_DURATION_SECONDS,
     MAX_LOGIN_ATTEMPTS,

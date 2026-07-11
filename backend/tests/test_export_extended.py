@@ -37,8 +37,7 @@ def auth_header(test_user: User) -> dict:
     from passlib.context import CryptContext
     pwd_context = CryptContext(schemes=["bcrypt"])
     test_user.hashed_password = pwd_context.hash("testpassword123")
-    db_session = Session(bind=app.dependency_overrides.get(lambda: None, {}).get('db', None)) if app.dependency_overrides else None
-    
+
     response = client.post(
         "/api/v1/auth/login",
         json={"email": test_user.email, "password": "testpassword123"}

@@ -3,7 +3,6 @@ Tests for Achievements API
 Тесты для endpoints достижений
 """
 
-import pytest
 from fastapi import status
 
 

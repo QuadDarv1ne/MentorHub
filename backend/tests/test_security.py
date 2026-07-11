@@ -5,7 +5,6 @@ Tests for Security Middleware
 
 import pytest
 from fastapi import status
-import json
 
 
 class TestSQLInjection:

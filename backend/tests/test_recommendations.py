@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app.models.review import Review
-from app.models.user import User, UserRole
+from app.models.user import User
 
 
 def seed_reviews(db: Session):

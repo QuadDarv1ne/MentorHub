@@ -3,7 +3,6 @@ Tests for Error Handling
 Тесты обработки ошибок и исключений
 """
 
-import pytest
 from fastapi import status
 
 

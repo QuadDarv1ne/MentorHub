@@ -14,7 +14,6 @@ Performance:
 - Composite index on achievements(user_id, earned_at) for user achievements
 """
 from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.

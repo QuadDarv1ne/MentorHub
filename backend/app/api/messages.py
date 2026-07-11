@@ -60,7 +60,7 @@ async def get_conversations(
         )
         .filter(
             DBMessage.recipient_id == current_user.id,
-            DBMessage.is_read == False,
+            DBMessage.is_read.is_(False),
         )
         .group_by(DBMessage.sender_id)
         .subquery()
@@ -134,7 +134,7 @@ async def get_message_history(
     unread_messages = db.query(DBMessage).filter(
         DBMessage.sender_id == other_user_id,
         DBMessage.recipient_id == current_user.id,
-        DBMessage.is_read == False
+        DBMessage.is_read.is_(False)
     ).all()
 
     for msg in unread_messages:

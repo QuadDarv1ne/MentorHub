@@ -294,7 +294,7 @@ def test_edit_chat_message(auth_header: dict, db_session: Session):
     assert response.status_code == 200
     data = response.json()
     assert data["content"] == "Edited message"
-    assert data["is_edited"] == True
+    assert data["is_edited"] is True
     
     # Cleanup
     db_session.delete(room)
@@ -334,7 +334,7 @@ def test_delete_chat_message(auth_header: dict, db_session: Session):
     
     # Verify message is soft deleted
     db_session.refresh(message)
-    assert message.is_deleted == True
+    assert message.is_deleted is True
     assert "[Сообщение удалено]" in message.content
     
     # Cleanup

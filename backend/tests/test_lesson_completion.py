@@ -3,7 +3,6 @@ Tests for lesson completion functionality
 Integration tests using real SQLite database via TestClient
 """
 
-import pytest
 from fastapi import status
 
 from app.models.course import Course, Lesson, CourseEnrollment
@@ -52,7 +51,6 @@ class TestLessonCompletion:
         db_session.refresh(lesson2)
 
         # Enroll user in course
-        user = db_session.query(type(instructor)).filter(type(instructor).id == instructor.id).first()
         enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()

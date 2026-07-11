@@ -3,7 +3,6 @@
 """
 
 import pytest
-from fastapi import status
 from fastapi.testclient import TestClient as StarletteTestClient
 
 from app.models.user import User, UserRole
@@ -178,7 +177,6 @@ class TestWebSocketChat:
 
     def test_websocket_chat_message_format(self, authenticated_users):
         """Тест формата сообщения чата"""
-        user1 = authenticated_users["user1"]
         user2 = authenticated_users["user2"]
         
         # Формат сообщения чата

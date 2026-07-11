@@ -4,7 +4,7 @@ Tests for Agora Service
 
 import pytest
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from app.services.agora_service import AgoraService, agora_service
 

@@ -4,7 +4,7 @@ Tests for retry utilities
 
 import pytest
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from app.utils.retry import retry_on_exception, retry_on_exception_async
 

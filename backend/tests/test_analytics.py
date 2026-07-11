@@ -3,7 +3,6 @@ Tests for Analytics API
 Тесты для endpoints аналитики
 """
 
-import pytest
 from fastapi import status
 
 

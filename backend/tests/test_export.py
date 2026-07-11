@@ -6,10 +6,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.dependencies import get_db
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
-import json
 
 client = TestClient(app)
 

@@ -4,10 +4,8 @@
 """
 
 import pytest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.utils.cache import CacheManager, cached, CACHE_TTL, init_cache, get_cache_stats
+from app.utils.cache import CacheManager, cached, CACHE_TTL, init_cache
 
 
 class TestCacheManager:

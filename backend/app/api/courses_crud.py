@@ -163,7 +163,7 @@ async def get_similar_courses(
         .filter(
             Course.category == course.category,
             Course.id != course_id,
-            Course.is_active == True
+            Course.is_active.is_(True)
         )
         .limit(5)
         .all()

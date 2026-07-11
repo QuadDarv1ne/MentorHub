@@ -6,8 +6,6 @@ Tests for Email Verification API
 import pytest
 from fastapi import status
 
-from app.models.user import User, UserRole
-from app.utils.security import get_password_hash
 
 
 class TestSendVerificationEmail:

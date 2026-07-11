@@ -3,12 +3,8 @@
 Покрывает CRUD операции с прогрессом обучения
 """
 
-import pytest
 from fastapi import status
-from datetime import datetime
 
-from app.models.user import User, UserRole
-from app.utils.security import get_password_hash
 
 
 def register_and_login(client, sample_user_data=None):
@@ -207,7 +203,7 @@ class TestProgressValidation:
         headers = {"Authorization": f"Bearer {token}"}
 
         # Создаём дважды один и тот же прогресс
-        res1 = client.post(
+        client.post(
             "/api/v1/progress",
             json={"course_id": 1, "lesson_id": 1, "progress_percent": 25},
             headers=headers

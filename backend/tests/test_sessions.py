@@ -8,8 +8,6 @@ import uuid
 from fastapi import status
 from datetime import datetime, timedelta
 
-from app.models.user import User, UserRole
-from app.utils.security import get_password_hash
 
 
 @pytest.fixture

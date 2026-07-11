@@ -7,13 +7,11 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import timedelta
 
 from app.main import app
 from app.config import settings
 from app.models.user import User, UserRole
 from app.models.course import Course, CourseEnrollment
-from app.models.session import Session as SessionModel
 from app.utils.security import get_password_hash
 
 
@@ -29,10 +27,6 @@ def db_session():
     )
     
     # Импортируем все модели для создания таблиц
-    from app.models.user import User
-    from app.models.course import Course, Lesson, CourseEnrollment
-    from app.models.session import Session as SessionModel
-    from app.models.chat_room import ChatRoom, ChatMessage
     
     # Создаём таблицы
     from app.models.base import Base

@@ -52,7 +52,7 @@ class AnalyticsService:
 
             # Курсы
             total_courses = self.db.query(Course).count()
-            active_courses = self.db.query(Course).filter(Course.is_active == True).count()
+            active_courses = self.db.query(Course).filter(Course.is_active.is_(True)).count()
             total_enrollments = self.db.query(CourseEnrollment).count()
 
             # Отзывы

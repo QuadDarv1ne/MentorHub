@@ -3,10 +3,8 @@
 Скрипт для заполнения БД тестовыми данными
 """
 import sys
-import os
 import logging
 from pathlib import Path
-from datetime import datetime, timedelta
 import random
 
 # Настройка логирования
@@ -67,7 +65,7 @@ def seed_data():
         for user in users[3:]:  # Последние 2 пользователя - менторы
             mentor = Mentor(
                 user_id=user.id,
-                title=f"Senior Developer",
+                title="Senior Developer",
                 description=f"Опытный разработчик с {random.randint(5, 15)} годами опыта",
                 skills=random.sample(SKILLS, k=random.randint(3, 5)),
                 price_per_hour=random.randint(2000, 5000),

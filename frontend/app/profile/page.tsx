@@ -7,7 +7,7 @@ import { logger } from '@/lib/utils/logger'
 import { getProfile, updateProfile, type UserProfile } from '@/lib/api/profile'
 
 export default function ProfilePage() {
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const toast = useToast()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [error, setError] = useState<string | null>(null)

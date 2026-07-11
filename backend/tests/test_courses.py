@@ -3,12 +3,8 @@
 Тесты для CRUD операций с курсами
 """
 
-import pytest
 from fastapi import status
 
-from app.models.user import User, UserRole
-from app.models.course import Course
-from app.utils.security import get_password_hash
 
 
 class TestCourseRead:
@@ -34,21 +30,12 @@ class TestCourseRead:
         """Тест получения курса по ID"""
         client, headers = sync_authenticated_client
         # Создаём ментора
-        mentor = create_user(
+        create_user(
             email="mentor@example.com",
             username="mentoruser",
             password="MentorPass123!",
             role="mentor",
         )
-
-        # Создаём курс
-        course_data = {
-            "title": "Test Course",
-            "description": "Test Description",
-            "level": "beginner",
-            "duration_hours": 10,
-            "price": 49.99,
-        }
 
         # Получение списка (создание через API может требовать ментора)
         response = client.get("/api/v1/courses", headers=headers)

@@ -6,7 +6,7 @@ import pytest
 from alembic.command import upgrade, downgrade, current
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import text, inspect
+from sqlalchemy import inspect
 import os
 
 

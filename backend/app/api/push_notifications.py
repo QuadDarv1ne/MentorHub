@@ -212,7 +212,7 @@ async def send_push_notification(
         else:
             # Отправка всем пользователям — подзапрос вместо загрузки всех объектов
             user_ids = [
-                uid for (uid,) in db.query(User.id).filter(User.is_active == True).all()
+                uid for (uid,) in db.query(User.id).filter(User.is_active.is_(True)).all()
             ]
 
             result = await fcm_service.send_bulk_notification(

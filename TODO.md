@@ -1,6 +1,6 @@
 # MentorHub — TODO и План Улучшений
 
-**Дата:** 10 июля 2026 г.
+**Дата:** 11 июля 2026 г.
 **Ветка:** `main`
 **Статус:** ✅ Оптимизация завершена
 
@@ -70,6 +70,21 @@
 ### Очистка кода
 - [x] **Удалён CSRFProtection** — мёртвый класс из `security.py` (не импортировался нигде)
 - [x] **Обновлён TODO.md** — исправлены устаревшие записи
+
+---
+
+## ✅ ВЫПОЛНЕННЫЕ УЛУЧШЕНИЯ (сессия 11 июля 2026)
+
+### Безопасность — multi-worker
+- [x] **BruteForceProtection → Redis** — попытки входа и блокировки хранятся в Redis sorted sets, с in-memory fallback
+- [x] **RateLimiter (dependencies.py) → Redis** — sliding window через Redis pipeline, multi-worker safe
+- [x] **Убран дублирующий rate limiting** из `SecurityMiddleware` — оставлены только attack detection (SQL injection, XSS, command injection, path traversal) и security headers. `UnifiedRateLimitMiddleware` (Redis) — единственная rate limiting линия
+
+### Очистка кода
+- [x] **Удалён `cache_advanced.py`** — не использовался ни одним route, только инициализировался в lifespan
+- [x **Удалён `slowapi`** из requirements.txt — declared but never imported
+- [x] **Исправлен Celery task `cleanup_expired_tokens`** — импортировал несуществующие `verification_tokens`/`reset_tokens` из email_verification.py. Переписан на使用 `cache_service` + Redis SCAN
+- [x] **Удалены неиспользуемые импорты** — `defaultdict`, `datetime`, `json` из модифицированных файлов
 
 ---
 

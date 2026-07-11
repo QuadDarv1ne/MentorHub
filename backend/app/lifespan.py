@@ -16,7 +16,7 @@ from fastapi import FastAPI
 from redis.asyncio import Redis
 
 from app.config import is_production, settings
-from app.database import Base
+from app.database import Base, engine
 from app.utils.cache import init_cache
 
 logger = logging.getLogger(__name__)

@@ -6,7 +6,6 @@ Tests for Email Notifications
 import pytest
 from unittest.mock import patch, MagicMock
 from app.utils.email import EmailService
-from app.config import settings
 
 
 class TestEmailService:

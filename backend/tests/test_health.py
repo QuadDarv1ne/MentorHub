@@ -3,7 +3,6 @@
 Тесты для проверки здоровья приложения
 """
 
-import pytest
 from fastapi import status
 
 
@@ -72,7 +71,7 @@ class TestHealthCheckWithAdmin:
             "password": "AdminPass123!",
             "full_name": "Admin User",
         }
-        admin = create_user(
+        create_user(
             email=admin_data["email"],
             username=admin_data["username"],
             password=admin_data["password"],

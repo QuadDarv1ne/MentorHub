@@ -3,7 +3,6 @@ Tests for Push Notifications API
 Тесты для endpoints push-уведомлений
 """
 
-import pytest
 from fastapi import status
 
 
