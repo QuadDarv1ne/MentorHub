@@ -5,9 +5,10 @@ Revises: z999_merge_all_heads
 Create Date: 2026-03-22
 
 """
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import Enum as SAEnum
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'a1b2c3d4e5f8'
@@ -23,7 +24,7 @@ def upgrade():
         name='subscriptionstatus',
         create_type=True
     )
-    
+
     subscription_tier = SAEnum(
         'free', 'basic', 'pro', 'premium',
         name='subscriptiontier',
@@ -56,7 +57,7 @@ def upgrade():
         sa.UniqueConstraint('user_id'),
         sa.UniqueConstraint('stripe_subscription_id')
     )
-    
+
     # Create indexes
     op.create_index('idx_subscription_user_id', 'subscriptions', ['user_id'])
     op.create_index('idx_subscription_stripe_customer', 'subscriptions', ['stripe_customer_id'])
@@ -72,10 +73,10 @@ def downgrade():
     op.drop_index('idx_subscription_stripe_subscription', table_name='subscriptions')
     op.drop_index('idx_subscription_stripe_customer', table_name='subscriptions')
     op.drop_index('idx_subscription_user_id', table_name='subscriptions')
-    
+
     # Drop table
     op.drop_table('subscriptions')
-    
+
     # Drop enum types
     op.execute('DROP TYPE IF EXISTS subscriptionstatus')
     op.execute('DROP TYPE IF EXISTS subscriptiontier')

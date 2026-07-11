@@ -5,7 +5,7 @@ Collects all user data for GDPR compliance export.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,7 +20,7 @@ from app.models.session import Session as SessionModel
 from app.models.user import User
 
 
-def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
+def collect_user_data(db: Session, current_user: User) -> dict[str, Any]:
     """
     Collect all user data for export.
 
@@ -64,7 +64,7 @@ def collect_user_data(db: Session, current_user: User) -> Dict[str, Any]:
     }
 
 
-def _collect_sessions(db: Session, user_id: int) -> List[Dict]:
+def _collect_sessions(db: Session, user_id: int) -> list[dict]:
     """Collect user sessions (as student and mentor)."""
     sessions_query = select(SessionModel).where(
         (SessionModel.student_id == user_id) |
@@ -88,7 +88,7 @@ def _collect_sessions(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def _collect_payments(db: Session, user_id: int) -> List[Dict]:
+def _collect_payments(db: Session, user_id: int) -> list[dict]:
     """Collect user payments."""
     payments_query = select(Payment).where(
         (Payment.student_id == user_id) |
@@ -112,7 +112,7 @@ def _collect_payments(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def _collect_reviews(db: Session, user_id: int) -> List[Dict]:
+def _collect_reviews(db: Session, user_id: int) -> list[dict]:
     """Collect user reviews."""
     reviews_query = select(Review).where(Review.user_id == user_id)
     reviews = db.execute(reviews_query).scalars().all()
@@ -130,7 +130,7 @@ def _collect_reviews(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def _collect_progress(db: Session, user_id: int) -> List[Dict]:
+def _collect_progress(db: Session, user_id: int) -> list[dict]:
     """Collect user learning progress."""
     progress_query = select(Progress).where(Progress.user_id == user_id)
     progress = db.execute(progress_query).scalars().all()
@@ -149,7 +149,7 @@ def _collect_progress(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def _collect_achievements(db: Session, user_id: int) -> List[Dict]:
+def _collect_achievements(db: Session, user_id: int) -> list[dict]:
     """Collect user achievements."""
     achievements_query = select(Achievement).where(Achievement.user_id == user_id)
     achievements = db.execute(achievements_query).scalars().all()
@@ -165,7 +165,7 @@ def _collect_achievements(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def _collect_messages(db: Session, user_id: int, limit: int = 100) -> List[Dict]:
+def _collect_messages(db: Session, user_id: int, limit: int = 100) -> list[dict]:
     """Collect user messages (sent and received)."""
     messages_query = select(Message).where(
         (Message.sender_id == user_id) |
@@ -190,7 +190,7 @@ def _collect_messages(db: Session, user_id: int, limit: int = 100) -> List[Dict]
     return result
 
 
-def _collect_enrollments(db: Session, user_id: int) -> List[Dict]:
+def _collect_enrollments(db: Session, user_id: int) -> list[dict]:
     """Collect user course enrollments."""
     enrollments_query = select(CourseEnrollment).where(CourseEnrollment.user_id == user_id)
     enrollments = db.execute(enrollments_query).scalars().all()
@@ -208,7 +208,7 @@ def _collect_enrollments(db: Session, user_id: int) -> List[Dict]:
     return result
 
 
-def get_user_data_counts(db: Session, user_id: int) -> Dict[str, int]:
+def get_user_data_counts(db: Session, user_id: int) -> dict[str, int]:
     """Get counts of user data records."""
     return {
         "sessions": db.execute(

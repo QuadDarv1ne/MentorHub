@@ -5,10 +5,10 @@ Integration tests using real SQLite database via TestClient
 
 from fastapi import status
 
-from app.models.course import Course, Lesson, CourseEnrollment
+from app.models.course import Course, CourseEnrollment, Lesson
+from app.models.mentor import Mentor
 from app.models.progress import Progress
 from app.models.user import UserRole
-from app.models.mentor import Mentor
 
 
 class TestLessonCompletion:

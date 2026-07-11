@@ -6,12 +6,12 @@ Converts user data to Excel format using openpyxl.
 
 import io
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import HTTPException, Response
 
 
-def export_as_excel(data: Dict[str, Any]) -> Response:
+def export_as_excel(data: dict[str, Any]) -> Response:
     """
     Export user data to Excel format.
 
@@ -126,7 +126,7 @@ def export_as_excel(data: Dict[str, Any]) -> Response:
     )
 
 
-def _write_excel_sheet(ws, data: List[List], header_font, header_fill, header_alignment, thin_border):
+def _write_excel_sheet(ws, data: list[list], header_font, header_fill, header_alignment, thin_border):
     """
     Helper function to write Excel sheet with styling.
 

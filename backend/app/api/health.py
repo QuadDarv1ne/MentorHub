@@ -4,7 +4,7 @@ Health check endpoint для мониторинга состояния прил�
 
 import logging
 import time
-from typing import Any, Dict
+from typing import Any
 
 import psutil
 from fastapi import APIRouter, Depends, status
@@ -37,7 +37,7 @@ except Exception as e:
     redis_client = None
 
 
-def get_system_metrics() -> Dict[str, Any]:
+def get_system_metrics() -> dict[str, Any]:
     """Получает системные метрики"""
     try:
         import os
@@ -64,7 +64,7 @@ async def health_check(
     """
     Базовая проверка здоровья приложения
     """
-    health_status: Dict[str, Any] = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "timestamp": time.time(),
         "services": {}

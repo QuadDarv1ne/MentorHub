@@ -7,7 +7,6 @@ import pytest
 from fastapi import status
 
 
-
 class TestGetMentors:
     """Тесты получения списка менторов"""
 

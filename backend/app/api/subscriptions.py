@@ -4,7 +4,7 @@ API для управления подписками пользователей
 """
 
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -21,7 +21,7 @@ from app.services.subscription_service import SubscriptionService, get_subscript
 router = APIRouter()
 
 # Тарифы подписок
-SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
+SUBSCRIPTION_PLANS: dict[str, dict[str, Any]] = {
     "basic": {
         "tier": "basic",
         "name": "Basic",
@@ -69,9 +69,9 @@ class SubscriptionResponse(BaseModel):
     id: int
     tier: str
     status: str
-    trial_end: Optional[str] = None
-    current_period_end: Optional[str] = None
-    amount: Optional[float] = None
+    trial_end: str | None = None
+    current_period_end: str | None = None
+    amount: float | None = None
     currency: str
     cancel_at_period_end: bool
     days_until_renewal: int

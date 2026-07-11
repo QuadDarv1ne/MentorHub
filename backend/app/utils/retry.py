@@ -5,17 +5,16 @@ Retry utilityies for external API calls
 import logging
 import time
 from functools import wraps
-from typing import Optional, Tuple, Type
 
 logger = logging.getLogger(__name__)
 
 
 def retry_on_exception(
-    exceptions: Tuple[Type[Exception], ...] = (Exception,),
+    exceptions: tuple[type[Exception], ...] = (Exception,),
     max_retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    retry_callback: Optional[callable] = None,
+    retry_callback: callable | None = None,
 ):
     """
     Декоратор для повторных попыток выполнения функции при возникновении исключений.
@@ -75,11 +74,11 @@ def retry_on_exception(
 
 
 async def retry_on_exception_async(
-    exceptions: Tuple[Type[Exception], ...] = (Exception,),
+    exceptions: tuple[type[Exception], ...] = (Exception,),
     max_retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    retry_callback: Optional[callable] = None,
+    retry_callback: callable | None = None,
 ):
     """
     Асинхронный декоратор для повторных попыток выполнения функции.

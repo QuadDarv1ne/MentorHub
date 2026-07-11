@@ -5,7 +5,7 @@ Agora Video Service
 
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agora_token_builder import RtcTokenBuilder
 
@@ -30,7 +30,7 @@ class AgoraService:
         channel_name: str,
         uid: int = 0,
         role: int = 1,  # 1 = Publisher, 2 = Subscriber
-        expiration_seconds: Optional[int] = None
+        expiration_seconds: int | None = None
     ) -> str:
         """
         Генерация RTC токена для видеозвонка
@@ -74,7 +74,7 @@ class AgoraService:
         call_id: int,
         user_id: int,
         is_host: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Генерация токена для конкретного видеозвонка
 
@@ -133,7 +133,7 @@ class AgoraService:
 
         return True
 
-    def get_recording_config(self, call_id: int) -> Dict[str, Any]:
+    def get_recording_config(self, call_id: int) -> dict[str, Any]:
         """
         Получить конфигурацию для записи видеозвонка
 

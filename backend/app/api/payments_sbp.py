@@ -5,7 +5,6 @@ QR-code payments processing and webhook handling.
 """
 
 from decimal import Decimal
-from typing import Optional
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel
@@ -26,7 +25,7 @@ class SBPPaymentCreate(BaseModel):
     description: str = ""
     session_id: int
     mentor_id: int
-    customer_phone: Optional[str] = None
+    customer_phone: str | None = None
 
 
 def create_sbp_qr_payment(

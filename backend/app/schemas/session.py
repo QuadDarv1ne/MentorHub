@@ -5,7 +5,6 @@ Pydantic схемы для операций с сессиями менторст
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,8 +29,8 @@ class SessionBase(BaseModel):
 
     scheduled_at: datetime
     duration_minutes: int = Field(60, ge=15, le=180)
-    meeting_link: Optional[str] = Field(None, max_length=512)
-    notes: Optional[str] = None
+    meeting_link: str | None = Field(None, max_length=512)
+    notes: str | None = None
 
 
 class SessionCreate(SessionBase):
@@ -44,11 +43,11 @@ class SessionCreate(SessionBase):
 class SessionUpdate(BaseModel):
     """Схема для обновления сессии"""
 
-    scheduled_at: Optional[datetime] = None
-    duration_minutes: Optional[int] = Field(None, ge=15, le=180)
-    status: Optional[SessionStatus] = None
-    meeting_link: Optional[str] = Field(None, max_length=512)
-    notes: Optional[str] = None
+    scheduled_at: datetime | None = None
+    duration_minutes: int | None = Field(None, ge=15, le=180)
+    status: SessionStatus | None = None
+    meeting_link: str | None = Field(None, max_length=512)
+    notes: str | None = None
 
 
 class SessionResponse(SessionBase):
@@ -62,8 +61,8 @@ class SessionResponse(SessionBase):
     updated_at: datetime
 
     # Relations
-    student: Optional[UserResponse] = None
-    mentor: Optional[MentorResponse] = None
-    payments: Optional[List[PaymentResponse]] = None
+    student: UserResponse | None = None
+    mentor: MentorResponse | None = None
+    payments: list[PaymentResponse] | None = None
 
     model_config = ConfigDict(from_attributes=True)

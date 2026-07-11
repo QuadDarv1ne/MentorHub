@@ -4,7 +4,6 @@ JWT токены для аутентификации
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 import jwt
 
@@ -13,7 +12,7 @@ from app.config import settings
 
 def create_access_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
     token_type: str = "access"
 ) -> str:
     """
@@ -53,7 +52,7 @@ def create_access_token(
 
 def create_refresh_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None
+    expires_delta: timedelta | None = None
 ) -> str:
     """
     Создание JWT refresh токена

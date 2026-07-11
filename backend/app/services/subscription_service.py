@@ -6,7 +6,7 @@ Subscriptions Service
 import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session, joinedload
 
@@ -23,7 +23,7 @@ class SubscriptionService:
         self.db = db
 
     # Тарифные планы
-    PLANS: Dict[str, Dict[str, Any]] = {
+    PLANS: dict[str, dict[str, Any]] = {
         "basic": {
             "tier": "basic",
             "name": "Basic",
@@ -65,15 +65,15 @@ class SubscriptionService:
         },
     }
 
-    def get_plans(self) -> List[Dict[str, Any]]:
+    def get_plans(self) -> list[dict[str, Any]]:
         """Получить список тарифных планов"""
         return list(self.PLANS.values())
 
-    def get_plan(self, tier: str) -> Optional[Dict[str, Any]]:
+    def get_plan(self, tier: str) -> dict[str, Any] | None:
         """Получить информацию о тарифе"""
         return self.PLANS.get(tier)
 
-    def get_user_subscription(self, user_id: int) -> Optional[Subscription]:
+    def get_user_subscription(self, user_id: int) -> Subscription | None:
         """Получить активную подписку пользователя"""
         return self.db.query(Subscription).filter(
             Subscription.user_id == user_id,
@@ -88,7 +88,7 @@ class SubscriptionService:
         self,
         user: User,
         tier: str,
-        stripe_subscription_id: Optional[str] = None
+        stripe_subscription_id: str | None = None
     ) -> Subscription:
         """Создать новую подписку"""
         try:
@@ -229,7 +229,7 @@ class SubscriptionService:
             self.db.rollback()
             raise
 
-    def get_subscription_stats(self, user_id: int) -> Dict[str, Any]:
+    def get_subscription_stats(self, user_id: int) -> dict[str, Any]:
         """Получить статистику подписки пользователя"""
         subscription = self.get_user_subscription(user_id)
 

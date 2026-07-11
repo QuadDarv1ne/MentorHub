@@ -4,7 +4,6 @@ API для работы с сессиями менторства
 """
 
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/", response_model=List[SessionResponse])
+@router.get("/", response_model=list[SessionResponse])
 async def get_sessions(
     skip: int = 0,
     limit: int = 100,
@@ -42,12 +41,12 @@ async def get_sessions(
     ).offset(skip).limit(limit).all()
 
 
-@router.get("/my", response_model=List[SessionResponse])
+@router.get("/my", response_model=list[SessionResponse])
 async def get_my_sessions(
-    status: Optional[str] = None,
+    status: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
+    mentor_id: int | None = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список сессий текущего пользователя (как студента или ментора)"""
@@ -74,7 +73,7 @@ async def get_session(
     session_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
+    mentor_id: int | None = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить информацию о сессии по ID"""
@@ -162,7 +161,7 @@ async def update_session(
     session: SessionUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
+    mentor_id: int | None = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Обновить сессию (только для участников сессии или администратора)"""
@@ -207,7 +206,7 @@ async def delete_session(
     session_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mentor_id: Optional[int] = Depends(get_current_user_mentor_id),
+    mentor_id: int | None = Depends(get_current_user_mentor_id),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Удалить сессию (только для участников сессии или администратора)"""

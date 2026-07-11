@@ -3,15 +3,14 @@ Pydantic схемы для достижений
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
 
 class AchievementCreate(BaseModel):
     title: str
-    description: Optional[str] = None
-    icon: Optional[str] = None
+    description: str | None = None
+    icon: str | None = None
 
 
 class AchievementRead(BaseModel):
@@ -20,12 +19,12 @@ class AchievementRead(BaseModel):
     id: int
     user_id: int
     title: str
-    description: Optional[str] = None
-    icon: Optional[str] = None
+    description: str | None = None
+    icon: str | None = None
     earned_at: datetime
 
 
 class AchievementUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    icon: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
+    icon: str | None = None

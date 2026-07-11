@@ -2,12 +2,14 @@
 Tests for Alembic database migrations
 """
 
+import os
+
 import pytest
-from alembic.command import upgrade, downgrade, current
+from sqlalchemy import inspect
+
+from alembic.command import current, downgrade, upgrade
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import inspect
-import os
 
 
 @pytest.fixture
@@ -24,7 +26,7 @@ def alembic_config(db_session):
 @pytest.fixture
 def db_session():
     """Create a fresh database session for migrations testing"""
-    from app.database import engine, SessionLocal, Base
+    from app.database import Base, SessionLocal, engine
 
     # Drop all tables first to ensure clean state
     Base.metadata.drop_all(bind=engine)
@@ -94,7 +96,7 @@ class TestAlembicMigrations:
 
         for filename in migration_files:
             filepath = os.path.join(alembic_dir, filename)
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding='utf-8') as f:
                 content = f.read()
                 if '"""' in content:
                     docstring_start = content.find('"""')
@@ -115,8 +117,9 @@ class TestMigrationDataIntegrity:
 
     def test_upgrade_preserves_data(self, alembic_config, db_session):
         """Test that upgrading preserves existing data"""
-        from app.models import User
         from sqlalchemy import select
+
+        from app.models import User
 
         # Create test user
         test_user = User(

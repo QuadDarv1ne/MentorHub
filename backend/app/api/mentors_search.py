@@ -3,7 +3,6 @@ Mentor Search and Filtering API
 Расширенный поиск и фильтрация менторов
 """
 
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import and_, func, or_
@@ -23,19 +22,19 @@ router = APIRouter()
 @cached(ttl=600, key_prefix="mentors_search")
 async def search_mentors(
     # Search parameters
-    query: Optional[str] = Query(None, description="Поиск по имени или специализации"),
-    specialization: Optional[str] = Query(None, description="Фильтр по специализации"),
+    query: str | None = Query(None, description="Поиск по имени или специализации"),
+    specialization: str | None = Query(None, description="Фильтр по специализации"),
 
     # Price filters
-    min_rate: Optional[float] = Query(None, ge=0, description="Минимальная ставка в час"),
-    max_rate: Optional[float] = Query(None, ge=0, description="Максимальная ставка в час"),
+    min_rate: float | None = Query(None, ge=0, description="Минимальная ставка в час"),
+    max_rate: float | None = Query(None, ge=0, description="Максимальная ставка в час"),
 
     # Experience filters
-    min_experience: Optional[int] = Query(None, ge=0, description="Минимальный опыт (лет)"),
-    max_experience: Optional[int] = Query(None, ge=0, description="Максимальный опыт (лет)"),
+    min_experience: int | None = Query(None, ge=0, description="Минимальный опыт (лет)"),
+    max_experience: int | None = Query(None, ge=0, description="Максимальный опыт (лет)"),
 
     # Availability
-    is_available: Optional[bool] = Query(None, description="Только доступные менторы"),
+    is_available: bool | None = Query(None, description="Только доступные менторы"),
 
     # Sorting
     sort_by: str = Query("rating", description="Сортировка: rating, price, experience, name"),
@@ -134,7 +133,7 @@ async def search_mentors(
     return PaginatedResponse.create(mentors, total, page, page_size)
 
 
-@router.get("/specializations", response_model=List[str])
+@router.get("/specializations", response_model=list[str])
 @cached(ttl=3600, key_prefix="mentor_specializations")
 async def get_specializations(
     db: Session = Depends(get_db),
@@ -153,7 +152,7 @@ async def get_specializations(
     return [spec[0] for spec in specializations if spec[0]]
 
 
-@router.get("/top-rated", response_model=List[MentorResponse])
+@router.get("/top-rated", response_model=list[MentorResponse])
 @cached(ttl=1800, key_prefix="mentors_top_rated")
 async def get_top_rated_mentors(
     limit: int = Query(10, ge=1, le=50),

@@ -3,9 +3,10 @@ E2E Tests for MentorHub API
 Критичные сценарии использования
 """
 
-import pytest
-import httpx
 import os
+
+import httpx
+import pytest
 
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8000/api/v1")
 

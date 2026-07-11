@@ -5,13 +5,12 @@ Shared dependencies for routes: authentication, database, pagination, etc.
 
 import logging
 import time
-from typing import Generator, Optional
+from collections.abc import Generator
 
+import jwt
 from fastapi import Depends, HTTPException, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-
-import jwt
 
 from app.config import settings
 from app.database import SessionLocal
@@ -53,7 +52,7 @@ class TokenPayload:
         self.role = role
 
 
-def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> TokenPayload:
+def verify_token(credentials: HTTPAuthorizationCredentials | None = Depends(security)) -> TokenPayload:
     """Verify JWT token and return token payload"""
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -143,7 +142,7 @@ def get_current_student(current_user: User = Depends(get_current_user)) -> User:
 def get_current_user_mentor_id(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Optional[int]:
+) -> int | None:
     """Return the mentor profile ID for the current user, or None if not a mentor."""
     from app.models.mentor import Mentor
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
@@ -155,8 +154,8 @@ def get_current_user_mentor_id(
 
 def get_current_user_optional(
     db: Session = Depends(get_db),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-) -> Optional[User]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> User | None:
     """Get current user if authenticated, otherwise return None"""
     if not credentials:
         return None
@@ -185,7 +184,7 @@ def get_pagination(
 # ==================== QUERY PARAMETERS DEPENDENCIES ====================
 
 
-def get_search_query(q: Optional[str] = Query(None, min_length=1, max_length=100)) -> Optional[str]:
+def get_search_query(q: str | None = Query(None, min_length=1, max_length=100)) -> str | None:
     """Get search query parameter"""
     return q
 
@@ -200,7 +199,7 @@ def get_sort_param(
 
 def get_filters(
     skip_archived: bool = Query(default=True),
-    is_active: Optional[bool] = Query(default=None),
+    is_active: bool | None = Query(default=None),
 ) -> dict:
     """Get filter parameters"""
     filters = {}
@@ -341,7 +340,7 @@ _webhook_rate_limiter = (
 
 
 def rate_limit_dependency(
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User | None = Depends(get_current_user_optional),
 ) -> bool:
     """Rate limiting dependency — Redis-backed, multi-worker safe."""
     if not _rate_limiter:

@@ -2,8 +2,8 @@
 """
 Скрипт для создания первого пользователя-администратора
 """
-import sys
 import logging
+import sys
 from pathlib import Path
 
 # Настройка логирования
@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
+from sqlalchemy import select
+
 from app.database import SessionLocal
 from app.models.user import User
 from app.utils.security import get_password_hash
-from sqlalchemy import select
 
 
 def create_admin():

@@ -3,8 +3,10 @@ Tests for Email Notifications
 Тесты для email уведомлений
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from app.utils.email import EmailService
 
 

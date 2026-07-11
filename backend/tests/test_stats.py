@@ -71,7 +71,7 @@ class TestPlatformStats:
             "password": "AdminPass123!",
         }
         client.post("/api/v1/auth/register", json=admin_data)
-        
+
         login_response = client.post(
             "/api/v1/auth/login",
             json={"email": admin_data["email"], "password": admin_data["password"]},

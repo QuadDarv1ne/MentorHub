@@ -4,7 +4,6 @@ Pydantic схемы для операций с курсами
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,13 +15,13 @@ class CourseBase(BaseModel):
     """Базовая схема курса"""
 
     title: str = Field(..., max_length=255)
-    description: Optional[str] = None
-    category: Optional[str] = Field(None, max_length=100)
-    difficulty: Optional[str] = Field(None, max_length=50)  # beginner, intermediate, advanced
+    description: str | None = None
+    category: str | None = Field(None, max_length=100)
+    difficulty: str | None = Field(None, max_length=50)  # beginner, intermediate, advanced
     duration_hours: int = Field(0, ge=0)
     price: int = Field(0, ge=0)  # в центах/копейках
     is_active: bool = True
-    thumbnail_url: Optional[str] = Field(None, max_length=512)
+    thumbnail_url: str | None = Field(None, max_length=512)
     instructor_id: int
 
 
@@ -33,15 +32,15 @@ class CourseCreate(CourseBase):
 class CourseUpdate(BaseModel):
     """Схема для обновления курса"""
 
-    title: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    category: Optional[str] = Field(None, max_length=100)
-    difficulty: Optional[str] = Field(None, max_length=50)
-    duration_hours: Optional[int] = Field(None, ge=0)
-    price: Optional[int] = Field(None, ge=0)
-    is_active: Optional[bool] = None
-    thumbnail_url: Optional[str] = Field(None, max_length=512)
-    instructor_id: Optional[int] = None
+    title: str | None = Field(None, max_length=255)
+    description: str | None = None
+    category: str | None = Field(None, max_length=100)
+    difficulty: str | None = Field(None, max_length=50)
+    duration_hours: int | None = Field(None, ge=0)
+    price: int | None = Field(None, ge=0)
+    is_active: bool | None = None
+    thumbnail_url: str | None = Field(None, max_length=512)
+    instructor_id: int | None = None
 
 
 class CourseResponse(CourseBase):
@@ -54,7 +53,7 @@ class CourseResponse(CourseBase):
     updated_at: datetime
 
     # Relations
-    instructor: Optional[MentorResponse] = None
+    instructor: MentorResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -64,9 +63,9 @@ class LessonBase(BaseModel):
 
     course_id: int
     title: str = Field(..., max_length=255)
-    description: Optional[str] = None
-    content: Optional[str] = None
-    video_url: Optional[str] = Field(None, max_length=512)
+    description: str | None = None
+    content: str | None = None
+    video_url: str | None = Field(None, max_length=512)
     duration_minutes: int = Field(0, ge=0)
     order: int
     is_preview: bool = False
@@ -79,14 +78,14 @@ class LessonCreate(LessonBase):
 class LessonUpdate(BaseModel):
     """Схема для обновления урока"""
 
-    course_id: Optional[int] = None
-    title: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    content: Optional[str] = None
-    video_url: Optional[str] = Field(None, max_length=512)
-    duration_minutes: Optional[int] = Field(None, ge=0)
-    order: Optional[int] = None
-    is_preview: Optional[bool] = None
+    course_id: int | None = None
+    title: str | None = Field(None, max_length=255)
+    description: str | None = None
+    content: str | None = None
+    video_url: str | None = Field(None, max_length=512)
+    duration_minutes: int | None = Field(None, ge=0)
+    order: int | None = None
+    is_preview: bool | None = None
 
 
 class LessonResponse(LessonBase):
@@ -115,21 +114,21 @@ class CourseEnrollmentCreate(CourseEnrollmentBase):
 class CourseEnrollmentUpdate(BaseModel):
     """Схема для обновления записи на курс"""
 
-    progress_percent: Optional[int] = Field(None, ge=0, le=100)
-    completed: Optional[bool] = None
-    completed_at: Optional[datetime] = None
+    progress_percent: int | None = Field(None, ge=0, le=100)
+    completed: bool | None = None
+    completed_at: datetime | None = None
 
 
 class CourseEnrollmentResponse(CourseEnrollmentBase):
     """Схема ответа с данными записи на курс"""
 
     id: int
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
     # Relations
-    user: Optional[UserResponse] = None
+    user: UserResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -137,10 +136,10 @@ class CourseEnrollmentResponse(CourseEnrollmentBase):
 class CourseWithLessonsResponse(CourseResponse):
     """Схема ответа с курсом и уроками"""
 
-    lessons: List[LessonResponse] = []
+    lessons: list[LessonResponse] = []
 
 
 class CourseWithEnrollmentResponse(CourseResponse):
     """Схема ответа с курсом и информацией о записи"""
 
-    enrollment: Optional[CourseEnrollmentResponse] = None
+    enrollment: CourseEnrollmentResponse | None = None

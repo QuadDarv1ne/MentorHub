@@ -5,14 +5,14 @@ Centralized storage of security patterns for detecting various attacks.
 """
 
 import re
-from typing import List, Pattern
+from re import Pattern
 
 
 class SecurityPatterns:
     """Security patterns for attack detection."""
 
     # SQL Injection patterns
-    SQL_INJECTION_PATTERNS: List[str] = [
+    SQL_INJECTION_PATTERNS: list[str] = [
         r"(\%27)|(\')|(\-\-)|(\%23)|(#)",
         r"((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))",
         r"\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))",
@@ -31,7 +31,7 @@ class SecurityPatterns:
     ]
 
     # XSS patterns
-    XSS_PATTERNS: List[str] = [
+    XSS_PATTERNS: list[str] = [
         r"<script[^>]*>.*?</script>",
         r"javascript:",
         r"on\w+\s*=",
@@ -50,7 +50,7 @@ class SecurityPatterns:
     ]
 
     # Path traversal patterns
-    PATH_TRAVERSAL_PATTERNS: List[str] = [
+    PATH_TRAVERSAL_PATTERNS: list[str] = [
         r"\.\./",
         r"\.\.",
         r"%2e%2e",
@@ -58,7 +58,7 @@ class SecurityPatterns:
     ]
 
     # Command injection patterns
-    COMMAND_INJECTION_PATTERNS: List[str] = [
+    COMMAND_INJECTION_PATTERNS: list[str] = [
         r";\s*(ls|cat|wget|curl|chmod|rm|mv|cp)",
         r"\|\s*(ls|cat|wget|curl)",
         r"`.*`",
@@ -70,7 +70,7 @@ class SecurityPatterns:
     ]
 
     # Malicious User-Agents
-    MALICIOUS_USER_AGENTS: List[str] = [
+    MALICIOUS_USER_AGENTS: list[str] = [
         "sqlmap",
         "nikto",
         "nmap",
@@ -81,7 +81,7 @@ class SecurityPatterns:
     ]
 
     # Suspicious domains for referer checking
-    SUSPICIOUS_DOMAINS: List[str] = [
+    SUSPICIOUS_DOMAINS: list[str] = [
         "bit.ly",
         "tinyurl.com",
         "goo.gl",
@@ -90,6 +90,6 @@ class SecurityPatterns:
     ]
 
     @classmethod
-    def get_compiled_patterns(cls, pattern_list: List[str]) -> List[Pattern]:
+    def get_compiled_patterns(cls, pattern_list: list[str]) -> list[Pattern]:
         """Compile regex patterns for better performance."""
         return [re.compile(p, re.IGNORECASE) for p in pattern_list]

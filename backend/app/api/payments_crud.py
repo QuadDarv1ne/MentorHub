@@ -6,7 +6,6 @@ Database operations for payments management.
 
 import logging
 from decimal import Decimal
-from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
 
@@ -21,7 +20,7 @@ from app.schemas.payment import PaymentUpdate
 from app.utils.sanitization import is_safe_string, sanitize_string
 
 
-def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPayment]:
+def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> list[DBPayment]:
     """Get all payments with pagination."""
     from app.utils.pagination import validate_pagination
     skip, limit = validate_pagination(skip, limit)
@@ -33,7 +32,7 @@ def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> List[DBPay
     ).offset(skip).limit(limit).all()
 
 
-def get_payment_by_id(db: Session, payment_id: int) -> Optional[DBPayment]:
+def get_payment_by_id(db: Session, payment_id: int) -> DBPayment | None:
     """Get payment by ID."""
     return db.query(DBPayment).options(
         joinedload(DBPayment.student),
@@ -42,7 +41,7 @@ def get_payment_by_id(db: Session, payment_id: int) -> Optional[DBPayment]:
     ).filter(DBPayment.id == payment_id).first()
 
 
-def get_payments_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> List[DBPayment]:
+def get_payments_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 20) -> list[DBPayment]:
     """Get payments by user ID with pagination."""
     return db.query(DBPayment).options(
         joinedload(DBPayment.student),
@@ -60,8 +59,8 @@ def create_payment(
     session_id: int,
     amount: Decimal,
     currency: str = "USD",
-    payment_method: Optional[str] = None,
-    transaction_id: Optional[str] = None,
+    payment_method: str | None = None,
+    transaction_id: str | None = None,
     status: PaymentStatus = PaymentStatus.PENDING
 ) -> DBPayment:
     """Create a new payment."""
@@ -117,8 +116,8 @@ def update_payment(
     db: Session,
     payment_id: int,
     payment_data: PaymentUpdate,
-    current_user_id: Optional[int] = None
-) -> Optional[DBPayment]:
+    current_user_id: int | None = None
+) -> DBPayment | None:
     """Update payment with ownership check."""
     try:
         db_payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
@@ -154,7 +153,7 @@ def update_payment(
 def delete_payment(
     db: Session,
     payment_id: int,
-    current_user_id: Optional[int] = None
+    current_user_id: int | None = None
 ) -> bool:
     """Delete payment with ownership check."""
     try:
@@ -181,7 +180,7 @@ def update_payment_status(
     db: Session,
     payment_id: int,
     new_status: PaymentStatus
-) -> Optional[DBPayment]:
+) -> DBPayment | None:
     """Update payment status."""
     try:
         payment = db.query(DBPayment).filter(DBPayment.id == payment_id).first()
@@ -201,7 +200,7 @@ def update_payment_status(
 def get_payment_by_transaction_id(
     db: Session,
     transaction_id: str
-) -> Optional[DBPayment]:
+) -> DBPayment | None:
     """Get payment by transaction ID."""
     return db.query(DBPayment).filter(
         DBPayment.transaction_id == transaction_id

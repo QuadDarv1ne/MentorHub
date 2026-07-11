@@ -3,7 +3,6 @@
 """
 
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -80,9 +79,9 @@ def upsert_progress(
     return new
 
 
-@router.get("/users/me/progress", response_model=List[ProgressRead])
+@router.get("/users/me/progress", response_model=list[ProgressRead])
 def list_my_progress(
-    course_id: Optional[int] = None,
+    course_id: int | None = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
     rate_limit: bool = Depends(rate_limit_dependency),

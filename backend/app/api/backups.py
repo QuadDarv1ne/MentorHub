@@ -4,7 +4,7 @@ API endpoints для управления резервными копиями
 
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backups", tags=["backups"])
 
 
-@router.get("/info", response_model=Dict[str, Any])
+@router.get("/info", response_model=dict[str, Any])
 async def get_backup_info(current_user: User = Depends(get_current_user)):
     """
     Получение информации о резервных копиях
@@ -43,7 +43,7 @@ async def get_backup_info(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить информацию о backup'ах") from e
 
 
-@router.post("/create", response_model=Dict[str, str])
+@router.post("/create", response_model=dict[str, str])
 async def create_backup(current_user: User = Depends(get_current_user)):
     """
     Создание резервной копии базы данных
@@ -69,7 +69,7 @@ async def create_backup(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось создать резервную копию") from e
 
 
-@router.post("/cleanup", response_model=Dict[str, str])
+@router.post("/cleanup", response_model=dict[str, str])
 async def cleanup_backups(keep_days: int = 7, current_user: User = Depends(get_current_user)):
     """
     Очистка старых резервных копий
@@ -90,7 +90,7 @@ async def cleanup_backups(keep_days: int = 7, current_user: User = Depends(get_c
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось выполнить очистку backup'ов") from e
 
 
-@router.get("/verify/{filename}", response_model=Dict[str, Any])
+@router.get("/verify/{filename}", response_model=dict[str, Any])
 async def verify_backup(filename: str, current_user: User = Depends(get_current_user)):
     """
     Проверка целостности резервной копии

@@ -3,7 +3,7 @@ API endpoints для мониторинга и метрик
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/metrics", response_model=Dict[str, Any])
+@router.get("/metrics", response_model=dict[str, Any])
 async def get_metrics(current_user: User = Depends(get_current_user)):
     """
     Получение метрик производительности
@@ -32,7 +32,7 @@ async def get_metrics(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить метрики") from e
 
 
-@router.post("/metrics/reset", response_model=Dict[str, str])
+@router.post("/metrics/reset", response_model=dict[str, str])
 async def reset_metrics(current_user: User = Depends(get_current_user)):
     """
     Сброс метрик производительности
@@ -49,7 +49,7 @@ async def reset_metrics(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить метрики") from e
 
 
-@router.get("/alerts", response_model=Dict[str, Any])
+@router.get("/alerts", response_model=dict[str, Any])
 async def get_alerts(current_user: User = Depends(get_current_user)):
     """
     Получение текущих алертов
@@ -66,9 +66,9 @@ async def get_alerts(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить алерты") from e
 
 
-@router.post("/alerts/thresholds", response_model=Dict[str, str])
+@router.post("/alerts/thresholds", response_model=dict[str, str])
 async def update_alert_thresholds(
-    thresholds: Dict[str, float] = Body(...),
+    thresholds: dict[str, float] = Body(...),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -86,7 +86,7 @@ async def update_alert_thresholds(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось обновить пороговые значения") from e
 
 
-@router.get("/cache/stats", response_model=Dict[str, Any])
+@router.get("/cache/stats", response_model=dict[str, Any])
 async def get_cache_statistics(current_user: User = Depends(get_current_user)):
     """
     Получение статистики кеша
@@ -103,7 +103,7 @@ async def get_cache_statistics(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось получить статистику кеша") from e
 
 
-@router.post("/cache/reset-stats", response_model=Dict[str, str])
+@router.post("/cache/reset-stats", response_model=dict[str, str])
 async def reset_cache_statistics(current_user: User = Depends(get_current_user)):
     """
     Сброс статистики кеша
@@ -120,7 +120,7 @@ async def reset_cache_statistics(current_user: User = Depends(get_current_user))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось сбросить статистику кеша") from e
 
 
-@router.get("/health/detailed", response_model=Dict[str, Any])
+@router.get("/health/detailed", response_model=dict[str, Any])
 async def detailed_health_check():
     """
     Детальная проверка состояния системы

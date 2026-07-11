@@ -5,7 +5,6 @@ Mentors API Router
 
 import asyncio
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
@@ -29,7 +28,7 @@ router = APIRouter()
 router.include_router(mentors_search_router)
 
 
-@router.get("/", response_model=List[MentorResponse])
+@router.get("/", response_model=list[MentorResponse])
 @cached(ttl=900, key_prefix="mentors_list")
 async def get_mentors(
     skip: int = 0, limit: int = 100, db: Session = Depends(get_db), rate_limit: bool = Depends(rate_limit_dependency)

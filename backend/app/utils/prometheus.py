@@ -6,8 +6,9 @@ Type hints added for better IDE support and type checking.
 
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 from fastapi import Request, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
@@ -164,7 +165,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
 
         start_time = time.time()
         status_code = 500
-        response: Optional[Response] = None
+        response: Response | None = None
 
         try:
             response = await call_next(request)
@@ -214,8 +215,8 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
             Обобщенный путь
         """
         # Заменяем числовые ID на {id}
-        parts: List[str] = path.split("/")
-        normalized_parts: List[str] = []
+        parts: list[str] = path.split("/")
+        normalized_parts: list[str] = []
 
         for part in parts:
             if part.isdigit():

@@ -4,12 +4,12 @@ Tests for video calls functionality
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from app.main import app
 from app.models.user import User, UserRole
-from app.models.video_call import VideoCall, CallType, CallStatus
+from app.models.video_call import CallStatus, CallType, VideoCall
 from app.utils.security import get_password_hash
 
 client = TestClient(app)
@@ -71,7 +71,7 @@ def test_create_one_on_one_video_call(auth_header: dict, db_session: Session, te
     """Test creating 1-on-1 video call"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.post(
         "/api/v1/calls/",
         headers=auth_header,
@@ -80,14 +80,14 @@ def test_create_one_on_one_video_call(auth_header: dict, db_session: Session, te
             "title": "Test Call"
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["call_type"] == "one_on_one"
     assert data["participant_id"] == test_user_2.id
     assert "agora_channel" in data
     assert "agora_token" in data
-    
+
     # Cleanup
     db_session.delete(db_session.query(VideoCall).filter_by(id=data["id"]).first())
     db_session.commit()
@@ -97,9 +97,9 @@ def test_get_video_calls(auth_header: dict, db_session: Session):
     """Test getting video calls"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/calls/", headers=auth_header)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "calls" in data
@@ -110,7 +110,7 @@ def test_start_video_call(auth_header: dict, db_session: Session):
     """Test starting a video call"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     # Create a call first
     user = db_session.query(User).filter_by(email="videocall_test@example.com").first()
     call = VideoCall(
@@ -121,14 +121,14 @@ def test_start_video_call(auth_header: dict, db_session: Session):
     )
     db_session.add(call)
     db_session.commit()
-    
+
     response = client.post(f"/api/v1/calls/{call.id}/start", headers=auth_header)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "in_progress"
     assert data["started_at"] is not None
-    
+
     # Cleanup
     db_session.delete(call)
     db_session.commit()
@@ -138,7 +138,7 @@ def test_end_video_call(auth_header: dict, db_session: Session):
     """Test ending a video call"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     # Create a call
     user = db_session.query(User).filter_by(email="videocall_test@example.com").first()
     call = VideoCall(
@@ -150,15 +150,15 @@ def test_end_video_call(auth_header: dict, db_session: Session):
     )
     db_session.add(call)
     db_session.commit()
-    
+
     response = client.post(f"/api/v1/calls/{call.id}/end", headers=auth_header)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "completed"
     assert data["ended_at"] is not None
     assert data["duration_seconds"] is not None
-    
+
     # Cleanup
     db_session.delete(call)
     db_session.commit()
@@ -168,7 +168,7 @@ def test_cancel_video_call(auth_header: dict, db_session: Session):
     """Test cancelling a video call"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     # Create a call
     user = db_session.query(User).filter_by(email="videocall_test@example.com").first()
     call = VideoCall(
@@ -179,15 +179,15 @@ def test_cancel_video_call(auth_header: dict, db_session: Session):
     )
     db_session.add(call)
     db_session.commit()
-    
+
     response = client.delete(f"/api/v1/calls/{call.id}", headers=auth_header)
-    
+
     assert response.status_code == 204
-    
+
     # Verify cancelled
     db_session.refresh(call)
     assert call.status == CallStatus.CANCELLED
-    
+
     # Cleanup
     db_session.delete(call)
     db_session.commit()
@@ -197,7 +197,7 @@ def test_join_video_call(auth_header: dict, db_session: Session):
     """Test joining a video call"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     # Create a call
     user = db_session.query(User).filter_by(email="videocall_test@example.com").first()
     call = VideoCall(
@@ -208,15 +208,15 @@ def test_join_video_call(auth_header: dict, db_session: Session):
     )
     db_session.add(call)
     db_session.commit()
-    
+
     response = client.post(f"/api/v1/calls/{call.id}/join", headers=auth_header)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "agora_app_id" in data
     assert "agora_channel" in data
     assert "agora_token" in data
-    
+
     # Cleanup
     db_session.delete(call)
     db_session.commit()

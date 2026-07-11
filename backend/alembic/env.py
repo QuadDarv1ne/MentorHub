@@ -2,34 +2,35 @@
 Конфигурация окружения Alembic
 """
 
-from logging.config import fileConfig
-from sqlalchemy import create_engine
-from sqlalchemy import pool
-from alembic import context
 import os
 import sys
+from logging.config import fileConfig
+
+from sqlalchemy import create_engine, pool
+
+from alembic import context
 
 # Добавление родительской директории в путь
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.database import Base
 from app.config import settings
+from app.database import Base
 
 # Импортируйте все модели здесь для обнаружения Alembic
 from app.models import (  # noqa
-    User,
-    Mentor,
-    Session,
-    Message,
-    Payment,
-    Review,
-    Progress,
     Achievement,
     Course,
-    Lesson,
     CourseEnrollment,
     DeviceToken,
+    Lesson,
+    Mentor,
+    Message,
     Notification,
+    Payment,
+    Progress,
+    Review,
+    Session,
+    User,
 )
 
 # Это объект конфигурации Alembic, который предоставляет

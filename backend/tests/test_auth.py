@@ -28,7 +28,7 @@ class TestRegistration:
         # Фиксированные данные для теста дублирования
         email = "duplicate@example.com"
         password = "TestPass123!"
-        
+
         # Создание существующего пользователя
         existing_user = User(
             email=email,

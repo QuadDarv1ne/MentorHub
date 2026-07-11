@@ -4,7 +4,6 @@ Course Enrollments API
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/my", response_model=List[CourseWithEnrollmentResponse])
+@router.get("/my", response_model=list[CourseWithEnrollmentResponse])
 async def get_my_courses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

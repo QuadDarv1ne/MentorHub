@@ -6,7 +6,6 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
 
 from app.config import settings
 
@@ -32,7 +31,7 @@ class EmailService:
         to_email: str,
         subject: str,
         html_content: str,
-        text_content: Optional[str] = None
+        text_content: str | None = None
     ) -> bool:
         """Отправка email"""
         if not self.smtp_user or not self.smtp_password:

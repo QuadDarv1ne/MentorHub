@@ -8,7 +8,7 @@ import logging
 import re
 import secrets
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 import bcrypt
 import jwt
@@ -47,7 +47,7 @@ def _get_redis():
     return None
 
 
-def decode_access_token(token: str) -> Dict:
+def decode_access_token(token: str) -> dict:
     """Декодирование access токена с audience/issuer validation"""
     try:
         return jwt.decode(
@@ -90,7 +90,7 @@ class PasswordValidator:
     COMMON_PASSWORDS = COMMON_PASSWORDS
 
     @classmethod
-    def validate_password(cls, password: str) -> Dict[str, Any]:
+    def validate_password(cls, password: str) -> dict[str, Any]:
         """Валидация пароля"""
         result = {"is_valid": True, "errors": [], "strength": 0, "strength_label": ""}
 
@@ -153,8 +153,8 @@ class BruteForceProtection:
         self.max_attempts = max_attempts
         self.lockout_duration = lockout_duration
         # In-memory fallback (single-worker only)
-        self._attempts: Dict[str, list] = {}
-        self._lockouts: Dict[str, float] = {}
+        self._attempts: dict[str, list] = {}
+        self._lockouts: dict[str, float] = {}
 
     def record_failed_attempt(self, identifier: str):
         """Записать неудачную попытку входа"""
@@ -200,9 +200,7 @@ class BruteForceProtection:
         if r:
             try:
                 val = r.get(lockout_key)
-                if val:
-                    return True
-                return False
+                return bool(val)
             except Exception:
                 pass
 
@@ -217,7 +215,7 @@ class BruteForceProtection:
         self._attempts.pop(identifier, None)
         return False
 
-    def get_lockout_time_remaining(self, identifier: str) -> Optional[int]:
+    def get_lockout_time_remaining(self, identifier: str) -> int | None:
         """Оставшееся время блокировки в секундах"""
         r = _get_redis()
         lockout_key = f"bf:lockout:{identifier}"

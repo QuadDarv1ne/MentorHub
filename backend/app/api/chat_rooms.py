@@ -4,7 +4,7 @@ Chat rooms API endpoints
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import desc, func
@@ -44,13 +44,13 @@ async def create_chat_room(
     return service.create_chat_room(current_user, chat_room)
 
 
-@router.get("/chat-rooms", response_model=List[ChatRoomResponse])
+@router.get("/chat-rooms", response_model=list[ChatRoomResponse])
 async def get_chat_rooms(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     service: ChatRoomService = Depends(_get_chat_room_service)
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Получить список чат-комнат, где пользователь является участником"""
     rooms = service.get_user_rooms(current_user.id, skip, limit)
 

@@ -4,7 +4,6 @@ Pydantic схемы для операций с сообщениями
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,8 +24,8 @@ class MessageCreate(MessageBase):
 class MessageUpdate(BaseModel):
     """Схема для обновления сообщения"""
 
-    content: Optional[str] = Field(None, min_length=1, max_length=10000)
-    is_read: Optional[bool] = None
+    content: str | None = Field(None, min_length=1, max_length=10000)
+    is_read: bool | None = None
 
 
 class MessageResponse(MessageBase):
@@ -50,13 +49,13 @@ class MessageWithSenderResponse(MessageResponse):
     """Расширенная схема сообщения с данными отправителя"""
 
     sender_username: str
-    sender_avatar: Optional[str] = None
+    sender_avatar: str | None = None
 
 
 class MessageListResponse(BaseModel):
     """Схема списка сообщений с мета-данными"""
 
-    messages: List[MessageResponse]
+    messages: list[MessageResponse]
     other_user: dict
     has_more: bool = False
 
@@ -68,7 +67,7 @@ class ConversationResponse(BaseModel):
 
     user_id: int
     username: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     last_message: str
     last_message_time: datetime
     unread_count: int = 0

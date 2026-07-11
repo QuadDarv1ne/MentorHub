@@ -4,7 +4,6 @@ Pydantic схемы для операций с менторами
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,8 +13,8 @@ from app.schemas.user import UserResponse
 class MentorBase(BaseModel):
     """Базовая схема ментора"""
 
-    bio: Optional[str] = None
-    specialization: Optional[str] = Field(None, max_length=255)
+    bio: str | None = None
+    specialization: str | None = Field(None, max_length=255)
     experience_years: int = Field(0, ge=0)
     hourly_rate: int = Field(0, ge=0)  # в центах/копейках
     is_available: bool = True
@@ -30,11 +29,11 @@ class MentorCreate(MentorBase):
 class MentorUpdate(MentorBase):
     """Схема для обновления профиля ментора"""
 
-    bio: Optional[str] = None
-    specialization: Optional[str] = None
-    experience_years: Optional[int] = Field(None, ge=0)
-    hourly_rate: Optional[int] = Field(None, ge=0)
-    is_available: Optional[bool] = None
+    bio: str | None = None
+    specialization: str | None = None
+    experience_years: int | None = Field(None, ge=0)
+    hourly_rate: int | None = Field(None, ge=0)
+    is_available: bool | None = None
 
 
 class MentorResponse(MentorBase):
@@ -46,6 +45,6 @@ class MentorResponse(MentorBase):
     total_sessions: int
     created_at: datetime
     updated_at: datetime
-    user: Optional[UserResponse] = None
+    user: UserResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)

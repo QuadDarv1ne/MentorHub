@@ -17,7 +17,7 @@ import logging
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -37,10 +37,10 @@ logger = logging.getLogger(__name__)
 class RateLimiter:
     """Rate limiter with Redis backend and automatic memory fallback"""
 
-    def __init__(self, redis_client: Optional[Redis] = None):
+    def __init__(self, redis_client: Redis | None = None):
         self.redis = redis_client
-        self.memory_store: Dict[str, List[datetime]] = defaultdict(list)
-        self.memory_store_locks: Dict[str, datetime] = {}
+        self.memory_store: dict[str, list[datetime]] = defaultdict(list)
+        self.memory_store_locks: dict[str, datetime] = {}
 
     async def is_rate_limited(
         self,
@@ -114,7 +114,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: Any,
-        redis_client: Optional[Redis] = None,
+        redis_client: Redis | None = None,
         enabled: bool = True,
     ):
         super().__init__(app)
@@ -122,7 +122,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
         self.rate_limiter = RateLimiter(redis_client)
 
         # Per-endpoint rate limits (requests per minute)
-        self.endpoint_limits: Dict[str, Dict[str, int]] = {
+        self.endpoint_limits: dict[str, dict[str, int]] = {
             # Auth endpoints (strict limits)
             "/api/auth/login": {"anonymous": 5, "authenticated": 10},
             "/api/auth/register": {"anonymous": 3, "authenticated": 5},
@@ -143,7 +143,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
             "default": {"anonymous": RATE_LIMIT_ANONYMOUS_REQUESTS, "authenticated": RATE_LIMIT_AUTHENTICATED_REQUESTS},
         }
 
-    def _get_client_key(self, request: Request) -> Tuple[str, str]:
+    def _get_client_key(self, request: Request) -> tuple[str, str]:
         """Generate client key based on IP and user ID"""
         # Get IP address (handle proxies)
         forwarded = request.headers.get("X-Forwarded-For")
@@ -173,7 +173,7 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
 
         return "default"
 
-    def _get_limits_for_endpoint(self, endpoint_key: str, user_type: str) -> Tuple[int, int]:
+    def _get_limits_for_endpoint(self, endpoint_key: str, user_type: str) -> tuple[int, int]:
         """Get rate limits for specific endpoint and user type"""
         limits = self.endpoint_limits.get(endpoint_key, self.endpoint_limits["default"])
         max_requests = limits.get(user_type, limits.get("anonymous", RATE_LIMIT_DEFAULT_REQUESTS))
@@ -225,6 +225,6 @@ RateLimitMiddleware = UnifiedRateLimitMiddleware
 AdvancedRateLimitMiddleware = UnifiedRateLimitMiddleware
 
 
-def create_rate_limiter(redis_client: Optional[Redis] = None) -> RateLimiter:
+def create_rate_limiter(redis_client: Redis | None = None) -> RateLimiter:
     """Create rate limiter instance"""
     return RateLimiter(redis_client)

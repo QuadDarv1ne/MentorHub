@@ -4,7 +4,7 @@ Firebase Cloud Messaging service
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from sqlalchemy.orm import Session
@@ -28,9 +28,9 @@ class FCMService:
         user_id: int,
         title: str,
         body: str,
-        data: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         db: Session = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Отправка push-уведомления пользователю
 
@@ -100,12 +100,12 @@ class FCMService:
 
     async def send_bulk_notification(
         self,
-        user_ids: List[int],
+        user_ids: list[int],
         title: str,
         body: str,
-        data: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
         db: Session = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Массовая отправка уведомлений группе пользователей
         """
@@ -130,8 +130,8 @@ class FCMService:
         token: str,
         title: str,
         body: str,
-        data: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        data: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Формирование payload для FCM"""
         return {
             "to": token,
@@ -166,7 +166,7 @@ class FCMService:
             }
         }
 
-    async def _send_to_fcm(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _send_to_fcm(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Отправка payload в FCM"""
         headers = {
             "Authorization": f"key={self.server_key}",
@@ -205,7 +205,7 @@ class FCMService:
         user_id: int,
         token: str,
         platform: str,
-        device_name: Optional[str] = None,
+        device_name: str | None = None,
         db: Session = None
     ) -> DeviceToken:
         """

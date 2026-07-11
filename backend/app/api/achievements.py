@@ -4,7 +4,6 @@ API для работы с достижениями пользователей
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/my", response_model=List[AchievementRead])
+@router.get("/my", response_model=list[AchievementRead])
 async def get_my_achievements(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -28,7 +27,7 @@ async def get_my_achievements(
     return db.query(Achievement).filter(Achievement.user_id == current_user.id).all()
 
 
-@router.get("/", response_model=List[AchievementRead])
+@router.get("/", response_model=list[AchievementRead])
 async def get_achievements(
     skip: int = 0,
     limit: int = 100,

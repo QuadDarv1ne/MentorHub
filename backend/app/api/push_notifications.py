@@ -4,7 +4,6 @@ API для управления push-уведомлениями через Fireb
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -32,7 +31,7 @@ class PushNotificationRequest(BaseModel):
     title: str
     body: str
     data: dict | None = None
-    user_ids: List[int] | None = None
+    user_ids: list[int] | None = None
 
 
 @router.post("/devices/register")

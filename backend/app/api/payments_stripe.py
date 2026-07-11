@@ -6,7 +6,6 @@ Stripe payment processing and webhook handling.
 
 import logging
 from decimal import Decimal
-from typing import Optional
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -170,7 +169,7 @@ def handle_stripe_webhook_event(
     db: Session,
     event_type: str,
     event_data: dict,
-    stripe_event_id: Optional[str] = None
+    stripe_event_id: str | None = None
 ) -> bool:
     """
     Handle Stripe webhook event with idempotency.

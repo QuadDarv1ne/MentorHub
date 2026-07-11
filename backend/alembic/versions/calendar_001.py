@@ -5,9 +5,9 @@ Revises: video_calls_001
 Create Date: 2026-03-21
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'calendar_001'
@@ -81,11 +81,11 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_calendar_events_external_id'), table_name='calendar_events')
     op.drop_index(op.f('ix_calendar_events_user_id'), table_name='calendar_events')
     op.drop_table('calendar_events')
-    
+
     op.drop_index(op.f('ix_calendar_syncs_created_at'), table_name='calendar_syncs')
     op.drop_index(op.f('ix_calendar_syncs_is_active'), table_name='calendar_syncs')
     op.drop_index(op.f('ix_calendar_syncs_user_id'), table_name='calendar_syncs')
     op.drop_table('calendar_syncs')
-    
+
     # Drop enum
     op.execute('DROP TYPE IF EXISTS calendarprovider')

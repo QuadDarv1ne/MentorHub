@@ -3,16 +3,15 @@ Pydantic схемы для прогресса пользователей
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, conint
 
 
 class ProgressCreate(BaseModel):
     course_id: int = Field(..., description="Stepik course id")
-    lesson_id: Optional[int] = Field(None, description="Stepik lesson id")
+    lesson_id: int | None = Field(None, description="Stepik lesson id")
     progress_percent: conint(ge=0, le=100) = Field(..., description="Progress percentage from 0 to 100")
-    completed: Optional[bool] = Field(False, description="Whether the lesson/course is completed")
+    completed: bool | None = Field(False, description="Whether the lesson/course is completed")
 
 
 class ProgressRead(BaseModel):
@@ -21,11 +20,11 @@ class ProgressRead(BaseModel):
     id: int
     user_id: int
     course_id: int
-    lesson_id: Optional[int]
+    lesson_id: int | None
     progress_percent: int
     completed: bool
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: datetime | None
 
 
 class ProgressAggregate(BaseModel):

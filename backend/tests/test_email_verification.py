@@ -7,14 +7,13 @@ import pytest
 from fastapi import status
 
 
-
 class TestSendVerificationEmail:
     """Тесты отправки письма для подтверждения email"""
 
     def test_send_verification_email_success(self, sync_authenticated_client):
         """Тест успешной отправки письма для подтверждения"""
         client, headers = sync_authenticated_client
-        
+
         # Получаем email текущего пользователя
         me_response = client.get("/api/v1/users/me", headers=headers)
         user_email = me_response.json()["email"]
@@ -82,14 +81,14 @@ class TestForgotPassword:
         """Тест успешного запроса на восстановление пароля"""
         import uuid
         unique_id = str(uuid.uuid4())[:8]
-        
+
         user_data = {
             "email": f"test_{unique_id}@example.com",
             "username": f"testuser_{unique_id}",
             "password": "SecurePass123!",
             "full_name": "Test User"
         }
-        
+
         # Сначала зарегистрируем пользователя
         client.post("/api/v1/auth/register", json=user_data)
 
@@ -170,14 +169,14 @@ class TestEmailVerificationIntegration:
         """Тест полного процесса верификации"""
         import uuid
         unique_id = str(uuid.uuid4())[:8]
-        
+
         user_data = {
             "email": f"test_{unique_id}@example.com",
             "username": f"testuser_{unique_id}",
             "password": "SecurePass123!",
             "full_name": "Test User"
         }
-        
+
         # 1. Регистрация
         register_response = client.post("/api/v1/auth/register", json=user_data)
         assert register_response.status_code == status.HTTP_201_CREATED

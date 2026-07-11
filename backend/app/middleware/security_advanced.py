@@ -8,7 +8,7 @@ Rate limiting is handled by UnifiedRateLimitMiddleware (Redis-backed).
 
 import json
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse

@@ -5,9 +5,9 @@ Revises: z999_merge_all_heads
 Create Date: 2026-03-21
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'chat_rooms_001'
@@ -77,9 +77,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_chat_messages_sender_id'), table_name='chat_messages')
     op.drop_index(op.f('ix_chat_messages_room_id'), table_name='chat_messages')
     op.drop_table('chat_messages')
-    
+
     op.drop_table('chat_room_members')
-    
+
     op.drop_index(op.f('ix_chat_rooms_created_at'), table_name='chat_rooms')
     op.drop_index(op.f('ix_chat_rooms_course_id'), table_name='chat_rooms')
     op.drop_index(op.f('ix_chat_rooms_created_by'), table_name='chat_rooms')

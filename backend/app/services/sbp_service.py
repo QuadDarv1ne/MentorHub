@@ -8,7 +8,6 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Dict, Optional
 
 from app.config import settings
 from app.utils.retry import retry_on_exception
@@ -50,7 +49,7 @@ class SBPService:
         else:
             logger.warning("⚠️ SBP service running in MOCK mode")
 
-    def _generate_signature(self, data: Dict) -> str:
+    def _generate_signature(self, data: dict) -> str:
         """
         Генерация подписи для запроса к СБП API
 
@@ -76,7 +75,7 @@ class SBPService:
         delay=1.0,
         backoff=2.0,
     )
-    def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
+    def _make_request(self, method: str, endpoint: str, data: dict | None = None) -> dict:
         """
         Выполнение HTTP запроса к СБП API с retry логикой
 
@@ -121,9 +120,9 @@ class SBPService:
         amount: Decimal,
         description: str = "",
         order_id: str = "",
-        customer_phone: Optional[str] = None,
+        customer_phone: str | None = None,
         ttl_minutes: int = 15,
-    ) -> Dict:
+    ) -> dict:
         """
         Создание QR-кода для оплаты через СБП
 
@@ -181,7 +180,7 @@ class SBPService:
             logger.error(f"Error creating SBP QR code: {str(e)}")
             return {"error": str(e)}
 
-    def check_payment_status(self, qr_id: str) -> Dict:
+    def check_payment_status(self, qr_id: str) -> dict:
         """
         Проверка статуса платежа по QR-коду
 
@@ -222,8 +221,8 @@ class SBPService:
             return {"error": str(e)}
 
     def create_refund(
-        self, transaction_id: str, amount: Optional[Decimal] = None, reason: str = "requested_by_customer"
-    ) -> Dict:
+        self, transaction_id: str, amount: Decimal | None = None, reason: str = "requested_by_customer"
+    ) -> dict:
         """
         Создание возврата средств через СБП
 
@@ -275,7 +274,7 @@ class SBPService:
             logger.error(f"Error creating SBP refund: {str(e)}")
             return {"error": str(e)}
 
-    def get_available_banks(self) -> Dict:
+    def get_available_banks(self) -> dict:
         """
         Получение списка банков, поддерживающих СБП
 
@@ -313,7 +312,7 @@ class SBPService:
             logger.error(f"Error fetching SBP banks: {str(e)}")
             return {"error": str(e)}
 
-    def verify_webhook_signature(self, payload: bytes, signature: str) -> Optional[Dict]:
+    def verify_webhook_signature(self, payload: bytes, signature: str) -> dict | None:
         """
         Проверка подписи webhook от СБП
 

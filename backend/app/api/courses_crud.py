@@ -5,7 +5,6 @@ Courses CRUD Operations
 
 import asyncio
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -28,12 +27,12 @@ def _get_course_service(db: Session) -> CourseService:
     return CourseService(db)
 
 
-@router.get("/", response_model=List[CourseResponse])
+@router.get("/", response_model=list[CourseResponse])
 @cached(ttl=1800, key_prefix="courses_list")
 async def get_courses(
     skip: int = 0,
     limit: int = 100,
-    category: Optional[str] = None,
+    category: str | None = None,
     db: Session = Depends(get_db),
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
@@ -146,7 +145,7 @@ async def delete_course(
         raise HTTPException(status_code=500, detail="Ошибка при удалении курса")
 
 
-@router.get("/{course_id}/similar", response_model=List[dict])
+@router.get("/{course_id}/similar", response_model=list[dict])
 async def get_similar_courses(
     course_id: int,
     db: Session = Depends(get_db),

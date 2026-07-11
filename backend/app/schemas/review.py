@@ -3,14 +3,13 @@ Pydantic схемы для отзывов
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, conint
 
 
 class ReviewCreate(BaseModel):
     rating: conint(ge=1, le=5) = Field(..., description="Rating from 1 to 5")
-    comment: Optional[str] = Field(None, max_length=2000)
+    comment: str | None = Field(None, max_length=2000)
 
 
 class ReviewRead(BaseModel):
@@ -18,13 +17,13 @@ class ReviewRead(BaseModel):
 
     id: int
     user_id: int
-    user_name: Optional[str] = None
-    course_id: Optional[int] = None
-    reviewed_id: Optional[int] = None
+    user_name: str | None = None
+    course_id: int | None = None
+    reviewed_id: int | None = None
     rating: int
-    comment: Optional[str]
+    comment: str | None
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: datetime | None
 
 
 class ReviewAggregate(BaseModel):
@@ -36,6 +35,6 @@ class ReviewAggregate(BaseModel):
 class ReviewCreateGeneric(BaseModel):
     """Create a review for a mentor (optionally tied to a session/course)"""
     rating: conint(ge=1, le=5) = Field(..., description="Rating from 1 to 5")
-    comment: Optional[str] = Field(None, max_length=2000)
-    reviewed_id: Optional[int] = Field(None, description="ID of the mentor being reviewed")
-    session_id: Optional[int] = Field(None, description="ID of the session (for validation)")
+    comment: str | None = Field(None, max_length=2000)
+    reviewed_id: int | None = Field(None, description="ID of the mentor being reviewed")
+    session_id: int | None = Field(None, description="ID of the session (for validation)")

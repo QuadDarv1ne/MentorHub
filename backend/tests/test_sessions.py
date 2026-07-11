@@ -3,11 +3,11 @@
 Тесты для CRUD операций с сессиями
 """
 
-import pytest
 import uuid
-from fastapi import status
 from datetime import datetime, timedelta
 
+import pytest
+from fastapi import status
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def mentor_client(client):
     )
     token = login_response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     # Создаём профиль ментора
     mentor_profile = {
         "specialization": "Python Developer",
@@ -37,7 +37,7 @@ def mentor_client(client):
         "hourly_rate": 50,
     }
     client.post("/api/v1/mentors", json=mentor_profile, headers=headers)
-    
+
     return client, headers
 
 
@@ -107,7 +107,7 @@ class TestCreateSession:
     def test_create_session_success(self, mentor_client, db_session):
         """Тест успешного создания сессии"""
         client, headers = mentor_client
-        
+
         # Получаем ID ментора из профиля
         mentors_resp = client.get("/api/v1/mentors", headers=headers)
         mentor_id = mentors_resp.json()[0]["id"] if mentors_resp.json() else 1
@@ -199,7 +199,7 @@ class TestSessionBooking:
     def test_book_session_success(self, student_client, mentor_client):
         """Тест создания сессии студентом"""
         client, headers = student_client
-        
+
         # Получаем ID ментора
         mentors_resp = mentor_client[0].get("/api/v1/mentors", headers=mentor_client[1])
         mentor_id = mentors_resp.json()[0]["id"] if mentors_resp.json() else 1

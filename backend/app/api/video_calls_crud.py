@@ -4,7 +4,7 @@ Video Calls CRUD Operations
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
@@ -17,7 +17,7 @@ from app.schemas.video_call import VideoCallCreate, VideoCallListResponse, Video
 router = APIRouter()
 
 
-def _format_call_response(call: VideoCall) -> Dict[str, Any]:
+def _format_call_response(call: VideoCall) -> dict[str, Any]:
     """Форматирование ответа для видеозвонка"""
     return {
         "id": call.id,

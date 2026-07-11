@@ -7,12 +7,12 @@ Converts user data to CSV format.
 import csv
 import io
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from starlette.responses import StreamingResponse
 
 
-def export_as_csv(data: Dict[str, Any]) -> StreamingResponse:
+def export_as_csv(data: dict[str, Any]) -> StreamingResponse:
     """
     Export user data to CSV format.
 

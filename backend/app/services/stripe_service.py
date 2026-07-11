@@ -6,7 +6,7 @@ Stripe Payment Service
 import logging
 import os
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     import stripe
@@ -45,8 +45,8 @@ class StripeService:
                 logger.warning("⚠️ STRIPE_SECRET_KEY not configured")
 
     def create_payment_intent(
-        self, amount: Decimal, currency: str = "usd", description: str = "", metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, amount: Decimal, currency: str = "usd", description: str = "", metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Создать платежное намерение (Payment Intent)
 
@@ -109,7 +109,7 @@ class StripeService:
             logger.error(f"Payment intent creation error: {e}")
             return {"error": "Internal server error"}
 
-    def confirm_payment(self, payment_intent_id: str) -> Dict[str, Any]:
+    def confirm_payment(self, payment_intent_id: str) -> dict[str, Any]:
         """
         Подтвердить платеж
 
@@ -139,7 +139,7 @@ class StripeService:
             logger.error(f"Stripe error: {e}")
             return {"error": str(e), "type": e.__class__.__name__}
 
-    def retrieve_payment(self, payment_intent_id: str) -> Dict[str, Any]:
+    def retrieve_payment(self, payment_intent_id: str) -> dict[str, Any]:
         """
         Получить информацию о платеже
 
@@ -169,8 +169,8 @@ class StripeService:
             return {"error": str(e), "type": e.__class__.__name__}
 
     def create_refund(
-        self, payment_intent_id: str, amount: Optional[int] = None, reason: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, payment_intent_id: str, amount: int | None = None, reason: str | None = None
+    ) -> dict[str, Any]:
         """
         Создать возврат средств
 
@@ -210,8 +210,8 @@ class StripeService:
             return {"error": str(e), "type": e.__class__.__name__}
 
     def create_customer(
-        self, email: str, name: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, email: str, name: str | None = None, metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Создать клиента в Stripe
 
@@ -239,7 +239,7 @@ class StripeService:
             logger.error(f"Stripe error: {e}")
             return {"error": str(e), "type": e.__class__.__name__}
 
-    def verify_webhook_signature(self, payload: bytes, signature: str) -> Optional[Dict[str, Any]]:
+    def verify_webhook_signature(self, payload: bytes, signature: str) -> dict[str, Any] | None:
         """
         Проверить подпись webhook от Stripe
 
@@ -269,8 +269,8 @@ class StripeService:
         customer_id: str,
         price_id: str,
         trial_period_days: int = 14,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Создать подписку
 
@@ -313,7 +313,7 @@ class StripeService:
             logger.error(f"Stripe subscription error: {e}")
             return {"error": str(e), "type": e.__class__.__name__}
 
-    def cancel_subscription(self, subscription_id: str, at_period_end: bool = True) -> Dict[str, Any]:
+    def cancel_subscription(self, subscription_id: str, at_period_end: bool = True) -> dict[str, Any]:
         """
         Отменить подписку
 
@@ -351,7 +351,7 @@ class StripeService:
             logger.error(f"Stripe cancel error: {e}")
             return {"error": str(e), "type": e.__class__.__name__}
 
-    def get_subscription(self, subscription_id: str) -> Dict[str, Any]:
+    def get_subscription(self, subscription_id: str) -> dict[str, Any]:
         """
         Получить информацию о подписке
 
@@ -388,7 +388,7 @@ class StripeService:
         cancel_url: str,
         mode: str = "subscription",
         trial_period_days: int = 14
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Создать сессию Checkout для оплаты
 

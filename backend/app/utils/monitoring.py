@@ -7,9 +7,10 @@ Type hints added for better IDE support and type checking.
 import logging
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 import psutil
 from fastapi import Request, Response
@@ -22,13 +23,13 @@ class PerformanceMonitor:
     """Монитор производительности приложения"""
 
     def __init__(self):
-        self.request_times: Dict[str, List[float]] = defaultdict(list)
-        self.error_counts: Dict[str, int] = defaultdict(int)
-        self.endpoint_calls: Dict[str, int] = defaultdict(int)
-        self.status_code_counts: Dict[str, Dict[int, int]] = defaultdict(lambda: defaultdict(int))
-        self.slow_requests: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        self.request_times: dict[str, list[float]] = defaultdict(list)
+        self.error_counts: dict[str, int] = defaultdict(int)
+        self.endpoint_calls: dict[str, int] = defaultdict(int)
+        self.status_code_counts: dict[str, dict[int, int]] = defaultdict(lambda: defaultdict(int))
+        self.slow_requests: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self.start_time: datetime = datetime.now(timezone.utc)
-        self.alert_thresholds: Dict[str, float] = {
+        self.alert_thresholds: dict[str, float] = {
             "error_rate": 5.0,  # 5% ошибок
             "response_time": 2.0,  # 2 секунды
             "cpu_usage": 80.0,  # 80% CPU
@@ -59,7 +60,7 @@ class PerformanceMonitor:
         if len(self.request_times[endpoint]) > 1000:
             self.request_times[endpoint] = self.request_times[endpoint][-500:]
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Получение текущих метрик"""
 
         # Системные метрики
@@ -73,8 +74,8 @@ class PerformanceMonitor:
         error_rate: float = (total_errors / total_requests * 100) if total_requests > 0 else 0.0
 
         # Средние времена ответа
-        avg_response_times: Dict[str, Dict[str, float]] = {}
-        p95_response_times: Dict[str, float] = {}
+        avg_response_times: dict[str, dict[str, float]] = {}
+        p95_response_times: dict[str, float] = {}
         for endpoint, times in self.request_times.items():
             if times:
                 sorted_times = sorted(times)
@@ -155,10 +156,10 @@ class PerformanceMonitor:
         cpu_percent: float,
         memory_percent: float,
         error_rate: float,
-        avg_response_times: Dict[str, Dict[str, float]]
-    ) -> List[Dict[str, Any]]:
+        avg_response_times: dict[str, dict[str, float]]
+    ) -> list[dict[str, Any]]:
         """Проверка наличия алертов"""
-        alerts: List[Dict[str, Any]] = []
+        alerts: list[dict[str, Any]] = []
 
         # Проверка высокого уровня ошибок
         if error_rate > self.alert_thresholds["error_rate"]:
@@ -201,7 +202,7 @@ class PerformanceMonitor:
 
         return alerts
 
-    def set_alert_thresholds(self, thresholds: Dict[str, float]) -> None:
+    def set_alert_thresholds(self, thresholds: dict[str, float]) -> None:
         """Установка пороговых значений для алертов"""
         self.alert_thresholds.update(thresholds)
         logger.info(f"🔔 Alert thresholds updated: {thresholds}")

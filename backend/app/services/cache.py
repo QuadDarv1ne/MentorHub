@@ -7,7 +7,7 @@ import logging
 import time
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class CacheService:
                 logger.info("ℹ️ Using memory cache (Redis not available)")
                 self.redis_client = None
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache"""
         try:
             if self.redis_client:

@@ -8,7 +8,6 @@ This module orchestrates all components: lifespan, middleware, routes, and error
 import logging
 import os
 import socket
-from typing import List, Optional
 
 from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
@@ -58,7 +57,7 @@ def find_free_port(
     start_port: int = 8000,
     max_attempts: int = 100,
     host: str = "0.0.0.0",
-    exclude_ports: Optional[List[int]] = None
+    exclude_ports: list[int] | None = None
 ) -> int:
     """Find first available port starting from start_port."""
     exclude_ports = exclude_ports or []

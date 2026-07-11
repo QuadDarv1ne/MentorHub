@@ -5,7 +5,6 @@ Analytics Service
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional
 
 from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
@@ -27,7 +26,7 @@ class AnalyticsService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_platform_stats(self) -> Dict:
+    def get_platform_stats(self) -> dict:
         """
         Общая статистика платформы
 
@@ -96,7 +95,7 @@ class AnalyticsService:
             logger.error(f"Error getting platform stats: {e}")
             raise
 
-    def get_user_growth(self, days: int = 30) -> List[Dict]:
+    def get_user_growth(self, days: int = 30) -> list[dict]:
         """
         График роста пользователей
 
@@ -131,7 +130,7 @@ class AnalyticsService:
             logger.error(f"Error getting user growth: {e}")
             raise
 
-    def get_session_analytics(self, days: int = 30) -> Dict:
+    def get_session_analytics(self, days: int = 30) -> dict:
         """
         Аналитика по сессиям
 
@@ -198,7 +197,7 @@ class AnalyticsService:
             logger.error(f"Error getting session analytics: {e}")
             raise
 
-    def get_course_performance(self, course_id: Optional[int] = None) -> Dict:
+    def get_course_performance(self, course_id: int | None = None) -> dict:
         """
         Анализ производительности курсов
 
@@ -263,7 +262,7 @@ class AnalyticsService:
             logger.error(f"Error getting course performance: {e}")
             raise
 
-    def get_revenue_analytics(self, days: int = 30) -> Dict:
+    def get_revenue_analytics(self, days: int = 30) -> dict:
         """
         Аналитика по доходам
 
@@ -325,7 +324,7 @@ class AnalyticsService:
             logger.error(f"Error getting revenue analytics: {e}")
             raise
 
-    def get_user_engagement(self, user_id: int) -> Dict:
+    def get_user_engagement(self, user_id: int) -> dict:
         """
         Анализ вовлеченности пользователя
 

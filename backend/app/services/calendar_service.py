@@ -4,7 +4,7 @@ Calendar Service
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -38,7 +38,7 @@ class GoogleCalendarService:
 
         return f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
 
-    async def exchange_code(self, code: str) -> Dict[str, Any]:
+    async def exchange_code(self, code: str) -> dict[str, Any]:
         """Обменять код на токены"""
         import httpx
 
@@ -79,7 +79,7 @@ class MicrosoftCalendarService:
 
         return f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/authorize?{urlencode(params)}"
 
-    async def exchange_code(self, code: str) -> Dict[str, Any]:
+    async def exchange_code(self, code: str) -> dict[str, Any]:
         """Обменять код на токены"""
         import httpx
 
@@ -105,14 +105,14 @@ class CalendarService:
         self.db = db
         self.user = user
 
-    def get_sync_status(self, provider: CalendarProvider) -> Optional[CalendarSync]:
+    def get_sync_status(self, provider: CalendarProvider) -> CalendarSync | None:
         """Получить статус синхронизации"""
         return self.db.query(CalendarSync).filter(
             CalendarSync.user_id == self.user.id,
             CalendarSync.provider == provider
         ).first()
 
-    def save_google_tokens(self, tokens: Dict[str, Any], calendar_id: str = "primary"):
+    def save_google_tokens(self, tokens: dict[str, Any], calendar_id: str = "primary"):
         """Сохранить токены Google"""
         existing = self.get_sync_status(CalendarProvider.GOOGLE)
 
@@ -136,7 +136,7 @@ class CalendarService:
 
         self.db.commit()
 
-    def save_microsoft_tokens(self, tokens: Dict[str, Any], calendar_id: str = "primary"):
+    def save_microsoft_tokens(self, tokens: dict[str, Any], calendar_id: str = "primary"):
         """Сохранить токены Microsoft"""
         existing = self.get_sync_status(CalendarProvider.OUTLOOK)
 
@@ -174,9 +174,9 @@ class CalendarService:
 
     def get_events(
         self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
-    ) -> List[CalendarEvent]:
+        start_date: datetime | None = None,
+        end_date: datetime | None = None
+    ) -> list[CalendarEvent]:
         """Получить события пользователя"""
         query = self.db.query(CalendarEvent).filter(
             CalendarEvent.user_id == self.user.id

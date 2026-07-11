@@ -7,7 +7,6 @@ import pytest
 from fastapi import status
 
 
-
 class TestUserRead:
     """Тесты чтения пользователей"""
 
@@ -96,7 +95,7 @@ class TestUserDelete:
             "username": f"testuser_{unique_id}",
             "password": "SecurePass123!",
         }
-        
+
         # Регистрация
         client.post("/api/v1/auth/register", json=user_data)
 
@@ -113,7 +112,7 @@ class TestUserDelete:
 
         # Удаление через POST (если DELETE не поддерживается)
         response = client.post("/api/v1/users/me/delete", headers=headers)
-        
+
         if response.status_code == 404:
             # Альтернативный эндпоинт
             response = client.delete("/api/v1/users/me", headers=headers)

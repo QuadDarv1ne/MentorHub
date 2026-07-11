@@ -5,7 +5,6 @@ Manages WebSocket connections, rooms, and message broadcasting.
 """
 
 import logging
-from typing import Dict, List, Optional, Set
 
 from fastapi import WebSocket
 
@@ -17,11 +16,11 @@ class ConnectionManager:
 
     def __init__(self):
         # user_id -> set of websockets
-        self.active_connections: Dict[int, Set[WebSocket]] = {}
+        self.active_connections: dict[int, set[WebSocket]] = {}
         # room_id -> set of user_ids
-        self.room_members: Dict[int, Set[int]] = {}
+        self.room_members: dict[int, set[int]] = {}
         # user_id -> set of room_ids
-        self.user_rooms: Dict[int, Set[int]] = {}
+        self.user_rooms: dict[int, set[int]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: int):
         """Connect new client."""
@@ -79,7 +78,7 @@ class ConnectionManager:
         self,
         room_id: int,
         message: dict,
-        exclude_user_id: Optional[int] = None
+        exclude_user_id: int | None = None
     ):
         """Send message to all room members."""
         if room_id not in self.room_members:
@@ -90,7 +89,7 @@ class ConnectionManager:
                 continue
             await self.send_personal_message(message, user_id)
 
-    async def broadcast_to_users(self, message: dict, user_ids: List[int]):
+    async def broadcast_to_users(self, message: dict, user_ids: list[int]):
         """Send message to multiple users."""
         for user_id in user_ids:
             await self.send_personal_message(message, user_id)
@@ -102,7 +101,7 @@ class ConnectionManager:
             **notification
         }, user_id)
 
-    def get_online_users(self) -> List[int]:
+    def get_online_users(self) -> list[int]:
         """Get list of online users."""
         return list(self.active_connections.keys())
 
@@ -110,7 +109,7 @@ class ConnectionManager:
         """Check if user is online."""
         return user_id in self.active_connections
 
-    def get_room_online_members(self, room_id: int) -> List[int]:
+    def get_room_online_members(self, room_id: int) -> list[int]:
         """Get online room members."""
         if room_id not in self.room_members:
             return []

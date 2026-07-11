@@ -3,7 +3,7 @@
 Общие Pydantic схемы, используемые во всем приложении
 """
 
-from typing import Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -34,10 +34,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
     page: int
     page_size: int
     total_pages: int
-    data: List[T]
+    data: list[T]
 
     @classmethod
-    def create(cls, items: List[T], total: int, page: int, page_size: int):
+    def create(cls, items: list[T], total: int, page: int, page_size: int):
         """Создание ответа с пагинацией"""
         total_pages = (total + page_size - 1) // page_size
         return cls(

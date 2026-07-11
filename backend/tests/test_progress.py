@@ -6,7 +6,6 @@
 from fastapi import status
 
 
-
 def register_and_login(client, sample_user_data=None):
     """Хелпер для регистрации и входа"""
     import uuid

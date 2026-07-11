@@ -4,7 +4,7 @@ Courses Service
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
@@ -24,7 +24,7 @@ class CourseService:
     def __init__(self, db: Session):
         self.db = db
 
-    def _sanitize_course_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_course_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Санитизация данных курса"""
         sanitized = {}
         for key, value in data.items():
@@ -35,7 +35,7 @@ class CourseService:
                 sanitized[key] = value
         return sanitized
 
-    def _sanitize_lesson_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_lesson_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Санитизация данных урока"""
         sanitized = {}
         for key, value in data.items():
@@ -51,30 +51,30 @@ class CourseService:
         mentor = self.db.query(Mentor).filter(Mentor.user_id == user.id).first()
         return mentor is not None and mentor.id == course_instructor_id
 
-    def check_mentor_status(self, user: User) -> Optional[Mentor]:
+    def check_mentor_status(self, user: User) -> Mentor | None:
         """Проверка статуса ментора"""
         return self.db.query(Mentor).filter(Mentor.user_id == user.id).first()
 
-    def get_course_with_instructor(self, course_id: int) -> Optional[Course]:
+    def get_course_with_instructor(self, course_id: int) -> Course | None:
         """Получить курс с данными инструктора"""
         return self.db.query(Course).options(
             joinedload(Course.instructor)
         ).filter(Course.id == course_id).first()
 
-    def get_course_with_lessons(self, course_id: int) -> Optional[Course]:
+    def get_course_with_lessons(self, course_id: int) -> Course | None:
         """Получить курс с уроками"""
         return self.db.query(Course).options(
             joinedload(Course.instructor),
             joinedload(Course.lessons)
         ).filter(Course.id == course_id).first()
 
-    def get_user_enrollments(self, user_id: int) -> List[CourseEnrollment]:
+    def get_user_enrollments(self, user_id: int) -> list[CourseEnrollment]:
         """Получить записи пользователя на курсы"""
         return self.db.query(CourseEnrollment).filter(
             CourseEnrollment.user_id == user_id
         ).all()
 
-    def get_similar_courses(self, course: Course, limit: int = 5) -> List[Course]:
+    def get_similar_courses(self, course: Course, limit: int = 5) -> list[Course]:
         """Получить похожие курсы"""
         return self.db.query(Course).filter(
             Course.id != course.id,

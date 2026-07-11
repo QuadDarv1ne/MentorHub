@@ -30,7 +30,7 @@ class TestHTTPErrorHandling:
         """Тест обработки 400 ошибки"""
         import uuid
         unique_id = str(uuid.uuid4())[:8]
-        
+
         # Дублирование email
         register_data = {"email": f"duplicate_{unique_id}@example.com", "username": f"user1_{unique_id}", "password": "TestPass123!"}
 

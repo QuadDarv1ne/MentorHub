@@ -2,9 +2,9 @@
 """
 Проверка переменных окружения перед запуском
 """
+import logging
 import os
 import sys
-import logging
 
 # Настройка логирования
 logging.basicConfig(

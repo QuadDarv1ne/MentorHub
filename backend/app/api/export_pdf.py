@@ -6,12 +6,12 @@ Converts user data to PDF format using ReportLab.
 
 import io
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import HTTPException, Response
 
 
-def export_as_pdf(data: Dict[str, Any]) -> Response:
+def export_as_pdf(data: dict[str, Any]) -> Response:
     """
     Export user data to PDF format.
 

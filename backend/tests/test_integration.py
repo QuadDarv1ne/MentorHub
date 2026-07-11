@@ -8,12 +8,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.main import app
 from app.config import settings
-from app.models.user import User, UserRole
+from app.main import app
 from app.models.course import Course, CourseEnrollment
+from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
-
 
 # ==================== Fixtures ====================
 
@@ -25,16 +24,16 @@ def db_session():
         connect_args={"check_same_thread": False},
         echo=False
     )
-    
+
     # Импортируем все модели для создания таблиц
-    
+
     # Создаём таблицы
     from app.models.base import Base
     Base.metadata.create_all(bind=engine)
-    
+
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
-    
+
     try:
         yield session
     finally:
@@ -49,10 +48,10 @@ def client(db_session):
             yield db_session
         finally:
             pass
-    
+
     from app import dependencies
     dependencies.get_db = override_get_db
-    
+
     with TestClient(app) as test_client:
         yield test_client
 
@@ -303,7 +302,7 @@ class TestCourseEnrollmentFlow:
             instructor_id=mentor.id
         )
         db_session.add(course)
-        
+
         enrollment = CourseEnrollment(
             user_id=test_user.id,
             course_id=course.id,
@@ -329,7 +328,7 @@ class TestSessionBookingFlow:
         """Бронирование сессии с ментором"""
         headers = get_auth_headers(client, test_user.email, "password123")
 
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
         session_data = {
             "mentor_id": test_mentor.id,
             "title": "Consultation",
@@ -394,27 +393,27 @@ class TestAPIPerformance:
     def test_health_check_response_time(self, client):
         """Время ответа health check"""
         import time
-        
+
         start = time.time()
         response = client.get("/health")
         elapsed = time.time() - start
-        
+
         assert response.status_code == 200
         assert elapsed < 0.5  # Менее 500мс
 
     def test_concurrent_requests(self, client, test_user):
         """Обработка множественных запросов"""
         import concurrent.futures
-        
+
         headers = get_auth_headers(client, test_user.email, "password123")
-        
+
         def make_request():
             return client.get("/api/v1/users/me", headers=headers)
-        
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(make_request) for _ in range(5)]
             results = [f.result() for f in futures]
-        
+
         assert all(r.status_code == 200 for r in results)
 
 

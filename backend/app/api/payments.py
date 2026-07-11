@@ -5,7 +5,6 @@ Payment processing endpoints (Stripe, SBP).
 """
 
 from decimal import Decimal
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
@@ -47,7 +46,7 @@ router = APIRouter()
 
 # ==================== CRUD ENDPOINTS ====================
 
-@router.get("/", response_model=List[PaymentResponse])
+@router.get("/", response_model=list[PaymentResponse])
 async def get_payments(
     skip: int = 0,
     limit: int = 100,
@@ -148,7 +147,7 @@ async def delete_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
 
-@router.get("/history", response_model=List[PaymentResponse])
+@router.get("/history", response_model=list[PaymentResponse])
 async def get_payment_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

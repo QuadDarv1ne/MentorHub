@@ -10,8 +10,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 try:
     from redis.asyncio import Redis
@@ -43,19 +44,19 @@ MEMORY_CACHE_CLEANUP_COUNT = 500
 class CacheManager:
     """Менеджер кеширования с поддержкой Redis и памяти"""
 
-    def __init__(self, redis_client: Optional[Redis] = None) -> None:
+    def __init__(self, redis_client: Redis | None = None) -> None:
         self.redis = redis_client
-        self.memory_cache: Dict[str, Any] = {}
+        self.memory_cache: dict[str, Any] = {}
         self.use_redis = redis_client is not None
-        self.stats: Dict[str, int] = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0}
-        self.cache_sizes: Dict[str, int] = {"memory": 0, "redis": 0}
+        self.stats: dict[str, int] = {"hits": 0, "misses": 0, "sets": 0, "deletes": 0, "errors": 0}
+        self.cache_sizes: dict[str, int] = {"memory": 0, "redis": 0}
 
         if self.use_redis:
             logger.info("✅ Cache: используется Redis")
         else:
             logger.warning("⚠️ Cache: используется память (ограниченная)")
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Получение значения из кеша"""
         try:
             if self.use_redis:
@@ -74,7 +75,7 @@ class CacheManager:
             self.stats["errors"] += 1
         return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = DEFAULT_CACHE_TTL) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = DEFAULT_CACHE_TTL) -> None:
         """Сохранение значения в кеш"""
         try:
             serialized_value = json.dumps(value)
@@ -85,7 +86,7 @@ class CacheManager:
                 self.cache_sizes["redis"] += value_size
             else:
                 if len(self.memory_cache) > MAX_MEMORY_CACHE_ITEMS:
-                    keys_to_delete: List[str] = list(self.memory_cache.keys())[:MEMORY_CACHE_CLEANUP_COUNT]
+                    keys_to_delete: list[str] = list(self.memory_cache.keys())[:MEMORY_CACHE_CLEANUP_COUNT]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
@@ -128,7 +129,7 @@ class CacheManager:
                     self.memory_cache.clear()
                 else:
                     prefix = pattern.replace("*", "")
-                    keys_to_delete: List[str] = [k for k in self.memory_cache if k.startswith(prefix)]
+                    keys_to_delete: list[str] = [k for k in self.memory_cache if k.startswith(prefix)]
                     for k in keys_to_delete:
                         if k in self.memory_cache:
                             self.cache_sizes["memory"] -= len(json.dumps(self.memory_cache[k]))
@@ -142,7 +143,7 @@ class CacheManager:
         key_data = f"{args}:{sorted(kwargs.items())}"
         return hashlib.sha256(key_data.encode()).hexdigest()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Получение статистики кеша"""
         total_requests = self.stats["hits"] + self.stats["misses"]
         hit_rate = (self.stats["hits"] / total_requests * 100) if total_requests > 0 else 0
@@ -159,10 +160,10 @@ class CacheManager:
 
 
 # Глобальный экземпляр
-cache_manager: Optional[CacheManager] = None
+cache_manager: CacheManager | None = None
 
 
-def init_cache(redis_client: Optional[Redis] = None) -> CacheManager:
+def init_cache(redis_client: Redis | None = None) -> CacheManager:
     """Инициализация кеш-менеджера"""
     global cache_manager
     cache_manager = CacheManager(redis_client)
@@ -194,7 +195,7 @@ def cached(
                 return await func(*args, **kwargs)
 
             cache_key = f"{key_prefix}:{func.__name__}:"
-            key_parts: List[str] = []
+            key_parts: list[str] = []
 
             for arg in args:
                 if hasattr(arg, "id"):
@@ -237,7 +238,7 @@ async def invalidate_cache(pattern: str) -> None:
         logger.info(f"🗑️ Cache invalidated: {pattern}")
 
 
-def get_cache_stats() -> Dict[str, Any]:
+def get_cache_stats() -> dict[str, Any]:
     """Получение статистики кеша"""
     return cache_manager.get_stats() if cache_manager else {}
 

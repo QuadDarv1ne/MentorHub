@@ -4,7 +4,6 @@ Analytics API endpoints
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -113,7 +112,7 @@ async def get_session_analytics(
 
 @router.get("/analytics/courses")
 async def get_course_analytics(
-    course_id: Optional[int] = Query(None),
+    course_id: int | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

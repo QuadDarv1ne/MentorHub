@@ -5,10 +5,10 @@
 import pytest
 from fastapi.testclient import TestClient as StarletteTestClient
 
-from app.models.user import User, UserRole
 from app.models.message import Message
-from app.utils.security import get_password_hash
+from app.models.user import User, UserRole
 from app.utils.auth_tokens import create_access_token
+from app.utils.security import get_password_hash
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def authenticated_users(db_session):
     """Фикстура для создания двух аутентифицированных пользователей"""
     import uuid
     unique_id = str(uuid.uuid4())[:8]
-    
+
     # Создание первого пользователя
     user1 = User(
         email=f"user1_{unique_id}@example.com",
@@ -83,7 +83,7 @@ class TestWebSocketChat:
         """Тест подключения к WebSocket"""
         user1 = authenticated_users["user1"]
         token = user1["token"]
-        
+
         # Проверяем что токен валидный
         assert token is not None
         assert len(token) > 0
@@ -92,7 +92,7 @@ class TestWebSocketChat:
     def test_websocket_invalid_token(self):
         """Тест проверки неверного токена"""
         invalid_token = "not.a.valid.jwt.token"
-        
+
         # Проверяем что токен невалидный
         assert invalid_token is not None
         assert "." in invalid_token
@@ -105,7 +105,7 @@ class TestWebSocketChat:
         # Проверяем что пользователи созданы
         assert user1["user"].id is not None
         assert user2["user"].id is not None
-        
+
         # Проверяем что токены валидные
         assert user1["token"] is not None
         assert user2["token"] is not None
@@ -165,27 +165,27 @@ class TestWebSocketChat:
         """Тест формата сообщения аутентификации"""
         user1 = authenticated_users["user1"]
         token = user1["token"]
-        
+
         # Формат первого сообщения для WebSocket
         auth_message = {
             "type": "auth",
             "token": token
         }
-        
+
         assert auth_message["type"] == "auth"
         assert auth_message["token"] == token
 
     def test_websocket_chat_message_format(self, authenticated_users):
         """Тест формата сообщения чата"""
         user2 = authenticated_users["user2"]
-        
+
         # Формат сообщения чата
         chat_message = {
             "type": "message",
             "recipient_id": user2["user"].id,
             "content": "Hello, World!"
         }
-        
+
         assert chat_message["type"] == "message"
         assert chat_message["recipient_id"] == user2["user"].id
         assert chat_message["content"] == "Hello, World!"
@@ -193,12 +193,12 @@ class TestWebSocketChat:
     def test_websocket_typing_message_format(self, authenticated_users):
         """Тест формата индикатора печати"""
         user2 = authenticated_users["user2"]
-        
+
         typing_message = {
             "type": "typing",
             "recipient_id": user2["user"].id
         }
-        
+
         assert typing_message["type"] == "typing"
         assert typing_message["recipient_id"] == user2["user"].id
 
@@ -208,7 +208,7 @@ class TestWebSocketChat:
             "type": "read",
             "message_id": 123
         }
-        
+
         assert read_message["type"] == "read"
         assert read_message["message_id"] == 123
 
@@ -217,15 +217,15 @@ class TestWebSocketChat:
         ping_message = {
             "type": "ping"
         }
-        
+
         assert ping_message["type"] == "ping"
 
     def test_connection_manager_methods(self):
         """Тест методов ConnectionManager"""
         from app.api.websocket import ConnectionManager
-        
+
         manager = ConnectionManager()
-        
+
         # Проверяем что менеджер создается
         assert manager is not None
         assert hasattr(manager, 'connect')
@@ -233,7 +233,7 @@ class TestWebSocketChat:
         assert hasattr(manager, 'send_personal_message')
         assert hasattr(manager, 'broadcast_to_users')
         assert hasattr(manager, 'get_online_users')
-        
+
         # Проверяем начальное состояние
         assert manager.active_connections == {}
         assert manager.get_online_users() == []
@@ -269,10 +269,10 @@ class TestChatIntegration:
     def test_online_users_http_endpoint(self, client):
         """Тест HTTP endpoint для получения онлайн пользователей"""
         response = client.get("/api/v1/ws/online-users")
-        
+
         # Endpoint должен существовать
         assert response.status_code in [200, 404]  # 404 если не зарегистрирован
-        
+
         if response.status_code == 200:
             data = response.json()
             assert "online_users" in data

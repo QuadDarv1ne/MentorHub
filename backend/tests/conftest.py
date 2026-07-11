@@ -17,15 +17,17 @@ os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
 
 # Import and clear settings cache BEFORE importing app
 import importlib
+
 import app.config
+
 importlib.reload(app.config)
 
 import pytest
 import pytest_asyncio
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from app.database import Base
 from app.dependencies import get_db
@@ -33,13 +35,13 @@ from app.main import app
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
 
-
 # URL тестовой базы данных (SQLite для тестов)
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 
 # Reset settings cache after setting environment variables
 import app.config as config_module
+
 if hasattr(config_module.get_settings, 'cache_clear'):
     config_module.get_settings.cache_clear()
 # Reload settings with new environment

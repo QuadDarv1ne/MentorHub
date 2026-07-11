@@ -3,10 +3,9 @@ Pagination validation utilities
 Common helpers for skip/limit validation to avoid code duplication
 """
 
-from typing import Tuple
 
 
-def validate_pagination(skip: int, limit: int, max_limit: int = 100) -> Tuple[int, int]:
+def validate_pagination(skip: int, limit: int, max_limit: int = 100) -> tuple[int, int]:
     """
     Validate and normalize pagination parameters.
 

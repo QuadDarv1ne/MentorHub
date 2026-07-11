@@ -5,9 +5,9 @@ Revises: b1f3d5c6a7e8
 Create Date: 2024-11-28 12:00:00.000000
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'd123456789ab'
@@ -38,7 +38,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_courses_id'), 'courses', ['id'], unique=False)
     op.create_index(op.f('ix_courses_instructor_id'), 'courses', ['instructor_id'], unique=False)
-    
+
     op.create_table('course_enrollments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -55,7 +55,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_course_enrollments_course_id'), 'course_enrollments', ['course_id'], unique=False)
     op.create_index(op.f('ix_course_enrollments_id'), 'course_enrollments', ['id'], unique=False)
     op.create_index(op.f('ix_course_enrollments_user_id'), 'course_enrollments', ['user_id'], unique=False)
-    
+
     op.create_table('lessons',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -73,7 +73,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_lessons_course_id'), 'lessons', ['course_id'], unique=False)
     op.create_index(op.f('ix_lessons_id'), 'lessons', ['id'], unique=False)
-    
+
     # Add relationship columns to progress table
     op.add_column('progress', sa.Column('lesson_id', sa.Integer(), nullable=True))
     op.create_foreign_key('fk_progress_lesson_id', 'progress', 'lessons', ['lesson_id'], ['id'])
@@ -86,16 +86,16 @@ def downgrade() -> None:
     op.drop_constraint('fk_progress_lesson_id', 'progress', type_='foreignkey')
     op.drop_index(op.f('ix_progress_lesson_id'), table_name='progress')
     op.drop_column('progress', 'lesson_id')
-    
+
     op.drop_index(op.f('ix_lessons_id'), table_name='lessons')
     op.drop_index(op.f('ix_lessons_course_id'), table_name='lessons')
     op.drop_table('lessons')
-    
+
     op.drop_index(op.f('ix_course_enrollments_user_id'), table_name='course_enrollments')
     op.drop_index(op.f('ix_course_enrollments_id'), table_name='course_enrollments')
     op.drop_index(op.f('ix_course_enrollments_course_id'), table_name='course_enrollments')
     op.drop_table('course_enrollments')
-    
+
     op.drop_index(op.f('ix_courses_instructor_id'), table_name='courses')
     op.drop_index(op.f('ix_courses_id'), table_name='courses')
     op.drop_table('courses')

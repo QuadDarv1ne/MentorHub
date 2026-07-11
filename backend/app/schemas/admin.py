@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -10,11 +9,11 @@ class AdminUserResponse(BaseModel):
     id: int
     email: str
     username: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     role: UserRole
     is_active: bool
     is_verified: bool
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -22,7 +21,7 @@ class AdminUserResponse(BaseModel):
 
 
 class AdminUserListResponse(BaseModel):
-    items: List[AdminUserResponse]
+    items: list[AdminUserResponse]
     total: int
     page: int
     page_size: int
@@ -72,10 +71,10 @@ class AdminUserStatsResponse(BaseModel):
     completed_sessions: int
     upcoming_sessions: int
     courses_enrolled: int
-    course_stats: List[CourseStatItem]
+    course_stats: list[CourseStatItem]
     avg_rating_given: float
     avg_rating_received: float
     engagement_score: int
-    last_activity: Optional[str] = None
+    last_activity: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

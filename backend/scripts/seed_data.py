@@ -2,10 +2,10 @@
 """
 Скрипт для заполнения БД тестовыми данными
 """
-import sys
 import logging
-from pathlib import Path
 import random
+import sys
+from pathlib import Path
 
 # Настройка логирования
 logging.basicConfig(
@@ -20,11 +20,10 @@ backend_path = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_path))
 
 from app.database import SessionLocal
-from app.models.user import User
-from app.models.mentor import Mentor
 from app.models.course import Course
+from app.models.mentor import Mentor
+from app.models.user import User
 from app.utils.security import get_password_hash
-
 
 SKILLS = ["Python", "JavaScript", "React", "Django", "FastAPI", "PostgreSQL", "Docker", "AWS"]
 COURSES = [

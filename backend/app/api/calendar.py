@@ -4,7 +4,6 @@ Google Calendar + Outlook Calendar + ICS Export
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
@@ -27,7 +26,7 @@ def _get_calendar_service(db: Session, user: User) -> CalendarService:
 
 
 @router.get("/auth/google")
-async def google_auth_url() -> Dict[str, str]:
+async def google_auth_url() -> dict[str, str]:
     """Получить URL для авторизации Google Calendar"""
     from urllib.parse import urlencode
 
@@ -49,7 +48,7 @@ async def google_callback(
     code: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Callback после авторизации Google"""
     import httpx
 
@@ -80,7 +79,7 @@ async def google_callback(
 
 
 @router.get("/auth/microsoft")
-async def microsoft_auth_url() -> Dict[str, str]:
+async def microsoft_auth_url() -> dict[str, str]:
     """Получить URL для авторизации Outlook Calendar"""
     from urllib.parse import urlencode
 
@@ -100,7 +99,7 @@ async def microsoft_callback(
     code: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Callback после авторизации Microsoft"""
     import httpx
 
@@ -180,8 +179,8 @@ async def disconnect_calendar(
 
 @router.get("/events")
 async def get_calendar_events(
-    start: Optional[datetime] = None,
-    end: Optional[datetime] = None,
+    start: datetime | None = None,
+    end: datetime | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

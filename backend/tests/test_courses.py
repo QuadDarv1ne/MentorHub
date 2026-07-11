@@ -6,7 +6,6 @@
 from fastapi import status
 
 
-
 class TestCourseRead:
     """Тесты чтения курсов"""
 

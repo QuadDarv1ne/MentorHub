@@ -5,7 +5,6 @@ Course Lessons API
 
 import asyncio
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/{course_id}/lessons", response_model=List[LessonResponse])
+@router.get("/{course_id}/lessons", response_model=list[LessonResponse])
 async def get_course_lessons(
     course_id: int,
     db: Session = Depends(get_db),

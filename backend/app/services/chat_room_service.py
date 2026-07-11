@@ -4,7 +4,7 @@ Chat Rooms Service
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
@@ -43,7 +43,7 @@ class ChatRoomService:
 
         return db_room
 
-    def get_user_rooms(self, user_id: int, skip: int = 0, limit: int = 50) -> List[ChatRoom]:
+    def get_user_rooms(self, user_id: int, skip: int = 0, limit: int = 50) -> list[ChatRoom]:
         """Получить комнаты пользователя"""
         return self.db.query(ChatRoom).filter(
             ChatRoom.members.any(User.id == user_id)
@@ -53,7 +53,7 @@ class ChatRoomService:
             desc(ChatRoom.updated_at)
         ).offset(skip).limit(limit).all()
 
-    def get_room_by_id(self, room_id: int, user_id: int) -> Optional[ChatRoom]:
+    def get_room_by_id(self, room_id: int, user_id: int) -> ChatRoom | None:
         """Получить комнату по ID с проверкой доступа"""
         return self.db.query(ChatRoom).filter(
             ChatRoom.id == room_id,
@@ -165,7 +165,7 @@ class ChatRoomService:
         user_id: int,
         skip: int = 0,
         limit: int = 50
-    ) -> List[ChatMessage]:
+    ) -> list[ChatMessage]:
         """Получить сообщения комнаты"""
         # Проверяем доступ
         room = self.get_room_by_id(room_id, user_id)
@@ -182,7 +182,7 @@ class ChatRoomService:
 
 
 # Глобальная функция для форматирования ответа
-def format_room_response(room: ChatRoom, member_count: int) -> Dict[str, Any]:
+def format_room_response(room: ChatRoom, member_count: int) -> dict[str, Any]:
     """Форматирование ответа для комнаты"""
     return {
         "id": room.id,

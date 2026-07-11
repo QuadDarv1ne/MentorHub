@@ -42,7 +42,7 @@ def auth_header(test_user: User) -> dict:
         "/api/v1/auth/login",
         json={"email": test_user.email, "password": "testpassword123"}
     )
-    
+
     if response.status_code == 200:
         token = response.json().get("access_token")
         return {"Authorization": f"Bearer {token}"}
@@ -53,14 +53,14 @@ def test_export_json(auth_header: dict):
     """Test JSON export"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/export/data?format=json", headers=auth_header)
-    
+
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     assert "Content-Disposition" in response.headers
     assert "mentorhub_data_export" in response.headers["Content-Disposition"]
-    
+
     data = response.json()
     assert "user" in data
     assert "sessions" in data
@@ -71,9 +71,9 @@ def test_export_csv(auth_header: dict):
     """Test CSV export"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/export/data?format=csv", headers=auth_header)
-    
+
     # CSV export may return 200 or 503 depending on dependencies
     if response.status_code == 200:
         assert "text/csv" in response.headers.get("content-type", "")
@@ -84,9 +84,9 @@ def test_export_pdf(auth_header: dict):
     """Test PDF export"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/export/data?format=pdf", headers=auth_header)
-    
+
     # PDF export may return 200 or 503 depending on reportlab
     if response.status_code == 200:
         assert response.headers["content-type"] == "application/pdf"
@@ -100,9 +100,9 @@ def test_export_excel(auth_header: dict):
     """Test Excel export"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/export/data?format=excel", headers=auth_header)
-    
+
     # Excel export may return 200 or 503 depending on openpyxl
     if response.status_code == 200:
         assert "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" in response.headers.get("content-type", "")
@@ -116,9 +116,9 @@ def test_export_summary(auth_header: dict):
     """Test data summary endpoint"""
     if "Authorization" not in auth_header:
         pytest.skip("No auth token available")
-    
+
     response = client.get("/api/v1/export/data/summary", headers=auth_header)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "user_id" in data

@@ -10,7 +10,6 @@ import logging
 import platform
 import signal
 from contextlib import asynccontextmanager
-from typing import Optional
 
 from fastapi import FastAPI
 from redis.asyncio import Redis
@@ -71,15 +70,15 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 # ==================== REDIS CLIENT SETUP ====================
-redis_client: Optional[Redis] = None
+redis_client: Redis | None = None
 
 
-def get_redis_client() -> Optional[Redis]:
+def get_redis_client() -> Redis | None:
     """Get the global Redis client"""
     return redis_client
 
 
-def initialize_redis_client() -> Optional[Redis]:
+def initialize_redis_client() -> Redis | None:
     """Initialize Redis client if configured"""
     global redis_client
 

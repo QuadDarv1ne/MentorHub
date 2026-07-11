@@ -2,11 +2,12 @@
 Tests for webhook rate limiter
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
-from fastapi import Request, HTTPException, status
 
-from app.dependencies import webhook_rate_limit_dependency, _webhook_rate_limiter
+import pytest
+from fastapi import HTTPException, Request, status
+
+from app.dependencies import _webhook_rate_limiter, webhook_rate_limit_dependency
 
 
 class TestWebhookRateLimiter:
@@ -24,16 +25,16 @@ class TestWebhookRateLimiter:
         """Тест: первые запросы проходят"""
         # Проверяем что rate limiter существует
         assert _webhook_rate_limiter is not None
-        
+
         # Первые 500 запросов должны проходить
-        for i in range(10):
+        for _ in range(10):
             result = webhook_rate_limit_dependency(mock_request)
             assert result is True
 
     def test_webhook_rate_limit_blocks_excess_requests(self, mock_request):
         """Тест: запросы сверх лимита блокируются"""
         # Превышаем лимит в 500 запросов
-        for i in range(500):
+        for _ in range(500):
             webhook_rate_limit_dependency(mock_request)
 
         # 501-й запрос должен быть заблокирован
@@ -53,7 +54,7 @@ class TestWebhookRateLimiter:
         mock_request2 = MagicMock(spec=Request)
         mock_request2.client.host = "192.168.1.101"
         mock_request2.url.path = "/api/payments/webhook"
-        
+
         result2 = webhook_rate_limit_dependency(mock_request2)
         assert result2 is True
 
@@ -61,7 +62,7 @@ class TestWebhookRateLimiter:
         mock_request3 = MagicMock(spec=Request)
         mock_request3.client.host = "192.168.1.100"
         mock_request3.url.path = "/api/payments/sbp/webhook"
-        
+
         result3 = webhook_rate_limit_dependency(mock_request3)
         assert result3 is True
 
@@ -71,7 +72,7 @@ class TestWebhookRateLimiter:
             mock_request = MagicMock(spec=Request)
             mock_request.client.host = "192.168.1.100"
             mock_request.url.path = "/api/payments/webhook"
-            
+
             result = webhook_rate_limit_dependency(mock_request)
             assert result is True
 

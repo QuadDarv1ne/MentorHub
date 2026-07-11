@@ -3,13 +3,14 @@
 Использование: python backup_database.py
 """
 
-import os
-import subprocess
-import logging
 import hashlib
 import json
+import logging
+import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -35,7 +36,7 @@ class DatabaseBackup:
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                 region_name=getattr(settings, "AWS_REGION", "eu-west-1"),
             )
-            
+
         # Загружаем метаданные backup'ов
         self.backup_metadata = self._load_backup_metadata()
 
@@ -104,7 +105,7 @@ class DatabaseBackup:
 
         # Вычисляем хеш файла для целостности
         file_hash = self._calculate_file_hash(backup_file)
-        
+
         # Сохраняем метаданные
         self._save_backup_metadata(backup_file.name, size_mb, file_hash, "full")
 
@@ -152,7 +153,7 @@ class DatabaseBackup:
                 logger.info(f"🗑️ Удалён: {backup_file.name}")
 
         logger.info(f"✅ Удалено {deleted_count} старых backup'ов")
-        
+
     def _calculate_file_hash(self, file_path: Path) -> str:
         """Вычисление хеша файла для проверки целостности"""
         hash_md5 = hashlib.md5()
@@ -160,7 +161,7 @@ class DatabaseBackup:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
-        
+
     def _save_backup_metadata(self, filename: str, size_mb: float, file_hash: str, backup_type: str):
         """Сохранение метаданных backup'а"""
         self.backup_metadata[filename] = {
@@ -169,22 +170,22 @@ class DatabaseBackup:
             "hash": file_hash,
             "type": backup_type
         }
-        
+
         # Сохраняем в файл
         with open(self.backup_metadata_file, 'w') as f:
             json.dump(self.backup_metadata, f, indent=2, default=str)
-            
+
     def _load_backup_metadata(self) -> dict:
         """Загрузка метаданных backup'ов"""
         if self.backup_metadata_file.exists():
             try:
-                with open(self.backup_metadata_file, 'r') as f:
+                with open(self.backup_metadata_file) as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"⚠️ Ошибка загрузки метаданных: {e}")
                 return {}
         return {}
-        
+
     def get_backup_info(self) -> dict:
         """Получение информации о backup'ах"""
         info = {
@@ -192,26 +193,26 @@ class DatabaseBackup:
             "backup_types": {},
             "recent_backups": []
         }
-        
+
         # Подсчитываем типы backup'ов
         type_counts = {}
         for metadata in self.backup_metadata.values():
             backup_type = metadata.get("type", "unknown")
             type_counts[backup_type] = type_counts.get(backup_type, 0) + 1
         info["backup_types"] = type_counts
-        
+
         # Получаем последние 10 backup'ов
         sorted_backups = sorted(
-            self.backup_metadata.items(), 
-            key=lambda x: x[1].get("timestamp", ""), 
+            self.backup_metadata.items(),
+            key=lambda x: x[1].get("timestamp", ""),
             reverse=True
         )[:10]
-        
+
         info["recent_backups"] = [
-            {"filename": name, "metadata": metadata} 
+            {"filename": name, "metadata": metadata}
             for name, metadata in sorted_backups
         ]
-        
+
         return info
 
     def restore_backup(self, backup_file: Path, verify_integrity: bool = True):
@@ -221,7 +222,7 @@ class DatabaseBackup:
 
         if not backup_file.exists():
             raise FileNotFoundError(f"Backup файл не найден: {backup_file}")
-            
+
         # Проверяем целостность файла, если требуется
         if verify_integrity and backup_file.name in self.backup_metadata:
             expected_hash = self.backup_metadata[backup_file.name].get("hash")

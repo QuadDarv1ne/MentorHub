@@ -7,7 +7,6 @@ import pytest
 from fastapi import status
 
 
-
 def register_and_login(client, email=None, password="TestPass123!"):
     """Хелпер для регистрации и входа"""
     import uuid
@@ -164,7 +163,7 @@ class TestReviewAggregate:
             json={"rating": 5, "comment": "Great"},
             headers=headers
         )
-        
+
         # Если создание не удалось (state issues), пропускаем проверку
         if create_response.status_code not in [status.HTTP_201_CREATED, status.HTTP_200_OK]:
             pytest.skip("Could not create review for test")
@@ -206,7 +205,7 @@ class TestReviewAggregate:
             json={"rating": 3, "comment": "Average"},
             headers={"Authorization": f"Bearer {token2}"}
         )
-        
+
         # Если создание отзывов не удалось (state issues), пропускаем проверку
         if res1.status_code not in [status.HTTP_201_CREATED, status.HTTP_200_OK] or \
            res2.status_code not in [status.HTTP_201_CREATED, status.HTTP_200_OK]:

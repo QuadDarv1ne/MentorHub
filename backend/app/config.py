@@ -6,7 +6,6 @@ Handles all environment variables and app settings
 import logging
 import os
 from functools import lru_cache
-from typing import List, Optional
 
 from pydantic import PrivateAttr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -124,10 +123,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS_RAW: str = ""
 
     # Base CORS origins - always included
-    _base_cors_origins: List[str] = []
+    _base_cors_origins: list[str] = []
 
     # Development origins - only for local development
-    _dev_cors_origins: List[str] = [
+    _dev_cors_origins: list[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
@@ -166,21 +165,21 @@ class Settings(BaseSettings):
         return self
 
     # Private attribute - not a pydantic field
-    _cors_origins: List[str] = PrivateAttr(default_factory=list)
+    _cors_origins: list[str] = PrivateAttr(default_factory=list)
 
     @property
-    def CORS_ORIGINS(self) -> List[str]:
+    def CORS_ORIGINS(self) -> list[str]:
         """Get CORS origins"""
         return self._cors_origins
 
     @CORS_ORIGINS.setter
-    def CORS_ORIGINS(self, value: List[str]):
+    def CORS_ORIGINS(self, value: list[str]):
         """Set CORS origins"""
         self._cors_origins = value
 
     CORS_CREDENTIALS: bool = True
-    CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
+    CORS_METHODS: list[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_HEADERS: list[str] = ["Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"]
 
     # ==================== AGORA VIDEO ====================
     AGORA_APP_ID: str = ""
@@ -234,20 +233,20 @@ class Settings(BaseSettings):
     FCM_SENDER_ID: str = ""
 
     # ==================== SENTRY ====================
-    SENTRY_DSN: Optional[str] = None
+    SENTRY_DSN: str | None = None
 
     # ==================== CELERY ====================
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
     CELERY_TASK_SERIALIZER: str = "json"
     CELERY_RESULT_SERIALIZER: str = "json"
-    CELERY_ACCEPT_CONTENT: List[str] = ["json"]
+    CELERY_ACCEPT_CONTENT: list[str] = ["json"]
     CELERY_TIMEZONE: str = "UTC"
 
     # ==================== LOGGING ====================
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"
-    LOG_FILE: Optional[str] = None
+    LOG_FILE: str | None = None
 
     # ==================== RATE LIMITING ====================
     RATE_LIMIT_ENABLED: bool = True
@@ -260,7 +259,7 @@ class Settings(BaseSettings):
     SESSION_COOKIE_HTTPONLY: bool = True
 
     # ==================== SECURITY ====================
-    ALLOWED_HOSTS: List[str] = []
+    ALLOWED_HOSTS: list[str] = []
     SECURE_SSL_REDIRECT: bool = os.environ.get('ENVIRONMENT') == 'production'
     HSTS_SECONDS: int = HSTS_MAX_AGE
 
@@ -292,14 +291,14 @@ class Settings(BaseSettings):
 
     # ==================== FILE UPLOAD ====================
     MAX_UPLOAD_SIZE: int = MAX_UPLOAD_SIZE
-    ALLOWED_EXTENSIONS: List[str] = ALLOWED_EXTENSIONS_LIST
+    ALLOWED_EXTENSIONS: list[str] = ALLOWED_EXTENSIONS_LIST
 
     # ==================== PUSH NOTIFICATIONS ====================
     PUSH_NOTIFICATIONS_ENABLED: bool = True
 
     # ==================== TELEGRAM ALERTS ====================
-    TELEGRAM_BOT_TOKEN: Optional[str] = None
-    TELEGRAM_CHAT_ID: Optional[str] = None
+    TELEGRAM_BOT_TOKEN: str | None = None
+    TELEGRAM_CHAT_ID: str | None = None
 
     # ==================== OAUTH ====================
     GOOGLE_CLIENT_ID: str = ""

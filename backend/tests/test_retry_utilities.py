@@ -2,9 +2,10 @@
 Tests for retry utilities
 """
 
-import pytest
 import time
 from unittest.mock import patch
+
+import pytest
 
 from app.utils.retry import retry_on_exception, retry_on_exception_async
 

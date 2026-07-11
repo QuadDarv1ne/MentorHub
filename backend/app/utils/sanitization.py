@@ -5,7 +5,6 @@
 
 import html
 import re
-from typing import Union
 
 
 def sanitize_string(text: str, max_length: int = 1000) -> str:
@@ -176,7 +175,7 @@ def is_safe_string(text: str) -> bool:
     return all(not re.search(pattern, text_lower, re.IGNORECASE) for pattern in xss_patterns)
 
 
-def sanitize_input(data: Union[str, dict, list], field_type: str = "string") -> Union[str, dict, list]:
+def sanitize_input(data: str | dict | list, field_type: str = "string") -> str | dict | list:
     """
     Универсальная функция санитизации входных данных
 

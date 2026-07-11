@@ -6,7 +6,6 @@ CRUD операции для уведомлений + real-time уведомле
 import json
 import logging
 from datetime import datetime, timezone
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict
@@ -35,8 +34,8 @@ class NotificationCreate(BaseModel):
     type: NotificationType
     title: str
     message: str
-    data: Optional[dict] = None
-    link: Optional[str] = None
+    data: dict | None = None
+    link: str | None = None
 
 
 class NotificationResponse(BaseModel):
@@ -47,16 +46,16 @@ class NotificationResponse(BaseModel):
     type: str
     title: str
     message: str
-    data: Optional[dict] = None
-    link: Optional[str] = None
+    data: dict | None = None
+    link: str | None = None
     is_read: bool
-    read_at: Optional[int] = None
+    read_at: int | None = None
     created_at: datetime
 
 
 class NotificationListResponse(BaseModel):
     """Список уведомлений"""
-    notifications: List[NotificationResponse]
+    notifications: list[NotificationResponse]
     total: int
     unread_count: int
 
@@ -66,7 +65,7 @@ async def get_notifications(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     unread_only: bool = Query(False),
-    type: Optional[NotificationType] = Query(None),
+    type: NotificationType | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -244,8 +243,8 @@ async def create_notification(
     type: NotificationType,
     title: str,
     message: str,
-    data: Optional[dict] = None,
-    link: Optional[str] = None
+    data: dict | None = None,
+    link: str | None = None
 ) -> Notification:
     """
     Создать уведомление для пользователя

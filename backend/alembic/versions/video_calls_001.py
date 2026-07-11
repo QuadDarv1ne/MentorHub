@@ -5,9 +5,9 @@ Revises: chat_rooms_001
 Create Date: 2026-03-21
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'video_calls_001'
@@ -59,7 +59,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_video_calls_participant_id'), table_name='video_calls')
     op.drop_index(op.f('ix_video_calls_creator_id'), table_name='video_calls')
     op.drop_table('video_calls')
-    
+
     # Drop enums
     op.execute('DROP TYPE IF EXISTS callstatus')
     op.execute('DROP TYPE IF EXISTS calltype')

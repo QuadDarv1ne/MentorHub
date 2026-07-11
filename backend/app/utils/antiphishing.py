@@ -6,7 +6,6 @@ URL safety checking and phishing detection.
 
 import logging
 import re
-from typing import Dict, List
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ class AntiPhishingValidator:
     """Validator for phishing protection."""
 
     # Known phishing keywords
-    PHISHING_KEYWORDS: List[str] = [
+    PHISHING_KEYWORDS: list[str] = [
         "verify",
         "account",
         "suspended",
@@ -33,7 +32,7 @@ class AntiPhishingValidator:
     ]
 
     # Suspicious URL shorteners
-    SUSPICIOUS_DOMAINS: List[str] = [
+    SUSPICIOUS_DOMAINS: list[str] = [
         "bit.ly",
         "tinyurl.com",
         "goo.gl",
@@ -44,7 +43,7 @@ class AntiPhishingValidator:
     ]
 
     # Known phishing TLDs (often used for phishing)
-    SUSPICIOUS_TLDS: List[str] = [
+    SUSPICIOUS_TLDS: list[str] = [
         ".tk",
         ".ml",
         ".ga",
@@ -56,7 +55,7 @@ class AntiPhishingValidator:
     ]
 
     @classmethod
-    def check_url_safety(cls, url: str) -> Dict:
+    def check_url_safety(cls, url: str) -> dict:
         """
         Check URL safety for phishing indicators.
 
@@ -147,7 +146,7 @@ class AntiPhishingValidator:
         return result["is_safe"] and result["risk_score"] <= max_risk_score
 
     @classmethod
-    def check_email_subject(cls, subject: str) -> Dict:
+    def check_email_subject(cls, subject: str) -> dict:
         """
         Check email subject for phishing indicators.
 

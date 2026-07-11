@@ -4,7 +4,6 @@ Pydantic схемы для операций с пользователями
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -16,7 +15,7 @@ class UserBase(BaseModel):
 
     email: EmailStr
     username: str = Field(min_length=3, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=255)
+    full_name: str | None = Field(None, max_length=255)
 
 
 class UserCreate(UserBase):
@@ -29,9 +28,9 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """Схема для обновления профиля пользователя"""
 
-    full_name: Optional[str] = Field(None, max_length=255)
-    avatar_url: Optional[str] = Field(None, max_length=512)
-    username: Optional[str] = Field(None, min_length=3, max_length=100)
+    full_name: str | None = Field(None, max_length=255)
+    avatar_url: str | None = Field(None, max_length=512)
+    username: str | None = Field(None, min_length=3, max_length=100)
 
 
 class UserResponse(UserBase):
@@ -41,7 +40,7 @@ class UserResponse(UserBase):
     role: UserRole
     is_active: bool
     is_verified: bool
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -68,7 +67,7 @@ class OAuthCallback(BaseModel):
     """Схема для OAuth callback"""
 
     code: str
-    state: Optional[str] = None
+    state: str | None = None
 
 
 class OAuthProvider(BaseModel):
@@ -93,6 +92,6 @@ class TwoFactorResponse(BaseModel):
     """Ответ с данными 2FA"""
 
     enabled: bool
-    qr_code: Optional[str] = None  # Base64 QR code
-    secret: Optional[str] = None  # TOTP secret (только при настройке)
-    backup_codes: Optional[list[str]] = None  # Backup codes (только при настройке)
+    qr_code: str | None = None  # Base64 QR code
+    secret: str | None = None  # TOTP secret (только при настройке)
+    backup_codes: list[str] | None = None  # Backup codes (только при настройке)

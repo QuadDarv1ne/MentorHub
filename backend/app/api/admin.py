@@ -3,7 +3,6 @@ Admin API endpoints for user management and platform administration.
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import desc, func, or_
@@ -30,9 +29,9 @@ router = APIRouter()
 async def list_users(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
-    role: Optional[str] = Query(default=None, description="Filter by role: student, mentor, admin"),
-    status: Optional[str] = Query(default=None, description="Filter by status: active, inactive"),
-    search: Optional[str] = Query(default=None, min_length=1, max_length=100, description="Search by name or email"),
+    role: str | None = Query(default=None, description="Filter by role: student, mentor, admin"),
+    status: str | None = Query(default=None, description="Filter by status: active, inactive"),
+    search: str | None = Query(default=None, min_length=1, max_length=100, description="Search by name or email"),
     sort_by: str = Query(default="created_at", pattern="^(created_at|email|role|full_name)$"),
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
     current_user: User = Depends(get_current_admin),

@@ -5,7 +5,6 @@ Pydantic схемы для операций с платежами
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,8 +23,8 @@ class PaymentBase(BaseModel):
 
     amount: int = Field(..., gt=0)  # в центах/копейках
     currency: str = Field("USD", min_length=3, max_length=3)
-    payment_method: Optional[str] = Field(None, max_length=50)
-    transaction_id: Optional[str] = Field(None, max_length=255)
+    payment_method: str | None = Field(None, max_length=50)
+    transaction_id: str | None = Field(None, max_length=255)
 
 
 class PaymentCreate(PaymentBase):
@@ -39,8 +38,8 @@ class PaymentCreate(PaymentBase):
 class PaymentUpdate(BaseModel):
     """Схема для обновления платежа"""
 
-    status: Optional[PaymentStatus] = None
-    transaction_id: Optional[str] = Field(None, max_length=255)
+    status: PaymentStatus | None = None
+    transaction_id: str | None = Field(None, max_length=255)
 
 
 class PaymentResponse(PaymentBase):

@@ -7,7 +7,7 @@ Type hints added for better IDE support and type checking.
 import logging
 import traceback
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -25,10 +25,10 @@ class ErrorResponse:
         self,
         status_code: int,
         message: str,
-        detail: Optional[str] = None,
-        error_code: Optional[str] = None,
-        path: Optional[str] = None,
-        timestamp: Optional[str] = None,
+        detail: str | None = None,
+        error_code: str | None = None,
+        path: str | None = None,
+        timestamp: str | None = None,
     ):
         self.status_code = status_code
         self.message = message
@@ -37,9 +37,9 @@ class ErrorResponse:
         self.path = path
         self.timestamp = timestamp or datetime.now(timezone.utc).isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Преобразование в словарь для JSON ответа"""
-        response: Dict[str, Any] = {
+        response: dict[str, Any] = {
             "status_code": self.status_code,
             "message": self.message,
             "timestamp": self.timestamp,
