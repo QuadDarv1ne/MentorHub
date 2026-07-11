@@ -104,7 +104,8 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
 
     try:
         backup_manager = DatabaseBackup()
-        backup_file = Path("backups") / filename
+        safe_filename = Path(filename).name
+        backup_file = Path("backups") / safe_filename
 
         if not backup_file.exists():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Backup файл не найден")

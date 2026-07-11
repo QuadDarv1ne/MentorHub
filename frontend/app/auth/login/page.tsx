@@ -232,12 +232,14 @@ function LoginForm() {
               <OAuthButtons onOAuthStart={() => setError('')} />
             </div>
 
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-xs text-yellow-800 mb-2">
-                <strong>Демо-режим:</strong> Используйте любой email и пароль (мин. 6 символов)
-              </p>
-            </div>
+            {/* Demo credentials — dev only */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-xs text-yellow-800 mb-2">
+                  <strong>Демо-режим:</strong> Используйте любой email и пароль (мин. 6 символов)
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

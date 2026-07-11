@@ -17,7 +17,7 @@ interface SEOConfig {
   noIndex?: boolean
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mentorhub.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
 const SITE_NAME = 'MentorHub'
 const DEFAULT_DESCRIPTION = 'Платформа для менторства и развития в IT. Найдите своего ментора, развивайте навыки, достигайте карьерных целей.'
 const DEFAULT_IMAGE = '/og-image.png'

@@ -408,12 +408,14 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Demo note */}
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              <strong>Демо-режим:</strong> Регистрация создаст временный аккаунт без фактического сохранения данных.
-            </p>
-          </div>
+          {/* Demo note — dev only */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs text-yellow-800">
+                <strong>Демо-режим:</strong> Регистрация создаст временный аккаунт без фактического сохранения данных.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

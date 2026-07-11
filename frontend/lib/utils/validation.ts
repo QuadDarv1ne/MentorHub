@@ -149,9 +149,7 @@ export function isValidZipCode(zip: string): boolean {
  * Внимание: результат не содержит HTML-разметки, только текстовое содержимое
  */
 export function sanitizeHtml(html: string): string {
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent || div.innerText || ''
+  return html.replace(/<[^>]*>/g, '').replace(/&[a-zA-Z]+;/g, '').trim()
 }
 
 /**
