@@ -14,28 +14,11 @@ interface VideoCallProps {
   onClose?: () => void
 }
 
-interface AgoraTrack {
-  play: (element: HTMLVideoElement | null) => void
-  close: () => void
-  setEnabled: (enabled: boolean) => void
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AgoraTrack = any
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AgoraUser = any
-
-interface AgoraClient {
-  join: (token: string, channel: string, uid: number | string) => Promise<void>
-  leave: () => Promise<void>
-  publish: (tracks: AgoraTrack[]) => Promise<void>
-  unpublish: (tracks: AgoraTrack[]) => Promise<void>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  subscribe: (user: any, mediaType: string) => Promise<void>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  unsubscribe: (user: any, mediaType: string) => Promise<void>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  on: (event: string, callback: (user: any, mediaType: string) => void) => void
-  off: (event: string) => void
-}
+type AgoraClient = any
 
 export default function VideoCall({
   channelId,
