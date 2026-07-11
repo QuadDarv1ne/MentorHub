@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
+import '@fontsource/inter/latin.css'
+import '@fontsource/inter/cyrillic.css'
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -13,8 +14,6 @@ import ServiceWorkerProvider from '@/components/ServiceWorkerProvider'
 import { SkipLinks, RouteAnnouncer } from '@/lib/utils/accessibility'
 import AuthClientInitializer from '@/components/AuthClientInitializer'
 import { localeDirections } from '@/lib/i18n/types'
-
-const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' })
 
 export const dynamic = 'force-dynamic'
 
@@ -47,7 +46,7 @@ export default async function RootLayout({
   const direction = localeDirections[locale as keyof typeof localeDirections]
 
   return (
-    <html lang={locale} dir={direction} className={inter.variable} suppressHydrationWarning>
+    <html lang={locale} dir={direction} className="font-inter" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#4f46e5" />
