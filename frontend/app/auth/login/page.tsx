@@ -76,9 +76,9 @@ function LoginForm() {
 
       // User data is stored via localStorage below
 
-      localStorage.setItem('user_name', user.full_name || user.email)
-      localStorage.setItem('user_role', user.role)
-      localStorage.setItem('user_id', String(user.id))
+      localStorage.setItem(STORAGE_KEYS.USER_NAME, user.full_name || user.email)
+      localStorage.setItem(STORAGE_KEYS.USER_ROLE, user.role)
+      localStorage.setItem(STORAGE_KEYS.USER_ID, String(user.id))
       setSuccess('Вход выполнен успешно!')
 
       setTimeout(() => {

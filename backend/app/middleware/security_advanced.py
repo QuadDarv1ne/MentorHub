@@ -14,14 +14,11 @@ from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.constants import HSTS_MAX_AGE, MAX_BODY_SIZE
 from app.middleware.security_detectors import SecurityDetector
 
 logger = logging.getLogger(__name__)
 
-
-# Constants for security middleware
-DEFAULT_MAX_BODY_SIZE = 10 * 1024 * 1024  # 10MB
-DEFAULT_HSTS_MAX_AGE = 31536000  # 1 year in seconds
 DEFAULT_TRUNCATE_LOG_LENGTH = 100  # characters for logging
 
 
@@ -42,7 +39,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        max_body_size: int = DEFAULT_MAX_BODY_SIZE,
+        max_body_size: int = MAX_BODY_SIZE,
     ):
         super().__init__(app)
         self.max_body_size = max_body_size
@@ -81,12 +78,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     async def _check_request_size(self, request: Request):
         """Check request body size."""
         content_length = request.headers.get("content-length")
-        if content_length and int(content_length) > self.max_body_size:
-            logger.warning(f"Request body too large: {content_length} bytes")
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="Request body too large"
-            )
+        if content_length:
+            try:
+                cl_value = int(content_length)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid Content-Length header"
+                )
+            if cl_value > self.max_body_size:
+                logger.warning(f"Request body too large: {content_length} bytes")
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail="Request body too large"
+                )
 
     def _check_query_params(self, request: Request):
         """Check query parameters for attacks."""
@@ -189,7 +194,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         # HSTS
         response.headers["Strict-Transport-Security"] = (
-            f"max-age={DEFAULT_HSTS_MAX_AGE}; includeSubDomains; preload"
+            f"max-age={HSTS_MAX_AGE}; includeSubDomains; preload"
         )
 
         # Referrer Policy

@@ -1,3 +1,5 @@
+import { CACHE } from './constants'
+
 type CacheItem<T> = {
   data: T;
   timestamp: number;
@@ -10,7 +12,7 @@ type CacheMap = {
 class Cache {
   private static instance: Cache;
   private cache: CacheMap = {};
-  private readonly TTL: number = 5 * 60 * 1000; // 5 минут в миллисекундах
+  private readonly TTL: number = CACHE.TTL_DEFAULT;
 
   private constructor() {}
 

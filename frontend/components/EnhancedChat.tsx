@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/useToast'
 import { logger } from '@/lib/utils/logger'
@@ -45,6 +45,16 @@ export default function EnhancedChat() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
+
+  const currentUserId = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const userData = localStorage.getItem('user')
+      return userData ? JSON.parse(userData)?.id : null
+    } catch {
+      return null
+    }
+  }, [])
 
   useEffect(() => {
     fetchRooms()
@@ -342,16 +352,6 @@ export default function EnhancedChat() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
               {messages.map((message, _index) => {
-                const currentUserId = typeof window !== 'undefined'
-                  ? (() => {
-                      try {
-                        const user = localStorage.getItem('user')
-                        return user ? JSON.parse(user)?.id : null
-                      } catch {
-                        return null
-                      }
-                    })()
-                  : null
                 const isOwn = message.sender_id === currentUserId
                 return (
                   <div

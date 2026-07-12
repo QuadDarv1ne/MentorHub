@@ -36,6 +36,7 @@ interface UseChatOptions {
   recipientId?: number
   autoReconnect?: boolean
   maxReconnectAttempts?: number
+  enableNotifications?: boolean
 }
 
 export function useChat({
@@ -43,7 +44,7 @@ export function useChat({
   autoReconnect = true,
   maxReconnectAttempts = RETRY.MAX_ATTEMPTS,
   enableNotifications = true
-}: UseChatOptions & { enableNotifications?: boolean } = {}) {
+}: UseChatOptions = {}) {
   const toast = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -133,7 +134,7 @@ export function useChat({
               return [...prev, data]
             })
             // Show toast notification for new messages from others
-            if (enableNotificationsRef.current && data.sender_id !== parseInt(localStorage.getItem('user_id') || '0')) {
+            if (enableNotificationsRef.current && data.sender_id !== parseInt(localStorage.getItem(STORAGE_KEYS.USER_ID) || '0')) {
               toastRef.current.showToast(`Новое сообщение от ${data.sender_username}`, 'info', 3000)
             }
             // Also update conversations
@@ -145,8 +146,8 @@ export function useChat({
                   ...updated[idx],
                   last_message: data.content,
                   last_message_time: data.timestamp,
-                  unread_count: data.recipient_id === parseInt(localStorage.getItem('user_id') || '0') ? 1 : 0,
-                  is_from_me: data.sender_id === parseInt(localStorage.getItem('user_id') || '0')
+                  unread_count: data.recipient_id === parseInt(localStorage.getItem(STORAGE_KEYS.USER_ID) || '0') ? 1 : 0,
+                  is_from_me: data.sender_id === parseInt(localStorage.getItem(STORAGE_KEYS.USER_ID) || '0')
                 }
                 return updated
               }

@@ -248,6 +248,12 @@ async def refresh_token(
 
 
 @router.post("/logout")
-async def logout():
-    """Выход пользователя (клиент должен удалить токены)"""
+async def logout(response: Response):
+    """Выход пользователя — удаление refresh token cookie"""
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,
+        secure=settings.ENVIRONMENT == "production",
+        samesite="strict",
+    )
     return {"message": "Успешный выход из системы"}

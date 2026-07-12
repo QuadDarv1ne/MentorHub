@@ -2,8 +2,10 @@
 Retry utilityies for external API calls
 """
 
+import asyncio
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
 
 logger = logging.getLogger(__name__)
@@ -14,7 +16,7 @@ def retry_on_exception(
     max_retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    retry_callback: callable | None = None,
+    retry_callback: Callable | None = None,
 ):
     """
     Декоратор для повторных попыток выполнения функции при возникновении исключений.
@@ -78,7 +80,7 @@ async def retry_on_exception_async(
     max_retries: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    retry_callback: callable | None = None,
+    retry_callback: Callable | None = None,
 ):
     """
     Асинхронный декоратор для повторных попыток выполнения функции.
@@ -123,7 +125,7 @@ async def retry_on_exception_async(
                         )
                         if retry_callback:
                             retry_callback(e, attempt, current_delay)
-                        await __import__('asyncio').sleep(current_delay)
+                        await asyncio.sleep(current_delay)
                         current_delay *= backoff
                     else:
                         logger.error(

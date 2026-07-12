@@ -117,9 +117,9 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refresh_token);
 
       const userData = await getCurrentUser();
-      localStorage.setItem('user_name', userData.full_name || userData.email);
-      localStorage.setItem('user_role', userData.role);
-      localStorage.setItem('user_id', String(userData.id));
+      localStorage.setItem(STORAGE_KEYS.USER_NAME, userData.full_name || userData.email);
+      localStorage.setItem(STORAGE_KEYS.USER_ROLE, userData.role);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, String(userData.id));
       setUser(userData);
       setError(null);
       router.push('/dashboard');

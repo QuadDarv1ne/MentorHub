@@ -118,9 +118,6 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # ==================== CORS ====================
-    # Raw CORS string from environment (comma-separated)
-    # Using str type to avoid JSON parsing - we parse it manually
-    CORS_ORIGINS_RAW: str = ""
 
     # Base CORS origins - always included
     _base_cors_origins: list[str] = []
@@ -225,7 +222,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM_EMAIL: str = "noreply@mentorhub.com"
     SMTP_FROM_NAME: str = "MentorHub"
-    FRONTEND_URL: str = "http://localhost:3001"
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # ==================== FIREBASE CLOUD MESSAGING ====================
     FCM_SERVER_KEY: str = ""
@@ -251,7 +248,7 @@ class Settings(BaseSettings):
     # ==================== RATE LIMITING ====================
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_REQUESTS: int = RATE_LIMIT_DEFAULT_REQUESTS
-    RATE_LIMIT_PERIOD: int = RATE_LIMIT_DEFAULT_WINDOW  # 1 hour
+    RATE_LIMIT_PERIOD: int = RATE_LIMIT_DEFAULT_WINDOW  # seconds (default: 60 = 1 minute)
 
     # ==================== SESSION ====================
     SESSION_EXPIRE_DAYS: int = 7

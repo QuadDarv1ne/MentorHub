@@ -201,8 +201,8 @@ class BruteForceProtection:
             try:
                 val = r.get(lockout_key)
                 return bool(val)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Redis lockout check failed, using memory: {e}")
 
         # In-memory fallback
         lockout_until = self._lockouts.get(identifier)
@@ -226,8 +226,8 @@ class BruteForceProtection:
                 if ttl > 0:
                     return ttl
                 return None
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Redis TTL check failed, using memory: {e}")
 
         # In-memory fallback
         lockout_until = self._lockouts.get(identifier)
@@ -245,8 +245,8 @@ class BruteForceProtection:
             try:
                 r.delete(f"bf:attempts:{identifier}", f"bf:lockout:{identifier}")
                 return
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Redis reset attempts failed, using memory: {e}")
         self._attempts.pop(identifier, None)
         self._lockouts.pop(identifier, None)
 

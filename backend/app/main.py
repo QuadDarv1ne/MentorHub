@@ -17,6 +17,7 @@ from pythonjsonlogger import jsonlogger
 
 from app.api import register_routes
 from app.config import is_production, settings
+from app.constants import EXCLUDE_PORTS
 from app.lifespan import get_shutdown_event, initialize_redis_client, lifespan
 from app.middleware.setup import register_middleware
 from app.utils.error_handlers import register_error_handlers
@@ -70,7 +71,7 @@ def find_free_port(
 
 def resolve_port(preferred_port: int = 8001) -> int:
     """Resolve port for server startup."""
-    exclude_ports = [3000, 12600, 19001, 19005, 19006, 6060, 6061, 81]
+    exclude_ports = EXCLUDE_PORTS
     env_port = os.environ.get("PORT")
     if env_port:
         preferred_port = int(env_port)

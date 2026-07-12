@@ -86,10 +86,13 @@ export const STORAGE_KEYS = {
   USER_ID: 'user_id',
   USER_NAME: 'user_name',
   USER_ROLE: 'user_role',
-  THEME: 'theme',
+  THEME: 'mentorhub-theme',
   LANGUAGE: 'language',
   NOTIFICATIONS: 'notifications',
   RECENT_SEARCHES: 'recent_searches',
+  COOKIE_CONSENT: 'cookie_consent',
+  PENDING_VERIFICATION_EMAIL: 'pending_verification_email',
+  RESET_PASSWORD_EMAIL: 'reset_password_email',
 } as const
 
 // Роли пользователей

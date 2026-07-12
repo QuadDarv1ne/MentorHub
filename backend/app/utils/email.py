@@ -2,6 +2,7 @@
 Email сервис для отправки писем
 """
 
+import html as html_lib
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -62,6 +63,7 @@ class EmailService:
     def send_verification_email(self, to_email: str, username: str, token: str) -> bool:
         """Отправка письма с подтверждением email"""
         verification_link = f"{settings.FRONTEND_URL}/auth/verify-email?token={token}"
+        safe_username = html_lib.escape(username)
 
         html_content = f"""
         <!DOCTYPE html>
@@ -78,9 +80,9 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>🎓 MentorHub</h1></div>
+                <div class="header"><h1>MentorHub</h1></div>
                 <div class="content">
-                    <h2>Добро пожаловать, {username}!</h2>
+                    <h2>Добро пожаловать, {safe_username}!</h2>
                     <p>Спасибо за регистрацию на MentorHub. Пожалуйста, подтвердите ваш email адрес, нажав на кнопку ниже:</p>
                     <div style="text-align: center;">
                         <a href="{verification_link}" class="button">Подтвердить Email</a>
@@ -111,6 +113,7 @@ class EmailService:
     def send_password_reset_email(self, to_email: str, username: str, token: str) -> bool:
         """Отправка письма для сброса пароля"""
         reset_link = f"{settings.FRONTEND_URL}/auth/reset-password?token={token}"
+        safe_username = html_lib.escape(username)
 
         html_content = f"""
         <!DOCTYPE html>
@@ -127,9 +130,9 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>🔒 Сброс пароля</h1></div>
+                <div class="header"><h1>Сброс пароля</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
+                    <h2>Привет, {safe_username}!</h2>
                     <p>Вы запросили сброс пароля для вашего аккаунта MentorHub.</p>
                     <p>Нажмите на кнопку ниже, чтобы создать новый пароль:</p>
                     <div style="text-align: center;">
@@ -165,6 +168,10 @@ class EmailService:
         session_link: str
     ) -> bool:
         """Уведомление о предстоящей сессии"""
+        safe_username = html_lib.escape(username)
+        safe_mentor_name = html_lib.escape(mentor_name)
+        safe_session_date = html_lib.escape(session_date)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -180,13 +187,13 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>📅 Напоминание о сессии</h1></div>
+                <div class="header"><h1>Напоминание о сессии</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
+                    <h2>Привет, {safe_username}!</h2>
                     <p>Напоминаем о вашей предстоящей менторской сессии:</p>
                     <div class="info-box">
-                        <p><strong>Ментор:</strong> {mentor_name}</p>
-                        <p><strong>Дата и время:</strong> {session_date}</p>
+                        <p><strong>Ментор:</strong> {safe_mentor_name}</p>
+                        <p><strong>Дата и время:</strong> {safe_session_date}</p>
                     </div>
                     <div style="text-align: center;">
                         <a href="{session_link}" class="button">Присоединиться к сессии</a>
@@ -196,10 +203,12 @@ class EmailService:
         </body>
         </html>
         """
-        return self.send_email(to_email=to_email, subject=f"Напоминание: сессия с {mentor_name}", html_content=html_content)
+        return self.send_email(to_email=to_email, subject=f"Напоминание: сессия с {safe_mentor_name}", html_content=html_content)
 
     def send_welcome_email(self, to_email: str, username: str) -> bool:
         """Приветственное письмо после регистрации"""
+        safe_username = html_lib.escape(username)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -214,9 +223,9 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>👋 Добро пожаловать в MentorHub!</h1></div>
+                <div class="header"><h1>Добро пожаловать в MentorHub!</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
+                    <h2>Привет, {safe_username}!</h2>
                     <p>Спасибо за регистрацию на платформе MentorHub.</p>
                     <p>Теперь вы можете:</p>
                     <ul>
@@ -243,6 +252,10 @@ class EmailService:
         session_link: str
     ) -> bool:
         """Напоминание о сессии за 24 часа"""
+        safe_username = html_lib.escape(username)
+        safe_mentor_name = html_lib.escape(mentor_name)
+        safe_session_date = html_lib.escape(session_date)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -258,13 +271,13 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>⏰ Напоминание о сессии</h1></div>
+                <div class="header"><h1>Напоминание о сессии</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
+                    <h2>Привет, {safe_username}!</h2>
                     <p>Ваша сессия состоится завтра:</p>
                     <div class="info-box">
-                        <p><strong>Ментор:</strong> {mentor_name}</p>
-                        <p><strong>Дата:</strong> {session_date}</p>
+                        <p><strong>Ментор:</strong> {safe_mentor_name}</p>
+                        <p><strong>Дата:</strong> {safe_session_date}</p>
                     </div>
                     <div style="text-align: center;">
                         <a href="{session_link}" class="button">Присоединиться</a>
@@ -284,6 +297,10 @@ class EmailService:
         message_preview: str
     ) -> bool:
         """Уведомление о новом сообщении"""
+        safe_username = html_lib.escape(username)
+        safe_sender_name = html_lib.escape(sender_name)
+        safe_message_preview = html_lib.escape(message_preview)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -299,12 +316,12 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>💬 Новое сообщение</h1></div>
+                <div class="header"><h1>Новое сообщение</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
-                    <p>Вам пришло новое сообщение от <strong>{sender_name}</strong>:</p>
+                    <h2>Привет, {safe_username}!</h2>
+                    <p>Вам пришло новое сообщение от <strong>{safe_sender_name}</strong>:</p>
                     <div class="message-box">
-                        <p style="color: #6b7280; font-style: italic;">"{message_preview}..."</p>
+                        <p style="color: #6b7280; font-style: italic;">"{safe_message_preview}..."</p>
                     </div>
                     <div style="text-align: center;">
                         <a href="{settings.FRONTEND_URL}/messages" class="button">Открыть сообщения</a>
@@ -324,6 +341,10 @@ class EmailService:
         instructor_name: str
     ) -> bool:
         """Уведомление о записи на курс"""
+        safe_username = html_lib.escape(username)
+        safe_course_name = html_lib.escape(course_name)
+        safe_instructor_name = html_lib.escape(instructor_name)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -339,13 +360,13 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>📚 Запись на курс</h1></div>
+                <div class="header"><h1>Запись на курс</h1></div>
                 <div class="content">
-                    <h2>Привет, {username}!</h2>
+                    <h2>Привет, {safe_username}!</h2>
                     <p>Вы успешно записались на курс:</p>
                     <div class="course-info">
-                        <h3 style="margin-top: 0;">{course_name}</h3>
-                        <p><strong>Инструктор:</strong> {instructor_name}</p>
+                        <h3 style="margin-top: 0;">{safe_course_name}</h3>
+                        <p><strong>Инструктор:</strong> {safe_instructor_name}</p>
                     </div>
                     <div style="text-align: center;">
                         <a href="{settings.FRONTEND_URL}/learning" class="button">Начать обучение</a>
@@ -367,6 +388,10 @@ class EmailService:
         service_name: str
     ) -> bool:
         """Подтверждение платежа"""
+        safe_username = html_lib.escape(username)
+        safe_service_name = html_lib.escape(service_name)
+        safe_transaction_id = html_lib.escape(transaction_id)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -382,14 +407,14 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>✅ Платёж подтверждён</h1></div>
+                <div class="header"><h1>Платёж подтверждён</h1></div>
                 <div class="content">
-                    <h2>Спасибо за оплату, {username}!</h2>
-                    <div class="success">✓</div>
+                    <h2>Спасибо за оплату, {safe_username}!</h2>
+                    <div class="success">&#10003;</div>
                     <div class="payment-info">
                         <p><strong>Сумма:</strong> {amount} {currency}</p>
-                        <p><strong>Услуга:</strong> {service_name}</p>
-                        <p><strong>ID транзакции:</strong> {transaction_id}</p>
+                        <p><strong>Услуга:</strong> {safe_service_name}</p>
+                        <p><strong>ID транзакции:</strong> {safe_transaction_id}</p>
                     </div>
                     <p>Чек был сохранён в вашем профиле.</p>
                 </div>
@@ -407,6 +432,10 @@ class EmailService:
         achievement_description: str
     ) -> bool:
         """Уведомление о полученном достижении"""
+        safe_username = html_lib.escape(username)
+        safe_achievement_name = html_lib.escape(achievement_name)
+        safe_achievement_description = html_lib.escape(achievement_description)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -421,12 +450,12 @@ class EmailService:
         </head>
         <body>
             <div class="container">
-                <div class="header"><h1>🏆 Новое достижение!</h1></div>
+                <div class="header"><h1>Новое достижение!</h1></div>
                 <div class="content">
-                    <h2>Поздравляем, {username}!</h2>
+                    <h2>Поздравляем, {safe_username}!</h2>
                     <p>Вы получили новое достижение:</p>
-                    <div class="badge">{achievement_name}</div>
-                    <p>{achievement_description}</p>
+                    <div class="badge">{safe_achievement_name}</div>
+                    <p>{safe_achievement_description}</p>
                     <p>Продолжайте в том же духе!</p>
                 </div>
             </div>
