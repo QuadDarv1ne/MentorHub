@@ -170,7 +170,7 @@ async def shutdown_database():
 
 async def shutdown_redis():
     """Close Redis connection gracefully"""
-    global redis_client
+    global redis_client  # noqa: F824
 
     if redis_client:
         try:

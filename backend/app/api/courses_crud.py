@@ -14,10 +14,11 @@ from app.models.course import Course
 from app.models.user import User, UserRole
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, CourseWithLessonsResponse
 
-logger = logging.getLogger(__name__)
 from app.services.cache import cached
 from app.services.course_service import CourseService
 from app.utils.cache import invalidate_cache
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

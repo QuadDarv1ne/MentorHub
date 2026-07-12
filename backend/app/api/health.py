@@ -84,9 +84,10 @@ async def health_check(
         content=health_status
     )
 
+
 @router.get("/detailed")
 async def detailed_health_check(
-    db = Depends(get_db)
+    db=Depends(get_db)
 ) -> JSONResponse:
     """
     Детальная проверка здоровья с расширенной информацией
@@ -170,9 +171,10 @@ async def detailed_health_check(
     status_code = status.HTTP_200_OK if health_status["status"] == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(status_code=status_code, content=health_status)
 
+
 @router.get("/ready")
 async def readiness_check(
-    db = Depends(get_db)
+    db=Depends(get_db)
 ) -> JSONResponse:
     """
     Проверка готовности приложения к приему запросов
@@ -192,8 +194,10 @@ async def readiness_check(
             content={"status": "not ready", "error": str(e), "timestamp": time.time()}
         )
 
+
 @router.get("/live")
 async def liveness_check() -> JSONResponse:
+
     """
     Проверка что приложение запущено и отвечает
     """
@@ -204,8 +208,9 @@ async def liveness_check() -> JSONResponse:
 
 # Дополнительные эндпоинты для специфичных проверок
 
+
 @router.get("/database")
-async def database_health(db = Depends(get_db)) -> JSONResponse:
+async def database_health(db=Depends(get_db)) -> JSONResponse:
     """Проверка здоровья только базы данных"""
     try:
         start_time = time.time()

@@ -15,7 +15,6 @@ const STATIC_CACHE_URLS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE_URLS).then((cache) => {
-      console.log('[Service Worker] Кэширование статических ресурсов')
       return cache.addAll(STATIC_CACHE_URLS)
     })
   )
@@ -150,5 +149,4 @@ self.addEventListener('sync', (event) => {
 
 async function syncMessages() {
   // Синхронизация сообщений в фоне
-  console.log('[Service Worker] Синхронизация сообщений')
 }

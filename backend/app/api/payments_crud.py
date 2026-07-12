@@ -14,10 +14,11 @@ from app.models.payment import Payment as DBPayment
 from app.models.payment import PaymentStatus
 from app.models.session import Session as DBSession
 
-logger = logging.getLogger(__name__)
 from app.models.user import User
 from app.schemas.payment import PaymentUpdate
 from app.utils.sanitization import is_safe_string, sanitize_string
+
+logger = logging.getLogger(__name__)
 
 
 def get_all_payments(db: Session, skip: int = 0, limit: int = 100) -> list[DBPayment]:

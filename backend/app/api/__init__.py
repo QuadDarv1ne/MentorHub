@@ -35,8 +35,6 @@ from app.api import (
     video_calls,
     websocket,
 )
-from app.config import settings
-
 logger = logging.getLogger(__name__)
 
 

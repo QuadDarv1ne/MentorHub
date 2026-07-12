@@ -112,8 +112,8 @@ def check_sbp_payment_status(
     sbp_status = sbp_service.check_payment_status(payment.transaction_id)
 
     if "error" not in sbp_status and sbp_status.get("status") == "completed":
-            payment.status = PaymentStatus.COMPLETED
-            db.commit()
+        payment.status = PaymentStatus.COMPLETED
+        db.commit()
 
     db.refresh(payment)
 

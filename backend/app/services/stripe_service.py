@@ -26,8 +26,10 @@ class StripeService:
     def __init__(self):
         """Инициализация Stripe"""
         # Mock mode для тестирования
-        self.mock_mode = getattr(settings, 'STRIPE_MOCK_MODE', False) or \
-                         os.environ.get('STRIPE_MOCK_MODE', '').lower() == 'true'
+        self.mock_mode = (
+            getattr(settings, 'STRIPE_MOCK_MODE', False) or
+            os.environ.get('STRIPE_MOCK_MODE', '').lower() == 'true'
+        )
 
         if self.mock_mode:
             self.enabled = False

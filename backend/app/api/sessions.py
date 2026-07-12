@@ -82,9 +82,11 @@ async def get_session(
         raise HTTPException(status_code=404, detail="Сессия не найдена")
 
     # Проверка доступа: студент, ментор или админ
-    if (session.student_id != current_user.id and
+    if (
+        session.student_id != current_user.id and
         session.mentor_id != mentor_id and
-        current_user.role != UserRole.ADMIN):
+        current_user.role != UserRole.ADMIN
+    ):
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     return session
@@ -170,9 +172,11 @@ async def update_session(
         raise HTTPException(status_code=404, detail="Сессия не найдена")
 
     # Проверка ownership: студент, ментор или админ
-    if (db_session.student_id != current_user.id and
+    if (
+        db_session.student_id != current_user.id and
         db_session.mentor_id != mentor_id and
-        current_user.role != UserRole.ADMIN):
+        current_user.role != UserRole.ADMIN
+    ):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     # Санитизация входных данных
@@ -215,9 +219,11 @@ async def delete_session(
         raise HTTPException(status_code=404, detail="Сессия не найдена")
 
     # Проверка ownership: студент, ментор или админ
-    if (db_session.student_id != current_user.id and
+    if (
+        db_session.student_id != current_user.id and
         db_session.mentor_id != mentor_id and
-        current_user.role != UserRole.ADMIN):
+        current_user.role != UserRole.ADMIN
+    ):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     try:

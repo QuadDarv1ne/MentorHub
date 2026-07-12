@@ -38,6 +38,12 @@ export default function VideoCall({
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
   const agoraClientRef = useRef<AgoraClient | null>(null)
   const localTrackRef = useRef<{ audio: AgoraTrack; video: AgoraTrack } | null>(null)
+  type MediaType = 'audio' | 'video' | 'datachannel'
+  const handlersRef = useRef<{
+    userPublished: (user: IAgoraRTCRemoteUser, mediaType: MediaType) => Promise<void>
+    userUnpublished: (user: IAgoraRTCRemoteUser, mediaType: MediaType) => Promise<void>
+    userLeft: (user: IAgoraRTCRemoteUser) => void
+  } | null>(null)
 
   useEffect(() => {
     initCall()
@@ -65,23 +71,28 @@ export default function VideoCall({
       agoraClientRef.current = client as unknown as AgoraClient
 
       // Настраиваем обработчики событий
-      client.on('user-published', async (user: IAgoraRTCRemoteUser, mediaType: string) => {
+      const onUserPublished = async (user: IAgoraRTCRemoteUser, mediaType: MediaType) => {
         await client.subscribe(user, mediaType)
         if (mediaType === 'video') {
-          user.videoTrack?.play(remoteVideoRef.current)
+          user.videoTrack?.play(remoteVideoRef.current!)
         }
         if (mediaType === 'audio') {
           user.audioTrack?.play()
         }
-      })
+      }
 
-      client.on('user-unpublished', async (user: IAgoraRTCRemoteUser, mediaType: string) => {
+      const onUserUnpublished = async (user: IAgoraRTCRemoteUser, mediaType: MediaType) => {
         await client.unsubscribe(user, mediaType)
-      })
+      }
 
-      client.on('user-left', (user: IAgoraRTCRemoteUser) => {
+      const onUserLeft = (user: IAgoraRTCRemoteUser) => {
         logger.info('User left call:', user)
-      })
+      }
+
+      handlersRef.current = { userPublished: onUserPublished, userUnpublished: onUserUnpublished, userLeft: onUserLeft }
+      client.on('user-published', onUserPublished)
+      client.on('user-unpublished', onUserUnpublished)
+      client.on('user-left', onUserLeft)
 
       // Подключаемся к каналу
       await client.join(token, channel, String(uid))
@@ -163,12 +174,12 @@ export default function VideoCall({
         localTrackRef.current.audio?.close()
         localTrackRef.current.video?.close()
       }
-      if (agoraClientRef.current) {
+      if (agoraClientRef.current && handlersRef.current) {
         const client = agoraClientRef.current
-        // Снимаем все event listeners перед уходом
-        client.off('user-published')
-        client.off('user-unpublished')
-        client.off('user-left')
+        const { userPublished, userUnpublished, userLeft } = handlersRef.current
+        client.off('user-published', userPublished)
+        client.off('user-unpublished', userUnpublished)
+        client.off('user-left', userLeft)
         await client.leave()
       }
     } catch (err) {

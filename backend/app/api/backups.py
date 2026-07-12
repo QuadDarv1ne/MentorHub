@@ -132,5 +132,3 @@ async def verify_backup(filename: str, current_user: User = Depends(get_current_
     except Exception as e:
         logger.error(f"Error verifying backup: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Не удалось проверить целостность backup'а") from e
-
-

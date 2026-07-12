@@ -4,7 +4,6 @@ Common helpers for skip/limit validation to avoid code duplication
 """
 
 
-
 def validate_pagination(skip: int, limit: int, max_limit: int = 100) -> tuple[int, int]:
     """
     Validate and normalize pagination parameters.

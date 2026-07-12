@@ -170,4 +170,3 @@ async def get_top_rated_mentors(
         .limit(limit)
         .all()
     )
-

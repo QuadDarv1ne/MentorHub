@@ -284,5 +284,6 @@ class FCMService:
             return True
         return False
 
+
 # Глобальный экземпляр сервиса
 fcm_service = FCMService()
