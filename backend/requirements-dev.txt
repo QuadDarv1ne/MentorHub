@@ -3,7 +3,7 @@
 
 # Testing
 coverage>=7.0.0
-pytest>=8.3.0
+pytest>=8.4.2
 pytest-asyncio>=0.24.0,<2.0.0
 pytest-cov>=6.0.0
 pytest-mock>=3.14.0
