@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.models.user import User, UserRole
+from app.utils.security import get_password_hash
 
 client = TestClient(app)
 
@@ -20,7 +21,8 @@ def test_user(db_session: Session):
         username="export_test_user",
         role=UserRole.STUDENT,
         is_active=True,
-        is_verified=True
+        is_verified=True,
+        hashed_password=get_password_hash("testpassword123")
     )
     db_session.add(user)
     db_session.commit()
@@ -33,11 +35,6 @@ def test_user(db_session: Session):
 @pytest.fixture
 def auth_header(test_user: User) -> dict:
     """Get auth header for test user"""
-    # Set password for login
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"])
-    test_user.hashed_password = pwd_context.hash("testpassword123")
-
     response = client.post(
         "/api/v1/auth/login",
         json={"email": test_user.email, "password": "testpassword123"}

@@ -85,7 +85,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid Content-Length header"
-                )
+                ) from None
             if cl_value > self.max_body_size:
                 logger.warning(f"Request body too large: {content_length} bytes")
                 raise HTTPException(

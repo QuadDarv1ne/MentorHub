@@ -206,7 +206,7 @@ class TestCeleryEmailTasks:
         with patch('app.tasks.celery_tasks.email_service') as mock_email_service:
             mock_email_service.send_new_message_notification.side_effect = Exception('Error')
 
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match="Error"):
                 send_new_message_notification_task(
                     to_email='user@example.com',
                     username='User',

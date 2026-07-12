@@ -41,7 +41,7 @@ async def update_current_user_profile(
         sanitized_avatar_url = sanitize_and_validate(user_update.avatar_url, field_name="URL аватара") if user_update.avatar_url is not None else None
         sanitized_username = sanitize_and_validate(user_update.username, field_type="username", field_name="username") if user_update.username is not None else None
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
     # Обновление полей
     if sanitized_full_name is not None:

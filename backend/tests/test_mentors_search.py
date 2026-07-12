@@ -7,27 +7,31 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.models.mentor import Mentor
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
 
 
 @pytest.fixture
 def test_mentors(db_session: Session):
     """Create test mentors with different attributes"""
+    import uuid
+    run_id = str(uuid.uuid4())[:8]
+
     # Create users
     users = []
     for i in range(5):
         user = User(
-            email=f"mentor{i}@test.com",
+            email=f"mentor_{run_id}_{i}@test.com",
+            username=f"mentor_username_{run_id}_{i}",
             full_name=f"Mentor {i}",
             hashed_password=get_password_hash("testpass123"),
-            role="mentor",
+            role=UserRole.MENTOR,
             is_active=True
         )
         db_session.add(user)
         users.append(user)
 
-    db_session.commit()
+    db_session.flush()
 
     # Create mentors with different attributes
     mentors_data = [
@@ -36,9 +40,9 @@ def test_mentors(db_session: Session):
             "specialization": "Python",
             "bio": "Expert Python developer",
             "experience_years": 5,
-            "hourly_rate": 50.0,
+            "hourly_rate": 50,
             "rating": 4.8,
-            "total_reviews": 20,
+            "total_sessions": 20,
             "is_available": True
         },
         {
@@ -46,9 +50,9 @@ def test_mentors(db_session: Session):
             "specialization": "JavaScript",
             "bio": "Frontend specialist",
             "experience_years": 3,
-            "hourly_rate": 40.0,
+            "hourly_rate": 40,
             "rating": 4.5,
-            "total_reviews": 15,
+            "total_sessions": 15,
             "is_available": True
         },
         {
@@ -56,9 +60,9 @@ def test_mentors(db_session: Session):
             "specialization": "Python",
             "bio": "Backend and DevOps",
             "experience_years": 8,
-            "hourly_rate": 80.0,
+            "hourly_rate": 80,
             "rating": 4.9,
-            "total_reviews": 30,
+            "total_sessions": 30,
             "is_available": False
         },
         {
@@ -66,9 +70,9 @@ def test_mentors(db_session: Session):
             "specialization": "Java",
             "bio": "Enterprise Java developer",
             "experience_years": 10,
-            "hourly_rate": 100.0,
+            "hourly_rate": 100,
             "rating": 4.7,
-            "total_reviews": 25,
+            "total_sessions": 25,
             "is_available": True
         },
         {
@@ -76,9 +80,9 @@ def test_mentors(db_session: Session):
             "specialization": "React",
             "bio": "React and TypeScript expert",
             "experience_years": 4,
-            "hourly_rate": 60.0,
+            "hourly_rate": 60,
             "rating": 4.6,
-            "total_reviews": 18,
+            "total_sessions": 18,
             "is_available": True
         }
     ]
@@ -99,8 +103,8 @@ def test_search_mentors_by_query(client, test_mentors):
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert "items" in data
-    assert len(data["items"]) == 2  # 2 Python mentors
+    assert "data" in data
+    assert len(data["data"]) == 2  # 2 Python mentors
 
 
 def test_search_mentors_by_specialization(client, test_mentors):
@@ -109,8 +113,8 @@ def test_search_mentors_by_specialization(client, test_mentors):
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert len(data["items"]) == 1
-    assert data["items"][0]["specialization"] == "JavaScript"
+    assert len(data["data"]) == 1
+    assert data["data"][0]["specialization"] == "JavaScript"
 
 
 def test_search_mentors_by_price_range(client, test_mentors):
@@ -119,9 +123,9 @@ def test_search_mentors_by_price_range(client, test_mentors):
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert len(data["items"]) >= 2
+    assert len(data["data"]) >= 2
 
-    for mentor in data["items"]:
+    for mentor in data["data"]:
         assert 40 <= mentor["hourly_rate"] <= 60
 
 
@@ -132,7 +136,7 @@ def test_search_mentors_by_experience(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    for mentor in data["items"]:
+    for mentor in data["data"]:
         assert mentor["experience_years"] >= 5
 
 
@@ -143,7 +147,7 @@ def test_search_mentors_available_only(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    for mentor in data["items"]:
+    for mentor in data["data"]:
         assert mentor["is_available"] is True
 
 
@@ -155,7 +159,7 @@ def test_search_mentors_sort_by_rating(client, test_mentors):
     data = response.json()
 
     # Check descending order
-    ratings = [m["rating"] for m in data["items"]]
+    ratings = [m["rating"] for m in data["data"]]
     assert ratings == sorted(ratings, reverse=True)
 
 
@@ -167,7 +171,7 @@ def test_search_mentors_sort_by_price(client, test_mentors):
     data = response.json()
 
     # Check ascending order
-    prices = [m["hourly_rate"] for m in data["items"]]
+    prices = [m["hourly_rate"] for m in data["data"]]
     assert prices == sorted(prices)
 
 
@@ -178,7 +182,7 @@ def test_search_mentors_pagination(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert len(data["items"]) == 2
+    assert len(data["data"]) == 2
     assert data["page"] == 1
     assert data["page_size"] == 2
     assert data["total"] == 5
@@ -188,7 +192,7 @@ def test_search_mentors_pagination(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert len(data["items"]) == 2
+    assert len(data["data"]) == 2
     assert data["page"] == 2
 
 
@@ -233,13 +237,13 @@ def test_search_mentors_combined_filters(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    for mentor in data["items"]:
+    for mentor in data["data"]:
         assert 40 <= mentor["hourly_rate"] <= 80
         assert mentor["experience_years"] >= 3
         assert mentor["is_available"] is True
 
     # Check sorting
-    ratings = [m["rating"] for m in data["items"]]
+    ratings = [m["rating"] for m in data["data"]]
     assert ratings == sorted(ratings, reverse=True)
 
 
@@ -250,7 +254,7 @@ def test_search_mentors_no_results(client, test_mentors):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert len(data["items"]) == 0
+    assert len(data["data"]) == 0
     assert data["total"] == 0
 
 

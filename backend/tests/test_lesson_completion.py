@@ -8,7 +8,16 @@ from fastapi import status
 from app.models.course import Course, CourseEnrollment, Lesson
 from app.models.mentor import Mentor
 from app.models.progress import Progress
-from app.models.user import UserRole
+from app.models.user import User, UserRole
+
+
+def _get_auth_user_id(db_session) -> int:
+    """Get the user ID of the user created by sync_authenticated_client fixture."""
+    user = db_session.query(User).filter(
+        User.email.like("test_%@test.com")
+    ).order_by(User.id.desc()).first()
+    assert user is not None, "Authenticated user not found in DB"
+    return user.id
 
 
 class TestLessonCompletion:
@@ -17,6 +26,7 @@ class TestLessonCompletion:
     def test_complete_lesson_success(self, sync_authenticated_client, db_session, create_user):
         """Test successful lesson completion updates progress and enrollment"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor (mentor)
         instructor = create_user(
@@ -50,8 +60,8 @@ class TestLessonCompletion:
         db_session.refresh(lesson1)
         db_session.refresh(lesson2)
 
-        # Enroll user in course
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the AUTHENTICATED user in course (not the instructor)
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -70,9 +80,9 @@ class TestLessonCompletion:
         assert data["total_lessons"] == 2
         assert data["course_completed"] is False
 
-        # Verify progress record was created
+        # Verify progress record was created for the authenticated user
         progress = db_session.query(Progress).filter(
-            Progress.user_id == instructor.id,
+            Progress.user_id == auth_user_id,
             Progress.lesson_id == lesson1.id,
         ).first()
         assert progress is not None
@@ -124,6 +134,7 @@ class TestLessonCompletion:
     def test_complete_lesson_updates_progress(self, sync_authenticated_client, db_session, create_user):
         """Test that completing multiple lessons updates course progress correctly"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -158,8 +169,8 @@ class TestLessonCompletion:
         for lesson in lessons:
             db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -185,6 +196,7 @@ class TestLessonCompletion:
     def test_complete_all_lessons_completes_course(self, sync_authenticated_client, db_session, create_user):
         """Test that completing all lessons marks course as completed"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -219,8 +231,8 @@ class TestLessonCompletion:
         for lesson in lessons:
             db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -250,6 +262,7 @@ class TestLessonCompletion:
     def test_complete_lesson_idempotent(self, sync_authenticated_client, db_session, create_user):
         """Test that completing the same lesson twice doesn't create duplicate progress records"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -280,8 +293,8 @@ class TestLessonCompletion:
         db_session.commit()
         db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -300,7 +313,7 @@ class TestLessonCompletion:
 
         # Verify only one progress record exists
         progress_count = db_session.query(Progress).filter(
-            Progress.user_id == instructor.id,
+            Progress.user_id == auth_user_id,
             Progress.lesson_id == lesson.id,
         ).count()
         assert progress_count == 1
@@ -315,6 +328,7 @@ class TestProgressCalculation:
     def test_progress_calculation_empty(self, sync_authenticated_client, db_session, create_user):
         """Test 0% progress when no lessons completed"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -349,8 +363,8 @@ class TestProgressCalculation:
         for lesson in lessons:
             db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -362,6 +376,7 @@ class TestProgressCalculation:
     def test_progress_calculation_partial(self, sync_authenticated_client, db_session, create_user):
         """Test partial progress (e.g., 66% when 2 of 3 lessons completed)"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -396,8 +411,8 @@ class TestProgressCalculation:
         for lesson in lessons:
             db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 
@@ -417,6 +432,7 @@ class TestProgressCalculation:
     def test_progress_calculation_complete(self, sync_authenticated_client, db_session, create_user):
         """Test 100% progress when all lessons completed"""
         client, headers = sync_authenticated_client
+        auth_user_id = _get_auth_user_id(db_session)
 
         # Create instructor
         instructor = create_user(
@@ -451,8 +467,8 @@ class TestProgressCalculation:
         for lesson in lessons:
             db_session.refresh(lesson)
 
-        # Enroll user
-        enrollment = CourseEnrollment(user_id=instructor.id, course_id=course.id)
+        # Enroll the authenticated user
+        enrollment = CourseEnrollment(user_id=auth_user_id, course_id=course.id)
         db_session.add(enrollment)
         db_session.commit()
 

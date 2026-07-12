@@ -395,7 +395,7 @@ class TestAPIPerformance:
         import time
 
         start = time.time()
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         elapsed = time.time() - start
 
         assert response.status_code == 200

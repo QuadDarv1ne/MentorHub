@@ -217,7 +217,7 @@ async def create_message(
     try:
         sanitized_content = sanitize_and_validate(message.content, field_type="text", field_name="сообщении")
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Проверяем, что получатель существует
     recipient = db.query(User).filter(User.id == message.recipient_id).first()
@@ -234,7 +234,7 @@ async def create_message(
     except Exception:
         logger.exception("Failed to create message from user %s to %s", current_user.id, message.recipient_id)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при отправке сообщения")
+        raise HTTPException(status_code=500, detail="Ошибка при отправке сообщения") from None
 
 
 @router.put("/{message_id}", response_model=MessageResponse)
@@ -261,7 +261,7 @@ async def update_message(
             try:
                 sanitized_data[key] = sanitize_and_validate(value, field_type="text", field_name="сообщении")
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
         else:
             sanitized_data[key] = value
 
@@ -276,7 +276,7 @@ async def update_message(
     except Exception:
         logger.exception("Failed to update message %s by user %s", message_id, current_user.id)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при обновлении сообщения")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении сообщения") from None
 
 
 @router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -302,4 +302,4 @@ async def delete_message(
     except Exception:
         logger.exception("Failed to delete message %s by user %s", message_id, current_user.id)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при удалении сообщения")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении сообщения") from None

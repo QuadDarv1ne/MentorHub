@@ -13,7 +13,6 @@ from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.course import Course
 from app.models.user import User, UserRole
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, CourseWithLessonsResponse
-
 from app.services.cache import cached
 from app.services.course_service import CourseService
 from app.utils.cache import invalidate_cache
@@ -151,7 +150,7 @@ async def delete_course(
     except Exception:
         logger.exception("Failed to delete course %s by user %s", course_id, current_user.id)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при удалении курса")
+        raise HTTPException(status_code=500, detail="Ошибка при удалении курса") from None
 
 
 @router.get("/{course_id}/similar", response_model=list[dict])

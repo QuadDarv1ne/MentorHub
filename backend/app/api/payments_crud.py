@@ -13,7 +13,6 @@ from app.models.mentor import Mentor
 from app.models.payment import Payment as DBPayment
 from app.models.payment import PaymentStatus
 from app.models.session import Session as DBSession
-
 from app.models.user import User
 from app.schemas.payment import PaymentUpdate
 from app.utils.sanitization import is_safe_string, sanitize_string

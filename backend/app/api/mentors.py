@@ -72,7 +72,7 @@ async def create_mentor(
         sanitized_bio = sanitize_and_validate(mentor.bio, field_type="text", field_name="биографии") if mentor.bio else None
         sanitized_specialization = sanitize_and_validate(mentor.specialization, field_name="специализации") if mentor.specialization else None
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Проверяем, что пользователь существует
     user = db.query(User).filter(User.id == mentor.user_id).first()
@@ -129,12 +129,12 @@ async def update_mentor(
             try:
                 sanitized_data[key] = sanitize_and_validate(value, field_type="text", field_name="биографии")
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
         elif key == "specialization" and value is not None:
             try:
                 sanitized_data[key] = sanitize_and_validate(value, field_name="специализации")
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
         else:
             sanitized_data[key] = value
 

@@ -109,7 +109,7 @@ async def create_session(
         sanitized_meeting_link = sanitize_and_validate(session.meeting_link, field_name="ссылке на встречу") if session.meeting_link else None
         sanitized_notes = sanitize_and_validate(session.notes, field_name="заметках") if session.notes else None
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Проверяем, что студент и ментор существуют одним запросом (N+1 fix)
     user_ids = {session.student_id, session.mentor_id}
@@ -187,7 +187,7 @@ async def update_session(
                 field_name = "ссылке на встречу" if key == "meeting_link" else "заметках"
                 sanitized_data[key] = sanitize_and_validate(value, field_name=field_name)
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+                raise HTTPException(status_code=400, detail=str(e)) from e
         else:
             sanitized_data[key] = value
 

@@ -174,6 +174,6 @@ async def update_course_progress(
     except Exception:
         logger.exception("Failed to update progress for user %s course %s", current_user.id, course_id)
         db.rollback()
-        raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении прогресса") from None
 
     return enrollment

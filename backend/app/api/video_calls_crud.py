@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.user import User
-from app.models.video_call import VideoCall, CallStatus
+from app.models.video_call import CallStatus, VideoCall
 from app.schemas.video_call import VideoCallCreate, VideoCallListResponse, VideoCallResponse
 
 router = APIRouter()

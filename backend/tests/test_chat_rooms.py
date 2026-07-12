@@ -17,9 +17,11 @@ client = TestClient(app)
 @pytest.fixture
 def test_user(db_session: Session):
     """Create test user"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
     user = User(
-        email="chat_test@example.com",
-        username="chat_test_user",
+        email=f"chat_test_{unique_id}@example.com",
+        username=f"chat_test_user_{unique_id}",
         role=UserRole.STUDENT,
         is_active=True,
         is_verified=True,
@@ -36,9 +38,11 @@ def test_user(db_session: Session):
 @pytest.fixture
 def test_user_2(db_session: Session):
     """Create second test user"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
     user = User(
-        email="chat_test2@example.com",
-        username="chat_test_user_2",
+        email=f"chat_test2_{unique_id}@example.com",
+        username=f"chat_test_user_2_{unique_id}",
         role=UserRole.STUDENT,
         is_active=True,
         is_verified=True,

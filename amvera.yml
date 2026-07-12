@@ -1,6 +1,12 @@
 # Amvera Cloud Configuration
 # https://docs.amvera.ru/applications/configuration/docker.html
 # Uses Dockerfile at repo root for build. This file only tunes run params.
+#
+# REQUIRED environment variables (set in Amvera Console → Env):
+#   ENVIRONMENT=production
+#   SECRET_KEY=<random 32+ char string>
+#   DATABASE_URL=postgresql://user:pass@host:5432/db
+#   REDIS_URL=redis://host:6379/0
 
 meta:
   environment: docker

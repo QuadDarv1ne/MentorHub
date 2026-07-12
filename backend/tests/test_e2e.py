@@ -10,6 +10,19 @@ import pytest
 
 BASE_URL = os.environ.get("TEST_BASE_URL", "http://localhost:8001/api/v1")
 
+# Skip all e2e tests if server is not running
+try:
+    import socket
+    host, port = BASE_URL.replace("http://", "").replace("https://", "").split("/")[0].split(":")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)
+    result = sock.connect_ex((host, int(port)))
+    sock.close()
+    if result != 0:
+        pytest.skip(f"Server {BASE_URL} not reachable, skipping e2e tests", allow_module_level=True)
+except Exception:
+    pytest.skip("Could not connect to e2e test server", allow_module_level=True)
+
 
 class TestAuthFlow:
     """Тестирование потока аутентификации"""

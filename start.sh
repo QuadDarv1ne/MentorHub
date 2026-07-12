@@ -13,8 +13,23 @@ echo "========================================="
 echo "ENVIRONMENT: ${ENVIRONMENT:-not set}"
 echo "PORT: ${PORT:-not set}"
 echo "DATABASE_URL: ${DATABASE_URL:+***SET***}"
+echo "REDIS_URL: ${REDIS_URL:+***SET***}"
 echo "SECRET_KEY: ${SECRET_KEY:+***SET***}"
 echo "========================================="
+
+# =====================================================
+# REQUIRED ENVIRONMENT VARIABLES CHECK
+# =====================================================
+MISSING_VARS=""
+[ -z "$DATABASE_URL" ] && MISSING_VARS="$MISSING_VARS DATABASE_URL"
+[ -z "$SECRET_KEY" ] && MISSING_VARS="$MISSING_VARS SECRET_KEY"
+[ -z "$REDIS_URL" ] && MISSING_VARS="$MISSING_VARS REDIS_URL"
+
+if [ -n "$MISSING_VARS" ]; then
+    echo "⚠️  WARNING: Missing required environment variables:$MISSING_VARS"
+    echo "   The application may not work correctly without them."
+    echo "   Set these in Amvera Cloud Console → Environment Variables."
+fi
 
 # Node.js memory optimization (Frontend)
 export NODE_OPTIONS="--max-old-space-size=256"

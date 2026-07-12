@@ -84,7 +84,8 @@ class Settings(BaseSettings):
     _is_render = "RENDER" in os.environ or "RENDER_EXTERNAL_HOST" in os.environ
     _is_railway = "RAILWAY" in os.environ or "RAILWAY_SERVICE_NAME" in os.environ
     _is_fly = "FLY" in os.environ or "FLY_APP_NAME" in os.environ
-    _is_cloud = _is_docker or _is_render or _is_railway or _is_fly
+    _is_amvera = "AMVERA" in os.environ or "AMVERA_APP_NAME" in os.environ
+    _is_cloud = _is_docker or _is_render or _is_railway or _is_fly or _is_amvera
 
     # Cloud providers set DATABASE_URL directly - always use it if available
     _default_db_host = "pgbouncer" if _is_docker else ("postgres" if _is_cloud and not _is_render else "localhost")
@@ -266,13 +267,17 @@ class Settings(BaseSettings):
         if self.ENVIRONMENT == "production":
             if "*" in self.ALLOWED_HOSTS or any(host == "*" for host in self.ALLOWED_HOSTS):
                 raise ValueError("ALLOWED_HOSTS cannot contain '*' in production!")
-            # Если пустой список - добавляем .onrender.com для Render
+            # Если пустой список - определяем хост по cloud-провайдеру
             if not self.ALLOWED_HOSTS:
                 render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+                amvera_host = os.environ.get("AMVERA_APP_URL", "")
                 if render_host:
                     self.ALLOWED_HOSTS = [render_host, ".onrender.com"]
+                elif amvera_host:
+                    # Amvera: добавляем домен приложения и wildcard для *.amvera.io
+                    self.ALLOWED_HOSTS = [amvera_host, ".amvera.io"]
                 else:
-                    self.ALLOWED_HOSTS = [".onrender.com"]  # Fallback для Render
+                    self.ALLOWED_HOSTS = []  # Пусто - FastAPI разрешит все
         return self
 
     # ==================== FEATURE FLAGS ====================

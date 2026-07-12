@@ -292,7 +292,7 @@ async def send_chat_message(
     try:
         sanitized_content = sanitize_and_validate(message.content, field_name="сообщении")
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     db_message = ChatMessage(
         room_id=room_id,
@@ -352,7 +352,7 @@ async def edit_chat_message(
         try:
             db_message.content = sanitize_and_validate(message_data.content, field_name="сообщении")
         except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e)) from e
 
     db_message.is_edited = True
     db_message.updated_at = datetime.now(timezone.utc)
