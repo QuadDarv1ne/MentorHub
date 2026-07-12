@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { STORAGE_KEYS } from '@/lib/constants'
 import { logger } from '@/lib/utils/logger'
 
 export interface Notification {
@@ -23,7 +24,7 @@ export function useNotifications() {
 
   useEffect(() => {
     // Загрузка уведомлений из localStorage
-    const stored = localStorage.getItem('notifications')
+    const stored = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
@@ -43,7 +44,7 @@ export function useNotifications() {
     setUnreadCount(count)
 
     // Сохранение в localStorage
-    localStorage.setItem('notifications', JSON.stringify(notifications))
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications))
   }, [notifications])
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -82,7 +83,7 @@ export function useNotifications() {
 
   const clearAll = useCallback(() => {
     setNotifications([])
-    localStorage.removeItem('notifications')
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS)
   }, [])
 
   const clearRead = useCallback(() => {

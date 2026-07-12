@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 type Consent = {
   necessary: boolean
@@ -17,13 +18,13 @@ export default function ConsentPage() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('cookie_consent')
+      const raw = localStorage.getItem(STORAGE_KEYS.COOKIE_CONSENT)
       if (raw) setConsent({ ...defaultConsent, ...JSON.parse(raw) })
     } catch {}
   }, [])
 
   const save = () => {
-    localStorage.setItem('cookie_consent', JSON.stringify(consent))
+    localStorage.setItem(STORAGE_KEYS.COOKIE_CONSENT, JSON.stringify(consent))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

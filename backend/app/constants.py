@@ -285,50 +285,9 @@ COMMON_PASSWORDS = [
 # Password alphabet for generation (built from string constants)
 PASSWORD_ALPHABET = string.ascii_letters + string.digits + "!@#$%^&*()"
 
-# Typing indicator timeout
-TYPING_INDICATOR_TIMEOUT = 3000  # 3 seconds
-
-# Loading delay
-LOADING_DELAY = 300  # 300ms
-LOADING_DELAY_LONG = 500  # 500ms
-LOADING_DELAY_VERY_LONG = 2000  # 2 seconds
-
-# Copy to clipboard timeout
-COPY_TIMEOUT = 2000  # 2 seconds
-
-# Cache minimum TTL
-CACHE_MIN_TTL = 60  # 1 minute
-
-# Throttle
-THROTTLE_MS = 1000  # 1 second
-
 # Disk/Memory units
 BYTES_PER_MB = 1024 * 1024
 BYTES_PER_GB = 1024 * 1024 * 1024
-
-# Calendar
-CALENDAR_EMPTY_DAYS = 7  # Show 7 empty days in week view
-CALENDAR_CELL_MIN_HEIGHT = 100  # pixels
-
-# Performance
-PERFORMANCE_CHECK_INTERVAL = 100  # ms
-PERFORMANCE_WARNING_THRESHOLD = 1000  # ms
-
-# Toast
-TOAST_CLOSE_DELAY = 300  # ms
-
-# Test timeouts
-TEST_TIMEOUT = 2000  # 2 seconds
-
-# Form validation
-FORM_SAVE_TIMEOUT = 2000  # 2 seconds
-
-# Payment processing
-PAYMENT_PROCESSING_DELAY = 1500  # 1.5 seconds
-PAYMENT_SUCCESS_DISPLAY_TIME = 3000  # 3 seconds
-
-# Reconnection
-RECONNECT_DELAY = 5000  # 5 seconds
 
 # Message history
 MESSAGE_HISTORY_DEFAULT_LIMIT = 50

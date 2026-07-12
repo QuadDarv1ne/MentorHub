@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/useNotifications'
+import { STORAGE_KEYS } from '@/lib/constants'
 import { publicRequest } from '@/lib/api/client'
 
 export function ForgotPassword() {
@@ -36,7 +37,7 @@ export function ForgotPassword() {
 
       setIsSent(true)
       success('Письмо отправлено! Проверьте вашу почту.')
-      localStorage.setItem('reset_password_email', email)
+      localStorage.setItem(STORAGE_KEYS.RESET_PASSWORD_EMAIL, email)
     } catch (err) {
       error(err instanceof Error ? err.message : 'Ошибка сети. Проверьте подключение к интернету.')
     } finally {

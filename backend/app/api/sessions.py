@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.dependencies import get_current_user, get_current_user_mentor_id, get_db, rate_limit_dependency
 from app.models.mentor import Mentor
 from app.models.session import Session as DBSession
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.session import SessionCreate, SessionResponse, SessionUpdate
 from app.utils.sanitization import sanitize_and_validate
 
@@ -29,7 +29,7 @@ async def get_sessions(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Получить список сессий (только для администраторов)"""
-    if current_user.role.value != "admin":
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права администратора.")
 
     from app.utils.pagination import validate_pagination
@@ -84,7 +84,7 @@ async def get_session(
     # Проверка доступа: студент, ментор или админ
     if (session.student_id != current_user.id and
         session.mentor_id != mentor_id and
-        current_user.role.value != "admin"):
+        current_user.role != UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     return session
@@ -99,7 +99,7 @@ async def create_session(
 ):
     """Создать сессию (только для менторов и администраторов)"""
     # Проверяем что пользователь ментор или админ
-    if current_user.role.value not in ["mentor", "admin"]:
+    if current_user.role not in (UserRole.MENTOR, UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права ментора.")
 
     # Санитизация входных данных
@@ -128,7 +128,7 @@ async def create_session(
         raise HTTPException(status_code=404, detail="Ментор не найден")
 
     # Если пользователь не админ, проверяем что он создаёт сессию как ментор
-    if current_user.role.value != "admin" and session.mentor_id != current_user.id:
+    if current_user.role != UserRole.ADMIN and session.mentor_id != current_user.id:
         # Находим mentor profile текущего пользователя
         user_mentor_profile = next((m for m in mentors if m.user_id == current_user.id), None)
         if not user_mentor_profile or user_mentor_profile.id != session.mentor_id:
@@ -172,7 +172,7 @@ async def update_session(
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and
         db_session.mentor_id != mentor_id and
-        current_user.role.value != "admin"):
+        current_user.role != UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     # Санитизация входных данных
@@ -217,7 +217,7 @@ async def delete_session(
     # Проверка ownership: студент, ментор или админ
     if (db_session.student_id != current_user.id and
         db_session.mentor_id != mentor_id and
-        current_user.role.value != "admin"):
+        current_user.role != UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Доступ запрещен. Вы не участник этой сессии.")
 
     try:

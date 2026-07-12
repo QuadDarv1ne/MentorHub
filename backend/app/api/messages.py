@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.message import Message as DBMessage
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.message import ConversationResponse, MessageCreate, MessageListResponse, MessageResponse, MessageUpdate
 from app.utils.sanitization import sanitize_and_validate
 
@@ -166,7 +166,7 @@ async def get_messages(
     rate_limit: bool = Depends(rate_limit_dependency)
 ):
     """Получить список сообщений (admin only)"""
-    if current_user.role.value != "admin":
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     from app.utils.pagination import validate_pagination
@@ -193,7 +193,7 @@ async def get_message(
     ).first()
 
     # Администратор может видеть любые сообщения
-    if not message and current_user.role.value == "admin":
+    if not message and current_user.role == UserRole.ADMIN:
         message = db.query(DBMessage).filter(DBMessage.id == message_id).first()
 
     if not message:
@@ -210,7 +210,7 @@ async def create_message(
 ):
     """Создать сообщение"""
     # Пользователь может отправлять сообщения только от своего имени
-    if message.sender_id != current_user.id and current_user.role.value != "admin":
+    if message.sender_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     # Санитизация и валидация входных данных
@@ -251,7 +251,7 @@ async def update_message(
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
     # Только автор может редактировать своё сообщение (или админ)
-    if db_message.sender_id != current_user.id and current_user.role.value != "admin":
+    if db_message.sender_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     # Санитизация и валидация входных данных
@@ -292,7 +292,7 @@ async def delete_message(
         raise HTTPException(status_code=404, detail="Сообщение не найдено")
 
     # Только автор может удалять своё сообщение (или админ)
-    if db_message.sender_id != current_user.id and current_user.role.value != "admin":
+    if db_message.sender_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Доступ запрещен")
 
     try:

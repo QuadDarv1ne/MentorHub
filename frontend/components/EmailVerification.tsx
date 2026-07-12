@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { CheckCircle, XCircle, Loader, Mail, Shield } from 'lucide-react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/useNotifications'
+import { STORAGE_KEYS } from '@/lib/constants'
 import { publicRequest } from '@/lib/api/client'
 
 interface VerificationResult {
@@ -69,7 +70,7 @@ export function EmailVerification() {
 
   const resendVerification = async () => {
     try {
-      const email = localStorage.getItem('pending_verification_email')
+      const email = localStorage.getItem(STORAGE_KEYS.PENDING_VERIFICATION_EMAIL)
 
       if (!email) {
         error('Ошибка: Email не найден')

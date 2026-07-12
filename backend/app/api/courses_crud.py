@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.course import Course
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.course import CourseCreate, CourseResponse, CourseUpdate, CourseWithLessonsResponse
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,14 @@ from app.services.course_service import CourseService
 from app.utils.cache import invalidate_cache
 
 router = APIRouter()
+
+
+async def _safe_invalidate_cache(key: str):
+    """Fire-and-forget cache invalidation with error logging."""
+    try:
+        await invalidate_cache(key)
+    except Exception:
+        logger.exception("Failed to invalidate cache: %s", key)
 
 
 def _get_course_service(db: Session) -> CourseService:
@@ -84,7 +92,7 @@ async def create_course(
     new_course = service.create_course(current_user, course)
 
     # Инвалидируем кеш списка курсов
-    asyncio.create_task(invalidate_cache("courses_list:"))
+    asyncio.create_task(_safe_invalidate_cache("courses_list:"))
 
     return new_course
 
@@ -102,8 +110,8 @@ async def update_course(
     updated_course = service.update_course(course_id, current_user, course)
 
     # Инвалидируем кеш
-    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-    asyncio.create_task(invalidate_cache("courses_list:"))
+    asyncio.create_task(_safe_invalidate_cache(f"course_detail:{course_id}"))
+    asyncio.create_task(_safe_invalidate_cache("courses_list:"))
 
     return updated_course
 
@@ -125,7 +133,7 @@ async def delete_course(
     from app.models.mentor import Mentor
     mentor = db.query(Mentor).filter(Mentor.user_id == current_user.id).first()
     is_instructor = mentor and existing_course.instructor_id == mentor.id
-    is_admin = current_user.role.value == "admin"
+    is_admin = current_user.role == UserRole.ADMIN
 
     if not is_instructor and not is_admin:
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -135,8 +143,8 @@ async def delete_course(
         db.commit()
 
         # Инвалидируем кеш
-        asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-        asyncio.create_task(invalidate_cache("courses_list:"))
+        asyncio.create_task(_safe_invalidate_cache(f"course_detail:{course_id}"))
+        asyncio.create_task(_safe_invalidate_cache("courses_list:"))
 
         return None
     except Exception:

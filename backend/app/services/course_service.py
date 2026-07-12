@@ -207,8 +207,17 @@ class CourseService:
 async def invalidate_course_cache(db: Session, course_id: int):
     """Инвалидация кеша курса"""
     import asyncio
+    import logging
 
     from app.utils.cache import invalidate_cache
 
-    asyncio.create_task(invalidate_cache(f"course_detail:{course_id}"))
-    asyncio.create_task(invalidate_cache("courses_list:*"))
+    logger = logging.getLogger(__name__)
+
+    async def _safe(key: str):
+        try:
+            await invalidate_cache(key)
+        except Exception:
+            logger.exception("Failed to invalidate cache: %s", key)
+
+    asyncio.create_task(_safe(f"course_detail:{course_id}"))
+    asyncio.create_task(_safe("courses_list:*"))
