@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import {
   generateSEOMetadata,
   seoPresets,
@@ -6,17 +7,21 @@ import {
   generatePersonSchema,
 } from '../seo';
 
+const originalBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_BASE_URL = 'https://mentorhub.com';
+});
+
+afterAll(() => {
+  if (originalBaseUrl) {
+    process.env.NEXT_PUBLIC_BASE_URL = originalBaseUrl;
+  } else {
+    delete process.env.NEXT_PUBLIC_BASE_URL;
+  }
+});
+
 describe('generateSEOMetadata', () => {
-  const originalEnv = process.env.NEXT_PUBLIC_BASE_URL;
-
-  beforeAll(() => {
-    process.env.NEXT_PUBLIC_BASE_URL = 'https://mentorhub.com';
-  });
-
-  afterAll(() => {
-    process.env.NEXT_PUBLIC_BASE_URL = originalEnv;
-  });
-
   it('generates title with site name', () => {
     const meta = generateSEOMetadata({ title: 'Test', description: 'Desc' });
     expect(meta.title).toBe('Test | MentorHub');
@@ -80,15 +85,15 @@ describe('generateSEOMetadata', () => {
       type: 'article', publishedTime: date, authors: ['Author'],
     });
     expect(meta.openGraph!.type).toBe('article');
-    expect((meta.openGraph as any).publishedTime).toBe(date);
-    expect((meta.openGraph as any).authors).toEqual(['Author']);
+    expect((meta.openGraph as Metadata['openGraph'] & { publishedTime?: string; authors?: string[] }).publishedTime).toBe(date);
+    expect((meta.openGraph as Metadata['openGraph'] & { publishedTime?: string; authors?: string[] }).authors).toEqual(['Author']);
   });
 
   it('handles custom image URL', () => {
     const meta = generateSEOMetadata({
       title: 'Test', description: 'Desc', image: 'https://example.com/img.png',
     });
-    const ogImage = (meta.openGraph!.images as any[])[0];
+    const ogImage = (meta.openGraph!.images as { url: string }[])[0];
     expect(ogImage.url).toBe('https://example.com/img.png');
   });
 
@@ -96,7 +101,7 @@ describe('generateSEOMetadata', () => {
     const meta = generateSEOMetadata({
       title: 'Test', description: 'Desc', image: '/custom.png',
     });
-    const ogImage = (meta.openGraph!.images as any[])[0];
+    const ogImage = (meta.openGraph!.images as { url: string }[])[0];
     expect(ogImage.url).toBe('https://mentorhub.com/custom.png');
   });
 
@@ -153,32 +158,32 @@ describe('seoPresets', () => {
       const meta = seoPresets.auth.login();
       expect(meta.title).toContain('Вход');
       expect(meta.robots).toBeDefined();
-      expect((meta.robots as any).index).toBe(false);
+      expect((meta.robots as { index: boolean }).index).toBe(false);
     });
 
     it('generates register metadata with noIndex', () => {
       const meta = seoPresets.auth.register();
       expect(meta.title).toContain('Регистрация');
-      expect((meta.robots as any).index).toBe(false);
+      expect((meta.robots as { index: boolean }).index).toBe(false);
     });
 
     it('generates forgotPassword metadata with noIndex', () => {
       const meta = seoPresets.auth.forgotPassword();
       expect(meta.title).toContain('Восстановление пароля');
-      expect((meta.robots as any).index).toBe(false);
+      expect((meta.robots as { index: boolean }).index).toBe(false);
     });
   });
 
   it('generates dashboard metadata with noIndex', () => {
     const meta = seoPresets.dashboard();
     expect(meta.title).toContain('Личный кабинет');
-    expect((meta.robots as any).index).toBe(false);
+    expect((meta.robots as { index: boolean }).index).toBe(false);
   });
 
   it('generates profile metadata with noIndex', () => {
     const meta = seoPresets.profile();
     expect(meta.title).toContain('Профиль пользователя');
-    expect((meta.robots as any).index).toBe(false);
+    expect((meta.robots as { index: boolean }).index).toBe(false);
   });
 });
 

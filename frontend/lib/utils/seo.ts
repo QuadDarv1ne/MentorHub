@@ -17,7 +17,9 @@ interface SEOConfig {
   noIndex?: boolean
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
+function getBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_BASE_URL || ''
+}
 const SITE_NAME = 'MentorHub'
 const DEFAULT_DESCRIPTION = 'Платформа для менторства и развития в IT. Найдите своего ментора, развивайте навыки, достигайте карьерных целей.'
 const DEFAULT_IMAGE = '/og-image.png'
@@ -39,8 +41,9 @@ export function generateSEOMetadata(config: SEOConfig): Metadata {
   } = config
 
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`
-  const url = `${BASE_URL}${path}`
-  const imageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`
+  const baseUrl = getBaseUrl()
+  const url = `${baseUrl}${path}`
+  const imageUrl = image.startsWith('http') ? image : `${baseUrl}${image}`
 
   const metadata: Metadata = {
     title: fullTitle,
@@ -211,12 +214,13 @@ export const seoPresets = {
  * Генерация JSON-LD структурированных данных для Organization
  */
 export function generateOrganizationSchema() {
+  const baseUrl = getBaseUrl()
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: SITE_NAME,
-    url: BASE_URL,
-    logo: `${BASE_URL}/logo.png`,
+    url: baseUrl,
+    logo: `${baseUrl}/logo.png`,
     description: DEFAULT_DESCRIPTION,
     sameAs: [
       'https://github.com/QuadDarv1ne/MentorHub',
@@ -252,7 +256,7 @@ export function generateCourseSchema(course: {
     provider: {
       '@type': 'Organization',
       name: course.provider,
-      sameAs: BASE_URL,
+      sameAs: getBaseUrl(),
     },
     url: course.url,
     ...(course.image && { image: course.image }),

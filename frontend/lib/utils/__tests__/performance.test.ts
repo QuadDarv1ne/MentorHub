@@ -123,30 +123,30 @@ describe('supportsIntersectionObserver', () => {
       unobserve() {}
       disconnect() {}
     }
-    (window as any).IntersectionObserver = MockIntersectionObserver;
-    (window as any).IntersectionObserverEntry = function() {};
-    (window as any).IntersectionObserverEntry.prototype = { intersectionRatio: 1 };
+    (window as unknown as Record<string, unknown>).IntersectionObserver = MockIntersectionObserver;
+    (window as unknown as Record<string, unknown>).IntersectionObserverEntry = function() {};
+    (window as unknown as Record<string, unknown>).IntersectionObserverEntry.prototype = { intersectionRatio: 1 };
     expect(supportsIntersectionObserver()).toBe(true);
   });
 
   it('returns false when IntersectionObserver is not available', () => {
-    const originalIO = (window as any).IntersectionObserver;
-    delete (window as any).IntersectionObserver;
+    const originalIO = (window as unknown as Record<string, unknown>).IntersectionObserver;
+    delete (window as unknown as Record<string, unknown>).IntersectionObserver;
     expect(supportsIntersectionObserver()).toBe(false);
-    (window as any).IntersectionObserver = originalIO;
+    (window as unknown as Record<string, unknown>).IntersectionObserver = originalIO;
   });
 
   it('returns false on server-side (window undefined)', () => {
-    const origWindow = (global as any).window;
-    delete (global as any).window;
+    const origWindow = (global as unknown as Record<string, unknown>).window;
+    delete (global as unknown as Record<string, unknown>).window;
     expect(supportsIntersectionObserver()).toBe(false);
-    (global as any).window = origWindow;
+    (global as unknown as Record<string, unknown>).window = origWindow;
   });
 });
 
 describe('preloadImage', () => {
   beforeEach(() => {
-    (global as any).Image = class MockImage {
+    (global as unknown as Record<string, unknown>).Image = class MockImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
       set src(_: string) {
@@ -306,10 +306,10 @@ describe('isMobileDevice', () => {
   });
 
   it('returns false when window is undefined', () => {
-    const origWindow = (global as any).window;
-    delete (global as any).window;
+    const origWindow = (global as unknown as Record<string, unknown>).window;
+    delete (global as unknown as Record<string, unknown>).window;
     expect(isMobileDevice()).toBe(false);
-    (global as any).window = origWindow;
+    (global as unknown as Record<string, unknown>).window = origWindow;
   });
 });
 

@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import { ChatButton } from '../ChatButton';
 
 jest.mock('../ChatWidget', () => ({
-  ChatWidget: ({ isOpen, onClose: _onClose, recipientName }: any) =>
+  ChatWidget: ({ isOpen, onClose: _onClose, recipientName }: { isOpen: boolean; onClose: () => void; recipientName: string }) =>
     isOpen ? <div data-testid="chat-widget">Chat with {recipientName}</div> : null,
 }));
 

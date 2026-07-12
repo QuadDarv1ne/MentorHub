@@ -14,11 +14,10 @@ interface VideoCallProps {
   onClose?: () => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AgoraTrack = any
+import type { IAgoraRTCClient, IMicrophoneAudioTrack, ICameraVideoTrack, IAgoraRTCRemoteUser } from 'agora-rtc-react'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AgoraClient = any
+type AgoraTrack = IMicrophoneAudioTrack | ICameraVideoTrack
+type AgoraClient = IAgoraRTCClient
 
 export default function VideoCall({
   channelId,
@@ -66,7 +65,7 @@ export default function VideoCall({
       agoraClientRef.current = client as unknown as AgoraClient
 
       // Настраиваем обработчики событий
-      client.on('user-published', async (user: any, mediaType: any) => {
+      client.on('user-published', async (user: IAgoraRTCRemoteUser, mediaType: string) => {
         await client.subscribe(user, mediaType)
         if (mediaType === 'video') {
           user.videoTrack?.play(remoteVideoRef.current)
@@ -76,11 +75,11 @@ export default function VideoCall({
         }
       })
 
-      client.on('user-unpublished', async (user: any, mediaType: any) => {
+      client.on('user-unpublished', async (user: IAgoraRTCRemoteUser, mediaType: string) => {
         await client.unsubscribe(user, mediaType)
       })
 
-      client.on('user-left', (user: any) => {
+      client.on('user-left', (user: IAgoraRTCRemoteUser) => {
         logger.info('User left call:', user)
       })
 

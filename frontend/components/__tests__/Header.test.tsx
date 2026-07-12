@@ -16,7 +16,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => {
   // eslint-disable-next-line react/display-name
-  return ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: any }) =>
+  return ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) =>
     <a href={href} {...props}>{children}</a>;
 });
 

@@ -10,7 +10,7 @@ const mockFetch = jest.fn()
 
 // Setup global fetch mock
 beforeAll(() => {
-  global.fetch = mockFetch as any
+  global.fetch = mockFetch as unknown as typeof global.fetch
 })
 
 describe('API Client', () => {

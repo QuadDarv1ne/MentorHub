@@ -19,7 +19,7 @@ const mockUseWebSocket = jest.fn(() => ({
 }));
 
 jest.mock('@/hooks/useWebSocket', () => ({
-  useWebSocket: (...args: any[]) => mockUseWebSocket(...args),
+  useWebSocket: (...args: unknown[]) => mockUseWebSocket(...args),
 }));
 
 jest.mock('lucide-react', () => ({

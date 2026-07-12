@@ -26,7 +26,7 @@ describe('AuthGuard', () => {
 
   it('redirects to login when no token and requireAuth is true', () => {
     delete window.location;
-    window.location = { pathname: '/dashboard' } as any;
+    window.location = { pathname: '/dashboard' } as unknown as Location;
     render(<AuthGuard><div>Protected Content</div></AuthGuard>);
     expect(mockPush).toHaveBeenCalledWith('/auth/login?redirect=%2Fdashboard');
   });
@@ -47,7 +47,7 @@ describe('AuthGuard', () => {
     localStorage.setItem('access_token', expiredToken);
     localStorage.setItem('refresh_token', 'some-refresh');
     delete window.location;
-    window.location = { pathname: '/profile' } as any;
+    window.location = { pathname: '/profile' } as unknown as Location;
     render(<AuthGuard><div>Protected Content</div></AuthGuard>);
     expect(mockPush).toHaveBeenCalledWith('/auth/login?redirect=%2Fprofile');
     expect(localStorage.getItem('access_token')).toBeNull();
@@ -56,7 +56,7 @@ describe('AuthGuard', () => {
 
   it('uses custom redirect path', () => {
     delete window.location;
-    window.location = { pathname: '/admin' } as any;
+    window.location = { pathname: '/admin' } as unknown as Location;
     render(<AuthGuard redirectTo="/custom-login"><div>Protected</div></AuthGuard>);
     expect(mockPush).toHaveBeenCalledWith('/custom-login?redirect=%2Fadmin');
   });
@@ -71,7 +71,7 @@ describe('AuthGuard', () => {
   it('handles malformed token gracefully', () => {
     localStorage.setItem('access_token', 'invalid-token');
     delete window.location;
-    window.location = { pathname: '/dashboard' } as any;
+    window.location = { pathname: '/dashboard' } as unknown as Location;
     render(<AuthGuard><div>Protected Content</div></AuthGuard>);
     expect(mockPush).toHaveBeenCalledWith('/auth/login?redirect=%2Fdashboard');
   });

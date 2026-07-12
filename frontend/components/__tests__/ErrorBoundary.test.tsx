@@ -8,7 +8,7 @@ import { ErrorBoundary } from '../ErrorBoundary';
 
 const mockLoggerError = jest.fn();
 jest.mock('@/lib/utils/logger', () => ({
-  logger: { error: (...args: any[]) => mockLoggerError(...args) },
+  logger: { error: (...args: unknown[]) => mockLoggerError(...args) },
 }));
 
 // Suppress console.error from React ErrorBoundary
@@ -17,7 +17,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  (console.error as jest.Mock).mockRestore();
+  (console.error as unknown as jest.Mock).mockRestore();
 });
 
 const ThrowError = ({ message }: { message: string }) => {
