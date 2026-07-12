@@ -26,7 +26,7 @@ RUN npm run build
 RUN npm cache clean --force
 
 # ==================== STAGE 2: Backend Build ====================
-FROM python:3.12-alpine AS backend-builder
+FROM python:3.14-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -44,7 +44,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # ==================== STAGE 3: Production Image ====================
-FROM python:3.12-alpine
+FROM python:3.14-alpine
 
 # Минимальный набор пакетов + nginx
 RUN apk add --no-cache \
