@@ -11,5 +11,5 @@ build:
   dockerfile: Dockerfile
 
 run:
-  containerPort: 8001
+  containerPort: 8000
   persistenceMount: /data

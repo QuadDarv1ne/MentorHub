@@ -88,9 +88,16 @@ RUN chmod +x /app/start.sh
 # Копируем nginx конфигурацию
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
+# Делаем /etc/nginx доступным для записи appuser (start.sh использует sed)
+RUN chown -R appuser:appgroup /etc/nginx
+
 # Очищаем кэши для уменьшения размера
 RUN npm cache clean --force && \
     rm -rf /root/.npm /root/.node-gyp /tmp/*
+
+# Создаём и настраиваем директории для nginx (non-root)
+RUN mkdir -p /var/log/nginx /var/lib/nginx/tmp /var/cache/nginx && \
+    chown -R appuser:appgroup /var/log/nginx /var/lib/nginx /var/cache/nginx
 
 # Устанавливаем владельца на appuser
 RUN chown -R appuser:appgroup /app
@@ -104,10 +111,10 @@ ENTRYPOINT ["/sbin/tini", "--"]
 ENV BACKEND_PORT=8001 \
     FRONTEND_PORT=3000
 
-# Health check с меньшим интервалом
+# Health check — проверяем nginx (точка входа)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${FRONTEND_PORT}/ || curl -f http://localhost:${BACKEND_PORT}/api/v1/health/ready || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/nginx-health || curl -f http://localhost:${PORT:-8000}/api/v1/health || exit 1
 
-EXPOSE 8001 3000
+EXPOSE 8000 8001 3000
 
 CMD ["/app/start.sh"]
