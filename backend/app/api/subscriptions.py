@@ -184,7 +184,7 @@ async def create_subscription(
     price_id = f"price_{tier}_mock"  # В production: реальный price_id из Stripe
 
     checkout_result = stripe_service.create_checkout_session(
-        customer_id=customer_id,  # type: ignore[arg-type]
+        customer_id=customer_id,
         price_id=price_id,
         success_url=success_url,
         cancel_url=cancel_url,

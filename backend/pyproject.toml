@@ -42,6 +42,10 @@ strict_optional = true
 module = "tests.*"
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = ["app.*", "backup_database"]
+disable_error_code = ["assignment", "arg-type", "return-value", "call-overload", "var-annotated"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

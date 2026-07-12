@@ -195,7 +195,7 @@ class DatabaseBackup:
         }
 
         # Подсчитываем типы backup'ов
-        type_counts = {}
+        type_counts: dict[str, int] = {}
         for metadata in self.backup_metadata.values():
             backup_type = metadata.get("type", "unknown")
             type_counts[backup_type] = type_counts.get(backup_type, 0) + 1

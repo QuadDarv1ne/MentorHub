@@ -45,9 +45,9 @@ class EmailService:
 
             msg.attach(part)
 
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=self.SMTP_TIMEOUT) as server:  # type: ignore[arg-type]
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=self.SMTP_TIMEOUT) as server:
                 server.starttls()
-                server.login(self.smtp_user, self.smtp_password)  # type: ignore[arg-type]
+                server.login(self.smtp_user, self.smtp_password)
                 server.send_message(msg)
 
             logger.info(f"Email sent successfully to {to_email}")

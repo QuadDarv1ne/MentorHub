@@ -17,7 +17,7 @@ try:
     BACKUP_AVAILABLE = True
 except ImportError:
     BACKUP_AVAILABLE = False
-    DatabaseBackup = None  # type: ignore[assignment,misc]
+    DatabaseBackup = None  # type: ignore[misc]
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/backups", tags=["backups"])

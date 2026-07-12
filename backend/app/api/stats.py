@@ -228,7 +228,7 @@ async def get_dashboard_for_user(current_user: User = Depends(get_current_user),
         # Sort activities by created_at descending, filtering out None values first
         activities_with_dates = [a for a in activities if a.get("created_at")]
         activities_without_dates = [a for a in activities if not a.get("created_at")]
-        activities_with_dates.sort(key=lambda x: x["created_at"], reverse=True)  # type: ignore[arg-type,return-value]
+        activities_with_dates.sort(key=lambda x: x["created_at"], reverse=True)
         activities = (activities_with_dates + activities_without_dates)[:10]
 
         return {
