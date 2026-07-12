@@ -229,7 +229,7 @@ class CalendarService:
                 VideoCall.creator_id == self.user.id,
                 VideoCall.participant_id == self.user.id
             ),
-            VideoCall.scheduled_at is not None
+            VideoCall.scheduled_at.isnot(None)
         ).all()
 
         synced = 0

@@ -111,7 +111,7 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-def log_security_event(event_type: str, user_id: str = None, ip_address: str = None, details: str = None):
+def log_security_event(event_type: str, user_id: str | None = None, ip_address: str | None = None, details: str | None = None):
     """Log security-related events"""
     logger = logging.getLogger("security")
     extra = {}

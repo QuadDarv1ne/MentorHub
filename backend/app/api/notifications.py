@@ -225,7 +225,7 @@ async def clear_all_notifications(
     """Удалить все прочитанные уведомления"""
     deleted = db.query(Notification).filter(
         Notification.user_id == current_user.id,
-        Notification.is_read is True
+        Notification.is_read.is_(True)
     ).delete()
 
     db.commit()

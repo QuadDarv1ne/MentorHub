@@ -165,7 +165,12 @@ async def create_subscription(
                 detail=f"Ошибка создания клиента: {customer_result['error']}"
             )
 
-        customer_id = customer_result.get("id")
+        customer_id: str | None = customer_result.get("id")
+        if not customer_id:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Не удалось получить ID клиента Stripe"
+            )
     else:
         customer_id = existing_subscription.stripe_customer_id
 
@@ -179,12 +184,12 @@ async def create_subscription(
     price_id = f"price_{tier}_mock"  # В production: реальный price_id из Stripe
 
     checkout_result = stripe_service.create_checkout_session(
-        customer_id=customer_id,
+        customer_id=customer_id,  # type: ignore[arg-type]
         price_id=price_id,
         success_url=success_url,
         cancel_url=cancel_url,
         mode="subscription",
-        trial_period_days=plan.trial_days
+        trial_period_days=plan["trial_days"]
     )
 
     if "error" in checkout_result and not checkout_result.get("mock"):
@@ -200,16 +205,16 @@ async def create_subscription(
             stripe_customer_id=customer_id,
             tier=getattr(SubscriptionTier, tier.upper()),
             status=SubscriptionStatus.TRIAL,
-            amount=plan.price,
-            currency=plan.currency,
+            amount=plan["price"],
+            currency=plan["currency"],
         )
         db.add(existing_subscription)
     else:
         existing_subscription.stripe_customer_id = customer_id
         existing_subscription.tier = getattr(SubscriptionTier, tier.upper())
         existing_subscription.status = SubscriptionStatus.TRIAL
-        existing_subscription.amount = plan.price
-        existing_subscription.currency = plan.currency
+        existing_subscription.amount = plan["price"]
+        existing_subscription.currency = plan["currency"]
 
     db.commit()
 
@@ -217,7 +222,7 @@ async def create_subscription(
         "checkout_url": checkout_result["url"],
         "subscription_id": existing_subscription.id,
         "tier": tier,
-        "trial_days": plan.trial_days,
+        "trial_days": plan["trial_days"],
     }
 
 

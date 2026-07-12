@@ -92,7 +92,7 @@ async def detailed_health_check(
     """
     Детальная проверка здоровья с расширенной информацией
     """
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "timestamp": time.time(),
         "version": "1.0.0",

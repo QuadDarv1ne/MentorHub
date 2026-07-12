@@ -63,7 +63,6 @@ async def search_mentors(
     # Base query with joinedload to avoid N+1
     query_obj = db.query(Mentor).options(
         joinedload(Mentor.user),
-        joinedload(Mentor.reviews)
     )
 
     # Build filters
@@ -119,9 +118,9 @@ async def search_mentors(
         query_obj = query_obj.join(User) if not query else query_obj
 
     if sort_order.lower() == "asc":
-        query_obj = query_obj.order_by(sort_field.asc())
+        query_obj = query_obj.order_by(sort_field.asc())  # type: ignore[attr-defined]
     else:
-        query_obj = query_obj.order_by(sort_field.desc())
+        query_obj = query_obj.order_by(sort_field.desc())  # type: ignore[attr-defined]
 
     # Count total
     total = query_obj.count()
@@ -164,9 +163,9 @@ async def get_top_rated_mentors(
     """
     return (
         db.query(Mentor)
-        .options(joinedload(Mentor.user), joinedload(Mentor.reviews))
+        .options(joinedload(Mentor.user))
         .filter(Mentor.rating > 0)
-        .order_by(Mentor.rating.desc(), Mentor.total_reviews.desc())
+        .order_by(Mentor.rating.desc())
         .limit(limit)
         .all()
     )

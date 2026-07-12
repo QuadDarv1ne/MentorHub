@@ -188,7 +188,7 @@ class StripeService:
             return {"mock": True, "status": "succeeded", "id": f"refund_{payment_intent_id}"}
 
         try:
-            refund_data = {
+            refund_data: dict[str, Any] = {
                 "payment_intent": payment_intent_id,
             }
 

@@ -5,6 +5,7 @@
 
 import enum
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
@@ -34,6 +35,9 @@ class VideoCall(BaseModel):
     """Модель видеозвонка"""
 
     __tablename__ = "video_calls"
+
+    # Привязка к сессии менторинга
+    session_id = Column(Integer, ForeignKey("sessions.id"), nullable=True, index=True)
 
     # Участники
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -72,9 +76,20 @@ class VideoCall(BaseModel):
     )
 
     # Связи
+    session = relationship("Session", foreign_keys=[session_id])
     creator = relationship("User", foreign_keys=[creator_id])
     participant = relationship("User", foreign_keys=[participant_id])
     chat_room = relationship("ChatRoom", backref="video_calls")
+
+    @property
+    def participants(self) -> list[Any]:
+        """Возвращает список участников звонка (creator + participant)"""
+        result = []
+        if self.creator:
+            result.append(self.creator)
+        if self.participant and self.participant != self.creator:
+            result.append(self.participant)
+        return result
 
     def __repr__(self):
         return f"<VideoCall(id={self.id}, channel='{self.agora_channel}', status={self.status.value})>"

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.user import User
-from app.models.video_call import VideoCall
+from app.models.video_call import CallStatus, VideoCall
 from app.schemas.video_call import AgoraTokenResponse
 from app.services.agora_service import agora_service
 
@@ -37,14 +37,14 @@ async def join_video_call(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id not in [session.student_id, session.mentor_id]:
+    if not session or current_user.id not in [session.student_id, session.mentor_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для присоединения к звонку"
         )
 
     # Проверяем статус звонка
-    if call.status not in ["scheduled", "active"]:
+    if call.status not in [CallStatus.SCHEDULED.value, CallStatus.IN_PROGRESS.value]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Звонок недоступен для присоединения"
@@ -52,7 +52,7 @@ async def join_video_call(
 
     # Генерируем Agora токен
     try:
-        is_host = (current_user.id == session.mentor_id)
+        is_host = bool(current_user.id == session.mentor_id)
         token_data = agora_service.generate_token_for_call(
             call_id=call.id,
             user_id=current_user.id,
@@ -88,21 +88,21 @@ async def start_video_call(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id != session.mentor_id:
+    if not session or current_user.id != session.mentor_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Только ментор может начать звонок"
         )
 
     # Проверяем статус
-    if call.status != "scheduled":
+    if call.status != CallStatus.SCHEDULED.value:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Звонок уже начат или завершен"
         )
 
     # Обновляем статус
-    call.status = "active"
+    call.status = CallStatus.IN_PROGRESS.value
     call.started_at = datetime.now(timezone.utc)
     db.commit()
 
@@ -129,27 +129,27 @@ async def end_video_call(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id not in [session.student_id, session.mentor_id]:
+    if not session or current_user.id not in [session.student_id, session.mentor_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для завершения звонка"
         )
 
     # Проверяем статус
-    if call.status != "active":
+    if call.status != CallStatus.IN_PROGRESS.value:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Звонок не активен"
         )
 
     # Обновляем статус
-    call.status = "ended"
+    call.status = CallStatus.COMPLETED.value
     call.ended_at = datetime.now(timezone.utc)
 
     # Вычисляем длительность
     if call.started_at:
-        duration = (call.ended_at - call.started_at).total_seconds() / 60
-        call.duration_minutes = int(duration)
+        duration = int((call.ended_at - call.started_at).total_seconds())
+        call.duration_seconds = duration
 
     db.commit()
 
@@ -157,7 +157,7 @@ async def end_video_call(
         "message": "Звонок завершен",
         "call_id": call.id,
         "status": call.status,
-        "duration_minutes": call.duration_minutes
+        "duration_seconds": call.duration_seconds
     }
 
 
@@ -181,7 +181,7 @@ async def get_recording_config(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id not in [session.student_id, session.mentor_id]:
+    if not session or current_user.id not in [session.student_id, session.mentor_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав"

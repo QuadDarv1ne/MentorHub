@@ -97,7 +97,7 @@ async def create_payment(
             student_id=current_user.id,
             mentor_id=payment.mentor_id,
             session_id=payment.session_id,
-            amount=payment.amount,
+            amount=Decimal(payment.amount),
             currency=payment.currency or "USD",
             payment_method=payment.payment_method,
             transaction_id=payment.transaction_id,
@@ -227,7 +227,8 @@ async def stripe_webhook(
     if not event:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    if handle_stripe_webhook_event(db, event.get("type"), event):
+    event_type = str(event.get("type") or "")
+    if event_type and handle_stripe_webhook_event(db, event_type, event):
         return {"status": "success"}
     raise HTTPException(status_code=400, detail="Event processing failed")
 
@@ -279,6 +280,7 @@ async def sbp_webhook(
     if not event:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    if handle_sbp_webhook_event(db, event.get("event_type"), event):
+    event_type = str(event.get("event_type") or "")
+    if event_type and handle_sbp_webhook_event(db, event_type, event):
         return {"status": "success"}
     raise HTTPException(status_code=400, detail="Event processing failed")

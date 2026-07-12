@@ -77,8 +77,8 @@ def verify_token(credentials: HTTPAuthorizationCredentials | None = Depends(secu
             )
 
         user_id: int = int(sub_value)
-        email: str = payload.get("email")
-        role: str = payload.get("role")
+        email: str | None = payload.get("email")
+        role: str | None = payload.get("role")
 
         if email is None:
             raise HTTPException(

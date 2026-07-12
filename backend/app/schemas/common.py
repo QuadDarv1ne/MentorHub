@@ -37,7 +37,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     data: list[T]
 
     @classmethod
-    def create(cls, items: list[T], total: int, page: int, page_size: int):
+    def create(cls, items: list[T], total: int, page: int, page_size: int) -> "PaginatedResponse[T]":
         """Создание ответа с пагинацией"""
         total_pages = (total + page_size - 1) // page_size
         return cls(

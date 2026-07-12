@@ -6,7 +6,7 @@ Type hints added for better IDE support and type checking.
 
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import Any
 
@@ -148,7 +148,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self,
         request: Request,
-        call_next: Callable[[Request], Response]
+        call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         method = request.method
         path = request.url.path

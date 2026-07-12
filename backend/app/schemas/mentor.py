@@ -26,7 +26,7 @@ class MentorCreate(MentorBase):
     user_id: int
 
 
-class MentorUpdate(MentorBase):
+class MentorUpdate(BaseModel):
     """Схема для обновления профиля ментора"""
 
     bio: str | None = None

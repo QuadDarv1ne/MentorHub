@@ -4,13 +4,15 @@ Pydantic схемы для прогресса пользователей
 
 from datetime import datetime
 
+from typing import Annotated
+
 from pydantic import BaseModel, ConfigDict, Field, conint
 
 
 class ProgressCreate(BaseModel):
     course_id: int = Field(..., description="Stepik course id")
     lesson_id: int | None = Field(None, description="Stepik lesson id")
-    progress_percent: conint(ge=0, le=100) = Field(..., description="Progress percentage from 0 to 100")
+    progress_percent: Annotated[int, conint(ge=0, le=100)] = Field(..., description="Progress percentage from 0 to 100")
     completed: bool | None = Field(False, description="Whether the lesson/course is completed")
 
 

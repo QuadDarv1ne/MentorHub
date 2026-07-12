@@ -29,7 +29,7 @@ class FCMService:
         title: str,
         body: str,
         data: dict[str, Any] | None = None,
-        db: Session = None
+        db: Session | None = None
     ) -> dict[str, Any]:
         """
         Отправка push-уведомления пользователю
@@ -104,7 +104,7 @@ class FCMService:
         title: str,
         body: str,
         data: dict[str, Any] | None = None,
-        db: Session = None
+        db: Session | None = None
     ) -> dict[str, Any]:
         """
         Массовая отправка уведомлений группе пользователей
@@ -206,7 +206,7 @@ class FCMService:
         token: str,
         platform: str,
         device_name: str | None = None,
-        db: Session = None
+        db: Session | None = None
     ) -> DeviceToken:
         """
         Регистрация токена устройства
@@ -257,7 +257,7 @@ class FCMService:
         self,
         user_id: int,
         token: str,
-        db: Session = None
+        db: Session | None = None
     ) -> bool:
         """
         Удаление токена устройства

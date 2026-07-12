@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_current_user, get_db, rate_limit_dependency
 from app.models.user import User
-from app.models.video_call import VideoCall
+from app.models.video_call import VideoCall, CallStatus
 from app.schemas.video_call import VideoCallCreate, VideoCallListResponse, VideoCallResponse
 
 router = APIRouter()
@@ -22,21 +22,23 @@ def _format_call_response(call: VideoCall) -> dict[str, Any]:
     return {
         "id": call.id,
         "session_id": call.session_id,
-        "channel_name": call.channel_name,
-        "status": call.status,
+        "creator_id": call.creator_id,
+        "creator_username": call.creator.username if call.creator else None,
+        "participant_id": call.participant_id,
+        "participant_username": call.participant.username if call.participant else None,
+        "call_type": call.call_type.value if call.call_type else "one_on_one",
+        "room_id": call.room_id,
+        "agora_channel": call.agora_channel,
+        "agora_token": call.agora_token,
+        "status": call.status.value if call.status else None,
+        "scheduled_at": call.scheduled_at,
         "started_at": call.started_at,
         "ended_at": call.ended_at,
-        "duration_minutes": call.duration_minutes,
+        "duration_seconds": call.duration_seconds,
+        "title": call.title,
+        "description": call.description,
         "created_at": call.created_at,
         "updated_at": call.updated_at,
-        "participants": [
-            {
-                "id": p.id,
-                "full_name": p.full_name,
-                "email": p.email,
-            }
-            for p in call.participants
-        ] if call.participants else []
     }
 
 
@@ -48,7 +50,6 @@ async def create_video_call(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Создать видеозвонок"""
-    # Проверяем, что session существует
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call_data.session_id).first()
 
@@ -70,7 +71,7 @@ async def create_video_call(
         db.query(VideoCall)
         .filter(
             VideoCall.session_id == call_data.session_id,
-            VideoCall.status.in_(["scheduled", "active"])
+            VideoCall.status.in_(["scheduled", CallStatus.IN_PROGRESS.value])
         )
         .first()
     )
@@ -82,27 +83,35 @@ async def create_video_call(
         )
 
     # Создаем звонок
-    channel_name = f"call_{call_data.session_id}_{int(datetime.now(timezone.utc).timestamp())}"
+    agora_channel = f"call_{call_data.session_id}_{int(datetime.now(timezone.utc).timestamp())}"
 
     video_call = VideoCall(
         session_id=call_data.session_id,
-        channel_name=channel_name,
-        status="scheduled"
+        creator_id=current_user.id,
+        participant_id=session.mentor_id if current_user.id != session.mentor_id else session.student_id,
+        agora_channel=agora_channel,
+        status=CallStatus.SCHEDULED,
     )
 
     db.add(video_call)
     db.commit()
     db.refresh(video_call)
 
-    # Загружаем участников
-    video_call = (
+    # Загружаем связи
+    refreshed_call = (
         db.query(VideoCall)
-        .options(joinedload(VideoCall.participants))
+        .options(joinedload(VideoCall.creator), joinedload(VideoCall.participant))
         .filter(VideoCall.id == video_call.id)
         .first()
     )
 
-    return _format_call_response(video_call)
+    if not refreshed_call:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось загрузить созданный звонок"
+        )
+
+    return _format_call_response(refreshed_call)
 
 
 @router.get("/", response_model=VideoCallListResponse)
@@ -132,7 +141,7 @@ async def get_video_calls(
     # Базовый запрос
     query = (
         db.query(VideoCall)
-        .options(joinedload(VideoCall.participants))
+        .options(joinedload(VideoCall.creator), joinedload(VideoCall.participant))
         .filter(VideoCall.session_id.in_(session_ids))
     )
 
@@ -170,7 +179,7 @@ async def get_video_call(
     """Получить информацию о видеозвонке"""
     call = (
         db.query(VideoCall)
-        .options(joinedload(VideoCall.participants))
+        .options(joinedload(VideoCall.creator), joinedload(VideoCall.participant))
         .filter(VideoCall.id == call_id)
         .first()
     )
@@ -185,7 +194,7 @@ async def get_video_call(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id not in [session.student_id, session.mentor_id]:
+    if not session or current_user.id not in [session.student_id, session.mentor_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для просмотра звонка"
@@ -202,7 +211,12 @@ async def cancel_video_call(
     rate_limit: bool = Depends(rate_limit_dependency),
 ):
     """Отменить видеозвонок"""
-    call = db.query(VideoCall).filter(VideoCall.id == call_id).first()
+    call = (
+        db.query(VideoCall)
+        .options(joinedload(VideoCall.creator), joinedload(VideoCall.participant))
+        .filter(VideoCall.id == call_id)
+        .first()
+    )
 
     if not call:
         raise HTTPException(
@@ -214,20 +228,20 @@ async def cancel_video_call(
     from app.models.session import Session as SessionModel
     session = db.query(SessionModel).filter(SessionModel.id == call.session_id).first()
 
-    if current_user.id not in [session.student_id, session.mentor_id]:
+    if not session or current_user.id not in [session.student_id, session.mentor_id]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Недостаточно прав для отмены звонка"
         )
 
     # Можно отменить только запланированные звонки
-    if call.status not in ["scheduled"]:
+    if call.status not in [CallStatus.SCHEDULED]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Можно отменить только запланированные звонки"
         )
 
-    call.status = "cancelled"
+    call.status = CallStatus.CANCELLED.value
     db.commit()
 
     return None

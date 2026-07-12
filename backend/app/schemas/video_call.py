@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict
 class VideoCallCreate(BaseModel):
     """Создание видеозвонка"""
 
+    session_id: int
     participant_id: int | None = None  # Для 1-on-1
     room_id: int | None = None  # Для групповых
     title: str | None = None
@@ -30,6 +31,7 @@ class VideoCallResponse(BaseModel):
     """Ответ с данными звонка"""
 
     id: int
+    session_id: int | None = None
     creator_id: int
     creator_username: str | None = None
     participant_id: int | None = None

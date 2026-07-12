@@ -174,7 +174,7 @@ async def shutdown_redis():
 
     if redis_client:
         try:
-            await redis_client.aclose()
+            await redis_client.aclose()  # type: ignore[attr-defined]
             logger.info("✅ Redis connection closed")
         except Exception as e:
             logger.error(f"❌ Error closing Redis connection: {e}")

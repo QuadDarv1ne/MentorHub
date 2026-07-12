@@ -49,10 +49,10 @@ def collect_user_data(db: Session, current_user: User) -> dict[str, Any]:
             "is_verified": current_user.is_verified,
             "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
             "updated_at": current_user.updated_at.isoformat() if current_user.updated_at else None,
-            "bio": current_user.bio,
-            "phone": current_user.phone,
-            "timezone": current_user.timezone,
-            "language": current_user.language,
+            "bio": getattr(current_user, "bio", None),
+            "phone": getattr(current_user, "phone", None),
+            "timezone": getattr(current_user, "timezone", None),
+            "language": getattr(current_user, "language", None),
         },
         "sessions": _collect_sessions(db, current_user.id),
         "payments": _collect_payments(db, current_user.id),
@@ -159,7 +159,6 @@ def _collect_achievements(db: Session, user_id: int) -> list[dict]:
         result.append({
             "id": achievement.id,
             "user_id": achievement.user_id,
-            "achievement_id": achievement.achievement_id,
             "earned_at": achievement.earned_at.isoformat() if achievement.earned_at else None,
         })
     return result
@@ -201,7 +200,7 @@ def _collect_enrollments(db: Session, user_id: int) -> list[dict]:
             "id": enrollment.id,
             "user_id": enrollment.user_id,
             "course_id": enrollment.course_id,
-            "enrolled_at": enrollment.enrolled_at.isoformat() if enrollment.enrolled_at else None,
+            "created_at": enrollment.created_at.isoformat() if enrollment.created_at else None,
             "completed": enrollment.completed,
             "completed_at": enrollment.completed_at.isoformat() if enrollment.completed_at else None,
         })
@@ -211,34 +210,48 @@ def _collect_enrollments(db: Session, user_id: int) -> list[dict]:
 def get_user_data_counts(db: Session, user_id: int) -> dict[str, int]:
     """Get counts of user data records."""
     return {
-        "sessions": db.execute(
-            select(SessionModel).where(
-                (SessionModel.student_id == user_id) |
-                (SessionModel.mentor_id == user_id)
-            )
-        ).scalars().count(),
-        "payments": db.execute(
-            select(Payment).where(
-                (Payment.student_id == user_id) |
-                (Payment.mentor_id == user_id)
-            )
-        ).scalars().count(),
-        "reviews": db.execute(
-            select(Review).where(Review.user_id == user_id)
-        ).scalars().count(),
-        "progress": db.execute(
-            select(Progress).where(Progress.user_id == user_id)
-        ).scalars().count(),
-        "achievements": db.execute(
-            select(Achievement).where(Achievement.user_id == user_id)
-        ).scalars().count(),
-        "messages": db.execute(
-            select(Message).where(
-                (Message.sender_id == user_id) |
-                (Message.recipient_id == user_id)
-            )
-        ).scalars().count(),
-        "enrollments": db.execute(
-            select(CourseEnrollment).where(CourseEnrollment.user_id == user_id)
-        ).scalars().count(),
+        "sessions": len(
+            db.execute(
+                select(SessionModel).where(
+                    (SessionModel.student_id == user_id) |
+                    (SessionModel.mentor_id == user_id)
+                )
+            ).scalars().all()
+        ),
+        "payments": len(
+            db.execute(
+                select(Payment).where(
+                    (Payment.student_id == user_id) |
+                    (Payment.mentor_id == user_id)
+                )
+            ).scalars().all()
+        ),
+        "reviews": len(
+            db.execute(
+                select(Review).where(Review.user_id == user_id)
+            ).scalars().all()
+        ),
+        "progress": len(
+            db.execute(
+                select(Progress).where(Progress.user_id == user_id)
+            ).scalars().all()
+        ),
+        "achievements": len(
+            db.execute(
+                select(Achievement).where(Achievement.user_id == user_id)
+            ).scalars().all()
+        ),
+        "messages": len(
+            db.execute(
+                select(Message).where(
+                    (Message.sender_id == user_id) |
+                    (Message.recipient_id == user_id)
+                )
+            ).scalars().all()
+        ),
+        "enrollments": len(
+            db.execute(
+                select(CourseEnrollment).where(CourseEnrollment.user_id == user_id)
+            ).scalars().all()
+        ),
     }

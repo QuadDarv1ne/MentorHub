@@ -4,11 +4,13 @@ Pydantic схемы для отзывов
 
 from datetime import datetime
 
+from typing import Annotated
+
 from pydantic import BaseModel, ConfigDict, Field, conint
 
 
 class ReviewCreate(BaseModel):
-    rating: conint(ge=1, le=5) = Field(..., description="Rating from 1 to 5")
+    rating: Annotated[int, conint(ge=1, le=5)] = Field(..., description="Rating from 1 to 5")
     comment: str | None = Field(None, max_length=2000)
 
 
@@ -34,7 +36,7 @@ class ReviewAggregate(BaseModel):
 
 class ReviewCreateGeneric(BaseModel):
     """Create a review for a mentor (optionally tied to a session/course)"""
-    rating: conint(ge=1, le=5) = Field(..., description="Rating from 1 to 5")
+    rating: Annotated[int, conint(ge=1, le=5)] = Field(..., description="Rating from 1 to 5")
     comment: str | None = Field(None, max_length=2000)
     reviewed_id: int | None = Field(None, description="ID of the mentor being reviewed")
     session_id: int | None = Field(None, description="ID of the session (for validation)")

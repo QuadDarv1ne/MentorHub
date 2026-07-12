@@ -123,9 +123,9 @@ async def create_session(
     mentors = db.query(Mentor).filter(
         or_(Mentor.id == session.mentor_id, Mentor.user_id == current_user.id)
     ).all()
-    mentor_map = {m.id: m for m in mentors}
+    mentor_map = {int(m.id): m for m in mentors}
 
-    session_mentor = mentor_map.get(session.mentor_id)
+    session_mentor = mentor_map.get(int(session.mentor_id))
     if not session_mentor:
         raise HTTPException(status_code=404, detail="Ментор не найден")
 

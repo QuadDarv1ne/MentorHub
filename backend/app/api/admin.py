@@ -239,7 +239,7 @@ async def get_user_stats(
     engagement_score = 0
     engagement_score += min(sessions_count * 3, 30)
     engagement_score += min(enrollments_count * 5, 25)
-    engagement_score += min(avg_progress * 0.3, 30)
+    engagement_score += int(min(avg_progress * 0.3, 30))
     engagement_score += min(reviews_count * 5, 15)
     engagement_score = min(int(engagement_score), 100)
 

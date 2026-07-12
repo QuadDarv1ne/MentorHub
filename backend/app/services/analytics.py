@@ -38,7 +38,7 @@ class AnalyticsService:
             total_users = self.db.query(User).count()
             total_students = self.db.query(User).filter(User.role == UserRole.STUDENT).count()
             total_mentors = self.db.query(User).filter(User.role == UserRole.MENTOR).count()
-            verified_users = self.db.query(User).filter(User.is_verified is True).count()
+            verified_users = self.db.query(User).filter(User.is_verified == True).count()  # noqa: E712
 
             # Сессии
             total_sessions = self.db.query(MentorSession).count()
@@ -415,7 +415,7 @@ class AnalyticsService:
         score += min(enrollments * 5, 25)
 
         # Прогресс (до 30 баллов)
-        score += min(avg_progress * 0.3, 30)
+        score += int(min(avg_progress * 0.3, 30))
 
         # Отзывы (до 15 баллов)
         score += min(reviews * 5, 15)

@@ -17,7 +17,7 @@ def retry_on_exception(
     delay: float = 1.0,
     backoff: float = 2.0,
     retry_callback: Callable | None = None,
-):
+) -> Callable:
     """
     Декоратор для повторных попыток выполнения функции при возникновении исключений.
 
@@ -40,11 +40,11 @@ def retry_on_exception(
             pass
     """
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: object, **kwargs: object) -> object:
             current_delay = delay
-            last_exception = None
+            last_exception: Exception | None = None
 
             for attempt in range(max_retries):
                 try:
@@ -68,7 +68,9 @@ def retry_on_exception(
                             f"{func.__name__} failed after {max_retries} attempts: {e}"
                         )
 
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError("Unexpected: no exception caught in retry loop")
 
         return wrapper
 
@@ -81,7 +83,7 @@ async def retry_on_exception_async(
     delay: float = 1.0,
     backoff: float = 2.0,
     retry_callback: Callable | None = None,
-):
+) -> Callable:
     """
     Асинхронный декоратор для повторных попыток выполнения функции.
 
@@ -104,11 +106,11 @@ async def retry_on_exception_async(
             pass
     """
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: object, **kwargs: object) -> object:
             current_delay = delay
-            last_exception = None
+            last_exception: Exception | None = None
 
             for attempt in range(max_retries):
                 try:
@@ -132,7 +134,9 @@ async def retry_on_exception_async(
                             f"{func.__name__} failed after {max_retries} attempts: {e}"
                         )
 
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError("Unexpected: no exception caught in async retry loop")
 
         return wrapper
 

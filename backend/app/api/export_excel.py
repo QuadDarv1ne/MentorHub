@@ -91,7 +91,7 @@ def export_as_excel(data: dict[str, Any]) -> Response:
 
     # Sheet 4: Statistics
     ws_stats = wb.create_sheet(title="Statistics")
-    stats_data = [
+    stats_data: list[list[Any]] = [
         ["Category", "Count"],
         ["Sessions", len(data["sessions"])],
         ["Payments", len(data["payments"])],

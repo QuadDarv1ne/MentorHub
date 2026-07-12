@@ -25,7 +25,7 @@ class ErrorResponse:
         self,
         status_code: int,
         message: str,
-        detail: str | None = None,
+        detail: str | list[dict[str, Any]] | None = None,
         error_code: str | None = None,
         path: str | None = None,
         timestamp: str | None = None,
@@ -199,9 +199,9 @@ def register_error_handlers(app: FastAPI) -> None:
     Args:
         app: FastAPI приложение
     """
-    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-    app.add_exception_handler(RequestValidationError, validation_exception_handler)
-    app.add_exception_handler(SQLAlchemyError, database_exception_handler)
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(SQLAlchemyError, database_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, general_exception_handler)
 
     logger.info("✅ Error handlers registered")

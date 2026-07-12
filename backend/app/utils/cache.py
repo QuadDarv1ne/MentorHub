@@ -59,7 +59,7 @@ class CacheManager:
     async def get(self, key: str) -> Any | None:
         """Получение значения из кеша"""
         try:
-            if self.use_redis:
+            if self.use_redis and self.redis is not None:
                 value = await self.redis.get(key)
                 if value:
                     self.stats["hits"] += 1
@@ -81,7 +81,7 @@ class CacheManager:
             serialized_value = json.dumps(value)
             value_size = len(serialized_value)
 
-            if self.use_redis:
+            if self.use_redis and self.redis is not None:
                 await self.redis.setex(key, ttl or DEFAULT_CACHE_EXPIRATION, serialized_value)
                 self.cache_sizes["redis"] += value_size
             else:
@@ -101,7 +101,7 @@ class CacheManager:
     async def delete(self, key: str) -> None:
         """Удаление из кеша"""
         try:
-            if self.use_redis:
+            if self.use_redis and self.redis is not None:
                 value = await self.redis.get(key)
                 if value:
                     self.cache_sizes["redis"] -= len(value)
@@ -118,7 +118,7 @@ class CacheManager:
     async def clear(self, pattern: str = "*") -> None:
         """Очистка кеша по паттерну"""
         try:
-            if self.use_redis:
+            if self.use_redis and self.redis is not None:
                 keys = await self.redis.keys(pattern)
                 if keys:
                     self.cache_sizes["redis"] = 0

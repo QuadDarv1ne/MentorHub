@@ -85,8 +85,8 @@ class RateLimiter:
                 self.redis = None
 
         # Fallback to memory store
-        current_time = datetime.now()
-        window_start = current_time - timedelta(seconds=window_seconds)
+        now = datetime.now()
+        window_start = now - timedelta(seconds=window_seconds)
 
         # Clean old entries
         self.memory_store[key] = [
@@ -100,7 +100,7 @@ class RateLimiter:
             return True
 
         # Record request
-        self.memory_store[key].append(current_time)
+        self.memory_store[key].append(now)
         return False
 
 

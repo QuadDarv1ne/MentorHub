@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     @field_validator("DEBUG", mode="before")
     @classmethod
-    def validate_debug(cls, v):
+    def validate_debug(cls, v: object) -> bool:
         """Валидация DEBUG из переменных окружения"""
         if isinstance(v, str):
             return v.lower() in ("true", "1", "yes", "on")
@@ -58,7 +58,7 @@ class Settings(BaseSettings):
 
     @field_validator("SECRET_KEY", mode="after")
     @classmethod
-    def validate_secret_key(cls, v):
+    def validate_secret_key(cls, v: str) -> str:
         """Валидация SECRET_KEY - запрещено использовать значения по умолчанию"""
         if not v or v == "your-secret-key-change-in-production":
             # В production это критическая ошибка, в development - предупреждение
@@ -132,7 +132,7 @@ class Settings(BaseSettings):
     # 1. Environment variable CORS_ORIGINS (comma-separated) - highest priority
     # 2. Default origins based on environment
     @model_validator(mode="after")
-    def setup_cors_origins(self):
+    def setup_cors_origins(self) -> "Settings":
         """Setup CORS origins based on environment"""
         # Get CORS_ORIGINS directly from environment (bypassing pydantic)
         env_cors = os.environ.get("CORS_ORIGINS", "").strip()
@@ -183,7 +183,7 @@ class Settings(BaseSettings):
     AGORA_APP_CERTIFICATE: str = ""
 
     @model_validator(mode='after')
-    def validate_agora_secrets(self):
+    def validate_agora_secrets(self) -> "Settings":
         """Валидация Agora секретов - предупреждения в production"""
         if self.ENVIRONMENT == "production" and self.AGORA_APP_ID and len(self.AGORA_APP_CERTIFICATE) < OAUTH_SECRET_MIN_LENGTH:
             logging.getLogger("config").warning(
@@ -261,7 +261,7 @@ class Settings(BaseSettings):
     HSTS_SECONDS: int = HSTS_MAX_AGE
 
     @model_validator(mode='after')
-    def validate_allowed_hosts(self):
+    def validate_allowed_hosts(self) -> "Settings":
         """Валидация ALLOWED_HOSTS - запрет wildcard в production"""
         if self.ENVIRONMENT == "production":
             if "*" in self.ALLOWED_HOSTS or any(host == "*" for host in self.ALLOWED_HOSTS):
@@ -308,7 +308,7 @@ class Settings(BaseSettings):
     OAUTH_REDIRECT_URI: str = "http://localhost:3000/auth/callback"
 
     @model_validator(mode='after')
-    def validate_oauth_secrets(self):
+    def validate_oauth_secrets(self) -> "Settings":
         """Валидация OAuth секретов - предупреждения в production"""
         if self.ENVIRONMENT == "production":
             # Google OAuth

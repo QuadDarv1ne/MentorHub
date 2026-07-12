@@ -23,7 +23,7 @@ async def authenticate_and_join_room(
     room_id: int,
     token: str,
     db: Session
-) -> User:
+) -> tuple[User, ChatRoom]:
     """Authenticate user and join room."""
     # Authenticate
     from app.utils.security import decode_access_token
@@ -155,17 +155,17 @@ async def websocket_room_handler(
             return
 
         # Authenticate and join room
-        user, room = await authenticate_and_join_room(websocket, room_id, token, db)
+        authenticated_user, room = await authenticate_and_join_room(websocket, room_id, token, db)
 
         # Connect and join room
-        await manager.connect(websocket, user.id)
-        await manager.join_room(room_id, user.id)
+        await manager.connect(websocket, authenticated_user.id)
+        await manager.join_room(room_id, authenticated_user.id)
 
         # Send connection confirmation
         await websocket.send_json({
             "type": "connected",
-            "user_id": user.id,
-            "username": user.username,
+            "user_id": authenticated_user.id,
+            "username": authenticated_user.username,
             "room_id": room_id,
             "room_name": room.name,
             "online_members": manager.get_room_online_members(room_id)
@@ -174,9 +174,9 @@ async def websocket_room_handler(
         # Notify others about user joining
         await manager.broadcast_to_room(room_id, {
             "type": "user_joined",
-            "user_id": user.id,
-            "username": user.username
-        }, exclude_user_id=user.id)
+            "user_id": authenticated_user.id,
+            "username": authenticated_user.username
+        }, exclude_user_id=authenticated_user.id)
 
         # Main message loop
         while True:
@@ -184,10 +184,10 @@ async def websocket_room_handler(
             message_type = data.get("type")
 
             if message_type == "message":
-                await handle_room_message(websocket, data, user, room_id, db)
+                await handle_room_message(websocket, data, authenticated_user, room_id, db)
 
             elif message_type == "typing":
-                await handle_room_typing(data, user, room_id)
+                await handle_room_typing(data, authenticated_user, room_id)
 
             elif message_type == "ping":
                 await websocket.send_json({"type": "pong"})

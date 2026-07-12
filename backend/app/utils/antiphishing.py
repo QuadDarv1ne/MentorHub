@@ -6,6 +6,7 @@ URL safety checking and phishing detection.
 
 import logging
 import re
+from typing import Any
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class AntiPhishingValidator:
     ]
 
     @classmethod
-    def check_url_safety(cls, url: str) -> dict:
+    def check_url_safety(cls, url: str) -> dict[str, Any]:
         """
         Check URL safety for phishing indicators.
 
@@ -65,7 +66,7 @@ class AntiPhishingValidator:
         Returns:
             Dictionary with safety analysis
         """
-        result = {
+        result: dict[str, Any] = {
             "url": url,
             "is_safe": True,
             "risk_score": 0,
@@ -156,7 +157,7 @@ class AntiPhishingValidator:
         Returns:
             Dictionary with analysis
         """
-        result = {
+        result: dict[str, Any] = {
             "subject": subject,
             "is_suspicious": False,
             "risk_score": 0,

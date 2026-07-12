@@ -92,7 +92,7 @@ class PasswordValidator:
     @classmethod
     def validate_password(cls, password: str) -> dict[str, Any]:
         """Валидация пароля"""
-        result = {"is_valid": True, "errors": [], "strength": 0, "strength_label": ""}
+        result: dict[str, Any] = {"is_valid": True, "errors": [], "strength": 0, "strength_label": ""}
 
         if len(password) < cls.MIN_LENGTH:
             result["errors"].append(f"Минимум {cls.MIN_LENGTH} символов")
