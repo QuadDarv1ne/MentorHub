@@ -3,8 +3,10 @@ Device Token model for Firebase Cloud Messaging
 Модель токенов устройств для Firebase Cloud Messaging
 """
 
-from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String
-from sqlalchemy.orm import relationship
+from typing import Optional
+
+from sqlalchemy import Boolean, ForeignKey, Index, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -15,19 +17,19 @@ class DeviceToken(BaseModel, TimestampMixin):
     __tablename__ = "device_tokens"
 
     # Связь с пользователем
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     # Токен устройства
-    token = Column(String(512), nullable=False, unique=True, index=True)
+    token: Mapped[str] = mapped_column(String(512), nullable=False, unique=True, index=True)
 
     # Платформа устройства
-    platform = Column(String(20), nullable=False)  # ios, android, web
+    platform: Mapped[str] = mapped_column(String(20), nullable=False)  # ios, android, web
 
     # Название устройства (опционально)
-    device_name = Column(String(100), nullable=True)
+    device_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Активен ли токен
-    is_active = Column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Связи
     user = relationship("User", back_populates="device_tokens")

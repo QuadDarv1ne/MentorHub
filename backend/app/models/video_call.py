@@ -5,11 +5,11 @@
 
 import enum
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
 
@@ -37,38 +37,38 @@ class VideoCall(BaseModel):
     __tablename__ = "video_calls"
 
     # Привязка к сессии менторинга
-    session_id = Column(Integer, ForeignKey("sessions.id"), nullable=True, index=True)
+    session_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("sessions.id"), nullable=True, index=True)
 
     # Участники
-    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    call_type = Column(SQLEnum(CallType), default=CallType.ONE_ON_ONE, nullable=False)
+    creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    call_type: Mapped[CallType] = mapped_column(SQLEnum(CallType), default=CallType.ONE_ON_ONE, nullable=False)
 
     # Для 1-on-1
-    participant_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    participant_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
     # Для групповых звонков
-    room_id = Column(Integer, ForeignKey("chat_rooms.id"), nullable=True, index=True)
+    room_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("chat_rooms.id"), nullable=True, index=True)
 
     # Agora
-    agora_channel = Column(String(255), nullable=False, unique=True, index=True)
-    agora_token = Column(String(2048), nullable=True)
+    agora_channel: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    agora_token: Mapped[Optional[str]] = mapped_column(String(2048), nullable=True)
 
     # Статус
-    status = Column(SQLEnum(CallStatus), default=CallStatus.SCHEDULED, nullable=False, index=True)
+    status: Mapped[CallStatus] = mapped_column(SQLEnum(CallStatus), default=CallStatus.SCHEDULED, nullable=False, index=True)
 
     # Время
-    scheduled_at = Column(DateTime(timezone=True), nullable=True, index=True)
-    started_at = Column(DateTime(timezone=True), nullable=True)
-    ended_at = Column(DateTime(timezone=True), nullable=True)
-    duration_seconds = Column(Integer, nullable=True)
+    scheduled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     # Метаданные
-    title = Column(String(255), nullable=True)
-    description = Column(String(1000), nullable=True)
+    title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
 
     # Timestamp fields
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = Column(
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),

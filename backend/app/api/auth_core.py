@@ -131,7 +131,7 @@ async def login(
         )
 
     # Проверка пароля
-    password_valid = verify_password(credentials.password, user.hashed_password)
+    password_valid = verify_password(credentials.password, user.hashed_password or "")
 
     if not password_valid:
         brute_force_protection.record_failed_attempt(sanitized_email)

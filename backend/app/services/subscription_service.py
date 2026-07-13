@@ -10,7 +10,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.subscription import Subscription, SubscriptionStatus
+from app.models.subscription import Subscription, SubscriptionStatus, SubscriptionTier
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -220,7 +220,7 @@ class SubscriptionService:
             if not plan:
                 return False
 
-            subscription.tier = new_tier
+            subscription.tier = SubscriptionTier(new_tier)
             subscription.amount = plan["price"]
             self.db.commit()
             return True
