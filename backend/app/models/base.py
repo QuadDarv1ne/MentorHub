@@ -5,8 +5,8 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column
+from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy.orm import declared_attr
 
 from app.database import Base
 
@@ -16,7 +16,7 @@ class BaseModel(Base):
 
     __abstract__ = True
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     @declared_attr
     def __tablename__(cls):
@@ -27,8 +27,8 @@ class BaseModel(Base):
 class TimestampMixin:
     """Mixin для временных меток created_at и updated_at"""
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),

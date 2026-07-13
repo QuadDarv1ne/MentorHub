@@ -4,10 +4,9 @@
 """
 
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
 
@@ -25,15 +24,15 @@ class ChatRoom(BaseModel):
 
     __tablename__ = "chat_rooms"
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    is_private: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    course_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("courses.id"), nullable=True, index=True)  # Для курсовых чатов
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    is_private = Column(Boolean, default=False, nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True, index=True)  # Для курсовых чатов
 
     # Timestamp fields
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
@@ -54,22 +53,22 @@ class ChatMessage(BaseModel):
 
     __tablename__ = "chat_messages"
 
-    room_id: Mapped[int] = mapped_column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"), nullable=False, index=True)
-    sender_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    is_edited: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    room_id = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    is_edited = Column(Boolean, default=False, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)
 
     # Вложения
-    attachment_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    attachment_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # image, document, video
+    attachment_url = Column(String(512), nullable=True)
+    attachment_type = Column(String(50), nullable=True)  # image, document, video
 
     # Для тредов
-    parent_message_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("chat_messages.id"), nullable=True, index=True)
+    parent_message_id = Column(Integer, ForeignKey("chat_messages.id"), nullable=True, index=True)
 
     # Timestamp fields
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),

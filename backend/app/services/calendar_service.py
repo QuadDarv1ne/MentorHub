@@ -244,7 +244,7 @@ class CalendarService:
                     title=f"Video Call #{call.id}",
                     description=getattr(call, 'description', None),
                     start_time=call.scheduled_at,
-                    end_time=(call.scheduled_at + timedelta(hours=1)) if call.scheduled_at else datetime.now(timezone.utc),
+                    end_time=call.scheduled_at + timedelta(hours=1),
                     external_id=f"call_{call.id}",
                     video_call_id=call.id
                 )

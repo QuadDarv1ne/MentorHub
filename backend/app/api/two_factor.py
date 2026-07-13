@@ -122,7 +122,7 @@ async def verify_2fa(
             )
 
         # Верификация кода
-        totp = pyotp.TOTP(current_user.two_factor_secret or "")
+        totp = pyotp.TOTP(current_user.two_factor_secret)
 
         if not totp.verify(verify_data.code, valid_window=1):
             raise HTTPException(
@@ -164,7 +164,7 @@ async def disable_2fa(
             )
 
         # Верификация кода
-        totp = pyotp.TOTP(current_user.two_factor_secret or "")
+        totp = pyotp.TOTP(current_user.two_factor_secret)
 
         if not totp.verify(verify_data.code, valid_window=1):
             raise HTTPException(
@@ -244,7 +244,7 @@ async def verify_2fa_login(
             )
 
         # Верификация 2FA кода
-        totp = pyotp.TOTP(user.two_factor_secret or "")
+        totp = pyotp.TOTP(user.two_factor_secret)
 
         if not totp.verify(verify_data.code, valid_window=1):
             raise HTTPException(

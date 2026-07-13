@@ -241,7 +241,7 @@ async def cancel_video_call(
             detail="Можно отменить только запланированные звонки"
         )
 
-    call.status = CallStatus.CANCELLED
+    call.status = CallStatus.CANCELLED.value
     db.commit()
 
     return None

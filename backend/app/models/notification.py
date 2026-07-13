@@ -4,11 +4,10 @@ Notification system
 """
 
 import enum
-from typing import Optional
 
-from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -57,22 +56,22 @@ class Notification(BaseModel, TimestampMixin):
     )
 
     # Получатель
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Тип и содержание
-    notification_type: Mapped[NotificationType] = mapped_column(SQLEnum(NotificationType, name="notification_type_enum"), nullable=False, index=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    message: Mapped[str] = mapped_column(Text, nullable=False)
+    notification_type = Column(SQLEnum(NotificationType, name="notification_type_enum"), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
 
     # Дополнительные данные (JSON)
-    data: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string
+    data = Column(Text, nullable=True)  # JSON string
 
     # Ссылка на связанный объект
-    link: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    link = Column(String(512), nullable=True)
 
     # Статус
-    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
-    read_at: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Unix timestamp
+    is_read = Column(Boolean, default=False, nullable=False, index=True)
+    read_at = Column(Integer, nullable=True)  # Unix timestamp
 
     # Связи с cascade delete
     user = relationship("User", back_populates="notifications")

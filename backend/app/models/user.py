@@ -4,11 +4,10 @@
 """
 
 import enum
-from typing import Optional
 
-from sqlalchemy import Boolean, Index, String
+from sqlalchemy import Boolean, Column, Index, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -26,24 +25,24 @@ class User(BaseModel, TimestampMixin):
 
     __tablename__ = "users"
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Может быть None для OAuth пользователей
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=True)  # Может быть None для OAuth пользователей
 
     # OAuth поля
-    oauth_provider: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # "google", "github"
-    oauth_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # ID от OAuth провайдера
+    oauth_provider = Column(String(50), nullable=True)  # "google", "github"
+    oauth_id = Column(String(255), nullable=True)  # ID от OAuth провайдера
 
-    full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    avatar_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    full_name = Column(String(255), nullable=True)
+    avatar_url = Column(String(512), nullable=True)
 
-    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.STUDENT, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)  # OAuth пользователи верифицированы
+    role = Column(SQLEnum(UserRole), default=UserRole.STUDENT, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_verified = Column(Boolean, default=True, nullable=False)  # OAuth пользователи верифицированы
 
     # 2FA поля
-    two_factor_enabled: Mapped[Optional[bool]] = mapped_column(Boolean, default=False, nullable=True)
-    two_factor_secret: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Зашифрованный TOTP секрет
+    two_factor_enabled = Column(Boolean, default=False, nullable=True)
+    two_factor_secret = Column(String(255), nullable=True)  # Зашифрованный TOTP секрет
 
     # Связи
     mentor_profile = relationship("Mentor", back_populates="user", uselist=False)

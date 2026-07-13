@@ -5,11 +5,9 @@ Subscription model for recurring payments
 
 import enum
 from datetime import datetime, timezone
-from decimal import Decimal
-from typing import Optional
 
-from sqlalchemy import DECIMAL, Boolean, DateTime, Enum, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import DECIMAL, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -36,38 +34,38 @@ class Subscription(Base):
     """Модель подписки пользователя"""
     __tablename__ = "subscriptions"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
     # Stripe информация
-    stripe_subscription_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, index=True, nullable=True)
-    stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
-    stripe_price_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    stripe_subscription_id = Column(String(255), unique=True, index=True, nullable=True)
+    stripe_customer_id = Column(String(255), index=True, nullable=True)
+    stripe_price_id = Column(String(255), nullable=True)
 
     # Информация о подписке
-    tier: Mapped[SubscriptionTier] = mapped_column(Enum(SubscriptionTier), nullable=False, default=SubscriptionTier.FREE)
-    status: Mapped[SubscriptionStatus] = mapped_column(Enum(SubscriptionStatus), nullable=False, default=SubscriptionStatus.FREE)
+    tier = Column(Enum(SubscriptionTier), nullable=False, default=SubscriptionTier.FREE)
+    status = Column(Enum(SubscriptionStatus), nullable=False, default=SubscriptionStatus.FREE)
 
     # Даты
-    trial_start: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    trial_end: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    current_period_start: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    current_period_end: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    trial_start = Column(DateTime, nullable=True)
+    trial_end = Column(DateTime, nullable=True)
+    current_period_start = Column(DateTime, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    cancelled_at = Column(DateTime, nullable=True)
 
     # Оплата
-    amount: Mapped[Optional[Decimal]] = mapped_column(DECIMAL(10, 2), nullable=True)  # Сумма в месяц
-    currency: Mapped[str] = mapped_column(String(10), default="USD")
+    amount = Column(DECIMAL(10, 2), nullable=True)  # Сумма в месяц
+    currency = Column(String(10), default="USD")
 
     # Методы оплаты
-    default_payment_method: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Stripe payment method ID
+    default_payment_method = Column(String(255), nullable=True)  # Stripe payment method ID
 
     # Флаги
-    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False)  # Отменена в конце периода
+    cancel_at_period_end = Column(Boolean, default=False)  # Отменена в конце периода
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="subscription")
@@ -84,7 +82,7 @@ class Subscription(Base):
     def is_trial(self) -> bool:
         """Проверка пробного периода"""
         if self.trial_end and self.status == SubscriptionStatus.TRIAL:
-            return bool(datetime.now(timezone.utc) < self.trial_end)
+            return datetime.now(timezone.utc) < self.trial_end
         return False
 
     @property

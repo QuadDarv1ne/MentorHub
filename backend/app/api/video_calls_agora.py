@@ -102,7 +102,7 @@ async def start_video_call(
         )
 
     # Обновляем статус
-    call.status = CallStatus.IN_PROGRESS
+    call.status = CallStatus.IN_PROGRESS.value
     call.started_at = datetime.now(timezone.utc)
     db.commit()
 
@@ -143,7 +143,7 @@ async def end_video_call(
         )
 
     # Обновляем статус
-    call.status = CallStatus.COMPLETED
+    call.status = CallStatus.COMPLETED.value
     call.ended_at = datetime.now(timezone.utc)
 
     # Вычисляем длительность

@@ -5,10 +5,9 @@
 
 import enum
 from datetime import datetime, timezone
-from typing import Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
 
@@ -29,17 +28,17 @@ class Session(BaseModel):
 
     __tablename__ = "sessions"
 
-    student_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True, nullable=False)
-    mentor_id: Mapped[int] = mapped_column(Integer, ForeignKey("mentors.id"), index=True, nullable=False)
-    scheduled_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
-    duration_minutes: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
-    status: Mapped[SessionStatus] = mapped_column(Enum(SessionStatus), default=SessionStatus.SCHEDULED, nullable=False)
-    meeting_link: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    student_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    mentor_id = Column(Integer, ForeignKey("mentors.id"), index=True, nullable=False)
+    scheduled_at = Column(DateTime, nullable=False, index=True)
+    duration_minutes = Column(Integer, default=60, nullable=False)
+    status = Column(Enum(SessionStatus), default=SessionStatus.SCHEDULED, nullable=False)
+    meeting_link = Column(String(512), nullable=True)
+    notes = Column(Text, nullable=True)
 
     # Timestamp fields
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),

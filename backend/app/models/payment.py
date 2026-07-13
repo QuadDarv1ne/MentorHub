@@ -5,10 +5,9 @@
 
 import enum
 from datetime import datetime, timezone
-from typing import Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
 
@@ -27,18 +26,18 @@ class Payment(BaseModel):
 
     __tablename__ = "payments"
 
-    student_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True, nullable=False)
-    mentor_id: Mapped[int] = mapped_column(Integer, ForeignKey("mentors.id"), index=True, nullable=False)
-    session_id: Mapped[int] = mapped_column(Integer, ForeignKey("sessions.id"), index=True, nullable=False)
-    amount: Mapped[int] = mapped_column(Integer, nullable=False)  # в центах/копейках
-    currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
-    status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), default=PaymentStatus.PENDING, nullable=False)
-    payment_method: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    transaction_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, unique=True)
+    student_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    mentor_id = Column(Integer, ForeignKey("mentors.id"), index=True, nullable=False)
+    session_id = Column(Integer, ForeignKey("sessions.id"), index=True, nullable=False)
+    amount = Column(Integer, nullable=False)  # в центах/копейках
+    currency = Column(String(3), default="USD", nullable=False)
+    status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING, nullable=False)
+    payment_method = Column(String(50), nullable=True)
+    transaction_id = Column(String(255), nullable=True, unique=True)
 
     # Timestamp fields
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at: Mapped[datetime] = mapped_column(
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),

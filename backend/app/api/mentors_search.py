@@ -118,9 +118,9 @@ async def search_mentors(
         query_obj = query_obj.join(User) if not query else query_obj
 
     if sort_order.lower() == "asc":
-        query_obj = query_obj.order_by(sort_field.asc())
+        query_obj = query_obj.order_by(sort_field.asc())  # type: ignore[attr-defined]
     else:
-        query_obj = query_obj.order_by(sort_field.desc())
+        query_obj = query_obj.order_by(sort_field.desc())  # type: ignore[attr-defined]
 
     # Count total
     total = query_obj.count()

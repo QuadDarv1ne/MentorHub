@@ -60,7 +60,7 @@ def sanitize_and_validate(value: str, field_type: str = "string", field_name: st
         "username": sanitize_username,
         "text": sanitize_text_field,
     }
-    sanitizer: Callable[[str], str] = sanitizer_map.get(field_type, sanitize_string)  # type: ignore[assignment]
+    sanitizer: Callable[[str], str] = sanitizer_map.get(field_type, sanitize_string)
     sanitized = sanitizer(value)
     if not is_safe_string(sanitized):
         raise ValueError(f"Недопустимые символы в {field_name}")

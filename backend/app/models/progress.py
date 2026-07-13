@@ -2,10 +2,8 @@
 Модель трекинга прогресса пользователя по курсам/урокам
 """
 
-from typing import Optional
-
-from sqlalchemy import Boolean, ForeignKey, Index, Integer
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -18,11 +16,11 @@ class Progress(BaseModel, TimestampMixin):
         Index("idx_progress_user_course", "user_id", "course_id"),
     )
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    course_id: Mapped[int] = mapped_column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
-    lesson_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("lessons.id"), nullable=True, index=True)
-    progress_percent: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
+    lesson_id = Column(Integer, ForeignKey("lessons.id"), nullable=True, index=True)
+    progress_percent = Column(Integer, default=0, nullable=False)
+    completed = Column(Boolean, default=False, nullable=False)
 
     # Связи
     user = relationship("User", back_populates="progress_records")

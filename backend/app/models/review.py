@@ -2,10 +2,8 @@
 Модель отзыва о курсе
 """
 
-from typing import Optional
-
-from sqlalchemy import ForeignKey, Index, Integer, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, ForeignKey, Index, Integer, Text, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel, TimestampMixin
 
@@ -15,11 +13,11 @@ class Review(BaseModel, TimestampMixin):
 
     __tablename__ = "reviews"
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    reviewed_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # ID ментора, о котором отзыв
-    course_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)  # stepik course id (nullable for mentor reviews)
-    rating: Mapped[int] = mapped_column(Integer, nullable=False)
-    comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    reviewed_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # ID ментора, о котором отзыв
+    course_id = Column(Integer, nullable=True, index=True)  # stepik course id (nullable for mentor reviews)
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
 
     # Отношение к пользователю с cascade delete
     # Review может быть связано как reviewer (оставивший отзыв) или reviewed (получивший отзыв)
